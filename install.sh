@@ -26,13 +26,18 @@ sed -i "s|# en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen
 locale-gen
 
 # Copy files to their destination directories:
-pushd /opt/bpi-r2_router
-chown root:root -R files
-cp -aR files/* /
-popd
+chown root:root -R /opt/bpi-r2_router/files
+cp -aR /opt/bpi-r2_router/files/* /
+cp /root/.bash* /etc/skel/
+
+# Create a user named "pi", being a member of the "docker", "sudo" and "users" group.
+useradd -m -G docker,sudo,users pi
+echo -e "bananapi\nbananapi" | passwd -q pi
+cp /root/.bash* ~pi/
+chown pi:pi -R ~pi/.bash*
+chsh pi -s /bin/bash
 
 # Create the hard drive mounting points:
-mkdir -p /etc/samba/smb.d/
 mkdir -p /mnt/{sda1,sda2,sda3}
 
 # Install repository for PHP 7.x packages:
@@ -42,18 +47,21 @@ add-apt-repository -y ppa:ondrej/php
 mv /etc/apt/sources.list.d/ondrej-ubuntu-php-hirsute.list /etc/apt/sources.list.d/ondrej-ubuntu-php-bionic.list
 sed -i "s|hirsute|bionic|g" /etc/apt/sources.list.d/ondrej-ubuntu-php-bionic.list
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C
-apt-get update
-
-# Update the software:
-apt dist-upgrade -y
+apt update
 
 # Install some new stuff:
-apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release samba avahi-daemon avahi-discover libnss-mdns pmount toilet
+apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release samba avahi-daemon avahi-discover libnss-mdns pmount toilet miniupnpd miniupnpc
 systemctl enable avahi-daemon
 systemctl enable smbd
 systemctl enable nmbd
 
-# Create our custom login:
+# Modify the Samba configuration to make sharing USB sticks more automatic:
+sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" /etc/samba/smb.conf
+touch /etc/samba/includes.conf
+systemctl restart smbd
+echo -e "bananapi\nbananapi" | smbpasswd -a pi
+
+# Create our custom login message:
 rm /etc/motd
 rm /etc/update-motd.d/10-uname
 ln -s /var/run/motd /etc/motd
@@ -64,12 +72,11 @@ systemctl enable php7.2-fpm
 systemctl start php7.2-fpm
 mv /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/default.bak
 mv /etc/nginx/sites-enabled/organizr /etc/nginx/sites-enabled/default
-ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl enable nginx
 systemctl restart nginx
 systemctl start php7.2-fpm
 
-# Download and configure the main interface for the router:
+# Download and configure Organizr for the router:
 git clone https://github.com/causefx/Organizr /var/www/organizr
 chown www-data:www-data -R /var/www/organizr
 mkdir -p /var/lib/docker/data/organizr
@@ -80,16 +87,32 @@ popd
 mv /var/www/router.png /var/www/organizr/images/
 mv /var/www/config.php /var/www/organizr/config/
 
+# Install and configure cloudflared:
+pushd /tmp
+wget https://bin.equinox.io/c/VdrWdbjqyF/cloudflared-stable-linux-arm.tgz
+tar -xvzf cloudflared-stable-linux-arm.tgz
+mv ./cloudflared /usr/local/bin
+popd
+chmod +x /usr/local/bin/cloudflared
+useradd -s /usr/sbin/nologin -r -M cloudflared
+sudo chown cloudflared:cloudflared /etc/default/cloudflared
+sudo chown cloudflared:cloudflared /usr/local/bin/cloudflared
+sudo systemctl enable cloudflared
+sudo systemctl start cloudflared
+
 # Install PiHole
 curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
 systemctl stop dnsmasq
 systemctl disable dnsmasq
 systemctl mask dnsmasq
 chown pihole:pihole -R /var/lib/misc
+chown www-data:www-data -R /var/www/html
 systemctl enable pihole-FTL
 systemctl start pihole-FTL
+pihole -a -p bananapi
+ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 
-# Download the bpi-r2-ssd1306-display repo:
+# Install the bpi-r2-ssd1306-display repo and required components:
 apt install -y python3-pip libtiff5-dev libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python-tk
 python3 -m pip install --upgrade pip wheel setuptools
 python3 -m pip install Adafruit-SSD1306 Adafruit-BBIO Adafruit-GPIO Adafruit-PureIO Pillow psutil
@@ -107,3 +130,13 @@ tar xvzf /tmp/docker.tgz
 mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
 ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
 popd
+
+# Install TrueCrypt and HD-Idle:
+wget https://github.com/stefansundin/truecrypt.deb/releases/download/7.1a-15/truecrypt-cli_7.1a-15_armhf.deb -O /tmp/truecrypt.deb
+wget https://github.com/adelolmo/hd-idle/releases/download/v1.12/hd-idle_1.12_armhf.deb -O /tmp/hdidle.deb
+apt install -y /tmp/*.deb
+rm /tmp/*.deb
+
+# LAST STEP: Update the software!
+apt-get update
+apt dist-upgrade -y

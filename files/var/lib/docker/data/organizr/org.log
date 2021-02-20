@@ -1,7 +1,9 @@
-2021-02-19 16:13:14|success|database created/saved
-2021-02-19 16:13:27|success|admin has just registered
-2021-02-19 16:13:27|success|admin has logged in
-2021-02-19 16:13:51|success|tabs successfully saved
-2021-02-19 16:16:11|success|tabs successfully saved
-2021-02-19 16:17:50|success|tabs successfully saved
-2021-02-19 16:21:06|success|tabs successfully saved
+2021-02-19 20:17:04|success|database created/saved
+2021-02-19 20:17:04|error|root tried to sign-in with the wrong password
+2021-02-19 20:17:48|success|root has just registered
+2021-02-19 20:17:48|success|root has logged in
+2021-02-20 06:12:27|error|root tried to sign-in with the wrong password
+2021-02-20 06:13:38|error|root tried to sign-in with the wrong password
+2021-02-20 09:19:10|success|tabs successfully saved
+2021-02-20 09:20:07|success|tabs successfully saved
+2021-02-20 09:20:38|success|tabs successfully saved

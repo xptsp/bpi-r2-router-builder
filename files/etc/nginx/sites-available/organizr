@@ -20,10 +20,6 @@ server {
         fastcgi_param FQDN true;
     }
 
-    location /api/v2 {
-            try_files $uri /api/v2/index.php$is_args$args;
-    }
-
     location ~ /\.ht {
         deny all;
     }

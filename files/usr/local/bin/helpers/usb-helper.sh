@@ -35,8 +35,8 @@ path=${MEDIA}
 browseable=Yes
 writeable=Yes
 only guest=no
-create mask=0777
-directory mask=0777
+create mask=0755
+directory mask=0755
 public=no
 EOF
 }
