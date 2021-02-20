@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+# Try and enable dual-AP on the mt7615:
+for file in /sys/kernel/debug/ieee80211/*; do [[ -f $file/mt76/dbdc ]] && echo 1 > $file/mt76/dbdc; done
+
+echo 1 > /sys/class/leds/bpi-r2:pio:blue/brightness
+
+exit 0
+

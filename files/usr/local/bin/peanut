@@ -1,0 +1,2 @@
+#!/bin/bash
+(head -1 | sed "s| and established| noly|"; grep LISTEN) <<< $(sudo netstat -peanut)

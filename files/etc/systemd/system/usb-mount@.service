@@ -1,0 +1,10 @@
+[Unit]
+Description=Mount USB Drive on %i
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/local/bin/helpers/usb-helper.sh start %i
+ExecStop=/usr/local/bin/helpers/usb-helper.sh stop %i
+
+

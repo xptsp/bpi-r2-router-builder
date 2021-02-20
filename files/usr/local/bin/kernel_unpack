@@ -1,0 +1,4 @@
+#!/bin/bash
+kernelpack=$1
+sudo tar -xzf ${kernelpack} -C / --strip-components=1 BPI-ROOT
+sudo tar -xzf ${kernelpack} -C /boot/ --strip-components=1 BPI-BOOT
