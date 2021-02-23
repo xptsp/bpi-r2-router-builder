@@ -1,3 +1,4 @@
+
 *nat
 # Allow masquerading connections as from wan interface
 -A POSTROUTING -o wan -j MASQUERADE
@@ -8,49 +9,39 @@ COMMIT
 *filter
 -N DOCKER-USER
 
-# Default policy: Drop all incoming connections
+# Default iptables policies:
 :INPUT DROP [0:0]
-
-# Default policy: Allow all outgoing connections
 :OUTPUT ACCEPT [0:0]
-
-# Default policy: Drop all forwarded connections
 :FORWARD DROP [0:0]
 
-# Accept all connections from localhost
+# Accept connections from localhost (LO), lan bridge (BR0) and docker (BR1):
 -A INPUT -i lo -j ACCEPT
-
-# Accept all connections from br0 (our lan bridge)
 -A INPUT -i br0 -j ACCEPT
-
-# Accept all connections from br1 (our docker bridge)
 -A INPUT -i br1 -j ACCEPT
 
-# Accept all established and related connections from wan
+# Accept all established and related connections from WAN:
 -A INPUT -i wan -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-# Forward everything from br0 to br1
+# Forward everything from/to internal networks:
 -A FORWARD -i br0 -o br1 -j ACCEPT
-
-# Forward everything from br1 to br0
 -A FORWARD -i br1 -o br0 -j ACCEPT
 
-# Forward everything from br0 to wan
+# Forward BR0 to WAN, but only allow established/related connections back to BR0:
 -A FORWARD -i br0 -o wan -j ACCEPT
-
-# Forward everything from br1 to wan
--A FORWARD -i br1 -o wan -j ACCEPT
-
-# Forward established and related connections from wan to br0
 -A FORWARD -i wan -o br0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-# Forward established and related connections from wan to br1
+# Forward BR1 to WAN, but only allow established/related connections back to BR1:
+-A FORWARD -i br1 -o wan -j ACCEPT
 -A FORWARD -i wan -o br1 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-# (?)
+# Lastly, Docker (for reasons unknown) breaks router functionality.  So, we duplicate
+# the rules so that our router continues to act like a router instead of a brick....
+-I DOCKER-USER -i br0 -o br1 -j ACCEPT
+-I DOCKER-USER -i br1 -o br0 -j ACCEPT
 -I DOCKER-USER -i br0 -o wan -j ACCEPT
+-A DOCKER-USER -i wan -o br0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 -I DOCKER-USER -i br1 -o wan -j ACCEPT
+-A DOCKER-USER -i wan -o br1 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 # Don't delete the 'COMMIT' line or these nat table rules won't be processed
 COMMIT
-

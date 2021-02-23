@@ -29,6 +29,7 @@ locale-gen
 chown root:root -R /opt/bpi-r2_router/files
 cp -aR /opt/bpi-r2_router/files/* /
 cp /root/.bash* /etc/skel/
+systemctl daemon-reload
 
 # Create the hard drive mounting points:
 mkdir -p /mnt/{sda1,sda2,sda3}
@@ -117,15 +118,18 @@ systemctl start pihole-FTL
 pihole -a -p bananapi
 ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 
-# Install docker and docker-compose:
-curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
-bash /tmp/get-docker.sh
+# Install docker:
+curl -L https://get.docker.com | bash
+
+# Download docker-compose into the /usr/local/bin directory:
 wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
 pushd /tmp
 tar xvzf /tmp/docker.tgz
 mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
 ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
 popd
+sudo chown pi:pi -R /var/lib/docker/data/
+systemctl enable docker-compose
 
 # Create a user named "pi", being a member of the "docker", "sudo" and "users" group.
 useradd -m -G docker,sudo,users pi

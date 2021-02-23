@@ -1,0 +1,83 @@
+#!/bin/bash
+if [[ "$UID" -ne 0 ]]; then
+	sudo $0
+	exit
+fi
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+BLUE='\033[1;34m'
+NC='\033[0m'
+
+los() {
+	img="$1"
+	dev="$(sudo losetup --show -f -P "$img")"
+	echo "$dev"
+	for part in "$dev"?*; do
+		[ "$part" = "${dev}p*" ] && part="${dev}"
+		dst="/mnt/$(basename "$part")"
+		echo "$dst"
+		sudo mkdir -p "$dst"
+		sudo mount "$part" "$dst"
+	done
+}
+losd() {
+	for part in "${1}"?*; do
+		if [ "${part}" = "${1}p*" ]; then
+			part="${1}"
+		fi
+		dst="/mnt/$(basename "$part")"
+		sudo umount "$dst"
+		sudo rmdir "$dst"
+	done
+	sudo losetup -d "$1"
+}
+
+FILE="${1}"
+if [[ -z "${FILE}" || ! -e "${FILE}" ]]; then
+	# Assemble the list of files to display:
+	count=0
+	while read -r file
+	do
+		 options+=($((++count)) "$file")
+	done <<< $(ls -r *.img*)
+
+	# Display the dialog box:
+	cmd=(dialog --keep-tite --menu "Select Image to Clean:" 22 76 16)
+	CHOICE=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+	[[ "$CHOICE" -eq 0 ]] && exit 0
+	FILE=${options[ $(( $CHOICE * 2 - 1)) ]}
+	echo -e "${GREEN}================================================================${NC}"
+	echo -e "${GREEN}NOTE:${NC} Cleaning up ${BLUE}${DEV}${NC} to ${BLUE}${FILE}${NC}...."
+fi
+
+echo -e "${GREEN}================================================================${NC}"
+echo -e "${GREEN}NOTE:${NC} Mounting partitions within the image..."
+DEV=($(los ${FILE}))
+echo -e "${GREEN}NOTE:${NC} Zeroing free space from partition 1..."
+A=${DEV[1]}
+cp /dev/zero ${A}/zero >& /dev/null
+rm ${A}/zero
+echo -e "${GREEN}NOTE:${NC} Removing unnecessary files from partition 2..."
+A=${DEV[2]}
+rm -rf ${A}/tmp/* >& /dev/null
+rm -rf ${A}/root/.config >& /dev/null
+rm -rf ${A}/root/.local >& /dev/null
+rm ${A}/root/.bash_history >& /dev/null
+rm ${A}/root/.ssh/known_hosts >& /dev/null
+echo -e "${GREEN}NOTE:${NC} Clearing the local repository of retrieved package files..."
+chroot ${A} apt-get clean
+chroot ${A} apt-get autoclean
+echo -e "${GREEN}NOTE:${NC} Purge unnecessary packages..."
+chroot ${A} apt-get -y purge --autoremove
+echo -e "${GREEN}NOTE:${NC} Clearing PiHole stats..."
+chroot ${A} pihole -f
+echo -e "${GREEN}NOTE:${NC} Zeroing free space from partition 2..."
+cp /dev/zero ${A}/zero >& /dev/null
+rm ${A}/zero
+echo -e "${GREEN}NOTE:${NC} Unmount partitions from system..."
+losd ${DEV[0]}
+echo -e "${GREEN}================================================================${NC}"
+echo -e "${GREEN}NOTE:${NC} Compressing image..."
+gzip -kv ${FILE}
+echo -e "${GREEN}================================================================${NC}"
+echo -e "${GREEN}SUCCESS!${NC}  Image backup completed and prepped successfully!"

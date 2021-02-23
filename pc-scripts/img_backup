@@ -1,0 +1,54 @@
+#!/bin/bash
+if [[ "$UID" -ne 0 ]]; then
+	sudo $0 $@
+	exit
+fi
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+BLUE='\033[1;34m'
+NC='\033[0m'
+
+los() {
+	img="$1"
+	dev="$(sudo losetup --show -f -P "$img")"
+	echo "$dev"
+	for part in "$dev"?*; do
+		[ "$part" = "${dev}p*" ] && part="${dev}"
+		dst="/mnt/$(basename "$part")"
+		echo "$dst"
+		sudo mkdir -p "$dst"
+		sudo mount "$part" "$dst"
+	done
+}
+losd() {
+	for part in "${1}"?*; do
+		if [ "${part}" = "${1}p*" ]; then
+			part="${1}"
+		fi
+		dst="/mnt/$(basename "$part")"
+		sudo umount "$dst"
+		sudo rmdir "$dst"
+	done
+	sudo losetup -d "$1"
+}
+
+DEV=$(sudo blkid | grep "BPI-BOOT" | grep "/dev/sd" | cut -d":" -f 1 | head -1 | cut -c1-8)
+if [[ -z "${DEV}" ]]; then
+	echo "${RED}ERROR:${NC} SD Card not detected with partition 1 label of ${BLUE}BPI-BOOT${NC}!"
+	exit 1
+fi
+umount ${DEV}* >& /dev/null
+LINE=$(sudo fdisk --list ${DEV} | tail -1)
+END=$(( $(echo $LINE | cut -d" " -f 3) + 1 ))
+
+FILE=bpi-r2-buster_$(date +"%Y%m%d_%H%M").img
+MB=$(( ${END} / 2 / 1024 / 4))
+SZ=$(( ${END} * 512 ))
+echo -e "${GREEN}================================================================${NC}"
+echo -e "${GREEN}NOTE:${NC} Backing up ${BLUE}${DEV}${NC} to ${BLUE}${FILE}${NC}...."
+echo -e "${GREEN}INFO:${NC} $(printf "%'.0f\n" ${END}) blocks = $(printf "%'.0f\n" $(( ${MB} * 4 ))) MB ($(printf "%'.0f\n" ${SZ}))"
+echo -e "${GREEN}================================================================${NC}"
+dd if=${DEV} of=${FILE} bs=4M count=${MB} status=progress
+echo -e "${GREEN}================================================================${NC}"
+
+# ./img_cleanup ${FILE}

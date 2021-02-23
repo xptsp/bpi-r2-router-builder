@@ -1,0 +1,61 @@
+#!/bin/bash
+if [[ "$UID" -ne 0 ]]; then
+	sudo $0 $@
+	exit
+fi
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+BLUE='\033[1;34m'
+NC='\033[0m'
+
+DEV=$(sudo blkid | grep "BPI-BOOT" | cut -d":" -f 1 | head -1 | cut -c1-8)
+if [[ -z "${DEV}" ]]; then
+	echo -e "${RED}ERROR:${NC} SD Card not detected with partition 1 label of ${BLUE}BPI-BOOT${NC}!"
+	exit 1
+fi
+umount ${DEV}* >& /dev/null
+
+FILE="${1}"
+if [[ ! -f "${FILE}" ]]; then
+	# Assemble the list of files to display:
+	count=0
+	while read -r file
+	do
+		 options+=($((++count)) "$file")
+	done <<< $(ls -r *.img*)
+
+	# Display the dialog box:
+	cmd=(dialog --keep-tite --menu "Select Image to Restore:" 22 76 16)
+	CHOICE=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+	[[ "$CHOICE" -eq 0 ]] && exit 0
+	FILE=${options[ $(( $CHOICE * 2 - 1)) ]}
+fi
+
+# Write the image to the SD card:
+#   *.img     - Uncompressed image
+#   *.img.gz  - Compressed image
+#   Otherwise - Unknown format!
+if [[ "$FILE" == *".img" && -e "${FILE}" ]]; then
+	LINE=$(sudo fdisk --list ${FILE} | tail -1)
+	END=$(( $(echo $LINE | cut -d" " -f 3) + 1 ))
+	MB=$(( ${END} / 2 / 1024 / 4))
+	SZ=$(( ${END} * 512 ))
+	echo -e "${GREEN}================================================================${NC}"
+	echo -e "${RED}NOTE:${NC} Writing ${BLUE}${FILE}${NC} to ${BLUE}${DEV}${NC}..."
+	echo -e "${RED}INFO:${NC} $(printf "%'.0f\n" ${END}) blocks = $(printf "%'.0f\n" $(( ${MB} * 4 ))) MB ($(printf "%'.0f\n" ${SZ}))"
+	echo -e "${GREEN}================================================================${NC}"
+	dd of=${DEV} if=${FILE} bs=4M count=$(( ${END} / 2 / 1024 / 4)) status=progress
+	echo -e "${GREEN}================================================================${NC}"
+	echo -e "${GREEN}SUCCESS!${NC} Image has restored!"
+	partprobe ${DEV}
+elif [[ "$FILE" == *".img.gz" && -e "${FILE}" ]]; then
+	echo -e "${GREEN}================================================================${NC}"
+	echo -e "${RED}NOTE:${NC} Writing ${BLUE}${FILE}${NC} to ${BLUE}${DEV}${NC}..."
+	echo -e "${GREEN}================================================================${NC}"
+	gunzip -c ${FILE} | dd of=${DEV} bs=4M status=progress
+	partprobe ${DEV}
+	echo -e "${GREEN}================================================================${NC}"
+	echo -e "${GREEN}SUCCESS!${NC} Image has decompressed and restored!"
+else
+	echo "ERROR: Unrecognized extension!  Aborting..."
+fi
