@@ -1,6 +1,14 @@
 *nat
-# Allow masquerading connections as from wan interface
+# Allow masquerading connections as from wan interface:
 -A POSTROUTING -o wan -j MASQUERADE
+
+# Force all DNS requests not aimed at the PiHole to the PiHole from interface BR0:
+-A PREROUTING -i br0 -p udp ! --source 192.168.2.1 ! --destination 192.168.2.1 --dport 53 -j DNAT --to 192.168.2.1
+-A PREROUTING -i br0 -p tcp ! --source 192.168.2.1 ! --destination 192.168.2.1 --dport 53 -j DNAT --to 192.168.2.1
+
+# Force all DNS requests not aimed at the PiHole to the PiHole from interface BR1:
+-A PREROUTING -i br1 -p udp ! --source 192.168.3.1 ! --destination 192.168.3.1 --dport 53 -j DNAT --to 192.168.3.1
+-A PREROUTING -i br1 -p tcp ! --source 192.168.3.1 ! --destination 192.168.3.1 --dport 53 -j DNAT --to 192.168.3.1
 
 # Don't delete the 'COMMIT' line or these nat table rules won't be processed
 COMMIT
