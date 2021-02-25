@@ -13,6 +13,9 @@ COMMIT
 :OUTPUT ACCEPT [0:0]
 :FORWARD DROP [0:0]
 
+# Reject everything coming from user VPN:
+-A OUTPUT ! -o lo -m owner --uid-owner vpn -j DROP
+
 # Accept connections from localhost (LO), lan bridge (BR0) and docker (BR1):
 -A INPUT -i lo -j ACCEPT
 -A INPUT -i br0 -j ACCEPT
@@ -35,3 +38,4 @@ COMMIT
 
 # Don't delete the 'COMMIT' line or these nat table rules won't be processed
 COMMIT
+

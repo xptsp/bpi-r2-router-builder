@@ -6,6 +6,17 @@ if [[ "${UID}" -ne 0 ]]; then
 	exit $?
 fi
 
+# Set hostname:
+echo "bpi-r2" > /etc/hostname
+
+# Set IP address of both hostname and pi.hole
+echo "192.168.2.1     bpi-r2" >> /etc/hosts
+echo "192.168.2.1     pi.hole" >> /etc/hosts
+
+# Remove known duplicate files:
+[[ -e /etc/apt/trusted.gpg~ ]] && rm /etc/apt/trusted.gpg~
+[[ -e /etc/network/interfaces~ ]] && rm /etc/network/interfaces~
+
 # Enable packet forwarding on IPv4:
 sed -i "s|#net.ipv4.ip_forward=1|net.ipv4.ip_forward=1|g" /etc/sysctl.conf
 
@@ -14,6 +25,9 @@ echo "kernel.panic = 1" >> /etc/sysctl.conf
 
 # Blacklist the module responsible for poweroffs on R2:
 echo "blacklist mtk_pmic_keys" > /etc/modprobe.d/blacklist.conf
+
+# Load the i2c-dev module at boot:
+echo "i2c-dev" > /etc/modprobe.d/i2c.conf
 
 # Refreshes the certificates:
 update-ca-certificates -f
@@ -48,18 +62,15 @@ systemctl enable nmbd
 apt install -y samba pmount
 sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" /etc/samba/smb.conf
 touch /etc/samba/includes.conf
+systemctl enable smbd
+systemctl enable nmbd
 systemctl restart smbd
-echo -e "bananapi\nbananapi" | smbpasswd -a pi
 
 # Create our custom login message:
 apt install -y toilet
 rm /etc/motd
 rm /etc/update-motd.d/10-uname
 ln -s /var/run/motd /etc/motd
-
-# Update the software:
-apt update
-apt dist-upgrade -y
 
 # Install repository for PHP 7.x packages:
 apt-get install -y software-properties-common
@@ -73,8 +84,8 @@ apt update
 apt-get install -y nginx php7.2-fpm php7.2-cgi php7.2-xml php7.2-sqlite3 php7.2-intl apache2-utils php7.2-mysql php7.2-sqlite3 sqlite3 php7.2-zip openssl php7.2-curl
 systemctl enable php7.2-fpm
 systemctl start php7.2-fpm
-mv /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/default.bak
-mv /etc/nginx/sites-enabled/organizr /etc/nginx/sites-enabled/default
+mv /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
+mv /etc/nginx/sites-available/organizr /etc/nginx/sites-available/default
 systemctl enable nginx
 systemctl restart nginx
 systemctl start php7.2-fpm
@@ -128,16 +139,14 @@ tar xvzf /tmp/docker.tgz
 mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
 ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
 popd
-sudo chown pi:pi -R /var/lib/docker/data/
 systemctl enable docker-compose
 ln -sf /var/lib/docker/data /opt/docker-data
 
 # Create a user named "pi", being a member of the "docker", "sudo" and "users" group.
-useradd -m -G docker,sudo,users pi
+useradd -m -G docker,sudo,users -s /bin/bash pi
 echo -e "bananapi\nbananapi" | passwd -q pi
-cp /root/.bash* ~pi/
-chown pi:pi -R ~pi/.bash*
-chsh pi -s /bin/bash
+echo -e "bananapi\nbananapi" | smbpasswd -a pi
+chown pi:pi -R /var/lib/docker/data/
 
 # Install TrueCrypt and HD-Idle:
 wget https://github.com/stefansundin/truecrypt.deb/releases/download/7.1a-15/truecrypt-cli_7.1a-15_armhf.deb -O /tmp/truecrypt.deb
@@ -153,8 +162,16 @@ chown www-data:www-data /etc/default/ydns-updater
 # Pull fitu996's overlayRoot.sh repository:
 git clone https://github.com/fitu996/overlayRoot.sh /opt/overlayRoot.sh
 
-# Install our split VPN tunnel:
+# Install OpenVPN and create user VPN:
 apt install -y openvpn unzip
-useradd -m -G users vpn
-chsh pi -s /bin/true
+useradd -m -G users -s /bin/true vpn
 usermod -aG vpn pi
+rm ~vpn/.bash_history
+touch ~vpn/.bash_history
+chattr +i ~vpn/.bash_history
+cat << EOF > /etc/sysctl.d/9999-vpn.conf
+net.ipv4.conf.all.rp_filter = 2
+net.ipv4.conf.default.rp_filter = 2
+net.ipv4.conf.wan.rp_filter = 2
+EOF
+echo "200     vpn" >> /etc/iproute2/rt_tables
