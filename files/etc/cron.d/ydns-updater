@@ -1,0 +1,1 @@
+0,15,30,45 * * * * /opt/ydns-updater/updater.sh > /dev/null

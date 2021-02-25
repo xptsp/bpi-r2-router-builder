@@ -39,7 +39,7 @@ apt update
 apt dist-upgrade -y
 
 # Install some new stuff:
-apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns miniupnpd miniupnpc
+apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns
 systemctl enable avahi-daemon
 systemctl enable smbd
 systemctl enable nmbd
@@ -130,6 +130,7 @@ ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-co
 popd
 sudo chown pi:pi -R /var/lib/docker/data/
 systemctl enable docker-compose
+ln -sf /var/lib/docker/data /opt/docker-data
 
 # Create a user named "pi", being a member of the "docker", "sudo" and "users" group.
 useradd -m -G docker,sudo,users pi
@@ -143,3 +144,17 @@ wget https://github.com/stefansundin/truecrypt.deb/releases/download/7.1a-15/tru
 wget https://github.com/adelolmo/hd-idle/releases/download/v1.12/hd-idle_1.12_armhf.deb -O /tmp/hdidle.deb
 apt install -y /tmp/*.deb
 rm /tmp/*.deb
+
+# Pull ydns's bash-updater repo and modify to pull settings from elsewhere:
+git clone https://github.com/ydns/bash-updater /opt/ydns-updater
+sed -i "s|^YDNS_LASTIP_FILE|[[ -f /etc/default/ydns-updater ]] \&\& source /etc/default/ydns-updater\nYDNS_LASTIP_FILE|" /opt/ydns-updater/updater.sh
+chown www-data:www-data /etc/default/ydns-updater
+
+# Pull fitu996's overlayRoot.sh repository:
+git clone https://github.com/fitu996/overlayRoot.sh /opt/overlayRoot.sh
+
+# Install our split VPN tunnel:
+apt install -y openvpn unzip
+useradd -m -G users vpn
+chsh pi -s /bin/true
+usermod -aG vpn pi
