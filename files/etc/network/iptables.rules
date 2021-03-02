@@ -2,48 +2,25 @@
 # Allow masquerading connections as from wan interface:
 -A POSTROUTING -o wan -j MASQUERADE
 
-# Force all DNS requests not aimed at the PiHole to the PiHole from interface BR0:
--A PREROUTING -i br0 -p udp ! --source 192.168.2.1 ! --destination 192.168.2.1 --dport 53 -j DNAT --to 192.168.2.1
--A PREROUTING -i br0 -p tcp ! --source 192.168.2.1 ! --destination 192.168.2.1 --dport 53 -j DNAT --to 192.168.2.1
-
-# Force all DNS requests not aimed at the PiHole to the PiHole from interface BR1:
--A PREROUTING -i br1 -p udp ! --source 192.168.3.1 ! --destination 192.168.3.1 --dport 53 -j DNAT --to 192.168.3.1
--A PREROUTING -i br1 -p tcp ! --source 192.168.3.1 ! --destination 192.168.3.1 --dport 53 -j DNAT --to 192.168.3.1
-
 # Don't delete the 'COMMIT' line or these nat table rules won't be processed
 COMMIT
 
 *filter
--N DOCKER-USER
-
 # Default iptables policies:
-:INPUT DROP [0:0]
+:INPUT ACCEPT [0:0]
 :OUTPUT ACCEPT [0:0]
-:FORWARD DROP [0:0]
+:FORWARD ACCEPT [0:0]
 
 # Reject everything coming from user VPN:
 -A OUTPUT ! -o lo -m owner --uid-owner vpn -j DROP
 
-# Accept connections from localhost (LO), lan bridge (BR0) and docker (BR1):
--A INPUT -i lo -j ACCEPT
--A INPUT -i br0 -j ACCEPT
--A INPUT -i br1 -j ACCEPT
-
-# Accept all established and related connections from WAN:
+# On WAN, accept all established and related connections and drop everything else.
 -A INPUT -i wan -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -i wan -j DROP
 
-# Forward everything from/to internal networks:
--A FORWARD -i br0 -o br1 -j ACCEPT
--A FORWARD -i br1 -o br0 -j ACCEPT
-
-# Forward BR0 to WAN, but only allow established/related connections back to BR0:
--A FORWARD -i br0 -o wan -j ACCEPT
--A FORWARD -i wan -o br0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-
-# Forward BR1 to WAN, but only allow established/related connections back to BR1:
--A FORWARD -i br1 -o wan -j ACCEPT
--A FORWARD -i wan -o br1 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+# On WAN, forward all established and related connections and drop everything else.
+-A FORWARD -i wan -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A FORWARD -i wan -j DROP
 
 # Don't delete the 'COMMIT' line or these nat table rules won't be processed
 COMMIT
-

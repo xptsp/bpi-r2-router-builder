@@ -14,6 +14,7 @@
 # Try and enable dual-AP on the mt7615:
 for file in /sys/kernel/debug/ieee80211/*; do [[ -f $file/mt76/dbdc ]] && echo 1 > $file/mt76/dbdc; done
 
+# Turn on the blue light near the GPIO pins:
 echo 1 > /sys/class/leds/bpi-r2:pio:blue/brightness
 
 exit 0
