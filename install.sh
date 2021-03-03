@@ -43,8 +43,8 @@ sed -i "s|# en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen
 locale-gen
 
 # Copy files to their destination directories:
-chown root:root -R /opt/bpi-r2_router/files
-cp -aR /opt/bpi-r2_router/files/* /
+chown root:root -R files
+cp -aR files/* /
 cp /root/.bash* /etc/skel/
 systemctl daemon-reload
 
