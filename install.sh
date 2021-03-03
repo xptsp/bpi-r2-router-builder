@@ -56,7 +56,7 @@ apt update
 apt dist-upgrade -y
 
 # Install some new stuff:
-apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip
+apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat
 systemctl enable avahi-daemon
 systemctl enable smbd
 systemctl enable nmbd
@@ -162,9 +162,19 @@ git clone https://github.com/ydns/bash-updater /opt/ydns-updater
 sed -i "s|^YDNS_LASTIP_FILE|[[ -f /etc/default/ydns-updater ]] \&\& source /etc/default/ydns-updater\nYDNS_LASTIP_FILE|" /opt/ydns-updater/updater.sh
 chown www-data:www-data /etc/default/ydns-updater
 
+# Add Raspberry Pi repository, then install the marklister/overlayRoot repo from GitHub:
+echo "deb http://archive.raspberrypi.org/debian/ stretch main ui" > /etc/apt/sources.list.d/raspi.list
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 82B129927FA3303E
+apt update
+git clone https://github.com/marklister/overlayRoot /opt/overlayRoot/
+pushd /opt/overlayRoot
+sed -i "/cmdline.txt/d" install
+./install
+popd
+
 # Install OpenVPN and create user VPN:
 apt install -y openvpn
-useradd -m -G users -s /bin/true vpn
+useradd -m -G users -s /usr/sbin/nologin vpn
 usermod -aG vpn pi
 cat << EOF > /etc/sysctl.d/9999-vpn.conf
 net.ipv4.conf.all.rp_filter = 2
@@ -175,12 +185,13 @@ echo "200     vpn" >> /etc/iproute2/rt_tables
 touch /etc/openvpn/.vpn_creds
 chmod 600 /etc/openvpn/.vpn_creds
 
-# Add Raspberry Pi repository, then install the marklister/overlayRoot repo from GitHub:
-echo "deb http://archive.raspberrypi.org/debian/ stretch main ui" > /etc/apt/sources.list.d/raspi.list
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 82B129927FA3303E
-apt update
-git clone https://github.com/marklister/overlayRoot /opt/overlayRoot/
-pushd /opt/overlayRoot
-sed -i "/cmdline.txt/d" install
-./install
-popd
+# Install Transmission-BT program:
+apt-get install transmission-daemon -y
+chown -R vpn:vpn /etc/transmission-daemon/
+chown -R vpn:vpn /var/lib/transmission-daemon/
+chmod -R 775 /etc/transmission-daemon/
+chmod -R 775 /var/lib/transmission-daemon/
+mkdir /home/vpn/{Incomplete,Download}
+chown -R vpn:vpn /home/vpn/{Incomplete,Download}
+chmod -R 775 /home/vpn/{Incomplete,Download}
+usermod -aG vpn pi
