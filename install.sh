@@ -6,6 +6,14 @@ if [[ "${UID}" -ne 0 ]]; then
 	exit $?
 fi
 
+# Create a user named "pi", being a member of the "docker", "sudo" and "users" group.
+useradd -m -G docker,sudo,users -s /bin/bash pi
+echo -e "bananapi\nbananapi" | passwd -q pi
+
+# Create a user name "vpn", being a member of the "pi" group:
+useradd -m -G users -s /usr/sbin/nologin vpn
+usermod -aG vpn pi
+
 # Create symlink to use "clear" as "cls":
 ln -sf /usr/bin/clear /usr/local/bin/cls
 
@@ -53,6 +61,7 @@ chown root:root -R files
 cp -aR files/* /
 cp /root/.bash* /etc/skel/
 systemctl daemon-reload
+chown pi:pi -R /var/lib/docker/data/
 
 # Create the hard drive mounting points:
 mkdir -p /mnt/{sda1,sda2,sda3}
@@ -76,6 +85,7 @@ touch /etc/samba/includes.conf
 systemctl enable smbd
 systemctl enable nmbd
 systemctl restart smbd
+echo -e "bananapi\nbananapi" | smbpasswd -a pi
 
 # Create our custom login message:
 apt install -y toilet
@@ -152,11 +162,6 @@ popd
 systemctl enable docker-compose
 ln -sf /var/lib/docker/data /opt/docker-data
 
-# Create a user named "pi", being a member of the "docker", "sudo" and "users" group.
-useradd -m -G docker,sudo,users -s /bin/bash pi
-echo -e "bananapi\nbananapi" | passwd -q pi
-echo -e "bananapi\nbananapi" | smbpasswd -a pi
-chown pi:pi -R /var/lib/docker/data/
 
 # Install TrueCrypt and HD-Idle:
 wget https://github.com/stefansundin/truecrypt.deb/releases/download/7.1a-15/truecrypt-cli_7.1a-15_armhf.deb -O /tmp/truecrypt.deb
@@ -183,8 +188,6 @@ apt update
 
 # Install OpenVPN and create user VPN:
 apt install -y openvpn
-useradd -m -G users -s /usr/sbin/nologin vpn
-usermod -aG vpn pi
 cat << EOF > /etc/sysctl.d/9999-vpn.conf
 net.ipv4.conf.all.rp_filter = 2
 net.ipv4.conf.default.rp_filter = 2
@@ -204,3 +207,22 @@ mkdir /home/vpn/{Incomplete,Download}
 chown -R vpn:vpn /home/vpn/{Incomplete,Download}
 chmod -R 775 /home/vpn/{Incomplete,Download}
 usermod -aG vpn pi
+
+# Install some other router tools:
+apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance igmpproxy
+
+# Install miniupnpd, then cleanup messy install:
+pushd /tmp/
+apt download miniupnpd
+cp /etc/miniupnpd/miniupnpd.conf /tmp/
+apt install -y ./miniupnpd*.deb
+rm /etc/default/miniupnpd
+rm /etc/init.d/miniupnpd
+rm /etc/miniupnpd/*
+cp /tmp/miniupnpd.conf /etc/miniupnpd/miniupnpd.conf
+dpkg -x $(ls miniupnpd*.deb) /tmp/miniupnpd
+rm miniupnpd*.deb
+cp /tmp/miniupnpd/usr/sbin/miniupnpd /usr/sbin
+popd
+systemctl enable miniupnpd
+systemctl start miniupnpd
