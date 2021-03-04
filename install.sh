@@ -26,6 +26,12 @@ sed -i "s|#net.ipv4.ip_forward=1|net.ipv4.ip_forward=1|g" /etc/sysctl.conf
 # Force automatic reboot after 1 second upon a kernel panic:
 echo "kernel.panic = 1" >> /etc/sysctl.conf
 
+# Activate these changes:
+sysctl -p
+
+# Activate the iptables rules so that we have internet access during installation:
+/etc/network/if-pre-up.d/iptables
+
 # Blacklist the module responsible for poweroffs on R2:
 echo "blacklist mtk_pmic_keys" > /etc/modprobe.d/blacklist.conf
 
@@ -60,6 +66,8 @@ apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl 
 systemctl enable avahi-daemon
 systemctl enable smbd
 systemctl enable nmbd
+systemctl disable vnstat
+rm /var/lib/vnstat/*
 
 # Modify the Samba configuration to make sharing USB sticks more automatic:
 apt install -y samba pmount
@@ -78,8 +86,7 @@ ln -s /var/run/motd /etc/motd
 # Install repository for PHP 7.x packages:
 apt-get install -y software-properties-common
 add-apt-repository -y ppa:ondrej/php
-mv /etc/apt/sources.list.d/ondrej-ubuntu-php-hirsute.list /etc/apt/sources.list.d/ondrej-ubuntu-php-bionic.list
-sed -i "s|hirsute|bionic|g" /etc/apt/sources.list.d/ondrej-ubuntu-php-bionic.list
+sed -i "s|hirsute|bionic|g" /etc/apt/sources.list.d/ondrej-ubuntu-php-hirsute.list
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C
 
 # Install NGINX and required PHP 7.2 packages:
@@ -162,7 +169,7 @@ git clone https://github.com/ydns/bash-updater /opt/ydns-updater
 sed -i "s|^YDNS_LASTIP_FILE|[[ -f /etc/default/ydns-updater ]] \&\& source /etc/default/ydns-updater\nYDNS_LASTIP_FILE|" /opt/ydns-updater/updater.sh
 chown www-data:www-data /etc/default/ydns-updater
 
-# Add Raspberry Pi repository, then install the marklister/overlayRoot repo from GitHub:
+# Temporarily add Raspberry Pi repository so we can install packages required by marklister/overlayRoot repo:
 echo "deb http://archive.raspberrypi.org/debian/ stretch main ui" > /etc/apt/sources.list.d/raspi.list
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 82B129927FA3303E
 apt update
@@ -171,6 +178,8 @@ pushd /opt/overlayRoot
 sed -i "/cmdline.txt/d" install
 ./install
 popd
+rm /etc/apt/sources.list.d/raspi.list
+apt update
 
 # Install OpenVPN and create user VPN:
 apt install -y openvpn
