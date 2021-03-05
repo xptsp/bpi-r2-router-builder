@@ -9,7 +9,7 @@ fi
 export DEBIAN_FRONTEND=noninteractive
 
 # Create a user named "pi", being a member of the "docker", "sudo" and "users" group.
-useradd -m -G docker,sudo,users -s /bin/bash pi
+useradd -m -G sudo,users -s /bin/bash pi
 echo -e "bananapi\nbananapi" | passwd -q pi
 
 # Create a user name "vpn", being a member of the "pi" group:
@@ -38,13 +38,11 @@ echo "192.168.2.1     pi.hole" >> /etc/hosts
 sed -i "s|#net.ipv4.ip_forward=1|net.ipv4.ip_forward=1|g" /etc/sysctl.conf
 
 # Force automatic reboot after 1 second upon a kernel panic:
+sed -i "/kernel.panic/d" /etc/sysctl.conf
 echo "kernel.panic = 1" >> /etc/sysctl.conf
 
 # Activate these changes:
 sysctl -p
-
-# Activate the iptables rules so that we have internet access during installation:
-/etc/network/if-pre-up.d/iptables
 
 # Blacklist the module responsible for poweroffs on R2:
 echo "blacklist mtk_pmic_keys" > /etc/modprobe.d/blacklist.conf
@@ -69,6 +67,9 @@ cp /root/.bash* /etc/skel/
 systemctl daemon-reload
 chown pi:pi -R /var/lib/docker/data/
 
+# Activate the iptables rules so that we have internet access during installation:
+/etc/network/if-pre-up.d/iptables
+
 # Create the hard drive mounting points:
 mkdir -p /mnt/{sda1,sda2,sda3}
 
@@ -78,6 +79,7 @@ apt dist-upgrade -y
 
 # Install some new stuff:
 apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils
+apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance igmpproxy miniupnpc
 systemctl enable avahi-daemon
 systemctl enable smbd
 systemctl enable nmbd
@@ -158,6 +160,7 @@ ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 
 # Install docker:
 curl -L https://get.docker.com | bash
+usermod -aG docker pi
 
 # Download docker-compose into the /usr/local/bin directory:
 wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
@@ -214,19 +217,23 @@ chown -R vpn:vpn /home/vpn/{Incomplete,Download}
 chmod -R 775 /home/vpn/{Incomplete,Download}
 usermod -aG vpn pi
 
-# Install some other router tools:
-mv /etc/miniupnpd/miniupnpd.conf /tmp/miniupnpd.conf
+# Set some default settings for miniupnpd package:
 echo "miniupnpd miniupnpd/start_daemon boolean true" | debconf-set-selections
 echo "miniupnpd miniupnpd/ip6script boolean false" | debconf-set-selections
 echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
 echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
+
+# Set some default settings for minissdpd package:
 echo "minissdpd minissdpd/listen string br0" | debconf-set-selections
 echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
 echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
-apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance igmpproxy miniupnpc miniupnpd minissdpd
-mv /tmp/miniupnpd.conf /etc/miniupnpd/miniupnpd.conf
+
+# Install miniupnp and minissdpd packages, then cleanup miniupnpd install:
+apt install -y miniupnpd minissdpd
 rm /etc/default/miniupnpd
 rm /etc/init.d/miniupnpd
+mv /etc/miniupnpd/miniupnpd.conf /tmp/miniupnpd.conf
 rm /etc/miniupnpd/*
+mv /tmp/miniupnpd.conf /etc/miniupnpd/miniupnpd.conf
 systemctl enable miniupnpd
 systemctl start miniupnpd
