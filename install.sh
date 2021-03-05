@@ -6,6 +6,8 @@ if [[ "${UID}" -ne 0 ]]; then
 	exit $?
 fi
 
+export DEBIAN_FRONTEND=noninteractive
+
 # Create a user named "pi", being a member of the "docker", "sudo" and "users" group.
 useradd -m -G docker,sudo,users -s /bin/bash pi
 echo -e "bananapi\nbananapi" | passwd -q pi
@@ -13,6 +15,10 @@ echo -e "bananapi\nbananapi" | passwd -q pi
 # Create a user name "vpn", being a member of the "pi" group:
 useradd -m -G users -s /usr/sbin/nologin vpn
 usermod -aG vpn pi
+
+# "Fix" poweroff kernel panic:
+mv /sbin/poweroff{,.bak}
+mv /sbin/poweroff.bash poweroff
 
 # Create symlink to use "clear" as "cls":
 ln -sf /usr/bin/clear /usr/local/bin/cls
@@ -71,7 +77,7 @@ apt update
 apt dist-upgrade -y
 
 # Install some new stuff:
-apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat
+apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils
 systemctl enable avahi-daemon
 systemctl enable smbd
 systemctl enable nmbd
@@ -79,6 +85,7 @@ systemctl disable vnstat
 rm /var/lib/vnstat/*
 
 # Modify the Samba configuration to make sharing USB sticks more automatic:
+echo "samba-common samba-common/dhcp boolean true" | debconf-set-selections
 apt install -y samba pmount
 sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" /etc/samba/smb.conf
 touch /etc/samba/includes.conf
@@ -162,7 +169,6 @@ popd
 systemctl enable docker-compose
 ln -sf /var/lib/docker/data /opt/docker-data
 
-
 # Install TrueCrypt and HD-Idle:
 wget https://github.com/stefansundin/truecrypt.deb/releases/download/7.1a-15/truecrypt-cli_7.1a-15_armhf.deb -O /tmp/truecrypt.deb
 wget https://github.com/adelolmo/hd-idle/releases/download/v1.12/hd-idle_1.12_armhf.deb -O /tmp/hdidle.deb
@@ -209,20 +215,18 @@ chmod -R 775 /home/vpn/{Incomplete,Download}
 usermod -aG vpn pi
 
 # Install some other router tools:
-apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance igmpproxy
-
-# Install miniupnpd, then cleanup messy install:
-pushd /tmp/
-apt download miniupnpd
-cp /etc/miniupnpd/miniupnpd.conf /tmp/
-apt install -y ./miniupnpd*.deb
+mv /etc/miniupnpd/miniupnpd.conf /tmp/miniupnpd.conf
+echo "miniupnpd miniupnpd/start_daemon boolean true" | debconf-set-selections
+echo "miniupnpd miniupnpd/ip6script boolean false" | debconf-set-selections
+echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
+echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
+echo "minissdpd minissdpd/listen string br0" | debconf-set-selections
+echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
+echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
+apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance igmpproxy miniupnpc miniupnpd minissdpd
+mv /tmp/miniupnpd.conf /etc/miniupnpd/miniupnpd.conf
 rm /etc/default/miniupnpd
 rm /etc/init.d/miniupnpd
 rm /etc/miniupnpd/*
-cp /tmp/miniupnpd.conf /etc/miniupnpd/miniupnpd.conf
-dpkg -x $(ls miniupnpd*.deb) /tmp/miniupnpd
-rm miniupnpd*.deb
-cp /tmp/miniupnpd/usr/sbin/miniupnpd /usr/sbin
-popd
 systemctl enable miniupnpd
 systemctl start miniupnpd
