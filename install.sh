@@ -76,3 +76,9 @@ mkdir -p /mnt/{sda1,sda2,sda3}
 # Install any packages that need updating:
 apt update
 apt dist-upgrade -y
+
+# Create our custom login message:
+apt install -y toilet
+rm /etc/motd
+rm /etc/update-motd.d/10-uname
+ln -s /var/run/motd /etc/motd

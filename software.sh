@@ -27,12 +27,6 @@ systemctl enable nmbd
 systemctl restart smbd
 echo -e "bananapi\nbananapi" | smbpasswd -a pi
 
-# Create our custom login message:
-apt install -y toilet
-rm /etc/motd
-rm /etc/update-motd.d/10-uname
-ln -s /var/run/motd /etc/motd
-
 # Install repository for PHP 7.x packages:
 apt-get install -y software-properties-common
 add-apt-repository -y ppa:ondrej/php
