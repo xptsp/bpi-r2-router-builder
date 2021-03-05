@@ -28,7 +28,7 @@ function usb_mount()
 	/usr/bin/pmount --umask 000 ${DEV} ${MEDIA}
 
 	# Write Samba configuration for the device:
-	cat << EOF > /etc/samba/smb.d/${LABEL}.conf
+	test -x /usr/bin/smbcontrol && cat << EOF > /etc/samba/smb.d/${LABEL}.conf
 [${LABEL}]
 comment=${LABEL}
 path=${MEDIA}
@@ -43,6 +43,8 @@ EOF
 
 function add_shares()
 {
+	test -x /usr/bin/smbcontrol || exit 0
+
 	# Include Samba share in the configuration:
 	ls /etc/samba/smb.d/* 2> /dev/null | sed -e 's/^/include = /' > /etc/samba/includes.conf
 

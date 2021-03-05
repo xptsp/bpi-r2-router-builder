@@ -54,7 +54,8 @@ echo "i2c-dev" > /etc/modprobe.d/i2c.conf
 update-ca-certificates -f
 
 # Sets timezone to "America/Chicago":
-timedatectl set-timezone America/Chicago
+rm /etc/localtime
+ln -s /usr/share/zoneinfo/America/Chicago /etc/localtime
 
 # Sets locale to "en_US.UTF-8":
 sed -i "s|# en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen
@@ -77,8 +78,8 @@ mkdir -p /mnt/{sda1,sda2,sda3}
 apt update
 apt dist-upgrade -y
 
-# Create our custom login message:
-apt install -y toilet
+# Install a few packages, then create our custom login message:
+apt install -y toilet pmount eject
 rm /etc/motd
 rm /etc/update-motd.d/10-uname
 ln -s /var/run/motd /etc/motd
