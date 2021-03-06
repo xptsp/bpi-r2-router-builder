@@ -27,7 +27,7 @@ systemctl enable nmbd
 systemctl restart smbd
 echo -e "bananapi\nbananapi" | smbpasswd -a pi
 
-# Install NGINX and required PHP 7.2 packages:
+# Temporarily install ondrej's php repo in order to install NGINX and required PHP 7.2 packages:
 apt-get install -y software-properties-common
 add-apt-repository -y ppa:ondrej/php
 sed -i "s|hirsute|bionic|g" /etc/apt/sources.list.d/ondrej-ubuntu-php-hirsute.list
@@ -157,12 +157,14 @@ echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
 echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 
 # Install miniupnp and minissdpd packages, then cleanup miniupnpd install:
+mv /etc/igmpproxy.conf /tmp/igmpproxy.conf
+mv /etc/miniupnpd/miniupnpd.conf /tmp/miniupnpd.conf
 apt install -y miniupnpd minissdpd igmpproxy miniupnpc
+mv /tmp/miniupnpd.conf /etc/miniupnpd/miniupnpd.conf
+mv /tmp/igmpproxy.conf /etc/igmpproxy.conf
 rm /etc/default/miniupnpd
 rm /etc/init.d/miniupnpd
-mv /etc/miniupnpd/miniupnpd.conf /tmp/miniupnpd.conf
 rm /etc/miniupnpd/*
-mv /tmp/miniupnpd.conf /etc/miniupnpd/miniupnpd.conf
 systemctl enable miniupnpd
 systemctl start miniupnpd
 systemctl enable minissdpd

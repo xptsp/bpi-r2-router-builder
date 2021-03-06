@@ -6,12 +6,4 @@ iface br0 inet static
     bridge_ports lan0 lan1 lan2 lan3
     bridge_fd 5
     bridge_stp no
-    post-up /usr/sbin/dnsmasq \
-              --pid-file=/var/run/dnsmasq.$IFACE.pid \
-              --dhcp-leasefile=/var/lib/misc/dnsmasq.$IFACE.leases \
-              --conf-file=/dev/null \
-              --interface=$IFACE --except-interface=lo \
-              --bind-interfaces \
-              --dhcp-range=192.168.2.100,192.168.2.150,48h
     post-up echo 8 > /sys/class/net/br0/queues/rx-0/rps_cpus
-    pre-down cat /var/run/dnsmasq.$IFACE.pid | xargs kill
