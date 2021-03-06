@@ -10,7 +10,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Install some new stuff:
 apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils
-apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance igmpproxy miniupnpc
+apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance 
 systemctl enable avahi-daemon
 systemctl enable smbd
 systemctl enable nmbd
@@ -19,7 +19,7 @@ rm /var/lib/vnstat/*
 
 # Modify the Samba configuration to make sharing USB sticks more automatic:
 echo "samba-common samba-common/dhcp boolean true" | debconf-set-selections
-apt install -y samba pmount
+apt install -y samba
 sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" /etc/samba/smb.conf
 touch /etc/samba/includes.conf
 systemctl enable smbd
@@ -27,13 +27,11 @@ systemctl enable nmbd
 systemctl restart smbd
 echo -e "bananapi\nbananapi" | smbpasswd -a pi
 
-# Install repository for PHP 7.x packages:
+# Install NGINX and required PHP 7.2 packages:
 apt-get install -y software-properties-common
 add-apt-repository -y ppa:ondrej/php
 sed -i "s|hirsute|bionic|g" /etc/apt/sources.list.d/ondrej-ubuntu-php-hirsute.list
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C
-
-# Install NGINX and required PHP 7.2 packages:
 apt update
 apt-get install -y nginx php7.2-fpm php7.2-cgi php7.2-xml php7.2-sqlite3 php7.2-intl apache2-utils php7.2-mysql php7.2-sqlite3 sqlite3 php7.2-zip openssl php7.2-curl
 systemctl enable php7.2-fpm
@@ -43,6 +41,9 @@ mv /etc/nginx/sites-available/organizr /etc/nginx/sites-available/default
 systemctl enable nginx
 systemctl restart nginx
 systemctl start php7.2-fpm
+mkdir /etc/apt/sources.disabled.d
+mv /etc/apt/sources.list.d/ondrej-ubuntu-php-hirsute.list /etc/apt/sources.disabled.d/ondrej-ubuntu-php-hirsute.list
+apt update
 
 # Download and configure Organizr for the router:
 git clone https://github.com/causefx/Organizr /var/www/organizr
@@ -117,7 +118,7 @@ pushd /opt/overlayRoot
 sed -i "/cmdline.txt/d" install
 ./install
 popd
-rm /etc/apt/sources.list.d/raspi.list
+mv /etc/apt/sources.list.d/raspi.list /etc/apt/sources.disabled.d/raspi.list
 apt update
 
 # Install OpenVPN and create user VPN:
@@ -132,7 +133,9 @@ touch /etc/openvpn/.vpn_creds
 chmod 600 /etc/openvpn/.vpn_creds
 
 # Install Transmission-BT program:
+mv /etc/transmission-daemon/settings.json /tmp/settings.json
 apt-get install transmission-daemon -y
+mv /tmp/settings.json /etc/transmission-daemon/settings.json
 chown -R vpn:vpn /etc/transmission-daemon/
 chown -R vpn:vpn /var/lib/transmission-daemon/
 chmod -R 775 /etc/transmission-daemon/
@@ -154,7 +157,7 @@ echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
 echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 
 # Install miniupnp and minissdpd packages, then cleanup miniupnpd install:
-apt install -y miniupnpd minissdpd
+apt install -y miniupnpd minissdpd igmpproxy miniupnpc
 rm /etc/default/miniupnpd
 rm /etc/init.d/miniupnpd
 mv /etc/miniupnpd/miniupnpd.conf /tmp/miniupnpd.conf
@@ -162,3 +165,7 @@ rm /etc/miniupnpd/*
 mv /tmp/miniupnpd.conf /etc/miniupnpd/miniupnpd.conf
 systemctl enable miniupnpd
 systemctl start miniupnpd
+systemctl enable minissdpd
+systemctl start minissdpd
+systemctl enable igmpproxy
+systemctl start igmpproxy
