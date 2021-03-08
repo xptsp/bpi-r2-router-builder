@@ -157,14 +157,10 @@ echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
 echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 
 # Install miniupnp and minissdpd packages, then cleanup miniupnpd install:
-mv /etc/igmpproxy.conf /tmp/igmpproxy.conf
-mv /etc/miniupnpd/miniupnpd.conf /tmp/miniupnpd.conf
-apt install -y miniupnpd minissdpd igmpproxy miniupnpc
-mv /tmp/miniupnpd.conf /etc/miniupnpd/miniupnpd.conf
-mv /tmp/igmpproxy.conf /etc/igmpproxy.conf
+apt install -y -q miniupnpd minissdpd igmpproxy miniupnpc
 rm /etc/default/miniupnpd
 rm /etc/init.d/miniupnpd
-rm /etc/miniupnpd/*
+rm /etc/miniupnpd/*.sh
 systemctl enable miniupnpd
 systemctl start miniupnpd
 systemctl enable minissdpd
