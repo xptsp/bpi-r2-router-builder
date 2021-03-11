@@ -1,6 +1,10 @@
 upnpc()
 {
-	/usr/bin/upnpc -u http://192.168.2.1:5000/rootDesc.xml $@
+	UPNP_URL=
+	UPNP_IP=($(ifconfig br0 | grep " inet "))
+	UPNP_PORT=$(cat /etc/miniupnpd/miniupnpd.conf | grep -e "^http_port=" | cut -d"=" -f 2)
+	[[ ! -z "${UPNP_PORT}" && "${UPNP_PORT}" -gt 0 ]] && UPNP_URL="-u http://${UPNP_IP[1]}:${UPNP_PORT}/rootDesc.xml"
+	/usr/bin/upnpc ${UPNP_URL} $@
 }
 cls()
 {
