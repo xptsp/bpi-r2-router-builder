@@ -1,3 +1,7 @@
+upnpc()
+{
+	/usr/bin/upnpc -u http://192.168.2.1:5000/rootDesc.xml $@
+}
 cls()
 {
 	clear
