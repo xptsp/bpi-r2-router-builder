@@ -10,9 +10,13 @@ fi
 export DEBIAN_FRONTEND=noninteractive
 update-alternatives --set iptables /usr/sbin/iptables-legacy
 
+# Disable and stop hostapd service before we go further:
+systemctl disable hostapd
+systemctl stop hostapd
+
 # Install some new stuff:
 apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils
-apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance 
+apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance tree eject
 systemctl enable avahi-daemon
 systemctl enable smbd
 systemctl enable nmbd
@@ -163,6 +167,8 @@ sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#http_port=0|http_port=5000|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#enable_upnp=no|enable_upnp=yes|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#enable_natpmp=yes|enable_natpmp=yes|g" /etc/miniupnpd/miniupnpd.conf
+rm /etc/init.d/miniupnpd
+rm /etc/miniupnpd/*.sh
 systemctl daemon-reload
 systemctl enable miniupnpd
 systemctl restart miniupnpd

@@ -1,2 +1,15 @@
 #!/bin/bash
-(head -1 | sed "s| and established| noly|"; grep LISTEN) <<< $(sudo netstat -peanut)
+GREEN='\033[1;32m'
+BLUE='\033[1;34m'
+NC='\033[0m'
+netstat -peanut | grep LISTEN > /tmp/peanut
+
+if [[ -z "$1" || "$1" == "-4" ]]; then
+	echo -e "${GREEN}IPv4 Active Internet connections (servers only)${NC}"
+	cat /tmp/peanut | grep LISTEN | grep -v "::" | sort -t":" -k2 -g
+fi
+[[ -z "$1" ]] && echo ""
+if [[ -z "$1" || "$1" == "-6" ]]; then
+	echo -e "${GREEN}IPv6 Active Internet connections (servers only)${NC}"
+	cat /tmp/peanut | grep LISTEN | grep "::" | sort -t":" -k4 -g
+fi

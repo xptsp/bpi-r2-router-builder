@@ -26,12 +26,16 @@ function usb_mount()
 	LABEL=${MEDIA:="${1}"}
 	MEDIA=/media/"${LABEL// /_}"
 	/usr/bin/pmount --umask 000 ${DEV} ${MEDIA}
+	samba_share ${LABEL} ${MEDIA}
+}
 
+function samba_share()
+{
 	# Write Samba configuration for the device:
-	test -x /usr/bin/smbcontrol && cat << EOF > /etc/samba/smb.d/${LABEL}.conf
-[${LABEL}]
-comment=${LABEL}
-path=${MEDIA}
+	test -x /usr/bin/smbcontrol && cat << EOF > /etc/samba/smb.d/${1}.conf
+[${1}]
+comment=${1}
+path=${2}
 browseable=Yes
 writeable=Yes
 only guest=no
@@ -39,6 +43,13 @@ create mask=0755
 directory mask=0755
 public=no
 EOF
+}
+
+function share_folders()
+{
+	for file in $(ls /mnt 2> /dev/null); do e
+		samba_share $(basename $file) $file
+	done
 }
 
 function add_shares()

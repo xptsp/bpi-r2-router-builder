@@ -6,6 +6,10 @@
 :OUTPUT ACCEPT [0:0]
 :MINIUPNPD - [0:0]
 
+# Mangle (Block?) UDP packets coming from 10.2.x.x to 239.x.x.x on WAN:
+-A INPUT -i wan -s 10.2.0.0/16 -d 239.0.0.0/8 -p udp -j DROP
+
+# Mangle prerouting rules according to rules in the MINIUPNPD chain:
 -A PREROUTING -i wan -j MINIUPNPD
 
 COMMIT
@@ -46,7 +50,7 @@ COMMIT
 # Accept all IGMP requests on WAN interface:
 -A INPUT -i wan -p igmp -j ACCEPT
 
-# Accept incoming port 67 on port 68 on WAN interface:
+# Redirect incoming port 67 on port 68 on WAN interface:
 -A INPUT -i wan -p udp -m udp --sport 67 --dport 68 -j ACCEPT
 
 # Direct WAN interface to check SERVICES table for further rules:
@@ -70,6 +74,10 @@ COMMIT
 # Drop invalid packets:
 -A FORWARD -m conntrack --ctstate INVALID -j DROP
 
+# Forward UDP packets from 10.2.x.x to 239.x.x.x on the WAN interface:
+-A FORWARD -i wan ! -o wan -s 10.2.0.0/16 -d 239.0.0.0/8 -p udp -j ACCEPT
+
+# Forward packets on the WAN interface according to rules in the MINIUPNPD chain:
 -A FORWARD -i wan ! -o wan -j MINIUPNPD
 
 # Forward any connections to and from any bridge interfaces:
