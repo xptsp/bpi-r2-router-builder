@@ -4,17 +4,22 @@
 *mangle
 :PREROUTING ACCEPT [0:0]
 :OUTPUT ACCEPT [0:0]
+:MINIUPNPD - [0:0]
 
-# (?)
--A INPUT -i wan -s 10.2.0.0/16 -d 239.0.0.0/8 -p udp -j DROP
+-A PREROUTING -i wan -j MINIUPNPD
 
-# Don't delete the 'COMMIT' line or these rules won't be processed
 COMMIT
 
 *nat
 :PREROUTING ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
 :OUTPUT ACCEPT [0:0]
+:MINIUPNPD - [0:0]
+:MINIUPNPD-POSTROUTING - [0:0]
+
+# MiniUPNP daemon routing
+-A PREROUTING -i wan -j MINIUPNPD
+-A POSTROUTING -o wan -j MINIUPNPD-POSTROUTING
 
 # Masquerade all connections on the WAN interface:
 -A POSTROUTING -o wan -j MASQUERADE
@@ -27,6 +32,7 @@ COMMIT
 :FORWARD ACCEPT [0:0]
 :OUTPUT ACCEPT [0:0]
 :SERVICES - [0:0]
+:MINIUPNPD - [0:0]
 
 # Reject everything coming from user VPN:
 -A OUTPUT ! -o lo -m owner --uid-owner vpn -j DROP
@@ -64,6 +70,8 @@ COMMIT
 # Drop invalid packets:
 -A FORWARD -m conntrack --ctstate INVALID -j DROP
 
+-A FORWARD -i wan ! -o wan -j MINIUPNPD
+
 # Forward any connections to and from any bridge interfaces:
 -A FORWARD -i br+ -o br+ -j ACCEPT
 
@@ -72,9 +80,6 @@ COMMIT
 
 # Forward any related/established connections back to bridge interfaces:
 -A FORWARD -i wan -o br+ -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-
-# (?)
--A FORWARD -i wan -o br+ -s 10.2.0.0/16 -d 239.0.0.0/8 -p udp -j ACCEPT
 
 # Drop any other connections on the WAN interface:
 -A FORWARD -i wan -j DROP
