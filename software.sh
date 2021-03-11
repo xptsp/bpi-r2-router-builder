@@ -6,7 +6,9 @@ if [[ "${UID}" -ne 0 ]]; then
 	exit $?
 fi
 
+# Set some things before we start:
 export DEBIAN_FRONTEND=noninteractive
+update-alternatives --set iptables /usr/sbin/iptables-legacy
 
 # Install some new stuff:
 apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils
@@ -69,8 +71,12 @@ chmod +x /usr/local/bin/cloudflared
 useradd -s /usr/sbin/nologin -r -M cloudflared
 sudo chown cloudflared:cloudflared /etc/default/cloudflared
 sudo chown cloudflared:cloudflared /usr/local/bin/cloudflared
-sudo systemctl enable cloudflared
-sudo systemctl start cloudflared
+sudo systemctl enable cloudflared@1
+sudo systemctl start cloudflared@1
+sudo systemctl enable cloudflared@2
+sudo systemctl start cloudflared@2
+sudo systemctl enable cloudflared@3
+sudo systemctl start cloudflared@3
 
 # Install PiHole
 curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
@@ -151,18 +157,23 @@ echo "miniupnpd miniupnpd/ip6script boolean false" | debconf-set-selections
 echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
 echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
 
+# Install and configure miniupnp install:
+apt install -y -q miniupnpd
+sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
+sed -i "s|#http_port=0|http_port=5000|g" /etc/miniupnpd/miniupnpd.conf
+sed -i "s|#enable_upnp=no|enable_upnp=yes|g" /etc/miniupnpd/miniupnpd.conf
+sed -i "s|#enable_natpmp=yes|enable_natpmp=yes|g" /etc/miniupnpd/miniupnpd.conf
+systemctl daemon-reload
+systemctl enable miniupnpd
+systemctl restart miniupnpd
+
 # Set some default settings for minissdpd package:
 echo "minissdpd minissdpd/listen string br0" | debconf-set-selections
 echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
 echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 
-# Install miniupnp and minissdpd packages, then cleanup miniupnpd install:
-apt install -y -q miniupnpd minissdpd igmpproxy miniupnpc
-rm /etc/default/miniupnpd
-rm /etc/init.d/miniupnpd
-rm /etc/miniupnpd/*.sh
-systemctl enable miniupnpd
-systemctl start miniupnpd
+# Install minissdpd, igmpproxy and miniupnpc packages:
+apt install -y minissdpd igmpproxy miniupnpc
 systemctl enable minissdpd
 systemctl start minissdpd
 systemctl enable igmpproxy

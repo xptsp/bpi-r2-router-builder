@@ -22,7 +22,9 @@
 date=`date`
 load=`cat /proc/loadavg | awk '{print $1}'`
 root_usage=`df -h / | awk '/\// {print $(NF-1)}'`
-memory_usage=`free -m | awk '/Mem:/ { total=$2 } /buffers\/cache/ { used=$3 } END { printf("%3.1f%%", used/total*100)}'`
+mem=($(free -k | grep Mem))
+let free=(mem[1]-mem[3])*1000/mem[1]
+memory_usage=${free:0:-1}.${free:${#free[@]}+1:1}%
 swap_usage=`free -m | awk '/Swap/ { printf("%3.1f%%", "exit !$2;$3/$2*100") }'`
 users=`users | wc -w`
 time=`uptime | grep -ohe 'up .*' | sed 's/,/\ hours/g' | awk '{ printf $2" "$3 }'`
@@ -31,7 +33,7 @@ ip=(`ifconfig $(route | grep default | awk '{ print $8 }') | grep "inet "`)
  
 echo "System information as of: $date"
 echo
-printf "System load:\t%s\tIP Address:\t%s\n" $load ${ip[1]}
+printf "System load:\t%s\tWAN IP Address:\t%s\n" $load ${ip[1]}
 printf "Memory usage:\t%s\tSystem uptime:\t%s\n" $memory_usage "$time"
 printf "Usage on /:\t%s\tSwap usage:\t%s\n" $root_usage $swap_usage
 printf "Local Users:\t%s\tProcesses:\t%s\n" $users $processes
