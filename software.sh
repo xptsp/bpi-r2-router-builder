@@ -18,8 +18,7 @@ systemctl stop hostapd
 apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils
 apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance tree eject
 systemctl enable avahi-daemon
-systemctl enable smbd
-systemctl enable nmbd
+systemctl stop vnstat
 systemctl disable vnstat
 rm /var/lib/vnstat/*
 
