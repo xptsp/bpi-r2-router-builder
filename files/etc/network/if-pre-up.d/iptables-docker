@@ -1,0 +1,12 @@
+#!/bin/bash
+# Docker, for whatever reason, breaks the functionality of this router when using Docker containers.
+# This script duplicates the FORWARD rules into the DOCKER-USER so that the router is still usable.
+
+function docker-rules()
+{
+        echo "*filter"
+        cat /etc/network/iptables.rules | grep "\-A FORWARD" | sed "s/FORWARD/DOCKER-USER/g"
+        echo "COMMIT"
+}
+
+docker-rules | iptables-restore -n
