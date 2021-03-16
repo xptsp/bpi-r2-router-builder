@@ -1,4 +1,4 @@
-#!/bin/bash
+	#!/bin/bash
 
 # If we are not doing this as root, we need to change to root now!
 if [[ "${UID}" -ne 0 ]]; then
@@ -10,17 +10,98 @@ fi
 export DEBIAN_FRONTEND=noninteractive
 update-alternatives --set iptables /usr/sbin/iptables-legacy
 
+# Create a user named "pi", being a member of the "sudo" and "users" group.
+useradd -m -G sudo,users -s /bin/bash pi
+echo -e "bananapi\nbananapi" | passwd -q pi
+
+# Create a user name "vpn", being a member of the "users" and "pi" group:
+useradd -m -G users -s /usr/sbin/nologin vpn
+usermod -aG vpn pi
+
+# "Fix" poweroff kernel panic:
+mv /sbin/poweroff{,.bak}
+mv /sbin/poweroff.bash poweroff
+
+# Create symlink to use "clear" as "cls":
+ln -sf /usr/bin/clear /usr/local/bin/cls
+
+# Set hostname:
+echo "bpiwrt" > /etc/hostname
+
+# Set IP address of both hostname and pi.hole
+echo "192.168.2.1     bpiwrt" >> /etc/hosts
+echo "192.168.2.1     pi.hole" >> /etc/hosts
+
+# Remove known duplicate files:
+[[ -e /etc/apt/trusted.gpg~ ]] && rm /etc/apt/trusted.gpg~
+[[ -e /etc/network/interfaces~ ]] && rm /etc/network/interfaces~
+
+# Enable packet forwarding on IPv4:
+sed -i "s|#net.ipv4.ip_forward=1|net.ipv4.ip_forward=1|g" /etc/sysctl.conf
+
+# Force automatic reboot after 1 second upon a kernel panic:
+sed -i "/kernel.panic/d" /etc/sysctl.conf
+echo "kernel.panic = 1" >> /etc/sysctl.conf
+
+# Activate these changes:
+sysctl -p
+
+# Blacklist the module responsible for poweroffs on R2:
+echo "blacklist mtk_pmic_keys" > /etc/modprobe.d/blacklist.conf
+
+# Load the i2c-dev module at boot:
+echo "i2c-dev" > /etc/modprobe.d/i2c.conf
+
+# Refreshes the certificates:
+update-ca-certificates -f
+
+# Sets timezone to "America/Chicago":
+rm /etc/localtime
+ln -s /usr/share/zoneinfo/America/Chicago /etc/localtime
+
+# Sets locale to "en_US.UTF-8":
+sed -i "s|# en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen
+locale-gen
+
+# Copy files to their destination directories:
+chown root:root -R files
+cp -aR files/* /
+cp /root/.bash* /etc/skel/
+systemctl daemon-reload
+chown pi:pi -R /var/lib/docker/data/
+
+# Activate the iptables rules so that we have internet access during installation:
+/etc/network/if-pre-up.d/iptables
+
+# Create the hard drive mounting points:
+mkdir -p /mnt/{sda1,sda2,sda3}
+
+# Install any packages that need updating:
+apt update
+apt dist-upgrade -y
+
+# Install a few packages, then create our custom login message:
+apt install -y toilet pmount eject
+rm /etc/motd
+rm /etc/update-motd.d/10-uname
+ln -s /var/run/motd /etc/motd
+
 # Disable and stop hostapd service before we go further:
 systemctl disable hostapd
 systemctl stop hostapd
 
 # Install some new stuff:
 apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils
-apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance tree eject
+apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance tree eject rng-tools
+echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
 systemctl enable avahi-daemon
 systemctl stop vnstat
 systemctl disable vnstat
 rm /var/lib/vnstat/*
+
+# Set Country-Code (regulary domain)
+iw reg set ISO_3166-1_alpha-2
+iw reg set US
 
 # Modify the Samba configuration to make sharing USB sticks more automatic:
 echo "samba-common samba-common/dhcp boolean true" | debconf-set-selections
@@ -49,16 +130,6 @@ systemctl start php7.2-fpm
 mkdir /etc/apt/sources.disabled.d
 mv /etc/apt/sources.list.d/ondrej-ubuntu-php-hirsute.list /etc/apt/sources.disabled.d/ondrej-ubuntu-php-hirsute.list
 apt update
-
-# Download and configure Organizr for the router:
-git clone https://github.com/causefx/Organizr /var/www/organizr
-pushd /var/www/organizr
-git checkout v1-master
-popd
-chown www-data:www-data -R /var/www/organizr
-mv /var/www/config.php /var/www/organizr/config/
-mkdir -p /var/lib/docker/data/organizr
-chown www-data:www-data -R /var/lib/docker/data/organizr
 
 # Install the custom router UI:
 git clone https://github.com/xptsp/bpi-r2-router-webui /var/www/router

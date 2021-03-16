@@ -4,9 +4,12 @@
 
 function docker-rules()
 {
-        echo "*filter"
-        cat /etc/network/iptables.rules | grep "\-A FORWARD" | sed "s/FORWARD/DOCKER-USER/g"
-        echo "COMMIT"
+	echo "*filter"
+	echo "-N DOCKER-USER"
+	cat /etc/network/iptables.rules | grep "\-A FORWARD" | sed "s/-A FORWARD/-I DOCKER-USER/g"
+	echo "COMMIT"
 }
 
 docker-rules | iptables-restore -n
+exit 0
+

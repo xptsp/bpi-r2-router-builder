@@ -1,0 +1,3 @@
+#!/bin/bash
+iptables -A OUTPUT ! -o lo -m owner --uid-owner vpn -j DROP
+exit 0

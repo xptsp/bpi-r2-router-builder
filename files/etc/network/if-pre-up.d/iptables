@@ -1,3 +1,4 @@
 #!/bin/sh
 cat /etc/network/iptables.rules | /sbin/iptables-restore
 cat /etc/network/iptables.rules | grep -v "10.2" | grep -v "192.168" | /sbin/iptables-restore
+exit 0
