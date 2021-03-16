@@ -8,10 +8,6 @@ fi
 
 # Set some things before we start:
 export DEBIAN_FRONTEND=noninteractive
-apt update
-apt install -y --no-install-recommends git
-git clone https://github.com/
-
 update-alternatives --set iptables /usr/sbin/iptables-legacy
 
 # Create a user named "pi", being a member of the "sudo" and "users" group.
@@ -73,15 +69,12 @@ chown pi:pi -R /var/lib/docker/data/
 # Activate the iptables rules so that we have internet access during installation:
 /etc/network/if-pre-up.d/iptables
 
-# Create the hard drive mounting points:
-mkdir -p /mnt/{sda1,sda2,sda3}
-
 # Install any packages that need updating:
 apt update
 apt dist-upgrade -y
 
 # Install a few packages, then create our custom login message:
-apt install -y --no-install-recommends toilet pmount eject
+apt install -y toilet pmount eject
 rm /etc/motd
 rm /etc/update-motd.d/10-uname
 ln -s /var/run/motd /etc/motd
@@ -91,10 +84,14 @@ systemctl disable hostapd
 systemctl stop hostapd
 
 # Install some new stuff:
-apt install -y --no-install-recommends git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils
-apt install -y --no-install-recommends vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance tree eject rng-tools
-echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
+apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils
+apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance tree eject rng-tools
 systemctl enable avahi-daemon
+
+# Correct issue regarding random numbers:
+echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
+
+# Stop vnstat service and purge logs:
 systemctl stop vnstat
 systemctl disable vnstat
 rm /var/lib/vnstat/*
@@ -105,7 +102,7 @@ iw reg set US
 
 # Modify the Samba configuration to make sharing USB sticks more automatic:
 echo "samba-common samba-common/dhcp boolean true" | debconf-set-selections
-apt install -y --no-install-recommends samba
+apt install -y samba
 sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" /etc/samba/smb.conf
 touch /etc/samba/includes.conf
 systemctl enable smbd
@@ -113,23 +110,14 @@ systemctl enable nmbd
 systemctl restart smbd
 echo -e "bananapi\nbananapi" | smbpasswd -a pi
 
-# Temporarily install ondrej's php repo in order to install NGINX and required PHP 7.2 packages:
-apt install --no-install-recommends -y software-properties-common gpgpg
-add-apt-repository -y ppa:ondrej/php
-sed -i "s|hirsute|bionic|g" /etc/apt/sources.list.d/ondrej-ubuntu-php-hirsute.list
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C
-apt update
-apt install --no-install-recommends -y nginx php7.2-fpm php7.2-cgi php7.2-xml php7.2-sqlite3 php7.2-intl apache2-utils php7.2-mysql php7.2-sqlite3 sqlite3 php7.2-zip openssl php7.2-curl
-systemctl enable php7.2-fpm
-systemctl start php7.2-fpm
-mv /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
-mv /etc/nginx/sites-available/organizr /etc/nginx/sites-available/default
+# Install NGINX and PHP 7.3:
+apt install -y nginx php7.3-fpm php7.3-cgi php7.3-xml php7.3-sqlite3 php7.3-intl apache2-utils php7.3-mysql php7.3-sqlite3 sqlite3 php7.3-zip openssl php7.3-curl
+systemctl enable php7.3-fpm
+systemctl start php7.3-fpm
+rm /etc/nginx/sites-enabled/default
+ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl enable nginx
 systemctl restart nginx
-systemctl start php7.2-fpm
-mkdir /etc/apt/sources.disabled.d
-mv /etc/apt/sources.list.d/ondrej-ubuntu-php-hirsute.list /etc/apt/sources.disabled.d/ondrej-ubuntu-php-hirsute.list
-apt update
 
 # Install the custom router UI:
 git clone https://github.com/xptsp/bpi-r2-router-webui /var/www/router
@@ -181,7 +169,7 @@ ln -sf /var/lib/docker/data /opt/docker-data
 # Install TrueCrypt and HD-Idle:
 wget https://github.com/stefansundin/truecrypt.deb/releases/download/7.1a-15/truecrypt-cli_7.1a-15_armhf.deb -O /tmp/truecrypt.deb
 wget https://github.com/adelolmo/hd-idle/releases/download/v1.12/hd-idle_1.12_armhf.deb -O /tmp/hdidle.deb
-apt install -y --no-install-recommends /tmp/*.deb
+apt install -y /tmp/*.deb
 rm /tmp/*.deb
 
 # Pull ydns's bash-updater repo and modify to pull settings from elsewhere:
@@ -202,7 +190,7 @@ mv /etc/apt/sources.list.d/raspi.list /etc/apt/sources.disabled.d/raspi.list
 apt update
 
 # Install OpenVPN and create user VPN:
-apt install -y --no-install-recommends openvpn
+apt install -y openvpn
 cat << EOF > /etc/sysctl.d/9999-vpn.conf
 net.ipv4.conf.all.rp_filter = 2
 net.ipv4.conf.default.rp_filter = 2
@@ -232,7 +220,7 @@ echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
 echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
 
 # Install and configure miniupnp install:
-apt install -y --no-install-recommends -q miniupnpd
+apt install -y -q miniupnpd
 sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#http_port=0|http_port=5000|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#enable_upnp=no|enable_upnp=yes|g" /etc/miniupnpd/miniupnpd.conf
@@ -249,7 +237,7 @@ echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
 echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 
 # Install minissdpd, igmpproxy and miniupnpc packages:
-apt install -y --no-install-recommends minissdpd igmpproxy miniupnpc
+apt install -y minissdpd igmpproxy miniupnpc
 systemctl enable minissdpd
 systemctl start minissdpd
 systemctl enable igmpproxy
