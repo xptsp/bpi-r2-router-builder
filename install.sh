@@ -6,6 +6,13 @@ if [[ "${UID}" -ne 0 ]]; then
 	exit $?
 fi
 
+# Copy files to their destination directories:
+chown root:root -R files
+cp -aR files/* /
+cp /root/.bash* /etc/skel/
+cp /root/.bash* /home/{pi,vpn}/
+systemctl daemon-reload
+
 # Set some things before we start:
 export DEBIAN_FRONTEND=noninteractive
 update-alternatives --set iptables /usr/sbin/iptables-legacy
@@ -59,13 +66,6 @@ ln -s /usr/share/zoneinfo/America/Chicago /etc/localtime
 sed -i "s|# en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen
 locale-gen
 
-# Copy files to their destination directories:
-chown root:root -R files
-cp -aR files/* /
-cp /root/.bash* /etc/skel/
-systemctl daemon-reload
-chown pi:pi -R /var/lib/docker/data/
-
 # Activate the iptables rules so that we have internet access during installation:
 /etc/network/if-pre-up.d/iptables
 
@@ -84,9 +84,9 @@ systemctl disable hostapd
 systemctl stop hostapd
 
 # Install some new stuff:
-apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils
-apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance tree eject rng-tools
+apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance tree eject rng-tools
 systemctl enable avahi-daemon
+systemctl start avahi-daemon
 
 # Correct issue regarding random numbers:
 echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
@@ -119,53 +119,6 @@ ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl enable nginx
 systemctl restart nginx
 
-# Install the custom router UI:
-git clone https://github.com/xptsp/bpi-r2-router-webui /var/www/router
-chown www-data:www-data -R /var/www/router
-
-# Install and configure cloudflared:
-pushd /tmp
-wget https://bin.equinox.io/c/VdrWdbjqyF/cloudflared-stable-linux-arm.tgz
-tar -xvzf cloudflared-stable-linux-arm.tgz
-mv ./cloudflared /usr/local/bin
-popd
-chmod +x /usr/local/bin/cloudflared
-useradd -s /usr/sbin/nologin -r -M cloudflared
-sudo chown cloudflared:cloudflared /etc/default/cloudflared
-sudo chown cloudflared:cloudflared /usr/local/bin/cloudflared
-sudo systemctl enable cloudflared@1
-sudo systemctl start cloudflared@1
-sudo systemctl enable cloudflared@2
-sudo systemctl start cloudflared@2
-sudo systemctl enable cloudflared@3
-sudo systemctl start cloudflared@3
-
-# Install PiHole
-curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
-systemctl stop dnsmasq
-systemctl disable dnsmasq
-systemctl mask dnsmasq
-chown pihole:pihole -R /var/lib/misc
-chown www-data:www-data -R /var/www/html
-systemctl enable pihole-FTL
-systemctl start pihole-FTL
-pihole -a -p bananapi
-ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
-
-# Install docker:
-curl -L https://get.docker.com | bash
-usermod -aG docker pi
-
-# Download docker-compose into the /usr/local/bin directory:
-wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
-pushd /tmp
-tar xvzf /tmp/docker.tgz
-mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
-ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
-popd
-systemctl enable docker-compose
-ln -sf /var/lib/docker/data /opt/docker-data
-
 # Install TrueCrypt and HD-Idle:
 wget https://github.com/stefansundin/truecrypt.deb/releases/download/7.1a-15/truecrypt-cli_7.1a-15_armhf.deb -O /tmp/truecrypt.deb
 wget https://github.com/adelolmo/hd-idle/releases/download/v1.12/hd-idle_1.12_armhf.deb -O /tmp/hdidle.deb
@@ -180,12 +133,12 @@ chown www-data:www-data /etc/default/ydns-updater
 # Temporarily add Raspberry Pi repository so we can install packages required by marklister/overlayRoot repo:
 echo "deb http://archive.raspberrypi.org/debian/ stretch main ui" > /etc/apt/sources.list.d/raspi.list
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 82B129927FA3303E
-apt update
 git clone https://github.com/marklister/overlayRoot /opt/overlayRoot/
 pushd /opt/overlayRoot
 sed -i "/cmdline.txt/d" install
 ./install
 popd
+mkdir /etc/apt/sources.disabled.d
 mv /etc/apt/sources.list.d/raspi.list /etc/apt/sources.disabled.d/raspi.list
 apt update
 
@@ -200,19 +153,6 @@ echo "200     vpn" >> /etc/iproute2/rt_tables
 touch /etc/openvpn/.vpn_creds
 chmod 600 /etc/openvpn/.vpn_creds
 
-# Install Transmission-BT program:
-mv /etc/transmission-daemon/settings.json /tmp/settings.json
-apt install transmission-daemon -y
-mv /tmp/settings.json /etc/transmission-daemon/settings.json
-chown -R vpn:vpn /etc/transmission-daemon/
-chown -R vpn:vpn /var/lib/transmission-daemon/
-chmod -R 775 /etc/transmission-daemon/
-chmod -R 775 /var/lib/transmission-daemon/
-mkdir /home/vpn/{Incomplete,Download}
-chown -R vpn:vpn /home/vpn/{Incomplete,Download}
-chmod -R 775 /home/vpn/{Incomplete,Download}
-usermod -aG vpn pi
-
 # Set some default settings for miniupnpd package:
 echo "miniupnpd miniupnpd/start_daemon boolean true" | debconf-set-selections
 echo "miniupnpd miniupnpd/ip6script boolean false" | debconf-set-selections
@@ -220,7 +160,7 @@ echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
 echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
 
 # Install and configure miniupnp install:
-apt install -y -q miniupnpd
+apt install -y -qq miniupnpd
 sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#http_port=0|http_port=5000|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#enable_upnp=no|enable_upnp=yes|g" /etc/miniupnpd/miniupnpd.conf
@@ -231,14 +171,66 @@ systemctl daemon-reload
 systemctl enable miniupnpd
 systemctl restart miniupnpd
 
+# Install PiHole:
+curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
+systemctl stop dnsmasq
+systemctl disable dnsmasq
+systemctl mask dnsmasq
+chown pihole:pihole /var/lib/misc
+chown pihole:pihole -R /var/lib/misc/*
+chown www-data:www-data -R /var/www/html
+systemctl enable pihole-FTL
+systemctl restart pihole-FTL
+pihole -a -p bananapi
+git clone https://github.com/xptsp/bpi-r2-router-webui /var/www/html
+
+# Install Transmission-BT program:
+apt install -y -qq transmission-daemon
+chown -R vpn:vpn /etc/transmission-daemon/
+chown -R vpn:vpn /var/lib/transmission-daemon/
+chmod -R 775 /etc/transmission-daemon/
+chmod -R 775 /var/lib/transmission-daemon/
+mkdir /home/vpn/{Incomplete,Download}
+chown -R vpn:vpn /home/vpn/{Incomplete,Download}
+chmod -R 775 /home/vpn/{Incomplete,Download}
+
 # Set some default settings for minissdpd package:
 echo "minissdpd minissdpd/listen string br0" | debconf-set-selections
 echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
 echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 
 # Install minissdpd, igmpproxy and miniupnpc packages:
-apt install -y minissdpd igmpproxy miniupnpc
-systemctl enable minissdpd
-systemctl start minissdpd
+apt install -y -qq igmpproxy miniupnpc
 systemctl enable igmpproxy
 systemctl start igmpproxy
+
+# Install and configure cloudflared:
+#pushd /tmp
+#wget https://bin.equinox.io/c/VdrWdbjqyF/cloudflared-stable-linux-arm.tgz
+#tar -xvzf cloudflared-stable-linux-arm.tgz
+#mv ./cloudflared /usr/local/bin
+#popd
+#chmod +x /usr/local/bin/cloudflared
+#useradd -s /usr/sbin/nologin -r -M cloudflared
+#sudo chown cloudflared:cloudflared /etc/default/cloudflared
+#sudo chown cloudflared:cloudflared /usr/local/bin/cloudflared
+#sudo systemctl enable cloudflared@1
+#sudo systemctl start cloudflared@1
+#sudo systemctl enable cloudflared@2
+#sudo systemctl start cloudflared@2
+#sudo systemctl enable cloudflared@3
+#sudo systemctl start cloudflared@3
+
+# Install docker:
+#curl -L https://get.docker.com | bash
+#usermod -aG docker pi
+
+# Download docker-compose into the /usr/local/bin directory:
+#wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
+#pushd /tmp
+#tar xvzf /tmp/docker.tgz
+#mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
+#ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
+#popd
+#systemctl enable docker-compose
+#ln -sf /var/lib/docker/data /opt/docker-data
