@@ -114,7 +114,8 @@ echo -e "bananapi\nbananapi" | smbpasswd -a pi
 apt install -y nginx php7.3-fpm php7.3-cgi php7.3-xml php7.3-sqlite3 php7.3-intl apache2-utils php7.3-mysql php7.3-sqlite3 sqlite3 php7.3-zip openssl php7.3-curl
 systemctl enable php7.3-fpm
 systemctl start php7.3-fpm
-rm /etc/nginx/sites-enabled/default
+mv /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
+mv /etc/nginx/sites-available/router /etc/nginx/sites-available/default
 ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl enable nginx
 systemctl restart nginx
@@ -160,7 +161,7 @@ echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
 echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
 
 # Install and configure miniupnp install:
-apt install -y -qq miniupnpd
+apt install -y -qq miniupnpd miniupnpc
 sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#http_port=0|http_port=5000|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#enable_upnp=no|enable_upnp=yes|g" /etc/miniupnpd/miniupnpd.conf
@@ -179,13 +180,16 @@ systemctl mask dnsmasq
 chown pihole:pihole /var/lib/misc
 chown pihole:pihole -R /var/lib/misc/*
 chown www-data:www-data -R /var/www/html
+chown www-data:www-data -R /var/www/html/*
 systemctl enable pihole-FTL
 systemctl restart pihole-FTL
 pihole -a -p bananapi
-git clone https://github.com/xptsp/bpi-r2-router-webui /var/www/html
+git clone https://github.com/xptsp/bpi-r2-router-webui /var/www/router
 
 # Install Transmission-BT program:
-apt install -y -qq transmission-daemon
+mv /etc/transmission-daemon/settings.json /tmp/settings.json
+apt install -y transmission-daemon
+mv /tmp/settings.json /etc/transmission-daemon/settings.json
 chown -R vpn:vpn /etc/transmission-daemon/
 chown -R vpn:vpn /var/lib/transmission-daemon/
 chmod -R 775 /etc/transmission-daemon/
@@ -200,7 +204,7 @@ echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
 echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 
 # Install minissdpd, igmpproxy and miniupnpc packages:
-apt install -y -qq igmpproxy miniupnpc
+apt install -y -qq igmpproxy
 systemctl enable igmpproxy
 systemctl start igmpproxy
 
