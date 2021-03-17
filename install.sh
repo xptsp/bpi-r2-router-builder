@@ -13,6 +13,9 @@ cp /root/.bash* /etc/skel/
 cp /root/.bash* /home/{pi,vpn}/
 systemctl daemon-reload
 
+# Secure the "authorized_keys" file so it can only be appended:
+chattr +a /root/.ssh/authorized_keys
+
 # Set some things before we start:
 export DEBIAN_FRONTEND=noninteractive
 update-alternatives --set iptables /usr/sbin/iptables-legacy
@@ -125,23 +128,13 @@ wget https://github.com/stefansundin/truecrypt.deb/releases/download/7.1a-15/tru
 wget https://github.com/adelolmo/hd-idle/releases/download/v1.12/hd-idle_1.12_armhf.deb -O /tmp/hdidle.deb
 apt install -y /tmp/*.deb
 rm /tmp/*.deb
+systemctl enable hd-idle
+systemctl start hd-idle
 
 # Pull ydns's bash-updater repo and modify to pull settings from elsewhere:
 git clone https://github.com/ydns/bash-updater /opt/ydns-updater
 sed -i "s|^YDNS_LASTIP_FILE|[[ -f /etc/default/ydns-updater ]] \&\& source /etc/default/ydns-updater\nYDNS_LASTIP_FILE|" /opt/ydns-updater/updater.sh
 chown www-data:www-data /etc/default/ydns-updater
-
-# Temporarily add Raspberry Pi repository so we can install packages required by marklister/overlayRoot repo:
-echo "deb http://archive.raspberrypi.org/debian/ stretch main ui" > /etc/apt/sources.list.d/raspi.list
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 82B129927FA3303E
-git clone https://github.com/marklister/overlayRoot /opt/overlayRoot/
-pushd /opt/overlayRoot
-sed -i "/cmdline.txt/d" install
-./install
-popd
-mkdir /etc/apt/sources.disabled.d
-mv /etc/apt/sources.list.d/raspi.list /etc/apt/sources.disabled.d/raspi.list
-apt update
 
 # Install OpenVPN and create user VPN:
 apt install -y openvpn
@@ -198,6 +191,36 @@ mkdir /home/vpn/{Incomplete,Download}
 chown -R vpn:vpn /home/vpn/{Incomplete,Download}
 chmod -R 775 /home/vpn/{Incomplete,Download}
 
+# Install docker:
+curl -L https://get.docker.com | bash
+usermod -aG docker pi
+
+# Download docker-compose into the /usr/local/bin directory:
+wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
+pushd /tmp
+tar xvzf /tmp/docker.tgz
+mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
+ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
+popd
+systemctl enable docker-compose
+ln -sf /var/lib/docker/data /opt/docker-data
+
+# Install and configure cloudflared:
+pushd /tmp
+wget https://bin.equinox.io/c/VdrWdbjqyF/cloudflared-stable-linux-arm.tgz
+tar -xvzf cloudflared-stable-linux-arm.tgz
+mv ./cloudflared /usr/local/bin
+popd
+useradd -s /usr/sbin/nologin -r -M cloudflared
+sudo chown cloudflared:cloudflared /etc/default/cloudflared
+sudo chown cloudflared:cloudflared /usr/local/bin/cloudflared
+sudo systemctl enable cloudflared@1
+sudo systemctl start cloudflared@1
+sudo systemctl enable cloudflared@2
+sudo systemctl start cloudflared@2
+sudo systemctl enable cloudflared@3
+sudo systemctl start cloudflared@3
+
 # Set some default settings for minissdpd package:
 echo "minissdpd minissdpd/listen string br0" | debconf-set-selections
 echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
@@ -207,34 +230,3 @@ echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 apt install -y -qq igmpproxy
 systemctl enable igmpproxy
 systemctl start igmpproxy
-
-# Install and configure cloudflared:
-#pushd /tmp
-#wget https://bin.equinox.io/c/VdrWdbjqyF/cloudflared-stable-linux-arm.tgz
-#tar -xvzf cloudflared-stable-linux-arm.tgz
-#mv ./cloudflared /usr/local/bin
-#popd
-#chmod +x /usr/local/bin/cloudflared
-#useradd -s /usr/sbin/nologin -r -M cloudflared
-#sudo chown cloudflared:cloudflared /etc/default/cloudflared
-#sudo chown cloudflared:cloudflared /usr/local/bin/cloudflared
-#sudo systemctl enable cloudflared@1
-#sudo systemctl start cloudflared@1
-#sudo systemctl enable cloudflared@2
-#sudo systemctl start cloudflared@2
-#sudo systemctl enable cloudflared@3
-#sudo systemctl start cloudflared@3
-
-# Install docker:
-#curl -L https://get.docker.com | bash
-#usermod -aG docker pi
-
-# Download docker-compose into the /usr/local/bin directory:
-#wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
-#pushd /tmp
-#tar xvzf /tmp/docker.tgz
-#mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
-#ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
-#popd
-#systemctl enable docker-compose
-#ln -sf /var/lib/docker/data /opt/docker-data
