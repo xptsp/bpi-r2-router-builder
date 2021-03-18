@@ -64,6 +64,10 @@ rm -rf ${A}/root/.config >& /dev/null
 rm -rf ${A}/root/.local >& /dev/null
 rm ${A}/root/.bash_history >& /dev/null
 rm ${A}/root/.ssh/known_hosts >& /dev/null
+rm ${A}/var/lib/vnstat/* >& /dev/null
+rm ${A}/var/misc/* >& /dev/null
+rm -r ${A}/var/log/*.{xz,gz,1,2} >& /dev/null
+for file in $(find ${A}/var/log -type f | grep -v .gz); do cp /dev/null $file; done
 echo -e "${GREEN}NOTE:${NC} Clearing the local repository of retrieved package files..."
 chroot ${A} apt-get clean
 chroot ${A} apt-get autoclean
@@ -78,6 +82,6 @@ echo -e "${GREEN}NOTE:${NC} Unmount partitions from system..."
 losd ${DEV[0]}
 echo -e "${GREEN}================================================================${NC}"
 echo -e "${GREEN}NOTE:${NC} Compressing image..."
-gzip -kv ${FILE}
+gzip -fkv ${FILE}
 echo -e "${GREEN}================================================================${NC}"
 echo -e "${GREEN}SUCCESS!${NC}  Image backup completed and prepped successfully!"

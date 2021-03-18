@@ -87,7 +87,8 @@ systemctl disable hostapd
 systemctl stop hostapd
 
 # Install some new stuff:
-apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance tree eject rng-tools
+apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils
+apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance tree eject rng-tools parted initramfs-tools
 systemctl enable avahi-daemon
 systemctl start avahi-daemon
 
@@ -108,6 +109,8 @@ echo "samba-common samba-common/dhcp boolean true" | debconf-set-selections
 apt install -y samba
 sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" /etc/samba/smb.conf
 touch /etc/samba/includes.conf
+sed -i "s|/var/run|/run|g" /lib/systemd/system/?mbd.service
+systemctl daemon-reload
 systemctl enable smbd
 systemctl enable nmbd
 systemctl restart smbd
@@ -221,12 +224,12 @@ sudo systemctl start cloudflared@2
 sudo systemctl enable cloudflared@3
 sudo systemctl start cloudflared@3
 
-# Set some default settings for minissdpd package:
+ Set some default settings for minissdpd package:
 echo "minissdpd minissdpd/listen string br0" | debconf-set-selections
 echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
 echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 
 # Install minissdpd, igmpproxy and miniupnpc packages:
-apt install -y -qq igmpproxy
-systemctl enable igmpproxy
-systemctl start igmpproxy
+apt install -y minissdpd
+systemctl enable minissdpd
+systemctl start minissdpd

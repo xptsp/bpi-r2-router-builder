@@ -1,24 +1,9 @@
-#!/bin/sh
-#  Read-only Root-FS for most linux distributions using overlayfs
-#  Version 1.4
-#
-#  Version History:
-#  1.0: initial release
-#  1.1: adopted new fstab style with PARTUUID. the script will now look for a /dev/xyz definiton first 
-#       (old raspbian), if that is not found, it will look for a partition with LABEL=rootfs, if that
-#       is not found it look for a PARTUUID string in fstab for / and convert that to a device name
-#       using the blkid command. 
-#  1.2: clean useless lines in fstab before read it. do not mount /proc if already mounted. some fixes to
-#       fit other distributions. reformat the script to a more simple style.
-#  1.3: add support for UUID in fstab. deprecated PARTUUID support because it's not safe to handle every
-#       circumstances. rename /ro to /lower and /rw to /overlay. fix permission issue on /overlay. fix
-#       "already mounted on /" issue on some distributions(caused by mawk). add log interface and increase
-#       log verbosity.
-#  1.4: Renamed /lower back to /ro.
+#!/usr/bin/env bash
+#  Read-only Root-FS for Raspian using overlayfs
 #
 #  Created 2017 by Pascal Suter @ DALCO AG, Switzerland to work on Raspian as custom init script
 #  (raspbian does not use an initramfs on boot)
-#  Update 1.2 and 1.3 by fitu996@github
+#  Modifications listed as 1.2 Mark Lister: github.com/marklister
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -30,183 +15,281 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see
-#    <http://www.gnu.org/licenses/>.
+#	You should have received a copy of the GNU General Public License
+#	along with this program.  If not, see
+#	<http://www.gnu.org/licenses/>.
 #
 #
 #  Tested with Raspbian mini, 2018-10-09
 #
-#  This script will mount the root filesystem read-only and overlay it with a temporary tempfs 
-#  which is read-write mounted. This is done using the overlayFS which is part of the linux kernel 
-#  since version 3.18. 
-#  when this script is in use, all changes made to anywhere in the root filesystem mount will be lost 
+#  This script will mount the root filesystem read-only and overlay it with a temporary tempfs
+#  which is read-write mounted. This is done using the overlayFS which is part of the linux kernel
+#  since version 3.18.
+#  when this script is in use, all changes made to anywhere in the root filesystem mount will be lost
 #  upon reboot of the system. The SD card will only be accessed as read-only drive, which significantly
 #  helps to prolong its life and prevent filesystem coruption in environments where the system is usually
-#  not shut down properly 
+#  not shut down properly
 #
-#  Install: 
-#  copy this script to /sbin/overlayRoot.sh, make it executable and add "init=/sbin/overlayRoot.sh" to the 
-#  cmdline.txt file in the raspbian image's boot partition. 
-#  I strongly recommend to disable swapping before using this. it will work with swap but that just does 
-#  not make sens as the swap file will be stored in the tempfs which again resides in the ram.
-#  run these commands on the booted raspberry pi BEFORE you set the init=/sbin/overlayRoot.sh boot option:
-#  sudo dphys-swapfile swapoff
-#  sudo dphys-swapfile uninstall
-#  sudo update-rc.d dphys-swapfile remove
-#
-#  To install software, run upgrades and do other changes to the raspberry setup, simply remove the init= 
-#  entry from the cmdline.txt file and reboot, make the changes, add the init= entry and reboot once more. 
 
-loglevel="99"
-write_log(){
-    [ ! "$loglevel" = "99" ] || echo "[overlayRoot.sh]" "WARNING: loglevel not initialized."
-    [ "$loglevel" -lt "$1" ] || echo "[overlayRoot.sh]" "$2"
+defaults(){
+
+	# OverlayRoot config file override these defaults in /etc/overlayRoot.conf
+
+	# What to do if the script fails
+	# original = run the original /sbin/init
+	# console = start a bash console. Useful for debugging
+
+	ON_FAIL=original
+
+	# Discover the root device using PARTUUID=xxx UUID=xxx or LABEL= xxx if the fstab detection fails.
+	# Note PARTUUID does not work at present.
+	# Default is "LABEL=BPI-ROOT". This makes the script work out of the box
+
+	SECONDARY_ROOT_RESOLUTION="LABEL=BPI-ROOT"
+
+	# The filesystem name to use for the RW partition
+	# Default root-rw
+
+	RW_NAME=root-rw
+
+	# Discover the rw device using PARTUUID=xxx UUID=xxx or LABEL= xxx  if the fstab detection fails.
+	# Note PARTUUID does not work at present.
+	# Default is "LABEL=root-rw".  This makes the script work out of the box if the user labels their partition
+
+	SECONDARY_RW_RESOLUTION="LABEL=root-rw"
+
+	# What to do if the user has specified rw media in fstab and it is not found using primary and secondary lookup?
+	# fail = follow the fail logic see ON_FAIL
+	# tmpfs = mount a tmpfs at the root-rw location Default
+
+	ON_RW_MEDIA_NOT_FOUND=tmpfs
+
+	LOGGING=warning
+
+	LOG_FILE=/var/log/overlayRoot.log
+
+	#Read the selected configuration
+	source /etc/overlayRoot.conf
 }
+
+source ./usr/share/initramfs-tools/scripts/functions  #we use read_fstab_entry and resolve_device
+defaults
+rootmnt=""
+RW="/mnt/$RW_NAME"  # Mount point for writable drive
+
+FAILURES=0
+WARNINGS=0
+
+log_fail(){
+	echo -e "[FAIL:overlay] $@" | tee -a /mnt/overlayRoot.log
+	((FAILURES++))
+}
+
+log_warning(){
+	if [ $LOGGING == "warning" ] || [ $LOGGING == "info" ]; then
+		echo -e "[FAIL:overlay] $@" | tee -a /mnt/overlayRoot.log
+	fi
+	((WARNINGS++))
+}
+
+log_info(){
+	if [ $LOGGING == "info" ]; then
+		echo -e "[INFO:overlay] $1" | tee -a /mnt/overlayRoot.log
+	fi
+}
+
 fail(){
-        write_log 2 "$1"
-        write_log 2 "$1" 'there is something wrong with overlayRoot.sh. type "exit" and press enter to ignore and continue.'
-        if ! /bin/sh ; then
-            exit 1
-        fi
+	log_fail $@
+	if [ $ON_FAIL == "original" ]; then
+		exec /sbin/init
+		exit 0
+	elif [ $ON_FAIL == "console" ]; then
+		exec /bin/bash # one can "exit" to original boot process
+		exec /bin/init
+	else
+		exec /bin/bash
+	fi
 }
 
-# mount /proc
-if ! mount | grep -x 'proc on /proc type proc.*' > /dev/null ; then
-    mount -t proc proc /proc || \
-        fail "ERROR: could not mount proc"
+#Wait for a device to become available
+# $1 device
+# $2 timeout
+await_device() {
+	count=0
+	if [ -z $2 ]; then TIMEOUT=60; else TIMEOUT=$2; fi
+	result=1
+	while [ $count -lt $TIMEOUT ];
+	do
+		log_info "Waiting for device $1 $count";
+		test -e $1
+		if [ $? -eq 0 ]; then
+			log_info "$1 appeared after $count seconds";
+			result=0
+			break;
+		fi
+		sleep 1;
+		((count++))
+	done
+	return $result
+}
+
+# Run the command specified in $1. Log the result. If the command fails and safe is selected abort to /bin/init
+# Otherwise drop to a bash prompt.
+run_protected_command(){
+	log_info "Run: $1"
+	eval $1
+	if [ $? -ne 0 ]; then
+		log_fail "ERROR: error executing $1"
+	fi
+}
+
+
+################## MOUNTING KERNEL MODULES ####################################################################
+
+read_fstab_entry "/"
+log_info "[BOOT] Found $MNT_FSNAME for boot"
+resolve_device $MNT_FSNAME
+log_info "[BOOT] Resolved [$MNT_FSNAME] as [$DEV]"
+run_protected_command "mount $DEV /boot"
+if test -e /boot/bananapi/bpi-r2/linux/modules.squashfs; then
+	log_info "[BOOT] Mounting kernel modules at [/lib/modules]"
+	run_protected_command "mount /boot/bananapi/bpi-r2/linux/modules.squashfs /lib/modules"
 fi
+
+################## BASIC SETUP ################################################################################
+
+run_protected_command "mount -t proc proc /proc"
+
 # check if overlayRoot is needed
 for x in $(cat /proc/cmdline); do
-    if [ "x$x" = "xquiet" ] ; then
-        loglevel=0
-    elif printf "%s\n" "$x" | grep -q "^loglevel=" ; then
-        loglevel="$(printf "%s\n" "$x" | cut -d = -f 2-)"
-    elif [ "x$x" = "xnoOverlayRoot" ] ; then
-        write_log 6 "overlayRoot is disabled. continue init process."
-        exec /sbin/init "$@"
-    fi
+	if [ "x$x" = "xnoOverlayRoot" ] ; then
+		log_info "overlayRoot is disabled. continue init process."
+		rm /mnt/overlayRoot.log
+		exec /sbin/init "$@"
+	fi
 done
-if [ "$loglevel" = 99 ] ; then
-    loglevel=4
+run_protected_command "mount -t tmpfs inittemp /mnt"
+run_protected_command "modprobe overlay"
+
+######################### PHASE 1 DATA COLLECTION #############################################################
+
+# ROOT
+read_fstab_entry "/"
+log_info "[ROOT] Found $MNT_FSNAME for root"
+resolve_device $MNT_FSNAME
+log_info "[ROOT] Resolved [$MNT_FSNAME] as [$DEV]"
+if [ -z $DEV ]; then
+	resolve_device $SECONDARY_ROOT_RESOLUTION
+	log_info "[ROOT] Resolved device [$SECONDARY_ROOT_RESOLUTION] as [$DEV]"
 fi
-write_log 5 "starting overlayRoot..."
-write_log 6 "test overlayFS compatibility"
-modprobe overlay || true
-mount -t tmpfs none /mnt || fail "ERROR: kernel missing tmpfs functionality"
-mkdir -p /mnt/ro /mnt/overlay/upper /mnt/overlay/work /mnt/newroot
-mount -t overlay -o lowerdir=/mnt/ro,upperdir=/mnt/overlay/upper,workdir=/mnt/overlay/work overlayfs-root /mnt/newroot || \
-    fail "ERROR: kernel missing overlay functionality"
-umount /mnt/newroot
-umount /mnt
-write_log 6 "create a writable fs to then create our mountpoints"
-mount -t tmpfs inittemp /mnt || \
-    fail "ERROR: could not create a temporary filesystem to mount the base filesystems for overlayfs"
-mkdir /mnt/ro
-mkdir /mnt/overlay
-mount -t tmpfs root-rw /mnt/overlay || \
-    fail "ERROR: could not create tempfs for upper filesystem"
-mkdir /mnt/overlay/upper
-mkdir /mnt/overlay/work
+
+if [ -z $DEV ];  then
+	log_fail "Can't resolve root device from [$MNT_FSNAME] or [$SECONDARY_ROOT_RESOLUTION].  Try changing entry to UUID or plain device"
+fi
+
+if ! test -e $DEV; then
+	log_fail "Resolved root to $DEV but can't find the device"
+fi
+
+
+ROOT_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS,ro $DEV /mnt/lower"
+
+# ROOT-RW
+if read_fstab_entry $RW; then
+	log_info "found fstab entry for $RW"
+	# Things don't go well if usb is not up or fsck is being performed
+	# kludge -- wait for /dev/sda1
+	await_device "/dev/sda1"  20  #Wait a generous amount of time for first device
+	if ! resolve_device $MNT_FSNAME; then
+		#log_info "No device found for $RW going to try for /dev/sdb1..."
+		DEV="/dev/sdb1"
+	fi
+	#This time we are hopefully waiting for the actual device not /dev/sdb1
+	await_device "$DEV" 5
+	#Retry the lookup
+
+	resolve_device $MNT_FSNAME
+	log_info "Resolved [$MNT_FSNAME] as [$DEV]"
+	if [ -z $DEV ]; then
+		resolve_device $SECONDARY_RW_RESOLUTION
+		log_info "Resolved [$SECONDARY_RW_RESOLUTION] as [$DEV]"
+	fi
+	await_device "$DEV" 20
+
+
+	if [ -n $DEV ] && [ -e "$DEV" ]; then
+
+			RW_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS $DEV $RW"
+
+	else
+		if ! test -e $DEV; then
+			log_warning "Resolved root to $DEV but can't find the device"
+		fi
+		if [ $ON_RW_MEDIA_NOT_FOUND == "tmpfs" ]; then
+			log_warning "Could not resolve the RW media or find it on $DEV"
+			RW_MOUNT="mount -t tmpfs emergency-root-rw $RW"
+		else
+			log_fail "Rw media required but not found"
+		fi
+	fi
+else
+	log_info "No rw fstab entry, will mount a tmpfs"
+	RW_MOUNT="mount -t tmpfs tmp-root-rw $RW"
+fi
+
+####################### PHASE 2 SANITY CHECK AND ABORT HANDLING ###############################################
+
+if [ $FAILURES -gt 0 ]; then
+	fail "Fix $FAILURES failures and maybe $WARNINGS warnings before overlayRoot will work"
+fi
+
+###################### PHASE 3 ACTUALLY DO STUFF ##############################################################
+
+# create a writable fs to then create our mountpoints
+mkdir /mnt/lower
+mkdir /mnt/root-rw
 mkdir /mnt/newroot
-write_log 6 "find rootfs informations."
-rootDev="`grep -v -x -E '^(#.*)|([[:space:]]*)$' /etc/fstab | awk '$2 == "/" {print $1}'`"
-rootMountOpt="`grep -v -x -E '^(#.*)|([[:space:]]*)$' /etc/fstab | awk '$2 == "/" {print $4}'`"
-rootFsType="`grep -v -x -E '^(#.*)|([[:space:]]*)$' /etc/fstab | awk '$2 == "/" {print $3}'`"
-write_log 6 "check if we can locate the root device based on fstab"
-if ! blkid $rootDev ; then
-    write_log 5 "root device in fstab is not block device file"
-    write_log 6 "try if fstab contains a LABEL definition"
-    rootDevFstab="$rootDev"
-    rootDev="$( printf "%s\n" "$rootDev" | sed 's/^LABEL=//g' )"
-    rootDev="$( blkid -L "$rootDev" )"
-    if [ $? -gt 0 ]; then
-        write_log 5 "root device in fstab is not partition label"
-        write_log 6 "try if fstab contains a PARTUUID definition"
-        if ! printf "%s\n" "$rootDevFstab" | grep 'PARTUUID=\(.*\)-\([0-9]\{2\}\)' > /dev/null ; then 
-            write_log 5 "root device in fstab is not PARTUUID"
-            write_log 6 "try if fstab contains a UUID definition"
-            if ! printf "%s\n" "$rootDevFstab" | grep '^UUID=[0-9a-zA-Z-]*$' > /dev/null ; then
-                write_log 5 "no success, try if a filesystem with label 'rootfs' is avaialble"
-                rootDev="$(blkid -L "rootfs")"
-                if [ $? -gt 0 ]; then
-                    fail "could not find a root filesystem device in fstab. Make sure that fstab contains a valid device definition for / or that the root filesystem has a label 'rootfs' assigned to it"
-                fi
-            else
-                rootDev="$(blkid -U "$(printf "%s\n" "$rootDevFstab" | sed 's/^UUID=\([0-9a-zA-Z-]*\)$/\1/')")"
-                if [ $? -gt 0 ]; then
-                    fail "The UUID entry in fstab could not be converted into a valid device name. Make sure that fstab contains a valid device definition for / or that the root filesystem has a label 'rootfs' assigned to it"
-                fi
-            fi
-        else
-            write_log 4 "WARNING: The use of PARTUUID in overlayRoot.sh is deprecated. It cannot handle every circumstances."
-            device=""
-            partition=""
-            eval `printf "%s\n" "$rootDevFstab" | sed -e 's/PARTUUID=\(.*\)-\([0-9]\{2\}\)/device=\1;partition=\2/'`
-            rootDev=`blkid -t "PTUUID=$device" | awk -F : '{print $1}'`p$(($partition))
-            blkid $rootDev
-            if [ $? -gt 0 ]; then
-                fail "The PARTUUID entry in fstab could not be converted into a valid device name. Make sure that fstab contains a valid device definition for / or that the root filesystem has a label 'rootfs' assigned to it"
-            fi
-        fi
-    fi
-fi
-write_log 6 "mount root filesystem readonly"
-originaRoot="$(mount | grep -F "${rootDev}" | while read -r line ; do
-    [ "$(printf "%s\n" "${line}" | cut -c "-$(expr length "${rootDev}")")" = "${rootDev}" ] || continue
-    printf "%s\n" "${line}" | sed 's/^.* on \(.*\) type .*(.*)/\1/g'
-done)"
-if [ "$(printf "%s\n" "${originaRoot}" | wc -l)" -gt 1 ] ; then
-    write_log 4 "WARNING: could not determine where the original root partition mounted at. Treating it as not mounted."
-    originaRoot=""
-fi
-if [ ! "${originaRoot}" = "" ] ; then
-    if ! mount -o "bind,ro" "${originaRoot}" /mnt/ro ; then
-        write_log 4 "WARNING: bind mount original root partition failed. Treating it as not mounted."
-        originaRoot=""
-    fi
-fi
-if [ "${originaRoot}" = "" ] ; then
-    mount -t "${rootFsType}" -o "${rootMountOpt},ro" "${rootDev}" /mnt/ro || \
-        fail "ERROR: could not ro-mount original root partition"
-fi
-mount -t overlay -o lowerdir=/mnt/ro,upperdir=/mnt/overlay/upper,workdir=/mnt/overlay/work overlayfs-root /mnt/newroot || \
-    fail "ERROR: could not mount overlayFS"
-write_log 6 "create mountpoints inside the new root filesystem-overlay"
-mkdir /mnt/newroot/ro
-mkdir /mnt/newroot/overlay
-write_log 6 "remove root mount from fstab (this is already a non-permanent modification)"
-echo "# the original root mount has been removed by overlayRoot.sh" > /mnt/newroot/etc/fstab
-echo "# this is only a temporary modification, the original fstab" >> /mnt/newroot/etc/fstab
-echo "# stored on the disk can be found in /ro/etc/fstab" >> /mnt/newroot/etc/fstab
-grep -v -x -E '^(#.*)|([[:space:]]*)$' /mnt/ro/etc/fstab | awk '$2 != "/" {print}' >> /mnt/newroot/etc/fstab
-write_log 6 "change to the new overlay root"
+
+run_protected_command "$RW_MOUNT"
+run_protected_command "$ROOT_MOUNT"
+
+mkdir -p $RW/upper
+mkdir -p $RW/work
+
+run_protected_command "mount -t overlay -o lowerdir=/mnt/lower,upperdir=$RW/upper,workdir=$RW/work overlayfs-root /mnt/newroot"
+
+# create mountpoints inside the new root filesystem-overlay
+mkdir -p /mnt/newroot/ro
+mkdir -p /mnt/newroot/rw
+
+# remove root mount from fstab (this is already a non-permanent modification)
+grep -v "$DEV" /mnt/lower/etc/fstab > /mnt/newroot/etc/fstab
+echo "#the original root mount has been removed by overlayRoot.sh" >> /mnt/newroot/etc/fstab
+echo "#this is only a temporary modification, the original fstab" >> /mnt/newroot/etc/fstab
+echo "#stored on the disk can be found in /ro/etc/fstab" >> /mnt/newroot/etc/fstab
+
+# change to the new overlay root
 cd /mnt/newroot
+cat /mnt/overlayRoot.log >> /mnt/newroot/$LOG_FILE
 pivot_root . mnt
 exec chroot . sh -c "$(cat <<END
-write_log(){
-    [ "$loglevel" -lt "\$1" ] || echo "[overlayRoot.sh]" "\$2"
-}
-fail(){
-        write_log 2 "\$1"
-        write_log 2 "there is something wrong with overlayRoot.sh. type exit and press enter to ignore and continue."
-        if ! /bin/sh ; then
-            exit 1
-        fi
-}
-write_log 6 "move ro, rw and other necessary mounts to the new root"
-mount --move /mnt/mnt/ro/ /ro || \
-    fail "ERROR: could not move ro-root into newroot"
-mount --move /mnt/mnt/overlay /overlay || \
-    fail "ERROR: could not move tempfs rw mount into newroot"
-chmod 755 /overlay
-mount --move /mnt/proc /proc || \
-    fail "ERROR: could not move proc mount into newroot"
-mount --move /mnt/dev /dev || true
-write_log 6 "unmount unneeded mounts so we can unmout the old readonly root"
-mount | sed -E -e 's/^.* on //g' -e 's/ type .*\$//g' | grep -x '^/mnt.*\$' | sort -r | while read xx ; do echo -n "\$xx\0" ; done | xargs -0 -n 1 umount || \
-    fail "ERROR: could not umount old root"
-write_log 6 "continue with regular init"
-exec /sbin/init "\$@"
+# move ro and rw mounts to the new root
+mount --move /mnt/mnt/lower/ /ro
+if [ $? -ne 0 ]; then
+	echo "ERROR: could not move ro-root into newroot"
+	/bin/bash
+fi
+mount --move /mnt/$RW /rw
+if [ $? -ne 0 ]; then
+	echo "ERROR: could not move tempfs rw mount into newroot"
+	/bin/bash
+fi
+# unmount unneeded mounts so we can unmout the old readonly root
+umount /mnt/mnt
+umount /mnt/proc
+umount /mnt/dev
+umount /mnt
+# continue with regular init
+exec /sbin/init
 END
-)" sh "$@"
+)"
