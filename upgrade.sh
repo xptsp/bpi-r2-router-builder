@@ -5,18 +5,20 @@ COPY_ONLY=(
 	etc/network/dnsmasq.d
 	etc/fstab
 	etc/transmission-daemon/settings.json
-	etc/default
+	etc/default/
+	etc/overlayRoot.conf
 )
 
 function replace()
 {
-	test -e /${2:-"1"} && rm /${2:-"1"}
+	DEST=${2:-"1"}
+	test -e /$DEST && rm /$DEST
 	COPY=false
 	for cfile in ${COPY_ONLY[@]}; do if [[ "$1" =~ ^${cfile} ]]; then COPY=true; fi; done
 	if [[ "$COPY" == "true" ]]; then
-		cp $PWD/$1 /${2:-"$1"}
+		cp $PWD/$1 /$DEST
 	else
-		ln -sf $PWD/$1 /${2:-"$1"}
+		ln -sf $PWD/$1 /$DEST || cp $PWD/$1 /$DEST
 	fi
 }
 
@@ -27,7 +29,6 @@ for file in $(find etc/* -type f); do replace $file; done
 for file in $(find lib/systemd/system/* -type f); do replace $file; done
 for file in $(find usr/* -type f); do replace $file; done
 for file in $(find root/.b* -type f); do
-	echo $file
 	replace $file
 	replace $file /etc/skel/${file/root/}
 	replace $file /home/pi/${file/root/}
