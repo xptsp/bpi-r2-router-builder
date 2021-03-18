@@ -13,3 +13,4 @@ if [[ -z "$1" || "$1" == "-6" ]]; then
 	echo -e "${GREEN}IPv6 Active Internet connections (servers only)${NC}"
 	cat /tmp/peanut | grep LISTEN | grep "::" | sort -t":" -k4 -g
 fi
+rm /tmp/peanut

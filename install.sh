@@ -215,21 +215,28 @@ tar -xvzf cloudflared-stable-linux-arm.tgz
 mv ./cloudflared /usr/local/bin
 popd
 useradd -s /usr/sbin/nologin -r -M cloudflared
-sudo chown cloudflared:cloudflared /etc/default/cloudflared
-sudo chown cloudflared:cloudflared /usr/local/bin/cloudflared
-sudo systemctl enable cloudflared@1
-sudo systemctl start cloudflared@1
-sudo systemctl enable cloudflared@2
-sudo systemctl start cloudflared@2
-sudo systemctl enable cloudflared@3
-sudo systemctl start cloudflared@3
+chown cloudflared:cloudflared /etc/default/cloudflared
+chown cloudflared:cloudflared /usr/local/bin/cloudflared
+systemctl enable cloudflared@1
+systemctl start cloudflared@1
+systemctl enable cloudflared@2
+systemctl start cloudflared@2
+systemctl enable cloudflared@3
+systemctl start cloudflared@3
 
- Set some default settings for minissdpd package:
+# Set some default settings for minissdpd package:
 echo "minissdpd minissdpd/listen string br0" | debconf-set-selections
 echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
 echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 
-# Install minissdpd, igmpproxy and miniupnpc packages:
+# Install minissdpd package:
 apt install -y minissdpd
 systemctl enable minissdpd
 systemctl start minissdpd
+
+# Install igmpproxy package:
+mv /etc/igmpproxy.conf /tmp/igmpproxy.conf
+apt install -y igmpproxy
+mv /tmp/igmpproxy.conf /etc/igmpproxy.conf 
+systemctl enable igmpproxy
+systemctl start igmpproxy
