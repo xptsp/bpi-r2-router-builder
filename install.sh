@@ -6,13 +6,6 @@ if [[ "${UID}" -ne 0 ]]; then
 	exit $?
 fi
 
-# Copy files to their destination directories:
-chown root:root -R files
-cp -aR files/* /
-cp /root/.bash* /etc/skel/
-cp /root/.bash* /home/{pi,vpn}/
-systemctl daemon-reload
-
 # Secure the "authorized_keys" file so it can only be appended:
 chattr +a /root/.ssh/authorized_keys
 

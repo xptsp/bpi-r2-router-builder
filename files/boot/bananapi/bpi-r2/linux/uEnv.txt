@@ -1,5 +1,2 @@
 # Replace init script with the /sbin/overlayRoot.sh script
-bootopts=$bootopts init=/sbin/overlayRoot.sh
-
-# Uncomment to disable overlay root system script:
-bootopts=$bootopts noOverlayRoot
+bootopts=init=/sbin/overlayRoot.sh noOverlayRoot

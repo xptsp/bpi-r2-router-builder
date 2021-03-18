@@ -67,7 +67,8 @@ rm ${A}/root/.ssh/known_hosts >& /dev/null
 rm ${A}/var/lib/vnstat/* >& /dev/null
 rm ${A}/var/misc/* >& /dev/null
 rm -r ${A}/var/log/*.{xz,gz,1,2} >& /dev/null
-for file in $(find ${A}/var/log -type f | grep -v .gz); do cp /dev/null $file; done
+for file in $(find ${A}/var/log -type f); do echo -n > $file; done
+rm ${A}/root/.ssh/known_hosts >& /dev/null
 echo -e "${GREEN}NOTE:${NC} Clearing the local repository of retrieved package files..."
 chroot ${A} apt-get clean
 chroot ${A} apt-get autoclean
