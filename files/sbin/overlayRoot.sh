@@ -48,9 +48,9 @@ defaults(){
 	SECONDARY_ROOT_RESOLUTION="LABEL=BPI-ROOT"
 
 	# The filesystem name to use for the RW partition
-	# Default root-rw
+	# Default ROOT-RW
 
-	RW_NAME=root-rw
+	RW_NAME=ROOT-RW
 
 	# Discover the rw device using PARTUUID=xxx UUID=xxx or LABEL= xxx  if the fstab detection fails.
 	# Note PARTUUID does not work at present.

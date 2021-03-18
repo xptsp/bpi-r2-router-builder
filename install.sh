@@ -31,26 +31,6 @@ echo "bpiwrt" > /etc/hostname
 echo "192.168.2.1     bpiwrt" >> /etc/hosts
 echo "192.168.2.1     pi.hole" >> /etc/hosts
 
-# Remove known duplicate files:
-[[ -e /etc/apt/trusted.gpg~ ]] && rm /etc/apt/trusted.gpg~
-[[ -e /etc/network/interfaces~ ]] && rm /etc/network/interfaces~
-
-# Enable packet forwarding on IPv4:
-sed -i "s|#net.ipv4.ip_forward=1|net.ipv4.ip_forward=1|g" /etc/sysctl.conf
-
-# Force automatic reboot after 1 second upon a kernel panic:
-sed -i "/kernel.panic/d" /etc/sysctl.conf
-echo "kernel.panic = 1" >> /etc/sysctl.conf
-
-# Activate these changes:
-sysctl -p
-
-# Blacklist the module responsible for poweroffs on R2:
-echo "blacklist mtk_pmic_keys" > /etc/modprobe.d/blacklist.conf
-
-# Load the i2c-dev module at boot:
-echo "i2c-dev" > /etc/modprobe.d/i2c.conf
-
 # Refreshes the certificates:
 update-ca-certificates -f
 
@@ -105,8 +85,9 @@ touch /etc/samba/includes.conf
 sed -i "s|/var/run|/run|g" /lib/systemd/system/?mbd.service
 systemctl daemon-reload
 systemctl enable smbd
-systemctl enable nmbd
 systemctl restart smbd
+systemctl enable nmbd
+systemctl restart nmbd
 echo -e "bananapi\nbananapi" | smbpasswd -a pi
 
 # Install NGINX and PHP 7.3:
