@@ -206,7 +206,6 @@ mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
 ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
 popd
 systemctl enable docker-compose
-ln -sf /var/lib/docker/data /opt/docker-data
 
 # Install and configure cloudflared:
 pushd /tmp
