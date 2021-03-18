@@ -144,18 +144,6 @@ run_protected_command(){
 }
 
 
-################## MOUNTING KERNEL MODULES ####################################################################
-
-read_fstab_entry "/"
-log_info "[BOOT] Found $MNT_FSNAME for boot"
-resolve_device $MNT_FSNAME
-log_info "[BOOT] Resolved [$MNT_FSNAME] as [$DEV]"
-run_protected_command "mount $DEV /boot"
-if test -e /boot/bananapi/bpi-r2/linux/modules.squashfs; then
-	log_info "[BOOT] Mounting kernel modules at [/lib/modules]"
-	run_protected_command "mount /boot/bananapi/bpi-r2/linux/modules.squashfs /lib/modules"
-fi
-
 ################## BASIC SETUP ################################################################################
 
 run_protected_command "mount -t proc proc /proc"
@@ -164,7 +152,6 @@ run_protected_command "mount -t proc proc /proc"
 for x in $(cat /proc/cmdline); do
 	if [ "x$x" = "xnoOverlayRoot" ] ; then
 		log_info "overlayRoot is disabled. continue init process."
-		rm /mnt/overlayRoot.log
 		exec /sbin/init "$@"
 	fi
 done
