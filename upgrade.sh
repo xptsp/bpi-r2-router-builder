@@ -12,7 +12,7 @@ function replace()
 {
 	test -e /$1 && rm /$1
 	COPY=false
-	for file in ${COPY_ONLY[@]}; do if [[ "/etc/fstab" =~ ^${file} ]]; then COPY=true; fi; done
+	for cfile in ${COPY_ONLY[@]}; do if [[ "$1" =~ ^${cfile} ]]; then COPY=true; fi; done
 	if [[ "$COPY" == "true" ]]; then
 		cp $PWD/$1 /${2:-"$1"}
 	else
