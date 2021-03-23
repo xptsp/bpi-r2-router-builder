@@ -1,4 +1,10 @@
 #!/bin/bash
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+BLUE='\033[1;34m'
+NC='\033[0m'
+CHECK="\xE2\x9C\x94"
+CROSS="\xE2\x9D\x8C"
 
 # Files to copy only:
 COPY_ONLY=(
@@ -12,24 +18,26 @@ COPY_ONLY=(
 
 # Place of the root files to copy/link:
 RO=
+test -d /ro && RO=/ro
 
 function replace()
 {
-	DEST=${2:-"1"}
-	test -e ${RO}/$DEST && rm ${RO}/$DEST
+	DEST=${RO}/${2:-"$1"}
+	rm $DEST >& /dev/null
 	COPY=false
+	SRC=$(echo ${PWD}/$1 | sed "s|/ro/|/|g")
 	for cfile in ${COPY_ONLY[@]}; do if [[ "$1" =~ ^${cfile} ]]; then COPY=true; fi; done
 	if [[ "$COPY" == "true" ]]; then
-		cp $PWD/$1 ${RO}/$DEST
+		! cp ${SRC} ${DEST} && echo -e -n "Copying ${GREEN}${SRC}${NC} to ${GREEN}${DEST}${NC}... ${RED}Fail!${NC}"
 	else
-		ln -sf $PWD/$1 ${RO}/$DEST || cp $PWD/$1 ${RO}/$DEST
+		! ln -sf ${SRC} ${DEST} && echo -e "Linking ${GREEN}${SRC}${NC} to ${GREEN}${DEST}${NC}... ${RED}Fail!${NC}"
 	fi
 }
 
 cd $(dirname $0)/files
 cp -R boot/* ${RO}/boot/
 for file in $(find etc/* -type f); do replace $file; done
-for file in $(find lib/systemd/system/* -type f); do replace $file; done
+for file in $(find lib/systemd/system/* -type d); do replace $file; done
 if ! test -d ${RO}/opt/docker-data; then
 	mkdir -p ${RO}/opt/docker-data
 	cp -R opt/docker-data/* ${RO}/opt/docker-data/
