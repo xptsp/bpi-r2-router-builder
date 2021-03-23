@@ -183,6 +183,7 @@ if ! test -e $DEV; then
 fi
 
 ROOT_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS,ro $DEV /mnt/lower"
+RO_DEV=$DEV
 
 
 # ROOT-RW
@@ -238,10 +239,9 @@ fi
 
 # create a writable fs to then create our mountpoints
 mkdir /mnt/lower
-mkdir /mnt/root-rw
+mkdir $RW
 mkdir /mnt/newroot
 
-run_protected_command "mkdir -p $RW"
 run_protected_command "$ROOT_MOUNT"
 run_protected_command "$RW_MOUNT"
 
@@ -255,9 +255,9 @@ mkdir -p /mnt/newroot/ro
 mkdir -p /mnt/newroot/rw
 
 # remove root mount from fstab (non-permanent modification on tmpfs rw media)
-if cat /mnt/newroot/etc/fstab | grep "$DEV" >& /dev/null; then
-	grep -v "$DEV" /mnt/lower/etc/fstab > /mnt/newroot/etc/fstab
-	echo "#the original root mount has been removed by overlayRoot.sh" >> /mnt/newroot/etc/fstab
+if ! test -e /mnt/newroot/etc/fstab || cat /mnt/newroot/etc/fstab | grep -e "^$RO_DEV" >& /dev/null; then
+	sed "s|^${RO_DEV}|#${RO_DEV}|g" /mnt/lower/etc/fstab > /mnt/newroot/etc/fstab
+	echo "#the original root mount has been commented out by overlayRoot.sh" >> /mnt/newroot/etc/fstab
 	echo "#this is only a temporary modification, the original fstab" >> /mnt/newroot/etc/fstab
 	echo "#stored on the disk can be found in /ro/etc/fstab" >> /mnt/newroot/etc/fstab
 fi

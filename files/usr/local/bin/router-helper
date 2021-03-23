@@ -1,0 +1,46 @@
+#!/bin/bash
+if [[ "${UID}" -ne 0 ]]; then
+	sudo $0 $@
+	exit $?
+fi
+
+###########################################################################
+# Functions & code that dealing directly with remounting root filesystem
+# and preparation for chroot operations
+###########################################################################
+function remount_rw()
+{
+	mount -o remount,rw $RO_DEV /ro && \
+		mount --bind /dev /ro/dev && \
+		mount --bind /run /ro/run && \
+		mount --types=proc proc /ro/proc && \
+		mount --types=sysfs sysfs /ro/sys
+}
+function remount_ro()
+{
+	umount /ro/sys >& /dev/null
+	umount /ro/proc >& /dev/null
+	umount /ro/run >& /dev/null
+	umount /ro/dev >& /dev/null
+	mount -o remount,ro $RO_DEV /ro
+}
+RO_DEV=$(cat /ro/etc/fstab | grep " / " | cut -d" " -f 1)
+trap 'remount_ro' SIGINT
+
+###########################################################################
+# Main branching code
+###########################################################################
+if ! remount_rw; then
+	echo "ERROR: Unable to properly remount root filesystem!"
+	exit 1
+fi
+case $1 in
+	chroot_ro)
+		chroot /ro
+		;;
+		
+	*)
+		echo "Syntax: $(basename $0) [command] [options]"
+		;;
+esac
+remount_ro
