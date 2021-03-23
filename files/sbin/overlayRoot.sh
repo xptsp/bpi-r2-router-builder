@@ -227,7 +227,6 @@ else
 	log_info "No rw fstab entry, will mount a tmpfs"
 	RW_MOUNT="mount -t tmpfs tmp-root-rw $RW"
 fi
-mkdir $RW
 
 ####################### PHASE 2 SANITY CHECK AND ABORT HANDLING ###############################################
 
@@ -256,7 +255,7 @@ mkdir -p /mnt/newroot/ro
 mkdir -p /mnt/newroot/rw
 
 # remove root mount from fstab (non-permanent modification on tmpfs rw media)
-if ! test -e /mnt/newroot/etc/fstab; then
+if cat /mnt/newroot/etc/fstab | grep "$DEV" >& /dev/null; then
 	grep -v "$DEV" /mnt/lower/etc/fstab > /mnt/newroot/etc/fstab
 	echo "#the original root mount has been removed by overlayRoot.sh" >> /mnt/newroot/etc/fstab
 	echo "#this is only a temporary modification, the original fstab" >> /mnt/newroot/etc/fstab
