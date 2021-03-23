@@ -25,7 +25,7 @@ function replace()
 	DEST=${RO}/${2:-"$1"}
 	rm $DEST >& /dev/null
 	COPY=false
-	SRC=$(echo ${PWD}/$1 | sed "s|/ro/|/|g")
+	SRC=$(echo ${PWD}/$1)
 	for cfile in ${COPY_ONLY[@]}; do if [[ "$1" =~ ^${cfile} ]]; then COPY=true; fi; done
 	if [[ "$COPY" == "true" ]]; then
 		! cp ${SRC} ${DEST} && echo -e -n "Copying ${GREEN}${SRC}${NC} to ${GREEN}${DEST}${NC}... ${RED}Fail!${NC}"
