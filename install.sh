@@ -13,6 +13,9 @@ chattr +a /root/.ssh/authorized_keys
 export DEBIAN_FRONTEND=noninteractive
 update-alternatives --set iptables /usr/sbin/iptables-legacy
 
+# Set a placeholder file for chrooting into read-only filesystem:
+touch /etc/debian_chroot
+
 # Create a user named "pi", being a member of the "sudo" and "users" group.
 useradd -m -G sudo,users -s /bin/bash pi
 echo -e "bananapi\nbananapi" | passwd -q pi
