@@ -185,19 +185,6 @@ fi
 ROOT_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS,ro $DEV /mnt/lower"
 
 
-# Create and format 3rd partition as RW media if not exist:
-if [[ "${DEV}" =~ ^/dev/mmcblk ]]; then
-	PART3=${DEV/p1/p3}
-	if ! test -e $PART3; then
-		DEV=${PART3/p3/}
-		PARAMS=($(fdisk -l ${DEV} | grep "p2"))
-		echo "$(( ${PARAMS[2]} + 1 )),,83" | sfdisk --append --force ${DEV}
-		partprobe ${DEV}
-		mkfs.ext4 ${PART3} -L ROOT-RW
-	fi
-fi
-
-
 # ROOT-RW
 if read_fstab_entry $RW; then
 	log_info "found fstab entry for $RW"
