@@ -256,7 +256,7 @@ mkdir -p /mnt/newroot/ro
 mkdir -p /mnt/newroot/rw
 
 # remove root mount from fstab (non-permanent modification on tmpfs rw media)
-if ! test /mnt/newroot/etc/fstab; then
+if ! test -e /mnt/newroot/etc/fstab; then
 	grep -v "$DEV" /mnt/lower/etc/fstab > /mnt/newroot/etc/fstab
 	echo "#the original root mount has been removed by overlayRoot.sh" >> /mnt/newroot/etc/fstab
 	echo "#this is only a temporary modification, the original fstab" >> /mnt/newroot/etc/fstab
