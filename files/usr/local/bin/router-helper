@@ -61,11 +61,12 @@ case $1 in
 		;;
 
 	update_tools|update-tools)
-		remount_rw
-		cd $(test -d /ro && echo "/ro")/opt/bpi-r2-router-builder/
+		remount_rw nofail
+		DIR=$(test -d /ro && echo "/ro")/opt/bpi-r2-router-builder
+		cd ${DIR}
 		git reset --hard
 		git pull
-		./upgrade.sh
+		${DIR}/upgrade.sh
 		remount_ro
 		;;
 
