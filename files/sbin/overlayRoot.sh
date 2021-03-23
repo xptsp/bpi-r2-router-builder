@@ -54,9 +54,9 @@ defaults(){
 
 	# Discover the rw device using PARTUUID=xxx UUID=xxx or LABEL= xxx  if the fstab detection fails.
 	# Note PARTUUID does not work at present.
-	# Default is "LABEL=root-rw".  This makes the script work out of the box if the user labels their partition
+	# Default is "LABEL=ROOT-RW".  This makes the script work out of the box if the user labels their partition
 
-	SECONDARY_RW_RESOLUTION="LABEL=root-rw"
+	SECONDARY_RW_RESOLUTION="LABEL=ROOT-RW"
 
 	# What to do if the user has specified rw media in fstab and it is not found using primary and secondary lookup?
 	# fail = follow the fail logic see ON_FAIL
@@ -67,6 +67,8 @@ defaults(){
 	LOGGING=warning
 
 	LOG_FILE=/var/log/overlayRoot.log
+
+	SECONDARY_REFORMAT=no
 
 	#Read the selected configuration
 	source /etc/overlayRoot.conf
@@ -136,10 +138,12 @@ await_device() {
 # Run the command specified in $1. Log the result. If the command fails and safe is selected abort to /bin/init
 # Otherwise drop to a bash prompt.
 run_protected_command(){
-	log_info "Run: $1"
-	eval $1
-	if [ $? -ne 0 ]; then
-		log_fail "ERROR: error executing $1"
+	if [[ ! -z "$1" ]]; then
+		log_info "Run: $1"
+		eval $1
+		if [ $? -ne 0 ]; then
+			log_fail "ERROR: error executing $1"
+		fi
 	fi
 }
 
@@ -178,8 +182,21 @@ if ! test -e $DEV; then
 	log_fail "Resolved root to $DEV but can't find the device"
 fi
 
-
 ROOT_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS,ro $DEV /mnt/lower"
+
+
+# Create and format 3rd partition as RW media if not exist:
+if [[ "${DEV}" =~ ^/dev/mmcblk ]]; then
+	PART3=${DEV/p1/p3}
+	if ! test -e $PART3; then
+		DEV=${PART3/p3/}
+		PARAMS=($(fdisk -l ${DEV} | grep "p2"))
+		echo "$(( ${PARAMS[2]} + 1 )),,83" | sfdisk --append --force ${DEV}
+		partprobe ${DEV}
+		mkfs.ext4 ${PART3} -L ROOT-RW
+	fi
+fi
+
 
 # ROOT-RW
 if read_fstab_entry $RW; then
@@ -237,8 +254,8 @@ mkdir /mnt/lower
 mkdir /mnt/root-rw
 mkdir /mnt/newroot
 
-run_protected_command "$RW_MOUNT"
 run_protected_command "$ROOT_MOUNT"
+run_protected_command "$RW_MOUNT"
 
 mkdir -p $RW/upper
 mkdir -p $RW/work

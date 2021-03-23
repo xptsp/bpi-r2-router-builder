@@ -11,9 +11,6 @@
 #
 # By default this script does nothing.
 
-# Mount the uEnv.txt file to an empty /boot/uEnv.txt for easier access:
-mount --bind /boot/bananapi/bpi-r2/linux/uEnv.txt /boot/uEnv.txt
-
 # Bring up the internal WiFi interface:
 /usr/local/sbin/wifi.sh
 
