@@ -227,6 +227,7 @@ else
 	log_info "No rw fstab entry, will mount a tmpfs"
 	RW_MOUNT="mount -t tmpfs tmp-root-rw $RW"
 fi
+mkdir $RW
 
 ####################### PHASE 2 SANITY CHECK AND ABORT HANDLING ###############################################
 
@@ -241,6 +242,7 @@ mkdir /mnt/lower
 mkdir /mnt/root-rw
 mkdir /mnt/newroot
 
+run_protected_command "mkdir -p $RW"
 run_protected_command "$ROOT_MOUNT"
 run_protected_command "$RW_MOUNT"
 
@@ -253,11 +255,13 @@ run_protected_command "mount -t overlay -o lowerdir=/mnt/lower,upperdir=$RW/uppe
 mkdir -p /mnt/newroot/ro
 mkdir -p /mnt/newroot/rw
 
-# remove root mount from fstab (this is already a non-permanent modification)
-grep -v "$DEV" /mnt/lower/etc/fstab > /mnt/newroot/etc/fstab
-echo "#the original root mount has been removed by overlayRoot.sh" >> /mnt/newroot/etc/fstab
-echo "#this is only a temporary modification, the original fstab" >> /mnt/newroot/etc/fstab
-echo "#stored on the disk can be found in /ro/etc/fstab" >> /mnt/newroot/etc/fstab
+# remove root mount from fstab (non-permanent modification on tmpfs rw media)
+if ! test /mnt/newroot/etc/fstab; then
+	grep -v "$DEV" /mnt/lower/etc/fstab > /mnt/newroot/etc/fstab
+	echo "#the original root mount has been removed by overlayRoot.sh" >> /mnt/newroot/etc/fstab
+	echo "#this is only a temporary modification, the original fstab" >> /mnt/newroot/etc/fstab
+	echo "#stored on the disk can be found in /ro/etc/fstab" >> /mnt/newroot/etc/fstab
+fi
 
 # change to the new overlay root
 cd /mnt/newroot
