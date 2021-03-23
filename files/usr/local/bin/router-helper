@@ -39,6 +39,12 @@ case $1 in
 		chroot /ro
 		;;
 		
+	update_tools)
+		cd /ro/opt/bpi-r2-router-builder/
+		git pull
+		upgrade.sh
+		;;
+
 	*)
 		echo "Syntax: $(basename $0) [command] [options]"
 		;;
