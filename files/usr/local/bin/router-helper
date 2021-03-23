@@ -15,6 +15,11 @@ function remount_rw()
 		mount --bind /run /ro/run && \
 		mount --types=proc proc /ro/proc && \
 		mount --types=sysfs sysfs /ro/sys
+	if [[ $? -ne 0 ]]; then
+		echo "ERROR: Unable to properly remount root filesystem!"
+		exit 1
+	fi
+
 }
 function remount_ro()
 {
@@ -22,7 +27,7 @@ function remount_ro()
 	umount /ro/proc >& /dev/null
 	umount /ro/run >& /dev/null
 	umount /ro/dev >& /dev/null
-	mount -o remount,ro $RO_DEV /ro
+	test -d /ro && mount -o remount,ro $RO_DEV /ro
 }
 RO_DEV=$(cat /ro/etc/fstab | grep " / " | cut -d" " -f 1)
 trap 'remount_ro' SIGINT
@@ -30,23 +35,26 @@ trap 'remount_ro' SIGINT
 ###########################################################################
 # Main branching code
 ###########################################################################
-if ! remount_rw; then
-	echo "ERROR: Unable to properly remount root filesystem!"
-	exit 1
-fi
 case $1 in
 	chroot_ro)
+		remount_rw
+		echo "CHROOT" > /tmp/debian_chroot
+		mount --bind /tmp/debian_chroot /ro/etc/debian_chroot
 		chroot /ro
+		umount /ro/etc/debian_chroot
+		rm /tmp/debian_chroot
+		remount_ro
 		;;
 		
 	update_tools)
+		remount_rw
 		cd /ro/opt/bpi-r2-router-builder/
 		git pull
 		upgrade.sh
+		remount_ro
 		;;
 
 	*)
 		echo "Syntax: $(basename $0) [command] [options]"
 		;;
 esac
-remount_ro
