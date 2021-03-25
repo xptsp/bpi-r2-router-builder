@@ -258,7 +258,7 @@ if read_fstab_entry $RW; then
 			RW_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS $DEV $RW"
 			
 			unset RW_FORMAT
-			[[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]] && RW_FORMAT="mkfs.$MNT_TYPE $DEV -L $RW_NAME"
+			[[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]] && RW_FORMAT="mkfs.$MNT_TYPE -F $DEV -L $RW_NAME"
 
 	else
 		if ! test -e $DEV; then
