@@ -74,7 +74,8 @@ defaults(){
 	source /etc/overlayRoot.conf
 }
 
-source ./usr/share/initramfs-tools/scripts/functions  #we use read_fstab_entry and resolve_device
+#source ./usr/share/initramfs-tools/scripts/functions  #we use read_fstab_entry and resolve_device
+source ./usr/local/bin/helpers/overlayRoot-helper.sh
 defaults
 rootmnt=""
 RW="/mnt/$RW_NAME"  # Mount point for writable drive

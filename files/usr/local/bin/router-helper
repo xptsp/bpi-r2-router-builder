@@ -36,11 +36,11 @@ function remount_rw()
 function remount_ro()
 {
 	if test -d /ro; then
+		umount /ro/tmp >& /dev/null
 		umount /ro/sys >& /dev/null
 		umount /ro/proc >& /dev/null
 		umount /ro/run >& /dev/null
 		umount /ro/dev >& /dev/null
-		umount /ro/tmp >& /dev/null
 		mount -o remount,ro $RO_DEV /ro
 	fi
 }
