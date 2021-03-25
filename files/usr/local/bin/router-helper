@@ -28,23 +28,22 @@ function remount_rw()
 	fi
 	mount --bind /dev /ro/dev
 	mount --bind /run /ro/run
-	mount --types=proc proc /ro/proc
-	mount --types=sysfs sysfs /ro/sys
+	mount --bind /proc /ro/proc
+	mount --bind /sys /ro/sys
 	mount --bind /tmp /ro/tmp
+	return 0
 }
 function remount_ro()
 {
-	if test -d /ro; then
-		umount /ro/tmp >& /dev/null
-		umount /ro/sys >& /dev/null
-		umount /ro/proc >& /dev/null
-		umount /ro/run >& /dev/null
-		umount /ro/dev >& /dev/null
-		mount -o remount,ro $RO_DEV /ro
-	fi
+	umount /ro/sys >& /dev/null
+	umount /ro/proc >& /dev/null
+	umount /ro/run >& /dev/null
+	umount /ro/dev >& /dev/null
+	mount -o remount,ro $RO_DEV /ro
 }
-RO_DEV=$(cat /etc/fstab | grep " / " | sed "s|^#||g" | cut -d" " -f 1)
+RO_DEV=$(cat /ro/etc/fstab | grep " / " | sed "s|^#||g" | cut -d" " -f 1)
 trap 'remount_ro' SIGINT
+trap 'remount_ro' EXIT
 
 ###########################################################################
 # Main branching code
@@ -60,17 +59,11 @@ case $1 in
 		remount_ro
 		;;
 
-	update_tools|update-tools)
-		cd /opt/bpi-r2-router-builder/
-		git reset --hard
-		git pull
-		./upgrade.sh
-		;;
-
 	reformat)
-		remount_rw && \
-			sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=no|g" /ro/etc/overlayRoot.conf && \
-			reboot now
+		remount_rw
+		sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=yes|g" /ro/etc/overlayRoot.conf
+		remount_ro
+		#reboot now
 		;;
 
 	*)
