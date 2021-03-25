@@ -44,3 +44,4 @@ done
 for file in $(find sbin/* -type f); do replace $file; done
 test -d /usr/local/bin/helpers || mkdir -p /usr/local/bin/helpers
 for file in $(find usr/* -type f); do replace $file; done
+replace /var/www/router
