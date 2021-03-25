@@ -233,6 +233,8 @@ RO_DEV=$DEV
 # ROOT-RW
 if read_fstab_entry $RW; then
 	log_info "found fstab entry for $RW"
+
+	# If we are using the SD card or EMMC, then we don't have to wait for the device :p
 	if [[ ! "$MNT_FSNAME" =~ ^/dev/mmcblk ]]; then
 		# Things don't go well if usb is not up or fsck is being performed
 		# kludge -- wait for /dev/sda1
@@ -263,7 +265,7 @@ if read_fstab_entry $RW; then
 			unset RW_FORMAT
 			if [[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]]; then
 				RW_FORMAT="mkfs.$MNT_TYPE -F $DEV -L $RW_NAME"
-				sed -i "s|SECONDARY_REFORMAT=*|SECONDARY_REFORMAT=no|g" /etc/overlayRoot.conf
+				sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=no|g" /etc/overlayRoot.conf
 			fi
 
 	else
