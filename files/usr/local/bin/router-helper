@@ -5,26 +5,41 @@ if [[ "${UID}" -ne 0 ]]; then
 fi
 
 ###########################################################################
-# Functions & code that dealing directly with remounting root filesystem
-# and preparation for chroot operations
+# Supporting functions
 ###########################################################################
-function remount_rw()
+# Check to make sure that a read-only filesystem exists, and diagnose issue if it doesn't:
+function check_ro()
 {
 	if ! test -d /ro; then
 		if [[ "$(cat /etc/debian_chroot)" == "CHROOT" ]]; then
-			echo "Already in chroot environment!"
+			echo "ERROR: Already in chroot environment!"
 		elif ! cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "=/sbin/overlayRoot.sh" >& /dev/null; then
-			echo "ERROR: Overlay script line missing.  Add 'bootopts=init=/sbin/overlayRoot.sh' to \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to enable."
+			echo "ERROR: Overlay script line missing."
+			echo "Add 'bootopts=init=/sbin/overlayRoot.sh' to \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to enable."
 		elif cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "noOverlayRoot$" >& /dev/null; then
-			echo "ERROR: Overlay script has been disabled.  Remove \"noOverlayRoot\" from \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to reenable."
+			echo "ERROR: Overlay script has been disabled."
+			ecgi "Remove or comment out \"noOverlayRoot\" from \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to reenable."
 		else
 			echo "ERROR: Readonly filesystem not available!"
 		fi
 		exit 1
 	fi
-	if ! mount -o remount,rw $RO_DEV /ro; then
-		echo "ERROR: Unable to properly remount root filesystem!"
+}
+
+# Remount readonly lower filesystem as writable:
+function remount_rw()
+{
+	if mount | grep -e "^$RO_DEV" | grep "rw" >& /dev/null; then
+		echo "ERROR: Root filesystem already mounted read-write!"
 		exit 1
+	fi
+	if ! mount -o remount,rw $RO_DEV /ro; then
+		echo "ERROR: Unable to remount root filesystem!"
+		exit 1
+	fi
+	if [[ ! "$1" == "notrap" ]]; then
+		trap 'remount_ro' SIGINT
+		trap 'remount_ro' EXIT
 	fi
 	mount --bind /dev /ro/dev
 	mount --bind /run /ro/run
@@ -33,29 +48,59 @@ function remount_rw()
 	mount --bind /tmp /ro/tmp
 	return 0
 }
+
+# Remount writable lower filesystem as readonly:
 function remount_ro()
 {
+	umount /ro/etc/debian_chroot >& /dev/null
+	test -e /tmp/debian_chroot && chattr -i /tmp/debian_chroot && rm /tmp/debian_chroot
 	umount /ro/sys >& /dev/null
 	umount /ro/proc >& /dev/null
 	umount /ro/run >& /dev/null
 	umount /ro/dev >& /dev/null
 	mount -o remount,ro $RO_DEV /ro
 }
-RO_DEV=$(cat /ro/etc/fstab | grep " / " | sed "s|^#||g" | cut -d" " -f 1)
-trap 'remount_ro' SIGINT
-trap 'remount_ro' EXIT
+
+# Function to ask whether to do a particular action:
+# Src: https://stackoverflow.com/a/31939275
+function askYesNo {
+	QUESTION=$1
+	DEFAULT=$2
+	if [ "$DEFAULT" = true ]; then
+		OPTIONS="[Y/n]"
+		DEFAULT="y"
+	else
+		OPTIONS="[y/N]"
+		DEFAULT="n"
+	fi
+	read -p "$QUESTION $OPTIONS " -n 1 -s -r INPUT
+	INPUT=${INPUT:-${DEFAULT}}
+	echo ${INPUT}
+	ANSWER=false
+	[[ "$INPUT" =~ ^[yY]$ ]] && ANSWER=true
+}
 
 ###########################################################################
-# Main branching code
+# Main code
 ###########################################################################
+check_ro
+RO_DEV=$(cat /ro/etc/fstab | grep " / " | sed "s|^#||g" | cut -d" " -f 1)
 case $1 in
 	chroot_ro|chroot-ro)
 		remount_rw
 		echo "CHROOT" > /tmp/debian_chroot
+		chattr +i /tmp/debian_chroot
 		mount --bind /tmp/debian_chroot /ro/etc/debian_chroot
-		chroot /ro
-		umount /ro/etc/debian_chroot
-		rm /tmp/debian_chroot
+		shift
+		chroot /ro $@
+		remount_ro
+		;;
+
+	remount_rw|remount-rw)
+		remount_rw notrap
+		;;
+		
+	remount_ro|remount-ro)
 		remount_ro
 		;;
 
@@ -63,7 +108,7 @@ case $1 in
 		remount_rw
 		sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=yes|g" /ro/etc/overlayRoot.conf
 		remount_ro
-		#reboot now
+		reboot now
 		;;
 
 	*)
