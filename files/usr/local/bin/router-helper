@@ -68,9 +68,9 @@ case $1 in
 		;;
 
 	reformat)
-		remount-rw
-		sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=no|g" /ro/etc/overlayRoot.conf
-		reboot now
+		remount_rw && \
+			sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=no|g" /ro/etc/overlayRoot.conf && \
+			reboot now
 		;;
 
 	*)
