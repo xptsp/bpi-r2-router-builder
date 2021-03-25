@@ -67,6 +67,12 @@ case $1 in
 		./upgrade.sh
 		;;
 
+	reformat)
+		remount-rw
+		sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=no|g" /ro/etc/overlayRoot.conf
+		reboot now
+		;;
+
 	*)
 		echo "Syntax: $(basename $0) [command] [options]"
 		;;
