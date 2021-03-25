@@ -256,6 +256,9 @@ if read_fstab_entry $RW; then
 	if [ -n $DEV ] && [ -e "$DEV" ]; then
 
 			RW_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS $DEV $RW"
+			
+			unset RW_FORMAT
+			[[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]] && RW_FORMAT="mkfs.$MNT_TYPE $DEV -L $RW_NAME"
 
 	else
 		if ! test -e $DEV; then
@@ -286,8 +289,9 @@ mkdir /mnt/lower
 mkdir $RW
 mkdir /mnt/newroot
 
-run_protected_command "$ROOT_MOUNT"
+[[ ! -z "$RW_FORMAT" ]] && run_protected_command "$RW_FORMAT"
 run_protected_command "$RW_MOUNT"
+run_protected_command "$ROOT_MOUNT"
 
 mkdir -p $RW/upper
 mkdir -p $RW/work
