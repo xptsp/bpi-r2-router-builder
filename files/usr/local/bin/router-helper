@@ -22,8 +22,7 @@ function remount_rw()
 		fi
 		exit 1
 	fi
-	mount -o remount,rw $RO_DEV /ro
-	if [[ $? -ne 0 ]]; then
+	if ! mount -o remount,rw $RO_DEV /ro; then
 		echo "ERROR: Unable to properly remount root filesystem!"
 		exit 1
 	fi

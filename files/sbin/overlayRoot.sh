@@ -74,8 +74,6 @@ defaults(){
 	source /etc/overlayRoot.conf
 }
 
-#source ./usr/share/initramfs-tools/scripts/functions  #we use read_fstab_entry and resolve_device
-source ./usr/local/bin/helpers/overlayRoot-helper.sh
 defaults
 rootmnt=""
 RW="/mnt/$RW_NAME"  # Mount point for writable drive
@@ -112,6 +110,51 @@ fail(){
 	else
 		exec /bin/bash
 	fi
+}
+
+# Find a specific fstab entry
+# $1=mountpoint
+# $2=fstype (optional)
+# returns 0 on success, 1 on failure (not found or no fstab)
+read_fstab_entry() {
+	# Not found by default.
+	found=1
+
+	for file in ${rootmnt?}/etc/fstab; do
+		if [ -f "$file" ]; then
+			# shellcheck disable=SC2034
+			while read -r MNT_FSNAME MNT_DIR MNT_TYPE MNT_OPTS MNT_FREQ MNT_PASS MNT_JUNK; do
+				case "$MNT_FSNAME" in
+				  ""|\#*)
+					continue;
+					;;
+				esac
+				if [ "$MNT_DIR" = "$1" ]; then
+					if [ -n "$2" ]; then
+						[ "$MNT_TYPE" = "$2" ] || continue;
+					fi
+					found=0
+					break 2
+				fi
+			done < "$file"
+		fi
+	done
+
+	return $found
+}
+
+# Resolve device node from a name.  This expands any LABEL or UUID.
+# $1=name
+# Resolved name is echoed.
+resolve_device() {
+	DEV="$1"
+
+	case "$DEV" in
+	LABEL=* | UUID=* | PARTLABEL=* | PARTUUID=*)
+		DEV="$(blkid -l -t "$DEV" -o device)" || return 1
+		;;
+	esac
+	[ -e "$DEV" ] && echo "$DEV"
 }
 
 #Wait for a device to become available
