@@ -233,16 +233,18 @@ RO_DEV=$DEV
 # ROOT-RW
 if read_fstab_entry $RW; then
 	log_info "found fstab entry for $RW"
-	# Things don't go well if usb is not up or fsck is being performed
-	# kludge -- wait for /dev/sda1
-	await_device "/dev/sda1"  20  #Wait a generous amount of time for first device
-	if ! resolve_device $MNT_FSNAME; then
-		#log_info "No device found for $RW going to try for /dev/sdb1..."
-		DEV="/dev/sdb1"
+	if [[ ! "$MNT_FSNAME" =~ ^/dev/mmcblk ]]; then
+		# Things don't go well if usb is not up or fsck is being performed
+		# kludge -- wait for /dev/sda1
+		await_device "/dev/sda1"  20  #Wait a generous amount of time for first device
+		if ! resolve_device $MNT_FSNAME; then
+			#log_info "No device found for $RW going to try for /dev/sdb1..."
+			DEV="/dev/sdb1"
+		fi
+		#This time we are hopefully waiting for the actual device not /dev/sdb1
+		await_device "$DEV" 5
+		#Retry the lookup
 	fi
-	#This time we are hopefully waiting for the actual device not /dev/sdb1
-	await_device "$DEV" 5
-	#Retry the lookup
 
 	resolve_device $MNT_FSNAME
 	log_info "Resolved [$MNT_FSNAME] as [$DEV]"
@@ -256,9 +258,13 @@ if read_fstab_entry $RW; then
 	if [ -n $DEV ] && [ -e "$DEV" ]; then
 
 			RW_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS $DEV $RW"
-			
+
+			# If reformatting has been requested, change the flag back to "do not reformat":
 			unset RW_FORMAT
-			[[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]] && RW_FORMAT="mkfs.$MNT_TYPE -F $DEV -L $RW_NAME"
+			if [[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]]; then
+				RW_FORMAT="mkfs.$MNT_TYPE -F $DEV -L $RW_NAME"
+				sed -i "s|SECONDARY_REFORMAT=*|SECONDARY_REFORMAT=no|g" /etc/overlayRoot.conf
+			fi
 
 	else
 		if ! test -e $DEV; then
