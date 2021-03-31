@@ -1,4 +1,8 @@
 #!/bin/bash
+if [[ "${UID}" -ne 0 ]]; then
+	sudo $0 $@
+	exit $?
+fi
 FILE=/var/run/transmission-daemon.rule
 if [[ "$1" == "start" ]]; then
 	# Set the WebUI credentials and port for the transmission-daemon:

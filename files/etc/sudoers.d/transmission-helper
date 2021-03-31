@@ -1,0 +1,1 @@
+vpn ALL = NOPASSWD: /opt/bpi-r2-router-builder/helpers/transmission-helper.sh
