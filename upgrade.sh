@@ -15,15 +15,28 @@ COPY_ONLY=(
 
 function replace()
 {
-	DEST=${2:-"$1"}
-	rm $DEST >& /dev/null
+	DEST=/${2:-"$1"}
 	COPY=false
 	SRC=$(echo ${PWD}/$1 | sed "s|/ro/|/|g")
 	for cfile in ${COPY_ONLY[@]}; do if [[ "$1" =~ ^${cfile} ]]; then COPY=true; fi; done
 	if [[ "$COPY" == "true" ]]; then
-		! cp ${SRC} ${DEST} && echo -e -n "Copying ${GREEN}${SRC}${NC} to ${GREEN}${DEST}${NC}... ${RED}Fail!${NC}"
+		echo -e -n "Copying ${BLUE}${SRC}${NC}... "
+		if ! cp ${SRC} /${DEST}; then
+			echo -e "${RED}FAIL!${NC}"
+		else
+			echo -e "${GREEN}Success!${NC}"
+		fi
 	else
-		! ln -sf ${SRC} ${DEST} && echo -e "Linking ${GREEN}${SRC}${NC} to ${GREEN}${DEST}${NC}... ${RED}Fail!${NC}"
+		INFO=($(ls -l /${DEST}))
+		if [[ ! "${INFO[-1]}" =~ ^$(dirname $0) ]]; then
+			rm /${DEST}
+			echo -e -n "Linking ${BLUE}${SRC}${NC}... "
+			if ! ln -sf ${SRC} /${DEST}; then
+				echo -e "${RED}FAIL!${NC}"
+			else
+				echo -e "${GREEN}Success!${NC}"
+			fi
+		fi
 	fi
 }
 
@@ -31,10 +44,6 @@ cd $(dirname $0)/files
 cp -R boot/* boot/
 for file in $(find etc/* -type f); do replace $file; done
 for file in $(find lib/systemd/system/* -type d); do replace $file; done
-if ! test -d opt/docker-data; then
-	mkdir -p opt/docker-data
-	cp -R opt/docker-data/* opt/docker-data/
-fi
 for file in $(find root/.b* -type f); do
 	replace $file
 	replace $file /etc/skel/${file/root/}

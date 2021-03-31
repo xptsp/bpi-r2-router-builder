@@ -50,7 +50,7 @@ locale-gen
 
 # Install any packages that need updating:
 apt update
-apt dist-upgrade -y
+apt dist-upgrade -y -t buster-backports
 
 # Install a few packages, then create our custom login message:
 apt install -y toilet pmount eject
@@ -65,6 +65,7 @@ systemctl stop hostapd
 # Install some new stuff:
 apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils
 apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance tree eject rng-tools parted screen
+apt install -y -t buster-backports wireless-regdb
 systemctl enable avahi-daemon
 systemctl start avahi-daemon
 
@@ -75,10 +76,6 @@ echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
 systemctl stop vnstat
 systemctl disable vnstat
 rm /var/lib/vnstat/*
-
-# Set Country-Code (regulary domain)
-iw reg set ISO_3166-1_alpha-2
-iw reg set US
 
 # Modify the Samba configuration to make sharing USB sticks more automatic:
 echo "samba-common samba-common/dhcp boolean true" | debconf-set-selections
@@ -98,7 +95,7 @@ apt install -y nginx php7.3-fpm php7.3-cgi php7.3-xml php7.3-sqlite3 php7.3-intl
 systemctl enable php7.3-fpm
 systemctl start php7.3-fpm
 mv /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
-mv /etc/nginx/sites-available/router /etc/nginx/sites-available/default
+ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-available/default
 ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl enable nginx
 systemctl restart nginx
@@ -157,32 +154,6 @@ chown www-data:www-data -R /var/www/html/*
 systemctl enable pihole-FTL
 systemctl restart pihole-FTL
 pihole -a -p bananapi
-git clone https://github.com/xptsp/bpi-r2-router-webui /var/www/router
-
-# Install Transmission-BT program:
-mv /etc/transmission-daemon/settings.json /tmp/settings.json
-apt install -y transmission-daemon
-mv /tmp/settings.json /etc/transmission-daemon/settings.json
-chown -R vpn:vpn /etc/transmission-daemon/
-chown -R vpn:vpn /var/lib/transmission-daemon/
-chmod -R 775 /etc/transmission-daemon/
-chmod -R 775 /var/lib/transmission-daemon/
-mkdir /home/vpn/{Incomplete,Download}
-chown -R vpn:vpn /home/vpn/{Incomplete,Download}
-chmod -R 775 /home/vpn/{Incomplete,Download}
-
-# Install docker:
-curl -L https://get.docker.com | bash
-usermod -aG docker pi
-
-# Download docker-compose into the /usr/local/bin directory:
-wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
-pushd /tmp
-tar xvzf /tmp/docker.tgz
-mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
-ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
-popd
-systemctl enable docker-compose
 
 # Install and configure cloudflared:
 pushd /tmp
@@ -199,6 +170,32 @@ systemctl enable cloudflared@2
 systemctl start cloudflared@2
 systemctl enable cloudflared@3
 systemctl start cloudflared@3
+
+# Install Transmission-BT program:
+mv /etc/transmission-daemon/settings.json /tmp/settings.json
+apt install -y transmission-daemon
+mv /tmp/settings.json /etc/transmission-daemon/settings.json
+chown -R vpn:vpn /etc/transmission-daemon/
+chown -R vpn:vpn /var/lib/transmission-daemon/
+chmod -R 775 /etc/transmission-daemon/
+chmod -R 775 /var/lib/transmission-daemon/
+mkdir /home/vpn/{Incomplete,Download}
+chown -R vpn:vpn /home/vpn/{Incomplete,Download}
+chmod -R 775 /home/vpn/{Incomplete,Download}
+systemctl restart transmission-daemon
+
+# Install docker:
+curl -L https://get.docker.com | bash
+usermod -aG docker pi
+
+# Download docker-compose into the /usr/local/bin directory:
+wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
+pushd /tmp
+tar xvzf /tmp/docker.tgz
+mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
+ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
+popd
+systemctl enable docker-compose
 
 # Set some default settings for minissdpd package:
 echo "minissdpd minissdpd/listen string br0" | debconf-set-selections

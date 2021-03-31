@@ -13,6 +13,9 @@ function check_ro()
 	if ! test -d /ro; then
 		if [[ "$(cat /etc/debian_chroot)" == "CHROOT" ]]; then
 			echo "ERROR: Already in chroot environment!"
+		elif ! test -e /boot/bananapi/bpi-r2/linux/uEnv.txt; then
+			echo "ERROR: uEnv.txt file is missing."
+			echo "Add 'bootopts=init=/sbin/overlayRoot.sh' to \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to enable."
 		elif ! cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "=/sbin/overlayRoot.sh" >& /dev/null; then
 			echo "ERROR: Overlay script line missing."
 			echo "Add 'bootopts=init=/sbin/overlayRoot.sh' to \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to enable."
@@ -81,6 +84,64 @@ function askYesNo {
 }
 
 ###########################################################################
+# Function dealing with setting overlay mode:
+###########################################################################
+function setOverlay()
+{
+	DEV=$(cat /etc/fstab | grep " /boot " | cut -d" " -f 1)
+	if [[ "$2" == "enable" ]]; then
+		if cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
+			echo "INFO: Overlay root filesystem script already enabled!"
+		else
+			mount -o remount,rw $DEV /boot
+			sed -i "s|init=/sbin/overlayRoot.sh|init=/sbin/overlayRoot.sh noOverlayRoot|g" /boot/bananapi/bpi-r2/linux/uEnv.txt
+			mount -o remount,ro $DEV /boot
+			if ! cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
+				echo "ERROR: Unable to enable Overlay Root script!"
+				exit 1
+			else
+				echo "Overlay Root script enabled for next reboot!"
+			fi
+		fi
+	elif [[ "$2" == "disable" ]]; then
+		if ! cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
+			echo "INFO: Overlay root filesystem script already disabled!"
+		else
+			mount -o remount,rw $DEV /boot
+			sed -i "s|init=/sbin/overlayRoot.sh noOverlayRoot|init=/sbin/overlayRoot.sh|g" /boot/bananapi/bpi-r2/linux/uEnv.txt
+			mount -o remount,ro $DEV /boot
+			if cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
+				echo "ERROR: Unable to disable Overlay Root script!"
+				exit 1
+			else
+				echo "Overlay Root script disabled for next reboot!"
+			fi
+		fi
+	else
+		echo "SYNTAX: $(basename $0) overlay [enable|disable]"
+	fi
+}
+
+###########################################################################
+# Function dealing with setting reformat persistant storage flag:
+###########################################################################
+function setReformat()
+{
+	if [[ ! -z "$2" && ! "$2" =~ -(y|-yes) ]]; then
+		echo "SYNTAX: $(basename $0) reformat [-y|--yes]"
+		exit 1
+	fi
+	if [[ ! "$2" =~ -(y|-yes) ]]; then
+		echo "WARNING: The router will reboot and persistent storage will be formatted.  This action cannot be undone!\n\n"
+		askYesNo "Are you SURE you want to do this?" || exit 0
+	fi
+	remount_rw
+	sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=yes|g" /ro/etc/overlayRoot.conf
+	remount_ro
+	reboot now
+}
+
+###########################################################################
 # Main code
 ###########################################################################
 check_ro
@@ -107,48 +168,11 @@ case $1 in
 		;;
 		
 	reformat)
-		if [[ ! -z "$2" && ! "$2" =~ -(y|-yes) ]]; then
-			echo "SYNTAX: $(basename $0) reformat [-y|--yes]"
-			exit 1
-		fi
-		if [[ ! "$2" =~ -(y|-yes) ]]; then
-			echo "WARNING: Persistent storage will be formatted.  This action cannot be undone!\n\n"
-			askYesNo "Are you SURE you want to do this?" || exit 0
-		fi
-		remount_rw
-		sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=yes|g" /ro/etc/overlayRoot.conf
-		remount_ro
-		reboot now
+		setReformat $1
 		;;
 
 	overlay)
-		if [[ "$2" == "enable" ]]; then
-			if cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
-				echo "INFO: Overlay root filesystem script already enabled!"
-			else
-				sed -i "s|init=/sbin/overlayRoot.sh|init=/sbin/overlayRoot.sh noOverlayRoot|g" /boot/bananapi/bpi-r2/linux/uEnv.txt
-				if ! cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
-					echo "ERROR: Unable to enable Overlay Root script!"
-					exit 1
-				else
-					echo "Overlay Root script enabled for next reboot!"
-				fi
-			fi
-		elif [[ "$2" == "disable" ]]; then
-			if ! cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
-				echo "INFO: Overlay root filesystem script already disabled!"
-			else
-				sed -i "s|init=/sbin/overlayRoot.sh noOverlayRoot|init=/sbin/overlayRoot.sh|g" /boot/bananapi/bpi-r2/linux/uEnv.txt
-				if cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
-					echo "ERROR: Unable to disable Overlay Root script!"
-					exit 1
-				else
-					echo "Overlay Root script disabled for next reboot!"
-				fi
-			fi
-		else
-			echo "SYNTAX: $(basename $0) overlay [enable|disable]"
-		fi
+		setOverlay $1
 		;;
 
 	*)
