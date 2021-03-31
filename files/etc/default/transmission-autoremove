@@ -1,1 +1,3 @@
+USER=pi
 PASS=bananapi
+PORT=9091

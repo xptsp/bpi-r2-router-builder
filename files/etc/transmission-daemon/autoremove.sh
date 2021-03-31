@@ -1,6 +1,4 @@
 #!/bin/sh
-USER=$(cat /etc/transmission-daemon/settings.json | grep "rpc-user" | tr "\"" "_" | cut -d"_" -f 4)
-PASS=bananapi
 test -e /etc/default/transmission-autoremove && source /etc/default/transmission-autoremove
 
 # the folder to move completed downloads to port, username, password
