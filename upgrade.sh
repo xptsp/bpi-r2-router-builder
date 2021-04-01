@@ -51,6 +51,7 @@ function replace()
 cd $(dirname $0)/files
 mount | grep " /boot " >& /dev/null && cp -R boot/* boot/
 for file in $(find etc/* -type f); do replace $file; done
+for file in $(find lib/* -type f | grep -v -e "^lib/systemd/system/"); do replace $file; done
 for file in $(find lib/systemd/system/* -type d); do replace $file; done
 for file in $(find root/.b* -type f); do
 	replace $file
