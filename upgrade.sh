@@ -9,6 +9,7 @@ COPY_ONLY=(
 	/etc/network/interfaces.d/
 	/etc/network/dnsmasq.d/
 	/etc/fstab
+	/etc/rc.local
 	/etc/transmission-daemon/settings.json
 	/etc/default/
 	/etc/overlayRoot.conf

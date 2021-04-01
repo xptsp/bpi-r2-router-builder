@@ -45,12 +45,9 @@ ln -s /usr/share/zoneinfo/America/Chicago /etc/localtime
 sed -i "s|# en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen
 locale-gen
 
-# Activate the iptables rules so that we have internet access during installation:
-/etc/network/if-pre-up.d/iptables
-
 # Install any packages that need updating:
 apt update
-apt dist-upgrade -y -t buster-backports
+apt dist-upgrade -y
 
 # Install a few packages, then create our custom login message:
 apt install -y toilet pmount eject
@@ -62,24 +59,22 @@ ln -s /var/run/motd /etc/motd
 systemctl disable hostapd
 systemctl stop hostapd
 
-# Install some new stuff:
-apt install -y git pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release avahi-daemon avahi-discover libnss-mdns unzip vnstat debconf-utils
-apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois mtr iperf3 tcpdump ethtool irqbalance tree eject rng-tools parted screen
+# Install some new utilities:
+apt install -y pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release unzip debconf-utils tree eject rng-tools screen parted vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance
 apt install -y -t buster-backports wireless-regdb
-systemctl enable avahi-daemon
-systemctl start avahi-daemon
-
-# Correct issue regarding random numbers:
 echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
 
-# Stop vnstat service and purge logs:
+# Install GIT and avahi utilities:
+apt install -y git avahi-daemon libnss-mdns vnstat 
+systemctl enable avahi-daemon
+systemctl start avahi-daemon
 systemctl stop vnstat
 systemctl disable vnstat
 rm /var/lib/vnstat/*
 
 # Modify the Samba configuration to make sharing USB sticks more automatic:
 echo "samba-common samba-common/dhcp boolean true" | debconf-set-selections
-apt install -y samba
+apt install -y -t debian-backports samba
 sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" /etc/samba/smb.conf
 touch /etc/samba/includes.conf
 sed -i "s|/var/run|/run|g" /lib/systemd/system/?mbd.service
@@ -95,7 +90,7 @@ apt install -y nginx php7.3-fpm php7.3-cgi php7.3-xml php7.3-sqlite3 php7.3-intl
 systemctl enable php7.3-fpm
 systemctl start php7.3-fpm
 mv /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
-ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-available/default
+ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
 ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl enable nginx
 systemctl restart nginx
@@ -103,26 +98,18 @@ systemctl restart nginx
 # Install TrueCrypt and HD-Idle:
 wget https://github.com/stefansundin/truecrypt.deb/releases/download/7.1a-15/truecrypt-cli_7.1a-15_armhf.deb -O /tmp/truecrypt.deb
 wget https://github.com/adelolmo/hd-idle/releases/download/v1.12/hd-idle_1.12_armhf.deb -O /tmp/hdidle.deb
+mv /etc/default/hd-idle /tmp/
 apt install -y /tmp/*.deb
+mv /tmp/hd-idle /etc/default/hd-idle
 rm /tmp/*.deb
+systemctl daemon-reload
 systemctl enable hd-idle
-systemctl start hd-idle
+systemctl restart hd-idle
 
 # Pull ydns's bash-updater repo and modify to pull settings from elsewhere:
 git clone https://github.com/ydns/bash-updater /opt/ydns-updater
 sed -i "s|^YDNS_LASTIP_FILE|[[ -f /etc/default/ydns-updater ]] \&\& source /etc/default/ydns-updater\nYDNS_LASTIP_FILE|" /opt/ydns-updater/updater.sh
 chown www-data:www-data /etc/default/ydns-updater
-
-# Install OpenVPN and create user VPN:
-apt install -y openvpn
-cat << EOF > /etc/sysctl.d/9999-vpn.conf
-net.ipv4.conf.all.rp_filter = 2
-net.ipv4.conf.default.rp_filter = 2
-net.ipv4.conf.wan.rp_filter = 2
-EOF
-echo "200     vpn" >> /etc/iproute2/rt_tables
-touch /etc/openvpn/.vpn_creds
-chmod 600 /etc/openvpn/.vpn_creds
 
 # Set some default settings for miniupnpd package:
 echo "miniupnpd miniupnpd/start_daemon boolean true" | debconf-set-selections
@@ -213,3 +200,14 @@ apt install -y igmpproxy
 mv /tmp/igmpproxy.conf /etc/igmpproxy.conf 
 systemctl enable igmpproxy
 systemctl start igmpproxy
+
+# Install OpenVPN and create user VPN:
+apt install -y openvpn
+cat << EOF > /etc/sysctl.d/9999-vpn.conf
+net.ipv4.conf.all.rp_filter = 2
+net.ipv4.conf.default.rp_filter = 2
+net.ipv4.conf.wan.rp_filter = 2
+EOF
+echo "200     vpn" >> /etc/iproute2/rt_tables
+touch /etc/openvpn/.vpn_creds
+chmod 600 /etc/openvpn/.vpn_creds
