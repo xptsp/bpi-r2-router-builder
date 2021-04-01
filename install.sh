@@ -60,7 +60,8 @@ systemctl disable hostapd
 systemctl stop hostapd
 
 # Install some new utilities:
-apt install -y pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release unzip debconf-utils tree eject rng-tools screen parted vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance
+apt install -y pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release unzip debconf-utils tree rng-tools
+apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance screen parted
 apt install -y -t buster-backports wireless-regdb
 echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
 
@@ -74,7 +75,7 @@ rm /var/lib/vnstat/*
 
 # Modify the Samba configuration to make sharing USB sticks more automatic:
 echo "samba-common samba-common/dhcp boolean true" | debconf-set-selections
-apt install -y -t debian-backports samba
+apt install -y samba
 sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" /etc/samba/smb.conf
 touch /etc/samba/includes.conf
 sed -i "s|/var/run|/run|g" /lib/systemd/system/?mbd.service
@@ -149,7 +150,6 @@ tar -xvzf cloudflared-stable-linux-arm.tgz
 mv ./cloudflared /usr/local/bin
 popd
 useradd -s /usr/sbin/nologin -r -M cloudflared
-chown cloudflared:cloudflared /etc/default/cloudflared
 chown cloudflared:cloudflared /usr/local/bin/cloudflared
 systemctl enable cloudflared@1
 systemctl start cloudflared@1
@@ -193,13 +193,6 @@ echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 apt install -y minissdpd
 systemctl enable minissdpd
 systemctl start minissdpd
-
-# Install igmpproxy package:
-mv /etc/igmpproxy.conf /tmp/igmpproxy.conf
-apt install -y igmpproxy
-mv /tmp/igmpproxy.conf /etc/igmpproxy.conf 
-systemctl enable igmpproxy
-systemctl start igmpproxy
 
 # Install OpenVPN and create user VPN:
 apt install -y openvpn

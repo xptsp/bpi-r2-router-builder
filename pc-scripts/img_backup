@@ -38,8 +38,8 @@ if [[ -z "${DEV}" ]]; then
 	exit 1
 fi
 umount ${DEV}* >& /dev/null
-LINE=$(sudo fdisk --list ${DEV} | tail -1)
-END=$(( $(echo $LINE | cut -d" " -f 3) + 1 ))
+LINE=($(sudo fdisk --list ${DEV} | grep "${DEV}2"))
+END=$(( ${LINE[2]} + 1 ))
 
 FILE=${1:-"bpi-r2-buster_$(date +"%Y%m%d_%H%M").img"}
 MB=$(( ${END} / 2 / 1024 / 4))
@@ -48,5 +48,5 @@ echo -e "${GREEN}===============================================================
 echo -e "${GREEN}NOTE:${NC} Backing up ${BLUE}${DEV}${NC} to ${BLUE}${FILE}${NC}...."
 echo -e "${GREEN}INFO:${NC} $(printf "%'.0f\n" ${END}) blocks = $(printf "%'.0f\n" $(( ${MB} * 4 ))) MB ($(printf "%'.0f\n" ${SZ}))"
 echo -e "${GREEN}================================================================${NC}"
-dd if=${DEV} of=${FILE} bs=1M count=${MB} status=progress
+dd if=${DEV} of=${FILE} bs=4M count=${MB} status=progress
 ./img_cleanup ${FILE}
