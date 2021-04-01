@@ -41,7 +41,7 @@ umount ${DEV}* >& /dev/null
 LINE=$(sudo fdisk --list ${DEV} | tail -1)
 END=$(( $(echo $LINE | cut -d" " -f 3) + 1 ))
 
-FILE=bpi-r2-buster_$(date +"%Y%m%d_%H%M").img
+FILE=${1:-"bpi-r2-buster_$(date +"%Y%m%d_%H%M").img"}
 MB=$(( ${END} / 2 / 1024 / 4))
 SZ=$(( ${END} * 512 ))
 echo -e "${GREEN}================================================================${NC}"
@@ -51,4 +51,4 @@ echo -e "${GREEN}===============================================================
 dd if=${DEV} of=${FILE} bs=4M count=${MB} status=progress
 echo -e "${GREEN}================================================================${NC}"
 
-# ./img_cleanup ${FILE}
+./img_cleanup ${FILE}
