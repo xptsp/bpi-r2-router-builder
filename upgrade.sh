@@ -1,27 +1,38 @@
 #!/bin/bash
+if [[ "$UID" -ne 0 ]]; then
+	sudo $0 $@
+	exit $?
+fi
 RED='\033[1;31m'
 GREEN='\033[1;32m'
 BLUE='\033[1;34m'
 NC='\033[0m'
 
+#####################################################################################
 # Files to copy only:
+#####################################################################################
 COPY_ONLY=(
 	/etc/network/interfaces.d/
-	/etc/network/dnsmasq.d/
+	/etc/dnsmasq.d/
 	/etc/fstab
 	/etc/rc.local
 	/etc/transmission-daemon/settings.json
 	/etc/default/
 	/etc/overlayRoot.conf
+	/etc/pihole/
+	/etc/pivpn/
 )
 
+#####################################################################################
+# Function that deals with copying and/or linking individual files:
+#####################################################################################
 function replace()
 {
 	DEST=/${2:-"$1"}
 	COPY=false
 	SRC=$(echo ${PWD}/$1 | sed "s|/ro/|/|g")
 	for MATCH in ${COPY_ONLY[@]}; do 
-		[[ "${DEST:0:${#MATCH}}" == "${MATCH}" ]] && COPY=true
+		[[ "${DEST}" == "${MATCH}"* ]] && COPY=true
 	done
 	mkdir -p $(dirname ${DEST})
 	if [[ "$COPY" == "true" ]]; then
@@ -49,19 +60,42 @@ function replace()
 	fi
 }
 
+#####################################################################################
+# Copy files to the boot partition:
+#####################################################################################
 cd $(dirname $0)/files
-mount | grep " /boot " >& /dev/null && cp -R boot/* boot/
+RW=($(mount | grep " /boot "))
+if [[ ! -z "$RW" ]]; then
+	BOOT_RO=false
+	if [[ "${RW[5]}" == "*ro,*" ]]; then
+		BOOT_RO=true
+		mount -o remount,rw /boot
+	fi
+	cp -R boot/* boot/
+	[[ "$BOOT_RO" == "true" ]] && mount -o remount,ro /boot
+fi
+
+#####################################################################################
+# Copy or link files in the repo to their proper locations:
+#####################################################################################
 for file in $(find etc/* -type f); do replace $file; done
 for file in $(find lib/* -type f | grep -v -e "^lib/systemd/system/"); do replace $file; done
 for file in $(find lib/systemd/system/* -type d); do replace $file; done
+for file in $(find sbin/* -type f); do replace $file; done
+test -d /usr/local/bin/helpers || mkdir -p /usr/local/bin/helpers
+for file in $(find usr/* -type f); do replace $file; done
+
+#####################################################################################
+# Link the bash configuration files:
+#####################################################################################
 for file in $(find root/.b* -type f); do
 	replace $file
 	replace $file /etc/skel/${file/root/}
 	replace $file /home/pi/${file/root/}
 	replace $file /home/vpn/${file/root/}
 done
-for file in $(find sbin/* -type f); do replace $file; done
-test -d /usr/local/bin/helpers || mkdir -p /usr/local/bin/helpers
-for file in $(find usr/* -type f); do replace $file; done
-replace /var/www/router
 
+#####################################################################################
+# Link the repo's router webUI to the proper location:
+#####################################################################################
+replace var/www/router

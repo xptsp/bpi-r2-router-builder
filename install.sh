@@ -194,8 +194,7 @@ apt install -y minissdpd
 systemctl enable minissdpd
 systemctl start minissdpd
 
-# Install OpenVPN and create user VPN:
-apt install -y openvpn
+# Add additional configuration for split-tunnel VPN:
 cat << EOF > /etc/sysctl.d/9999-vpn.conf
 net.ipv4.conf.all.rp_filter = 2
 net.ipv4.conf.default.rp_filter = 2
