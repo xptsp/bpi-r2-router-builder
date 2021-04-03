@@ -6,7 +6,7 @@ for file in /sys/kernel/debug/ieee80211/*; do
 done
 
 # Rename the interfaces of the MT7615 card:
-if ! test -e /var/run/mt7615_renamed; then
+if ! test -e /var/run/mt7615_renamed.log; then
 	sleep 1
 	PCI=$(lspci | grep 7615 | cut -d" " -f 1)
 	if [[ ! -z "${PCI}" ]]; then
