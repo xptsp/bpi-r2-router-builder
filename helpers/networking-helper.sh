@@ -6,9 +6,10 @@ for file in /sys/kernel/debug/ieee80211/*; do
 done
 
 # Rename the interfaces of the MT7615 card:
-if ! test -e /var/run/mt7615_renamed.log; then
+LOG_FILE=/var/run/mt7615_renamed.log
+if ! test -e $LOG_FILE; then
 	sleep 1
-	PCI=$(lspci | grep 7615 | cut -d" " -f 1)
+	PCI=$(lspci | grep MEDIATEK | grep 7615 | cut -d" " -f 1)
 	if [[ ! -z "${PCI}" ]]; then
 		cd /sys/class/net
 		ls -l | grep "${PCI}" | while read x; do
@@ -19,21 +20,21 @@ if ! test -e /var/run/mt7615_renamed.log; then
 
 			# First command
 			CMD="ip link set ${OLD} down"
-			echo "CMD: ${CMD}" | tee -a /var/run/mt7615_renamed.log
-			${CMD} | tee -a /var/run/mt7615_renamed.log
-			echo "" | tee -a /var/run/mt7615_renamed.log
+			echo "CMD: ${CMD}" | tee -a $LOG_FILE
+			${CMD} | tee -a $LOG_FILE
+			echo "" | tee -a $LOG_FILE
 
 			# Second command
 			CMD="ip link set ${OLD} name ${NEW}"
-			echo "CMD: ${CMD}" | tee -a /var/run/mt7615_renamed.log
-			${CMD} | tee -a /var/run/mt7615_renamed.log
-			echo "" | tee -a /var/run/mt7615_renamed.log
+			echo "CMD: ${CMD}" | tee -a $LOG_FILE
+			${CMD} | tee -a $LOG_FILE
+			echo "" | tee -a $LOG_FILE
 
 			# Third command
 			CMD="ip link set ${OLD} up"
-			echo "CMD: ${CMD}" | tee -a /var/run/mt7615_renamed.log
-			${CMD} | tee /var/run/mt7615_renamed.log
-			echo "" | tee -a /var/run/mt7615_renamed.log
+			echo "CMD: ${CMD}" | tee -a $LOG_FILE
+			${CMD} | tee $LOG_FILE
+			echo "" | tee -a $LOG_FILE
 		done
 	fi
 fi
