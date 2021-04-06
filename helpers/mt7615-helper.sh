@@ -25,7 +25,7 @@ if [[ ! -z "${PCI}" ]]; then
 		echo -e "$SPC\n"
 
 		# Second command
-		MAC=$(ifconfig mt_24g | grep ether | awk '{print $2}')
+		MAC=$(ifconfig ${IFACE} | grep ether | awk '{print $2}')
 		MAC=${MAC:0:${#MAC}-1}0
 		CMD="ifconfig ${IFACE} hw ether ${MAC}"
 		echo "$SPC CMD: ${CMD} $SPC"
