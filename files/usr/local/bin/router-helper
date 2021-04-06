@@ -83,19 +83,34 @@ function askYesNo {
 	[[ "$INPUT" =~ ^[yY]$ ]] && ANSWER=true
 }
 
+function valid_ip()
+{
+    local  ip=$1
+    local  stat=1
+
+    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        OIFS=$IFS
+        IFS='.'
+        ip=($ip)
+        IFS=$OIFS
+        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+        stat=$?
+    fi
+    return $stat
+}
+
 ###########################################################################
 # Function dealing with setting overlay mode:
 ###########################################################################
 function setOverlay()
 {
-	DEV=$(cat /etc/fstab | grep " /boot " | cut -d" " -f 1)
 	if [[ "$2" == "enable" ]]; then
 		if cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
 			echo "INFO: Overlay root filesystem script already enabled!"
 		else
-			mount -o remount,rw $DEV /boot
+			mount -o remount,rw /boot
 			sed -i "s|init=/sbin/overlayRoot.sh|init=/sbin/overlayRoot.sh noOverlayRoot|g" /boot/bananapi/bpi-r2/linux/uEnv.txt
-			mount -o remount,ro $DEV /boot
+			mount -o remount,ro /boot
 			if ! cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
 				echo "ERROR: Unable to enable Overlay Root script!"
 				exit 1
@@ -107,9 +122,9 @@ function setOverlay()
 		if ! cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
 			echo "INFO: Overlay root filesystem script already disabled!"
 		else
-			mount -o remount,rw $DEV /boot
+			mount -o remount,rw /boot
 			sed -i "s|init=/sbin/overlayRoot.sh noOverlayRoot|init=/sbin/overlayRoot.sh|g" /boot/bananapi/bpi-r2/linux/uEnv.txt
-			mount -o remount,ro $DEV /boot
+			mount -o remount,ro /boot
 			if cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
 				echo "ERROR: Unable to disable Overlay Root script!"
 				exit 1
@@ -142,12 +157,37 @@ function setReformat()
 }
 
 ###########################################################################
+# Function that sets the IP address for DNS server we're using:
+###########################################################################
+function setDNS()
+{
+	IP=(${@/\#/ })
+	if ! valid_ip ${IP[0]}; then
+		echo "ERROR: Invalid IP address specified in 2nd parameter!"
+		echo "SYNTAX: $(basename $0) piholeDNS [ip address] [optional port]"
+		exit 1
+	fi
+	if [[ ! -z "${IP[1]}" ]]; then
+		if [[ ! "${IP[1]}" =~ ^[0-9]+$ || ${IP[1]} -gt 65535 ]]; then
+			echo "ERROR: Invalid port number specified in 2nd parameter!"
+			echo "SYNTAX: $(basename $0) piholeDNS [ip address] [optional port]"
+			exit 1
+		fi
+	fi
+	sed -i "/PIHOLE_DNS_/d" /etc/pihole/setupVars.conf
+	echo "PIHOLE_DNS_1=${1}" >> /etc/pihole/setupVars.conf
+	pihole restartdns
+}
+
+###########################################################################
 # Main code
 ###########################################################################
-check_ro
-RO_DEV=$(cat /ro/etc/fstab | grep " / " | sed "s|^#||g" | cut -d" " -f 1)
-case $1 in
+RO_DEV=$(test -f /ro/etc/fstab && cat /ro/etc/fstab | grep " / " | sed "s|^#||g" | cut -d" " -f 1)
+CMD=$1
+shift
+case $CMD in
 	chroot)
+		check_ro
 		remount_rw
 		echo "CHROOT" > /tmp/debian_chroot
 		chattr +i /tmp/debian_chroot
@@ -158,21 +198,27 @@ case $1 in
 		;;
 
 	remount)
-		if [[ "$2" == "rw" ]]; then
+		check_ro
+		if [[ "$1" == "rw" ]]; then
 			remount_rw notrap
-		elif [[ "$2" == "ro" ]]; then
+		elif [[ "$1" == "ro" ]]; then
 			remount_ro
 		else
 			echo "SYNTAX: $(basename $0) remount [ro|rw]"
 		fi
 		;;
-		
+
 	reformat)
-		setReformat $1
+		check_ro
+		setReformat $@
 		;;
 
 	overlay)
-		setOverlay $1
+		setOverlay $@
+		;;
+
+	dns)
+		setDNS $@
 		;;
 
 	*)
