@@ -6,7 +6,7 @@ for file in /sys/kernel/debug/ieee80211/*; do
 done
 
 # Rename the interfaces of the MT7615 card:
-LOG_FILE=/var/run/mt7615_renamed.log
+LOG_FILE=/var/run/mt7615-helper.log
 SPC="--------"
 sleep 1
 PCI=$(lspci | grep MEDIATEK | grep 7615 | cut -d" " -f 1)
@@ -16,7 +16,7 @@ if [[ ! -z "${PCI}" ]]; then
 	for IFACE in ${IFACES[@]}; do
 		echo "Network interface: $IFACE"
 		NEW=mt_24g
-		[[ "${IFACE}" == "rename"* ]] && NEW=mt_5g
+		[[ "${IFACE}" == "rename"* ]] && NEW=mt_50g
 
 		# First command
 		(CMD="ip link set ${IFACE} down"
@@ -25,7 +25,7 @@ if [[ ! -z "${PCI}" ]]; then
 		echo -e "$SPC\n"
 
 		# Second command
-		MAC=$(ifconfig ${IFACE} | grep ether | awk '{print $2}')
+		MAC=$(ifconfig mt_24g | grep ether | awk '{print $2}')
 		MAC=${MAC:0:${#MAC}-1}0
 		CMD="ifconfig ${IFACE} hw ether ${MAC}"
 		echo "$SPC CMD: ${CMD} $SPC"
@@ -39,11 +39,10 @@ if [[ ! -z "${PCI}" ]]; then
 		echo -e "$SPC\n"
 
 		# Fourth command
-		CMD="ip link set ${IFACE} up"
+		CMD="ip link set ${NEW} up"
 		echo "$SPC CMD: ${CMD} $SPC"
 		${CMD}
-		echo -e "$SPC\n") >> $LOG_FILE
+		echo -e "$SPC\n") >& $LOG_FILE
 	done
 fi
-
 exit 0
