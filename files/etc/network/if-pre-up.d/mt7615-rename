@@ -1,5 +1,6 @@
 #!/bin/bash
 
+FILE=/etc/udev/rules.d/70-persistent-net.rules
 REBOOT=false
 PCI=$(lspci | grep MEDIATEK | grep 7615 | cut -d" " -f 1)
 if [[ ! -z "${PCI}" ]]; then
@@ -10,9 +11,10 @@ if [[ ! -z "${PCI}" ]]; then
 		MAC=$(ifconfig ${IFACE} | grep ether | awk '{print $2}')
 		NEW=mt_24g
 		[[ "${IFACE}" == "rename"* ]] && NEW=mt_50g
-		sed -i "/${MAC}/d" /etc/udev/rules.d/70-persistent-net.rules
-		echo "SUBSYSTEM==\"net\", DRIVERS==\"?*\", ATTR{address}==\"${MAC}\", NAME=\"${NEW}\"" >> /etc/udev/rules.d/70-persistent-net.rules
-		REBOOT=true
+		if ! cat ${FILE} | grep ${MAC}; then
+			echo "SUBSYSTEM==\"net\", DRIVERS==\"?*\", ATTR{address}==\"${MAC}\", NAME=\"${NEW}\"" >> $FILE
+			REBOOT=true
+		fi
 	done
 fi
 [[ "$REBOOT" == "true" ]] && reboot now
