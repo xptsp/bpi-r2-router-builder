@@ -12,8 +12,10 @@ if [[ ! -z "${PCI}" ]]; then
 		NEW=mt_24g
 		[[ "${IFACE}" == "rename"* ]] && NEW=mt_50g
 		if ! cat ${FILE} | grep ${MAC}; then
-			echo "SUBSYSTEM==\"net\", DRIVERS==\"?*\", ATTR{address}==\"${MAC}\", NAME=\"${NEW}\"" >> $FILE
-			REBOOT=true
+			if ! cat /etc/hostapd/*.conf | grep "^bss=" | grep ${IFACE} >& /dev/null; then
+				echo "SUBSYSTEM==\"net\", DRIVERS==\"?*\", ATTR{address}==\"${MAC}\", NAME=\"${NEW}\"" >> $FILE
+				REBOOT=true
+			fi
 		fi
 	done
 fi
