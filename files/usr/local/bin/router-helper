@@ -104,7 +104,7 @@ function valid_ip()
 ###########################################################################
 function setOverlay()
 {
-	if [[ "$2" == "enable" ]]; then
+	if [[ "$1" == "enable" ]]; then
 		if cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
 			echo "INFO: Overlay root filesystem script already enabled!"
 		else
@@ -118,7 +118,7 @@ function setOverlay()
 				echo "Overlay Root script enabled for next reboot!"
 			fi
 		fi
-	elif [[ "$2" == "disable" ]]; then
+	elif [[ "$1" == "disable" ]]; then
 		if ! cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
 			echo "INFO: Overlay root filesystem script already disabled!"
 		else
