@@ -3,5 +3,21 @@ if [[ -z "$1" || ! -f "$1" ]]; then
 	echo "Syntax: $(basename $0) [kernel.tgz]"
 	exit 1
 fi
-sudo tar -xzvf ${1} -C / --strip-components=1 BPI-ROOT
+
+# Remount root and boot partitions as writable:
+mount -o remount,rw /boot
+ROOT=/
+if test -d /ro; then
+	ROOT=/ro
+	mount -o remount,rw /ro
+fi
+
+# Unpack the new kernel into the boot partition:
 sudo tar -xzvf ${1} -C /boot/ --strip-components=1 BPI-BOOT
+
+# Unpack the new kernel modules into the root partition:
+sudo tar -xzvf ${1} -C ${ROOT} --strip-components=1 BPI-ROOT
+
+# Remount root and boot partitons as read-only if they are before we started:
+mount -o remount,ro /boot
+test -d /ro && mount -o remount,ro /ro

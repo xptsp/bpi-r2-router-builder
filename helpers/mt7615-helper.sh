@@ -3,9 +3,8 @@ SPC="--------"
 
 function runCMD()
 {
-	CMD="$@"
-	echo "$SPC CMD: ${CMD} $SPC"
-	${CMD}
+	echo "$SPC CMD: ${@} $SPC"
+	${@}
 	echo -e "$SPC\n"
 }
 
@@ -21,12 +20,12 @@ function setInterface()
 	sed -i "s|bssid=.*|bssid=${MAC}|g" /etc/hostapd/${1}.conf
 
 	# Rename network interface:
-	SUB=100
+	SUB=10
 	NEW=mt_24g
-	[[ "${1}" == "rename"* ]] && NEW=mt_50g && SUB=110
+	[[ "${1}" == "rename"* ]] && NEW=mt_50g && SUB=11
 	runCMD "ip link set ${1} name ${NEW}"
 	runCMD "ip link set ${NEW} up"
-	runCMD "ip addr add 192.168.${SUB}.1/24 dev ${NEW}"
+	runCMD "ifconfig ${NEW} 192.168.${SUB}.1"
 }
 
 # Enable DBDC on any MT76xx wifi card that supports it:
