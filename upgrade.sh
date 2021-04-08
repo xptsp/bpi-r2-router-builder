@@ -68,7 +68,7 @@ cd $(dirname $0)/files
 RW=($(mount | grep " /boot "))
 if [[ ! -z "$RW" ]]; then
 	BOOT_RO=false
-	if [[ "${RW[5]}" == "*ro,*" ]]; then
+	if [[ "${RW[5]}" == *ro,* ]]; then
 		BOOT_RO=true
 		mount -o remount,rw /boot
 	fi
