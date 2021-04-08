@@ -72,7 +72,7 @@ if [[ ! -z "$RW" ]]; then
 		BOOT_RO=true
 		mount -o remount,rw /boot
 	fi
-	cp -R boot/* boot/
+	cp -R boot/* /boot/
 	[[ "$BOOT_RO" == "true" ]] && mount -o remount,ro /boot
 fi
 
