@@ -1,0 +1,7 @@
+auto mt24g
+allow-hotplug mt24g
+iface mt24g inet static
+    hostapd /etc/hostapd/${IFACE}.conf
+    address 192.168.10.1
+    netmask 255.255.255.0
+    pre-up ifconfig ${IFACE} hw ether 02:0a:52:06:0e:10

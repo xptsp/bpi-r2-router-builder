@@ -1,7 +1,6 @@
 #!/bin/bash
 
 FILE=/etc/udev/rules.d/70-persistent-net.rules
-REBOOT=false
 PCI=$(lspci | grep MEDIATEK | grep 7615 | cut -d" " -f 1)
 if [[ ! -z "${PCI}" ]]; then
 	cd /sys/class/net
@@ -9,15 +8,15 @@ if [[ ! -z "${PCI}" ]]; then
 	for IFACE in ${IFACES[@]}; do
 		# Change MAC address:
 		MAC=$(ifconfig ${IFACE} | grep ether | awk '{print $2}')
-		NEW=mt_24g
-		[[ "${IFACE}" == "rename"* ]] && NEW=mt_50g
-		if ! cat ${FILE} | grep ${MAC:0:${#MAC}-1}; then
+		NEW=mt24g
+		[[ "${IFACE}" == "rename"* ]] && NEW=mt50g
+		if ! cat ${FILE} | grep ${NEW}; then
 			if ! cat /etc/hostapd/*.conf | grep "^bss=" | grep ${IFACE} >& /dev/null; then
 				echo "SUBSYSTEM==\"net\", DRIVERS==\"?*\", ATTR{address}==\"${MAC}\", NAME=\"${NEW}\"" >> $FILE
-				REBOOT=true
+				ifconfig ${IFACE} down
+				ip link set ${IFACE} name ${NEW}
 			fi
 		fi
 	done
 fi
-[[ "$REBOOT" == "true" ]] && reboot now
 exit 0
