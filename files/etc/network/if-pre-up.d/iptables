@@ -1,10 +1,10 @@
 #!/bin/sh
 
 # Put the IPv4 rules into place:
-cat /etc/network/iptables.rules | /sbin/iptables-restore
+/sbin/iptables-restore < /etc/network/iptables.rules
 
 # Put the IPv6 rules into place:
-cat /etc/network/iptables.rules | grep -v "10.2" | grep -v "192.168" | /sbin/iptables-restore
+cat /etc/network/iptables.rules | grep -v "10.2" | grep -v "192.168" | /sbin/ip6tables-restore
 
 # Prevents the user "vpn" from sending anything.
 # NOTE: If the "CONFIG_NETFILTER_XT_MATCH_OWNER" isn't enabled during kernel compilation, this line will fail.
