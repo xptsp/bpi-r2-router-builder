@@ -130,33 +130,15 @@ systemctl daemon-reload
 systemctl enable miniupnpd
 systemctl restart miniupnpd
 
-# Install PiHole:
-curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
-systemctl stop dnsmasq
-systemctl disable dnsmasq
-systemctl mask dnsmasq
-chown pihole:pihole /var/lib/misc
-chown pihole:pihole -R /var/lib/misc/*
-chown www-data:www-data -R /var/www/html
-chown www-data:www-data -R /var/www/html/*
-systemctl enable pihole-FTL
-systemctl restart pihole-FTL
-pihole -a -p bananapi
+# Set some default settings for minissdpd package:
+echo "minissdpd minissdpd/listen string br0" | debconf-set-selections
+echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
+echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 
-# Install and configure cloudflared:
-pushd /tmp
-wget https://bin.equinox.io/c/VdrWdbjqyF/cloudflared-stable-linux-arm.tgz
-tar -xvzf cloudflared-stable-linux-arm.tgz
-mv ./cloudflared /usr/local/bin
-popd
-useradd -s /usr/sbin/nologin -r -M cloudflared
-chown cloudflared:cloudflared /usr/local/bin/cloudflared
-systemctl enable cloudflared@1
-systemctl start cloudflared@1
-systemctl enable cloudflared@2
-systemctl start cloudflared@2
-systemctl enable cloudflared@3
-systemctl start cloudflared@3
+# Install minissdpd package:
+apt install -y minissdpd
+systemctl enable minissdpd
+systemctl start minissdpd
 
 # Install Transmission-BT program:
 mv /etc/transmission-daemon/settings.json /tmp/settings.json
@@ -170,16 +152,6 @@ mkdir /home/vpn/{Incomplete,Download}
 chown -R vpn:vpn /home/vpn/{Incomplete,Download}
 chmod -R 775 /home/vpn/{Incomplete,Download}
 systemctl restart transmission-daemon
-
-# Set some default settings for minissdpd package:
-echo "minissdpd minissdpd/listen string br0" | debconf-set-selections
-echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
-echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
-
-# Install minissdpd package:
-apt install -y minissdpd
-systemctl enable minissdpd
-systemctl start minissdpd
 
 # Add additional configuration for split-tunnel VPN:
 cat << EOF > /etc/sysctl.d/9999-vpn.conf
@@ -202,5 +174,31 @@ tar xvzf /tmp/docker.tgz
 mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
 ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
 popd
-systemctl enable docker-compose
 
+# Install and configure cloudflared:
+pushd /tmp
+wget https://bin.equinox.io/c/VdrWdbjqyF/cloudflared-stable-linux-arm.tgz
+tar -xvzf cloudflared-stable-linux-arm.tgz
+mv ./cloudflared /usr/local/bin
+popd
+useradd -s /usr/sbin/nologin -r -M cloudflared
+chown cloudflared:cloudflared /usr/local/bin/cloudflared
+systemctl enable cloudflared@1
+systemctl start cloudflared@1
+systemctl enable cloudflared@2
+systemctl start cloudflared@2
+systemctl enable cloudflared@3
+systemctl start cloudflared@3
+
+# Install PiHole:
+curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
+systemctl stop dnsmasq
+systemctl disable dnsmasq
+systemctl mask dnsmasq
+chown pihole:pihole /var/lib/misc
+chown pihole:pihole -R /var/lib/misc/*
+chown www-data:www-data -R /var/www/html
+chown www-data:www-data -R /var/www/html/*
+systemctl enable pihole-FTL
+systemctl restart pihole-FTL
+pihole -a -p bananapi
