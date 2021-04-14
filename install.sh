@@ -207,3 +207,7 @@ chown www-data:www-data -R /var/www/html
 chown www-data:www-data -R /var/www/html/*
 # NOTE: Set default password as "bananapi"
 pihole -a -p bananapi
+# NOTE: Set default DNS to cloudflare port 5051:
+sed -i "/PIHOLE_DNS_.*/d" /etc/pihole/setupVars.conf
+echo "PIHOLE_DNS_1=127.0.0.1#5053" >> /etc/pihole/setupVars.conf
+pihole restartdns
