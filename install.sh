@@ -84,6 +84,7 @@ echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
 apt install -y git avahi-daemon libnss-mdns vnstat 
 systemctl enable avahi-daemon
 systemctl start avahi-daemon
+# NOTE: Disable and remove data for "vnstat":
 systemctl stop vnstat
 systemctl disable vnstat
 rm /var/lib/vnstat/*
@@ -139,14 +140,13 @@ chown www-data:www-data /etc/default/ydns-updater
 ##################################################################################
 # Install and configure miniupnp install
 ##################################################################################
-# NOTE: Set some default settings for miniupnpd package:
+# NOTE: Install the miniupnp install quietly
 echo "miniupnpd miniupnpd/start_daemon boolean true" | debconf-set-selections
 echo "miniupnpd miniupnpd/ip6script boolean false" | debconf-set-selections
 echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
 echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
-
-# NOTE: Install and configure miniupnp install:
 apt install -y miniupnpd miniupnpc
+# NOTE: Configure the service:
 sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#http_port=0|http_port=5000|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#enable_upnp=no|enable_upnp=yes|g" /etc/miniupnpd/miniupnpd.conf
@@ -244,7 +244,7 @@ chown www-data:www-data -R /var/www/html
 chown www-data:www-data -R /var/www/html/*
 # NOTE: Set default password as "bananapi"
 pihole -a -p bananapi
-# NOTE: Set default DNS to cloudflare port 5051:
+# NOTE: Set default DNS to cloudflare port 5051
 sed -i "/PIHOLE_DNS_.*/d" /etc/pihole/setupVars.conf
-echo "PIHOLE_DNS_1=127.0.0.1#5053" >> /etc/pihole/setupVars.conf
+echo "PIHOLE_DNS_1=127.0.0.1#5051" >> /etc/pihole/setupVars.conf
 pihole restartdns
