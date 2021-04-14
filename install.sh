@@ -6,6 +6,9 @@ if [[ "${UID}" -ne 0 ]]; then
 	exit $?
 fi
 
+##################################################################################
+# Generic configuration
+##################################################################################
 # Secure the "authorized_keys" file so it can only be appended:
 chattr +a /root/.ssh/authorized_keys
 
@@ -54,22 +57,30 @@ locale-gen
 apt update
 apt dist-upgrade -y
 
-# Install a few packages, then create our custom login message:
+##################################################################################
+# Install a few packages so we can create our custom login message
+##################################################################################
 apt install -y toilet pmount eject
 rm /etc/motd
 rm /etc/update-motd.d/10-uname
 ln -s /var/run/motd /etc/motd
 
-# Disable and stop hostapd service before we go further:
+##################################################################################
+# Disable and stop hostapd service before we go further
+##################################################################################
 systemctl disable hostapd
 systemctl stop hostapd
 
-# Install some new utilities:
+##################################################################################
+# Install some new utilities
+##################################################################################
 apt install -y pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release unzip debconf-utils tree rng-tools
 apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance screen parted
 echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
 
-# Install GIT and avahi utilities:
+##################################################################################
+# Install GIT and avahi utilities
+##################################################################################
 apt install -y git avahi-daemon libnss-mdns vnstat 
 systemctl enable avahi-daemon
 systemctl start avahi-daemon
@@ -77,9 +88,13 @@ systemctl stop vnstat
 systemctl disable vnstat
 rm /var/lib/vnstat/*
 
-# Modify the Samba configuration to make sharing USB sticks more automatic:
+##################################################################################
+# Install Samba
+##################################################################################
 echo "samba-common samba-common/dhcp boolean true" | debconf-set-selections
 apt install -y samba
+echo -e "bananapi\nbananapi" | smbpasswd -a pi
+# NOTE: Modify the Samba configuration to make sharing USB sticks more automatic
 sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" /etc/samba/smb.conf
 touch /etc/samba/includes.conf
 sed -i "s|/var/run|/run|g" /lib/systemd/system/?mbd.service
@@ -88,9 +103,10 @@ systemctl enable smbd
 systemctl restart smbd
 systemctl enable nmbd
 systemctl restart nmbd
-echo -e "bananapi\nbananapi" | smbpasswd -a pi
 
-# Install NGINX and PHP 7.3:
+##################################################################################
+# Install NGINX and PHP 7.3
+##################################################################################
 apt install -y nginx php7.3-fpm php7.3-cgi php7.3-xml php7.3-sqlite3 php7.3-intl apache2-utils php7.3-mysql php7.3-sqlite3 sqlite3 php7.3-zip openssl php7.3-curl
 systemctl enable php7.3-fpm
 systemctl start php7.3-fpm
@@ -100,7 +116,9 @@ ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl enable nginx
 systemctl restart nginx
 
-# Install TrueCrypt and HD-Idle:
+##################################################################################
+# Install TrueCrypt and HD-Idle
+##################################################################################
 wget https://github.com/stefansundin/truecrypt.deb/releases/download/7.1a-15/truecrypt-cli_7.1a-15_armhf.deb -O /tmp/truecrypt.deb
 wget https://github.com/adelolmo/hd-idle/releases/download/v1.12/hd-idle_1.12_armhf.deb -O /tmp/hdidle.deb
 mv /etc/default/hd-idle /tmp/
@@ -111,18 +129,23 @@ systemctl daemon-reload
 systemctl enable hd-idle
 systemctl restart hd-idle
 
-# Pull ydns's bash-updater repo and modify to pull settings from elsewhere:
+##################################################################################
+# Pull ydns's bash-updater repo and modify to pull settings from elsewhere
+##################################################################################
 git clone https://github.com/ydns/bash-updater /opt/ydns-updater
 sed -i "s|^YDNS_LASTIP_FILE|[[ -f /etc/default/ydns-updater ]] \&\& source /etc/default/ydns-updater\nYDNS_LASTIP_FILE|" /opt/ydns-updater/updater.sh
 chown www-data:www-data /etc/default/ydns-updater
 
-# Set some default settings for miniupnpd package:
+##################################################################################
+# Install and configure miniupnp install
+##################################################################################
+# NOTE: Set some default settings for miniupnpd package:
 echo "miniupnpd miniupnpd/start_daemon boolean true" | debconf-set-selections
 echo "miniupnpd miniupnpd/ip6script boolean false" | debconf-set-selections
 echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
 echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
 
-# Install and configure miniupnp install:
+# NOTE: Install and configure miniupnp install:
 apt install -y miniupnpd miniupnpc
 sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#http_port=0|http_port=5000|g" /etc/miniupnpd/miniupnpd.conf
@@ -134,17 +157,21 @@ systemctl daemon-reload
 systemctl enable miniupnpd
 systemctl restart miniupnpd
 
-# Set some default settings for minissdpd package:
+##################################################################################
+# Install minissdpd package
+##################################################################################
+# NOTE: Set some default settings for minissdpd package:
 echo "minissdpd minissdpd/listen string br0" | debconf-set-selections
 echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
 echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
-
-# Install minissdpd package:
+# NOTE: Install minissdpd package:
 apt install -y minissdpd
 systemctl enable minissdpd
 systemctl start minissdpd
 
-# Install Transmission-BT program:
+##################################################################################
+# Install Transmission-BT program
+##################################################################################
 mv /etc/transmission-daemon/settings.json /tmp/settings.json
 apt install -y transmission-daemon
 mv /tmp/settings.json /etc/transmission-daemon/settings.json
@@ -157,11 +184,15 @@ chown -R vpn:vpn /home/vpn/{Incomplete,Download}
 chmod -R 775 /home/vpn/{Incomplete,Download}
 systemctl restart transmission-daemon
 
-# Install docker:
+##################################################################################
+# Install docker
+##################################################################################
 curl -L https://get.docker.com | bash
 usermod -aG docker pi
 
-# Download docker-compose into the /usr/local/bin directory:
+##################################################################################
+# Download docker-compose into the /usr/local/bin directory
+##################################################################################
 wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
 pushd /tmp
 tar xvzf /tmp/docker.tgz
@@ -169,7 +200,9 @@ mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
 ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
 popd
 
-# Install and configure cloudflared:
+##################################################################################
+# Install cloudflared
+##################################################################################
 pushd /tmp
 wget https://bin.equinox.io/c/VdrWdbjqyF/cloudflared-stable-linux-arm.tgz
 tar -xvzf cloudflared-stable-linux-arm.tgz
@@ -184,13 +217,17 @@ systemctl start cloudflared@2
 systemctl enable cloudflared@3
 systemctl start cloudflared@3
 
-# Install the wireless regulatory table:
+##################################################################################
+# Install the wireless regulatory table
+##################################################################################
 apt install -y wireless-regdb crda
 git clone https://kernel.googlesource.com/pub/scm/linux/kernel/git/sforshee/wireless-regdb /opt/wireless-regdb
 ln -sf /opt/wireless-regdb/regulatory.db /lib/firmware/
 ln -sf /opt/wireless-regdb/regulatory.db.p7s /lib/firmware/
 
-# Install PiHole:
+##################################################################################
+# Install PiHole
+##################################################################################
 curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
 # NOTE: Mask "dhcpcd" package so we don't conflict with it!
 systemctl stop dhcpcd
