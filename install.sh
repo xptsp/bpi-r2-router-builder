@@ -192,16 +192,18 @@ ln -sf /opt/wireless-regdb/regulatory.db.p7s /lib/firmware/
 
 # Install PiHole:
 curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
+# NOTE: Mask "dhcpcd" package so we don't conflict with it!
+systemctl stop dhcpcd
+systemctl disable dhcpcd
+systemctl mask dhcpcd
+# NOTE: Mask "dnsmasq" package so we don't conflict with it!
 systemctl stop dnsmasq
 systemctl disable dnsmasq
 systemctl mask dnsmasq
+# NOTE: Configure some things correctly
 chown pihole:pihole /var/lib/misc
 chown pihole:pihole -R /var/lib/misc/*
 chown www-data:www-data -R /var/www/html
 chown www-data:www-data -R /var/www/html/*
-systemctl enable pihole-FTL
-systemctl restart pihole-FTL
+# NOTE: Set default password as "bananapi"
 pihole -a -p bananapi
-systemctl stop dhcpcd5
-systemctl disable dhcpcd5
-systemctl mask dhcpcd5
