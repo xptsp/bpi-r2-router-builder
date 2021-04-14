@@ -52,4 +52,4 @@ dd if=${DEV} of=${FILE} bs=4M count=${MB} status=progress
 echo -e "${GREEN}================================================================${NC}"
 eject ${DEV}
 echo -e "${GREEN}INFO:${NC} {$BLUE}${DEV}${NC} has been ejected!"
-./img_cleanup ${FILE}
+./cleanup ${FILE}

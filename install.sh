@@ -9,6 +9,11 @@ fi
 # Secure the "authorized_keys" file so it can only be appended:
 chattr +a /root/.ssh/authorized_keys
 
+# Add additional configuration for split-tunnel VPN:
+echo "200     vpn" >> /etc/iproute2/rt_tables
+touch /etc/openvpn/.vpn_creds
+chmod 600 /etc/openvpn/.vpn_creds
+
 # Set some things before we start:
 export DEBIAN_FRONTEND=noninteractive
 update-alternatives --set iptables /usr/sbin/iptables-legacy
@@ -62,7 +67,6 @@ systemctl stop hostapd
 # Install some new utilities:
 apt install -y pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release unzip debconf-utils tree rng-tools
 apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance screen parted
-apt install -y -t buster-backports wireless-regdb
 echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
 
 # Install GIT and avahi utilities:
@@ -153,16 +157,6 @@ chown -R vpn:vpn /home/vpn/{Incomplete,Download}
 chmod -R 775 /home/vpn/{Incomplete,Download}
 systemctl restart transmission-daemon
 
-# Add additional configuration for split-tunnel VPN:
-cat << EOF > /etc/sysctl.d/9999-vpn.conf
-net.ipv4.conf.all.rp_filter = 2
-net.ipv4.conf.default.rp_filter = 2
-net.ipv4.conf.wan.rp_filter = 2
-EOF
-echo "200     vpn" >> /etc/iproute2/rt_tables
-touch /etc/openvpn/.vpn_creds
-chmod 600 /etc/openvpn/.vpn_creds
-
 # Install docker:
 curl -L https://get.docker.com | bash
 usermod -aG docker pi
@@ -189,6 +183,12 @@ systemctl enable cloudflared@2
 systemctl start cloudflared@2
 systemctl enable cloudflared@3
 systemctl start cloudflared@3
+
+# Install the wireless regulatory table:
+apt install -y wireless-regdb crda
+git clone https://kernel.googlesource.com/pub/scm/linux/kernel/git/sforshee/wireless-regdb /opt/wireless-regdb
+ln -sf /opt/wireless-regdb/regulatory.db /lib/firmware/
+ln -sf /opt/wireless-regdb/regulatory.db.p7s /lib/firmware/
 
 # Install PiHole:
 curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
