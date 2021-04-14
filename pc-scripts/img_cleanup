@@ -62,6 +62,7 @@ A=${DEV[2]}
 rm -rf ${A}/tmp/* >& /dev/null
 rm -rf ${A}/root/.config >& /dev/null
 rm -rf ${A}/root/.local >& /dev/null
+rm ${A}/etc/udev/rules.d/70-persistent-net.rules >& /dev/null
 rm ${A}/root/.bash_history >& /dev/null
 rm ${A}/root/.ssh/known_hosts >& /dev/null
 rm ${A}/var/lib/vnstat/* >& /dev/null

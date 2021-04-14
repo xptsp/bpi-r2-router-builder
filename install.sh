@@ -90,7 +90,7 @@ echo -e "bananapi\nbananapi" | smbpasswd -a pi
 apt install -y nginx php7.3-fpm php7.3-cgi php7.3-xml php7.3-sqlite3 php7.3-intl apache2-utils php7.3-mysql php7.3-sqlite3 sqlite3 php7.3-zip openssl php7.3-curl
 systemctl enable php7.3-fpm
 systemctl start php7.3-fpm
-mv /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
+rm /etc/nginx/sites-enabled/default
 ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
 ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl enable nginx
@@ -119,7 +119,7 @@ echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
 echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
 
 # Install and configure miniupnp install:
-apt install -y -qq miniupnpd miniupnpc
+apt install -y miniupnpd miniupnpc
 sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#http_port=0|http_port=5000|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#enable_upnp=no|enable_upnp=yes|g" /etc/miniupnpd/miniupnpd.conf
@@ -171,19 +171,6 @@ chown -R vpn:vpn /home/vpn/{Incomplete,Download}
 chmod -R 775 /home/vpn/{Incomplete,Download}
 systemctl restart transmission-daemon
 
-# Install docker:
-curl -L https://get.docker.com | bash
-usermod -aG docker pi
-
-# Download docker-compose into the /usr/local/bin directory:
-wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
-pushd /tmp
-tar xvzf /tmp/docker.tgz
-mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
-ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
-popd
-systemctl enable docker-compose
-
 # Set some default settings for minissdpd package:
 echo "minissdpd minissdpd/listen string br0" | debconf-set-selections
 echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
@@ -203,3 +190,17 @@ EOF
 echo "200     vpn" >> /etc/iproute2/rt_tables
 touch /etc/openvpn/.vpn_creds
 chmod 600 /etc/openvpn/.vpn_creds
+
+# Install docker:
+curl -L https://get.docker.com | bash
+usermod -aG docker pi
+
+# Download docker-compose into the /usr/local/bin directory:
+wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
+pushd /tmp
+tar xvzf /tmp/docker.tgz
+mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
+ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
+popd
+systemctl enable docker-compose
+
