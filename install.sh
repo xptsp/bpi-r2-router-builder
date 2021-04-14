@@ -202,3 +202,6 @@ chown www-data:www-data -R /var/www/html/*
 systemctl enable pihole-FTL
 systemctl restart pihole-FTL
 pihole -a -p bananapi
+systemctl stop dhcpcd5
+systemctl disable dhcpcd5
+systemctl mask dhcpcd5
