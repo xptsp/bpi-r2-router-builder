@@ -37,19 +37,18 @@ function replace()
 	done
 	mkdir -p $(dirname ${DEST})
 	if [[ "$COPY" == "true" ]]; then
-		echo -e -n "Copying ${BLUE}${SRC}${NC}... "
-		if ! cp ${SRC} ${DEST}; then
-			echo -e "${RED}FAIL!${NC}"
-		else
-			echo -e "${GREEN}Success!${NC}"
+		if ! test -f ${DEST}; then
+			echo -e -n "Copying ${BLUE}${SRC}${NC}... "
+			if ! cp ${SRC} ${DEST}; then
+				echo -e "${RED}FAIL!${NC}"
+			else
+				echo -e "${GREEN}Success!${NC}"
+			fi
 		fi
 	else
 		unset INFO
-		if test -e ${DEST}; then
-			INFO=($(ls -l /${DEST}))
-			INFO=${INFO[-1]}
-		fi
-		if [[ ! "${INFO}" == "$SRC" ]]; then
+		test -h ${DEST} && INFO=$(ls -l /${DEST} | awk '{print $NF}')
+		if [[ ! "${INFO}" == "${SRC}" ]]; then
 			test -f ${DEST} && rm ${DEST}
 			echo -e -n "Linking ${BLUE}${SRC}${NC}... "
 			if ! ln -sf ${SRC} ${DEST}; then
@@ -62,18 +61,14 @@ function replace()
 }
 
 #####################################################################################
-# Copy files to the boot partition:
+# Copy files to the boot partition ONLY IF MOUNTED!
 #####################################################################################
 cd $(dirname $0)/files
 RW=($(mount | grep " /boot "))
 if [[ ! -z "$RW" ]]; then
-	BOOT_RO=false
-	if [[ "${RW[5]}" == *ro,* ]]; then
-		BOOT_RO=true
-		mount -o remount,rw /boot
-	fi
+	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /boot
 	cp -R boot/* /boot/
-	[[ "$BOOT_RO" == "true" ]] && mount -o remount,ro /boot
+	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /boot
 fi
 
 #####################################################################################
@@ -83,7 +78,6 @@ for file in $(find etc/* -type f); do replace $file; done
 for file in $(find lib/* -type f | grep -v -e "^lib/systemd/system/"); do replace $file; done
 for file in $(find lib/systemd/system/* -type d); do replace $file; done
 for file in $(find sbin/* -type f); do replace $file; done
-test -d /usr/local/bin/helpers || mkdir -p /usr/local/bin/helpers
 for file in $(find usr/* -type f); do replace $file; done
 
 #####################################################################################
