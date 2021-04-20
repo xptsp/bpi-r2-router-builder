@@ -13,7 +13,7 @@ if [[ "$1" == "start" ]]; then
 	sed -i "s|\"rpc-port\": \".*\",|\"rpc-port\": ${PORT},|g" ${JSON}
 
 	# Allow WebUI port to always be open for transmission-daemon:
-	RULE="iptables -D OUTPUT ! -o lo -p tcp --sport $PORT -m owner --uid-owner vpn -j ACCEPT"
+	RULE="iptables ! -i wan -D OUTPUT ! -o wan -p tcp --sport $PORT -m owner --uid-owner vpn -j ACCEPT"
 	${RULE/\-D/\-I}
 	echo $RULE > $FILE
 	chmod +x $FILE

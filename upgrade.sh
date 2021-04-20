@@ -89,8 +89,3 @@ for file in $(find root/.b* -type f); do
 	replace $file /home/pi/${file/root/}
 	replace $file /home/vpn/${file/root/}
 done
-
-#####################################################################################
-# Link the repo's router webUI to the proper location:
-#####################################################################################
-replace var/www/router

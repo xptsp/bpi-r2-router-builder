@@ -2,7 +2,7 @@ server {
 	listen 80;
 	listen [::]:80;
 
-	root /var/www/router;
+	root /opt/bpi-r2-router-builder/router;
 
 	# Add index.php to the list if you are using PHP
 	index index.php index.html index.htm index.nginx-debian.html;

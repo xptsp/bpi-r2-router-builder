@@ -248,3 +248,14 @@ pihole -a -p bananapi
 sed -i "/PIHOLE_DNS_.*/d" /etc/pihole/setupVars.conf
 echo "PIHOLE_DNS_1=127.0.0.1#5051" >> /etc/pihole/setupVars.conf
 pihole restartdns
+
+##################################################################################
+# Install I2C libraries to run a OLED display without build tools
+##################################################################################
+apt install -y --no-install-recommends i2c-tools python3-pip python3-pil python-psutil
+python3 -m pip install --upgrade pip wheel setuptools
+pushd /tmp
+wget https://github.com/frank-w/bpi-r2-ssd1306-display/raw/master/ssd1306_python3.tar.gz
+tar xzvf ssd1306_python3.tar.gz
+python3 -m pip install --no-index --find-links=/tmp/whl psutil Adafruit-SSD1306 Adafruit-BBIO
+popd
