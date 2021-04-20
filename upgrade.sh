@@ -22,7 +22,7 @@ COPY_ONLY=(
 	/etc/overlayRoot.conf
 	/etc/pihole/
 	/etc/pivpn/
-	/root/.ssh/authorized_keys
+	/root/
 )
 
 #####################################################################################

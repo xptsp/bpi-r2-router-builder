@@ -141,7 +141,7 @@ chown www-data:www-data /etc/default/ydns-updater
 # Install and configure miniupnp install
 ##################################################################################
 # NOTE: Install the miniupnp install quietly
-echo "miniupnpd miniupnpd/start_daemon boolean true" | debconf-set-selections
+echo "miniupnpd miniupnpd/start_daemon boolean true" | debconf-set-selection7s
 echo "miniupnpd miniupnpd/ip6script boolean false" | debconf-set-selections
 echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
 echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
@@ -185,10 +185,11 @@ chmod -R 775 /home/vpn/{Incomplete,Download}
 systemctl restart transmission-daemon
 
 ##################################################################################
-# Install docker
+# Install docker and add bin directory on docker partition to system path
 ##################################################################################
 curl -L https://get.docker.com | bash
 usermod -aG docker pi
+sed -i "s|PATH=\"|PATH=\"/var/lib/docker/bin:|g" /etc/profile
 
 ##################################################################################
 # Download docker-compose into the /usr/local/bin directory
