@@ -75,7 +75,7 @@ systemctl stop hostapd
 # Install some new utilities
 ##################################################################################
 apt install -y pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release unzip debconf-utils tree rng-tools
-apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance screen parted
+apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance screen parted wpasupplicant
 echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
 
 ##################################################################################
@@ -250,8 +250,9 @@ echo "PIHOLE_DNS_1=127.0.0.1#5051" >> /etc/pihole/setupVars.conf
 pihole restartdns
 
 ##################################################################################
-# Install I2C libraries to run a OLED display without build tools
+# Install I2C libraries and Python script to run OLED display
 ##################################################################################
+# NOTE: Installing support packages and libraries
 apt install -y --no-install-recommends i2c-tools python3-pip python3-pil python-psutil
 python3 -m pip install --upgrade pip wheel setuptools
 pushd /tmp
@@ -259,3 +260,8 @@ wget https://github.com/frank-w/bpi-r2-ssd1306-display/raw/master/ssd1306_python
 tar xzvf ssd1306_python3.tar.gz
 python3 -m pip install --no-index --find-links=/tmp/whl psutil Adafruit-SSD1306 Adafruit-BBIO
 popd
+# NOTE: Install and enable Python3 stats script
+git clone https://github.com/xptsp/bpi-r2-ssd1306-display /opt/stats
+ln -sf /opt/stats/stats.service /etc/systemd/system/stats.service
+systemctl enable stats
+systemctl start stats

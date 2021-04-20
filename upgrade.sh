@@ -67,21 +67,27 @@ cd $(dirname $0)/files
 RW=($(mount | grep " /boot "))
 if [[ ! -z "$RW" ]]; then
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /boot
-	cp -R boot/* /boot/
+	cp uEnv.txt /boot/bananapi/bpi-r2/linux/
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /boot
 fi
 
 #####################################################################################
 # Copy or link files in the repo to their proper locations:
 #####################################################################################
-for file in $(find etc/* -type f); do replace $file; done
-for file in $(find lib/* -type f | grep -v -e "^lib/systemd/system/"); do replace $file; done
-for file in $(find lib/systemd/system/* -type d); do replace $file; done
-for file in $(find sbin/* -type f); do replace $file; done
-for file in $(find usr/* -type f); do replace $file; done
+for dir in $(find ./ -maxdepth 1 -type d | grep -v "./root"); do 
+	DIR=${dir/.\//};
+	if [[ ! -z "${DIR}" ]]; then
+		for file in $(find ${DIR}/* -type f | grep -v -e "^lib/systemd/system/"); do replace $file; done
+	fi
+done
 
 #####################################################################################
-# Link the bash configuration files:
+# Link the service file changes into "/lib/systemd/system":
+#####################################################################################
+for file in $(find lib/systemd/system/* -type d); do replace $file; done
+
+#####################################################################################
+# Link bash config files into "/root", "/etc/skel", "/home/pi" and "/home/vpn":
 #####################################################################################
 for file in $(find root/.b* -type f); do
 	replace $file
