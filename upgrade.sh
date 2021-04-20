@@ -22,6 +22,7 @@ COPY_ONLY=(
 	/etc/overlayRoot.conf
 	/etc/pihole/
 	/etc/pivpn/
+	/root/.ssh/authorized_keys
 )
 
 #####################################################################################
@@ -46,10 +47,9 @@ function replace()
 			fi
 		fi
 	else
-		unset INFO
-		test -h ${DEST} && INFO=$(ls -l /${DEST} | awk '{print $NF}')
+		INFO=$(ls -l /${DEST} | awk '{print $NF}')
 		if [[ ! "${INFO}" == "${SRC}" ]]; then
-			test -f ${DEST} && rm ${DEST}
+			rm ${DEST}
 			echo -e -n "Linking ${BLUE}${SRC}${NC}... "
 			if ! ln -sf ${SRC} ${DEST}; then
 				echo -e "${RED}FAIL!${NC}"
@@ -89,7 +89,7 @@ for file in $(find lib/systemd/system/* -type d); do replace $file; done
 #####################################################################################
 # Link bash config files into "/root", "/etc/skel", "/home/pi" and "/home/vpn":
 #####################################################################################
-for file in $(find root/.b* -type f); do
+for file in $(find root/.[a-z]* -type f); do
 	replace $file
 	replace $file /etc/skel/${file/root/}
 	replace $file /home/pi/${file/root/}
