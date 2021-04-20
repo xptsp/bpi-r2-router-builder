@@ -1,4 +1,8 @@
 #!/bin/bash
+if [[ "${UID}" -ne 0 ]]; then
+	sudo $0 $@
+	exit $?
+fi
 FILE=/var/run/transmission-daemon.rule
 JSON=/etc/transmission-daemon/settings.json
 if [[ "$1" == "start" ]]; then
