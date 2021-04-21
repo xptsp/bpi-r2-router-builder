@@ -109,6 +109,7 @@ systemctl restart nmbd
 # Install NGINX and PHP 7.3
 ##################################################################################
 apt install -y nginx php7.3-fpm php7.3-cgi php7.3-xml php7.3-sqlite3 php7.3-intl apache2-utils php7.3-mysql php7.3-sqlite3 sqlite3 php7.3-zip openssl php7.3-curl
+sed -i "s|display_errors = .*|display_errors = On|g" /etc/php/7.3/fpm/php.ini
 systemctl enable php7.3-fpm
 systemctl start php7.3-fpm
 rm /etc/nginx/sites-enabled/default
@@ -243,6 +244,7 @@ chown pihole:pihole /var/lib/misc
 chown pihole:pihole -R /var/lib/misc/*
 chown www-data:www-data -R /var/www/html
 chown www-data:www-data -R /var/www/html/*
+rm /var/www/html/index.nginx-debian.html
 # NOTE: Set default password as "bananapi"
 pihole -a -p bananapi
 # NOTE: Set default DNS to cloudflare port 5051
