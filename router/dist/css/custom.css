@@ -1,0 +1,12 @@
+.center_50 {
+	width: 48%;
+	margin-left: auto;
+	margin-right: auto;
+}
+.bodybg{
+	background: rgb(2,0,36);
+	background: -moz-linear-gradient(45deg, rgba(2,0,36,1) 0%, rgba(60,9,121,1) 100%);
+	background: -webkit-linear-gradient(45deg, rgba(2,0,36,1) 0%, rgba(60,9,121,1) 100%);
+	background: linear-gradient(45deg, rgba(2,0,36,1) 0%, rgba(60,9,121,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#020024",endColorstr="#3c0979",GradientType=1);
+}

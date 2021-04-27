@@ -29,6 +29,6 @@ server {
 	}
 
 	location @extensionless-php {
-		rewrite ^(.*)$ $1.php last;
+		rewrite ^(.*)$ /index.php?action=$1 last;
 	}
 }

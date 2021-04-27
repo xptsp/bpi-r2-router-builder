@@ -221,6 +221,10 @@ case $CMD in
 		setDNS $@
 		;;
 
+	pihole)
+		/usr/local/bin/pihole $@
+		;;
+
 	*)
 		echo "Syntax: $(basename $0) [command] [options]"
 		;;
