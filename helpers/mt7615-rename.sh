@@ -15,7 +15,7 @@ if [[ ! -z "${PCI}" ]]; then
 				echo "SUBSYSTEM==\"net\", DRIVERS==\"?*\", ATTR{address}==\"${MAC}\", NAME=\"${NEW}\"" >> $FILE
 				ifconfig ${IFACE} down
 				ip link set ${IFACE} name ${NEW}
-				ifconfig ${IFACE} up
+				ifconfig ${NEW} up
 			fi
 		fi
 	done
