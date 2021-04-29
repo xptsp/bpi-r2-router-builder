@@ -1,12 +1,15 @@
 <?php
+$site_title = '';
 
 function site_header()
 {
+	global $site_title;
+
 	echo '
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>AdminLTE 3 | Boxed Layout</title>
+	<title>', $site_title, '</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="dist/css/fonts.googleapis.com.css">
@@ -17,8 +20,10 @@ function site_header()
 </head>';
 }
 
-function site_menu($page_header = '')
+function site_menu()
 {
+	global $site_title;
+
 	echo '
 <body class="hold-transition sidebar-mini layout-boxed bodybg">
 <div class="wrapper">
@@ -38,12 +43,22 @@ function site_menu($page_header = '')
 							 with font-awesome or any other icon font library -->
 					<li class="nav-item">
 						<a href="/" class="nav-link">
-							<i class="nav-icon fas fa-info"></i>
+							<i class="nav-icon fas fa-home"></i>
 							<p>
 								Basic Status
 							</p>
 						</a>
 					</li>
+					<li class="nav-item">
+						<a href="/detailed" class="nav-link">
+							<i class="nav-icon fas fa-info"></i>
+							<p>
+								Detailed Status
+							</p>
+						</a>
+					</li>
+<!--
+					<li class="nav-item"><hr /></li>
 					<li class="nav-item">
 						<a href="/detailed" class="nav-link">
 							<i class="nav-icon fas fa-info-circle"></i>
@@ -52,6 +67,7 @@ function site_menu($page_header = '')
 							</p>
 						</a>
 					</li>
+-->
 				</ul>
 			</nav>
 			<!-- /.sidebar-menu -->
@@ -66,29 +82,35 @@ function site_menu($page_header = '')
 				<div class="row mb-2">
 					<div class="col-sm-12">
 						<a class="float-left nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-						<h1>', $page_header, '</h1>
+						<h1>', $site_title, '</h1>
 					</div>
 				</div>
 			</div><!-- /.container-fluid -->
 		</section>
 
 		<!-- Main content -->
-		<section class="content">
-			<div class="container-fluid">
-				<div class="row">';
+		<section class="content">';
 }
 
 function site_404()
 {
 	echo '
+			<div class="error-page">
+				<h2 class="headline text-warning"> 404</h2>
+
+				<div class="error-content">
+					<h3><i class="fas fa-exclamation-triangle text-warning"></i> Oops! Page not found.</h3>
+					<p>Sorry!  The page you were looking for cannot be found!.</p>
 				</div>
+				<!-- /.error-content -->
 			</div>
-		</section>';
+			<!-- /.error-page -->';
 }
 
 function site_footer()
 {
 	echo '
+		</section>
 	</div>
 	<!-- /.content-wrapper -->
 

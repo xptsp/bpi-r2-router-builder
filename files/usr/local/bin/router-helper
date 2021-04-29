@@ -164,19 +164,35 @@ function setDNS()
 	IP=(${@/\#/ })
 	if ! valid_ip ${IP[0]}; then
 		echo "ERROR: Invalid IP address specified in 2nd parameter!"
-		echo "SYNTAX: $(basename $0) piholeDNS [ip address] [optional port]"
+		echo "SYNTAX: $(basename $0) dns [ip address(#optional port)]"
 		exit 1
 	fi
 	if [[ ! -z "${IP[1]}" ]]; then
 		if [[ ! "${IP[1]}" =~ ^[0-9]+$ || ${IP[1]} -gt 65535 ]]; then
 			echo "ERROR: Invalid port number specified in 2nd parameter!"
-			echo "SYNTAX: $(basename $0) piholeDNS [ip address] [optional port]"
+			echo "SYNTAX: $(basename $0) dns [ip address(#optional port)]"
 			exit 1
 		fi
 	fi
 	sed -i "/PIHOLE_DNS_/d" /etc/pihole/setupVars.conf
 	echo "PIHOLE_DNS_1=${1}" >> /etc/pihole/setupVars.conf
 	pihole restartdns
+}
+
+###########################################################################
+# Function dealing with login credentials and username:
+###########################################################################
+function setLogin()
+{
+	if [[ "$1" == "check" ]]; then
+		[[ -z "${2}" || -z "${3}" ]] && echo "No match" && exit 1
+		pwd=$(getent shadow ${2} | cut -d: -f2)
+		salt=\$$(echo $pwd | cut -d$ -f2)\$$(echo $pwd | cut -d$ -f3)
+		[ "$(python -c 'import crypt; print crypt.crypt("'"${3}"'", "'${salt}'")')" == "${pwd}" ] && echo "Match" || echo "No match"
+	elif [[ "$1" == "username" ]]; then
+		[[ -z "${2}" ]] && echo "Username not specified" && exit 1
+		usermod -l $2 $(cat /etc/passwd | grep ":1000:" | cut -d: -f1) && echo "Success"
+	fi
 }
 
 ###########################################################################
@@ -223,6 +239,10 @@ case $CMD in
 
 	pihole)
 		/usr/local/bin/pihole $@
+		;;
+
+	login)
+		setLogin $@
 		;;
 
 	*)

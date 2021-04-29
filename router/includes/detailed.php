@@ -1,5 +1,5 @@
 <?php
-require_once('subs.php');
+require_once('detailed-subs.php');
 
 #######################################################################################################
 # Gather as much information before starting the overview display as we can:
@@ -8,13 +8,15 @@ $load = sys_getloadavg();
 $br0 = get_mac_info('br0');
 $wan = get_mac_info('wan');
 $wan_if = parse_ifconfig('wan');
-$adblocking = @shell_exec('/usr/local/bin/router-helper pihole_status');
+$adblocking = @shell_exec('/usr/local/bin/router-helper pihole status');
 $dns = get_dns_servers();
 
 #######################################################################################################
 # Display information about the router:
 #######################################################################################################
 echo '
+			<div class="container-fluid">
+				<div class="row">
 					<div class="col-md-6">
 						<div class="card">
 							<div class="card-header">
@@ -106,7 +108,7 @@ echo '
 									</tr>
 									<tr>
 										<td><strong>PiHole Adblocking</strong></td>
-										<td>', $adblocking, '</td>
+										<td>', strpos($adblocking, 'enabled') > 0 ? 'Enabled' : 'Disabled', '</td>
 									</tr>
 									<tr>
 										<td><button type="button" class="btn btn-block btn-outline-info">Show Statistics</button></td>
