@@ -3,7 +3,7 @@
 ################################################################################################
 # Function that returns the system uptime as a string:
 ################################################################################################
-function system_uptime()
+function system_uptime($sep = ', ')
 {
 	$str	 = @file_get_contents('/proc/uptime');
 	$num	 = floatval($str);
@@ -17,11 +17,11 @@ function system_uptime()
 	$num	 = (int)($num / 365.24);
 	$years = $num;
 	if ($years > 0)
-		return sprintf('%d year' . ($years > 1 ? 's' : '') . ', %d day' . ($days > 1 ? 's' : ''), $years, $days);
+		return sprintf('%d year' . ($years > 1 ? 's' : '') . $sep . '%d day' . ($days > 1 ? 's' : ''), $years, $days);
 	else if ($days > 0)
-		return sprintf('%d day' . ($days > 1 ? 's' : '') . ', %d hour' . ($hours > 1 ? 's' : '') . ', %d minute' . ($mins > 1 ? 's' : ''), $days, $hours, $mins);
+		return sprintf('%d day' . ($days > 1 ? 's' : '') . $sep . '%d hour' . ($hours > 1 ? 's' : ''), $days, $hours);
 	else if ($hours > 0)
-		return sprintf('%d hour' . ($hours > 1 ? 's' : '') . ', %d minute' . ($mins > 1 ? 's' : ''), $hours, $mins);
+		return sprintf('%d hour' . ($hours > 1 ? 's' : '') . $sep . '%d minute' . ($mins > 1 ? 's' : ''), $hours, $mins);
 	else
 		return sprintf('%d minute' . ($mins > 1 ? 's' : ''), $mins);
 }

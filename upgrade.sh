@@ -61,9 +61,18 @@ function replace()
 }
 
 #####################################################################################
+# Reset the repository and pull the updates:
+#####################################################################################
+cd $(dirname $0)
+git reset --hard
+git pull
+# Make user "pi" owner of the router UI
+chown pi:pi -R router
+
+#####################################################################################
 # Copy files to the boot partition ONLY IF MOUNTED!
 #####################################################################################
-cd $(dirname $0)/files
+cd files
 RW=($(mount | grep " /boot "))
 if [[ ! -z "$RW" ]]; then
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /boot

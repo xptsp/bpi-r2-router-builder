@@ -29,6 +29,17 @@ echo '
 							<div class="card-body p-0">
 								<table class="table">
 									<tr>
+										<td><strong>Internal IP Address</strong></td>
+										<td>', $br0['address'], '</td>
+									</tr>
+									<tr>
+										<td width="50%"><strong>Internal MAC Address</strong></td>
+										<td>', explode(' ', trim($br0['hwaddress']))[1], '</td>
+									</tr>
+									<tr>
+										<td colspan="2"><strong><i>Operating System Information</i></strong></td>
+									</tr>
+									<tr>
 										<td width="50%"><strong>Hardware Version</strong></td>
 										<td>Banana Pi R2</td>
 									</tr>
@@ -37,28 +48,12 @@ echo '
 										<td>Debian ', @file_get_contents('/etc/debian_version'), '</td>
 									</tr>
 									<tr>
-										<td><strong>OS Builder Version</strong></td>
-										<td>v', date('Y.md.Hi', @filemtime('/opt/bpi-r2-router-builder/.git/refs/heads/master')), '</td>
-									</tr>
-									<tr>
-										<td><strong>OS Load Average</strong></td>
-										<td>',
-											number_format((float)$load[0], 2), ', ',
-											number_format((float)$load[1], 2), ', ',
-											number_format((float)$load[2], 2), '
-										</td>
-									</tr>
-									<tr>
 										<td><strong>OS Kernel</strong></td>
 										<td>', explode(' ', @file_get_contents('/proc/version'))[2], '</td>
 									</tr>
 									<tr>
-										<td><strong>System Uptime</strong></td>
-										<td>', system_uptime(), '</td>
-									</tr>
-									<tr>
-										<td><strong>Router IP Address</strong></td>
-										<td>', $br0['address'], '</td>
+										<td><strong>OS Builder Version</strong></td>
+										<td>v', date('Y.md.Hi', @filemtime('/opt/bpi-r2-router-builder/.git/refs/heads/master')), '</td>
 									</tr>
 									<tr>
 										<td colspan="2">
@@ -86,12 +81,12 @@ echo '
 							<div class="card-body p-0">
 								<table class="table">
 									<tr>
-										<td width="50%"><strong>MAC Address</strong></td>
-										<td>', $wan_if['ether'], '</td>
+										<td><strong>External IP Address</strong></td>
+										<td>', $wan_if['inet'], '</td>
 									</tr>
 									<tr>
-										<td><strong>IP Address</strong></td>
-										<td>', $wan_if['inet'], '</td>
+										<td width="50%"><strong>External MAC Address</strong></td>
+										<td>', $wan_if['ether'], '</td>
 									</tr>
 									<tr>
 										<td><strong>Connection</strong></td>
