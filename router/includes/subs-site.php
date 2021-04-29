@@ -13,16 +13,16 @@ function site_header()
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<link rel="icon" type="image/png" sizes="32x32" href="/dist/img/favicon/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="/dist/img/favicon/favicon-16x16.png">
-	<link rel="icon" type="image/png" sizes="96x96" href="/dist/img/favicon/favicon-96x96.png">
-	<link rel="icon" type="image/png" sizes="192x192" href="/dist/img/favicon/favicon-192x192.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="/img/favicon/favicon-96x96.png">
+	<link rel="icon" type="image/png" sizes="192x192" href="/img/favicon/favicon-192x192.png">
 
-	<link rel="stylesheet" href="/dist/css/fonts.googleapis.com.css">
-	<link rel="stylesheet" href="/dist/css/adminlte.min.css">
-	<link rel="stylesheet" href="/dist/css/ionicons.min.css">
-	<link rel="stylesheet" href="/dist/plugins/fontawesome-free/css/all.min.css">
-	<link rel="stylesheet" href="/dist/css/custom.css">
+	<link rel="stylesheet" href="/css/fonts.googleapis.com.css">
+	<link rel="stylesheet" href="/css/adminlte.min.css">
+	<link rel="stylesheet" href="/css/ionicons.min.css">
+	<link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css">
+	<link rel="stylesheet" href="/css/custom.css">
 </head>';
 }
 
@@ -37,7 +37,7 @@ function site_menu()
 	<aside class="main-sidebar sidebar-dark-primary elevation-4">
 		<!-- Brand Logo -->
 		<a href="/" class="brand-link">
-			<img src="/dist/img/wifi-router.png" alt="Banana Pi Router" class="brand-image" style="opacity: .8">
+			<img src="/img/wifi-router.png" alt="Banana Pi Router" class="brand-image" style="opacity: .8">
 			<span class="brand-text font-weight-light">Banana Pi Router</span>
 		</a>
 		<!-- Sidebar -->
@@ -114,9 +114,9 @@ function site_footer()
 </div>
 <!-- ./wrapper -->
 
-<script src="/dist/plugins/jquery/jquery.min.js"></script>
-<script src="/dist/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<script src="/dist/js/adminlte.min.js"></script>
+<script src="/plugins/jquery/jquery.min.js"></script>
+<script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/js/adminlte.min.js"></script>
 </body>
 </html>';
 }

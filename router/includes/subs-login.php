@@ -1,7 +1,33 @@
 <?php
 
-function site_login()
+# Defaults to "Prompt".  Change this to "Match" to disable login:
+$_SESSION['login_result'] = "Prompt";
+
+# Uncomment next line to force testing the login code:
+#unset($_SESSION['login_valid_until']);
+
+# Are we in a valid session?  If so, mark the result as a "Match":
+if (isset($_SESSION['login_valid_until']) and $_SESSION['login_valid_until'] >= time())
+	$_SESSION['login_result'] = "Match";
+
+# Otherwise, check if the passed "username" and "password" fields are valid.
+else if (isset($_POST['username']) and isset($_POST['password']))
 {
+	$_SESSION['login_user']   = preg_replace('/[\s\W]+/', '-', $_POST['username']);
+	$_SESSION['login_pass']   = preg_replace('/[\s\W]+/', '-', $_POST['password']);
+	$_SESSION['login_result'] = trim(@shell_exec('/usr/local/bin/router-helper login check ' . $_SESSION['login_user'] . ' ' . $_SESSION['login_pass']));
+}
+else
+	$_SESSION['login_user'] = '';
+	
+# If we have a valid username/password combo, set/extend the timeout for 10 minutes:
+if ($_SESSION['login_result'] == "Match")
+	$_SESSION['login_valid_until'] = time() + 10*60;
+else
+{
+	# Not a valid username/password combo!  Prompt for username and password:
+	$site_title = "Banana Pi Router - Login";
+	site_header();
 	echo '
 <body class="hold-transition login-page">
 	<div class="login-box">
@@ -11,12 +37,19 @@ function site_login()
 		</div>
 		<!-- /.login-logo -->
 		<div class="card">
-			<div class="card-body login-card-body">
-				<p class="login-box-msg">Sign in to start your session</p>
-
-				<form action="/login" method="post">
+			<div class="card-body login-card-body">';
+	if ($_SESSION['login_result'] == "No match")
+	{
+		echo '
+				<div class="callout callout-danger bg-danger">
+					<p><i class="icon fas fa-info-circle"></i>&nbsp;&nbsp;Incorrect username/password!</p>
+				</div>';
+	}
+	echo '
+				<h5 class="login-box-msg">Sign in to start your session</h5>
+				<form action="', str_replace('/basic', '/', $_GET['action']), '" method="post">
 					<div class="input-group mb-3">
-						<input name="username" type="text" class="form-control" placeholder="Username">
+						<input name="username" type="text" value="', $_SESSION['login_user'], '" class="form-control" placeholder="Username">
 						<div class="input-group-append">
 							<div class="input-group-text">
 								<span class="fas fa-user"></span>
@@ -54,11 +87,5 @@ function site_login()
 	<script src="../../dist/js/adminlte.min.js"></script>
 </body>
 </html>';
-}
-
-if (false)
-{
-	site_header();
-	site_login();
 	exit();
 }

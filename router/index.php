@@ -2,6 +2,7 @@
 # Enable error reporting and displaying of errors:
 ini_set('display_errors',1);
 error_reporting(E_ALL);
+session_start();
 
 # If no action has been passed, assume we want the basic router status:
 $_GET['action'] = str_replace('/subs-', '/', (isset($_GET['action']) and $_GET['action'] != "/") ? $_GET['action'] : '/basic');
