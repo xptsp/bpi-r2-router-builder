@@ -12,11 +12,17 @@ function site_header()
 	<title>', $site_title, '</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="dist/css/fonts.googleapis.com.css">
-	<link rel="stylesheet" href="dist/css/adminlte.min.css">
-	<link rel="stylesheet" href="dist/css/ionicons.min.css">
-	<link rel="stylesheet" href="dist/plugins/fontawesome-free/css/all.min.css">
-	<link rel="stylesheet" href="dist/css/custom.css">
+
+	<link rel="icon" type="image/png" sizes="32x32" href="/dist/img/favicon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/dist/img/favicon/favicon-16x16.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="/dist/img/favicon/favicon-96x96.png">
+	<link rel="icon" type="image/png" sizes="192x192" href="/dist/img/favicon/favicon-192x192.png">
+
+	<link rel="stylesheet" href="/dist/css/fonts.googleapis.com.css">
+	<link rel="stylesheet" href="/dist/css/adminlte.min.css">
+	<link rel="stylesheet" href="/dist/css/ionicons.min.css">
+	<link rel="stylesheet" href="/dist/plugins/fontawesome-free/css/all.min.css">
+	<link rel="stylesheet" href="/dist/css/custom.css">
 </head>';
 }
 
@@ -92,21 +98,6 @@ function site_menu()
 		<section class="content">';
 }
 
-function site_404()
-{
-	echo '
-			<div class="error-page">
-				<h2 class="headline text-warning"> 404</h2>
-
-				<div class="error-content">
-					<h3><i class="fas fa-exclamation-triangle text-warning"></i> Oops! Page not found.</h3>
-					<p>Sorry!  The page you were looking for cannot be found!.</p>
-				</div>
-				<!-- /.error-content -->
-			</div>
-			<!-- /.error-page -->';
-}
-
 function site_footer()
 {
 	echo '
@@ -123,9 +114,9 @@ function site_footer()
 </div>
 <!-- ./wrapper -->
 
-<script src="dist/plugins/jquery/jquery.min.js"></script>
-<script src="dist/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<script src="dist/js/adminlte.min.js"></script>
+<script src="/dist/plugins/jquery/jquery.min.js"></script>
+<script src="/dist/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/dist/js/adminlte.min.js"></script>
 </body>
 </html>';
 }

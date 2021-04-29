@@ -20,8 +20,10 @@ function system_uptime()
 		return sprintf('%d year' . ($years > 1 ? 's' : '') . ', %d day' . ($days > 1 ? 's' : ''), $years, $days);
 	else if ($days > 0)
 		return sprintf('%d day' . ($days > 1 ? 's' : '') . ', %d hour' . ($hours > 1 ? 's' : '') . ', %d minute' . ($mins > 1 ? 's' : ''), $days, $hours, $mins);
-	else
+	else if ($hours > 0)
 		return sprintf('%d hour' . ($hours > 1 ? 's' : '') . ', %d minute' . ($mins > 1 ? 's' : ''), $hours, $mins);
+	else
+		return sprintf('%d minute' . ($mins > 1 ? 's' : ''), $mins);
 }
 
 ################################################################################################

@@ -1,5 +1,8 @@
 <?php
-require_once('detailed-subs.php');
+$site_title = 'Detailed Status';
+site_header();
+site_menu();
+require_once('subs-detailed.php');
 
 #######################################################################################################
 # Gather as much information before starting the overview display as we can:
@@ -292,3 +295,4 @@ echo '
 			<!-- container-fluid -->
 		</section>
 		<!-- content -->';
+site_footer();
