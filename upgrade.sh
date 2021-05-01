@@ -61,9 +61,11 @@ function replace()
 }
 
 #####################################################################################
-# Reset the repository and pull the updates:
+# Force a complete reset of the repository and pull any updated files:
 #####################################################################################
 cd $(dirname $0)
+rm -rf router
+rm -rf files
 git reset --hard
 git pull
 # Make user "pi" owner of the router UI

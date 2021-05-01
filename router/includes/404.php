@@ -1,4 +1,5 @@
 <?php
+header($_SERVER["SERVER_PROTOCOL"] . " 404 Not Found", true, 404);
 $site_title = '404 Error Page';
 site_header();
 site_menu();

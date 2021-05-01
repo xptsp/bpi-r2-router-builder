@@ -4,7 +4,11 @@
 $_SESSION['login_result'] = "Prompt";
 
 # Uncomment next line to force testing the login code:
-#unset($_SESSION['login_valid_until']);
+if ($_GET['action'] == '/logout')
+{
+	unset($_SESSION['login_valid_until']);
+	$_GET['action'] = '/';
+}
 
 # Are we in a valid session?  If so, mark the result as a "Match":
 if (isset($_SESSION['login_valid_until']) and $_SESSION['login_valid_until'] >= time())

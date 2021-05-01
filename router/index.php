@@ -7,6 +7,13 @@ session_start();
 # If no action has been passed, assume we want the basic router status:
 $_GET['action'] = str_replace('/subs-', '/', (isset($_GET['action']) and $_GET['action'] != "/") ? $_GET['action'] : '/basic');
 
+# If website status is being requested, pass "Up" back to caller:
+if ($_GET['action'] == '/api/status')
+{
+	echo 'Up';
+	exit();
+}
+
 # Include the PHP site framework functions from the "includes" directory:
 require_once('includes/subs-site.php');
 require_once('includes/subs-login.php');
