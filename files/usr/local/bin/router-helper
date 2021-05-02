@@ -245,10 +245,12 @@ case $CMD in
 		setLogin $@
 		;;
 
-	dhcp-server)
-		wan=($(ifconfig wan | grep "inet "))
-		dhcp=($(cat /var/log/* | grep " ${wan[1]} " | grep DHCPOFFER | tail -1))
-		[[ ! -z ${dhcp[-1]} ]] && echo ${dhcp[-1]}
+	dhcp-info)
+		bound=($(grep dhclient /var/log/syslog | grep bound | tail -1))
+		from=($(grep dhclient /var/log/syslog | grep from | tail -1))
+		[[ -z "${from[-1]}" ]] && exit
+		[[ -z "${bound[-2]}" ]] && exit
+		echo ${from[-1]} $(echo $(php -r "echo strtotime('${bound[0]} ${bound[1]} ${bound[2]}');")) ${bound[-2]}
 		;;
 	
 	reboot)

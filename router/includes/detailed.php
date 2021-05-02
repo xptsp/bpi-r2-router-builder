@@ -14,7 +14,7 @@ $wan_if = parse_ifconfig('wan');
 $adblocking = @shell_exec('/usr/local/bin/router-helper pihole status');
 $dns = get_dns_servers();
 $type = strpos($wan['iface'], 'dhcp') > 0 ? 'DHCP' : 'Static IP';
-$dhcp = ($type == 'DHCP' ? @shell_exec('/usr/lcoal/bin/router-helper dhcp-server') : '');
+$dhcp = explode(' ', @shell_exec('/usr/local/bin/router-helper dhcp-info'));
 
 #######################################################################################################
 # Display information about the router:
@@ -39,6 +39,10 @@ echo '
 										<td>', explode(' ', trim($br0['hwaddress']))[1], '</td>
 									</tr>
 									<tr>
+										<td><strong>PiHole Adblocking</strong></td>
+										<td>', strpos($adblocking, 'enabled') ? 'Enabled' : 'Disabled', '</td>
+									</tr>
+									<tr>
 										<td colspan="2"><strong><i>Operating System Information</i></strong></td>
 									</tr>
 									<tr>
@@ -57,11 +61,6 @@ echo '
 										<td><strong>OS Builder Version</strong></td>
 										<td>v', date('Y.md.Hi', @filemtime('/opt/bpi-r2-router-builder/.git/refs/heads/master')), '</td>
 									</tr>
-									<tr>
-									<tr>
-										<td colspan="2"><button type="button" class="btn btn-block btn-outline-danger center_50" data-toggle="modal" data-target="#reboot-router">Reboot Router</button></td>
-									</tr>
-									</tr>
 								</table>
 							</div>
 							<!-- /.card-body -->
@@ -70,34 +69,6 @@ echo '
 					</div>
 					<!-- /.col -->';
 					
-#######################################################################################################
-# Display information about the Internet Port ("wan" interface):
-#######################################################################################################
-echo '
-					<div class="modal fade" id="reboot-router">
-						<div class="modal-dialog">
-							<div class="modal-content">
-								<div class="modal-header">
-									<h4 class="modal-title">Confirm Reboot Router</h4>
-									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-										<span aria-hidden="true">&times;</span>
-									</button>
-								</div>
-								<div class="modal-body" id="reboot-text">
-									<p>Rebooting the router will disrupt active traffic on the network.</p>
-									<p>Are you sure you want to do this?</p>
-								</div>
-								<div class="modal-footer justify-content-between">
-									<button type="button" class="btn btn-default" data-dismiss="modal">Not Now</button>
-									<button type="button" class="btn btn-primary" id="reboot-button">Reboot Now</button>
-								</div>
-							</div>
-							<!-- /.modal-content -->
-						</div>
-						<!-- /.modal-dialog -->
-					</div>
-					<!-- /.modal -->';
-
 #######################################################################################################
 # Display information about the Internet Port ("wan" interface):
 #######################################################################################################
@@ -119,28 +90,32 @@ echo '
 										<td>', $wan_if['ether'], '</td>
 									</tr>
 									<tr>
-										<td><strong>Connection</strong></td>
-										<td>', $type, '</td>
-									</tr>
-									<tr>
-										<td><strong>Subnet Mask</strong></td>
+										<td><strong>External Subnet Mask</strong></td>
 										<td>', $wan_if['netmask'], '</td>
 									</tr>
 									<tr>
-										<td><strong>Domain Name Servers</strong></td>
-										<td>', $dns[0], '</td>
+										<td><strong>Domain Name Server', isset($dns[1]) ? 's' : '', '</strong></td>
+										<td>', $dns[0], isset($dns[1]) ? ', ' . $dns[1] : '', '</td>
 									</tr>
 									<tr>
-										<td><strong>&nbsp;</strong></td>
-										<td>', isset($dns[1]) ? $dns[1] : '&nbsp;', '</td>
+										<td><strong>Connection</strong></td>
+										<td>', $type, '</td>
+									</tr>';
+if ($type == 'DHCP')
+	echo '
+									<tr>
+										<td><strong>External DHCP Server</strong></td>
+										<td>', $dhcp[0], '</td>
 									</tr>
 									<tr>
-										<td><strong>', $type == 'DHCP' ? 'External DHCP Server' : '', '</strong></td>
-										<td>', $dhcp, '</td>
+										<td><strong>DHCP Lease Began</strong></td>
+										<td>', date('Y-m-d H:i:s', $dhcp[1]), '</td>
 									</tr>
 									<tr>
-										<td colspan="2"><button type="button" class="btn btn-block btn-outline-primary center_50" data-toggle="modal" data-target="#reboot-router">Show Statistics</button></td>
-									</tr>
+										<td><strong>DHCP Lease Expires</strong></td>
+										<td>', date('Y-m-d H:i:s', (int)$dhcp[1] + (int)$dhcp[2]), '</td>
+									</tr>';
+echo '
 								</table>
 							</div>
 							<!-- /.card-body -->
