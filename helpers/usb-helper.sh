@@ -42,7 +42,7 @@ only guest=no
 create mask=0755
 directory mask=0755
 public=no
-\#mount_dev=${3}
+#mount_dev=${3}
 EOF
 }
 
