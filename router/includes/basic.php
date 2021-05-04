@@ -206,7 +206,7 @@ echo '
 						<div class="card-body centered text-lg">
 							<span id="temp"></span>&deg; C
 						</div>
-						<div class="ribbon-wrapper ribbon-lg">
+						<div class="ribbon-wrapper ribbon-lg invisible" id="temp-danger">
 							<div class="ribbon bg-danger text-lg">Danger!</div>
 						</div>
 					</div>

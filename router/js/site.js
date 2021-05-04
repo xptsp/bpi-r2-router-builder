@@ -20,5 +20,9 @@ function get_Basic_Data()
 			$("#connectivity-div").removeClass("bg-danger");
 		else
 			$("#connectivity-div").addClass("bg-danger");
+		if (results.temp > 60)
+			$("#temp-danger").removeClass("invisible");
+		else
+			$("#temp-danger").addClass("invisible");
 	});
 }
