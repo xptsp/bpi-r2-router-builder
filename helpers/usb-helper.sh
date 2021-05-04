@@ -76,7 +76,11 @@ function remove_shares()
 	# Write Samba configuration for the device:
 	if ls /etc/samba/smb.d/*.conf >& /dev/null; then
 		for conf in /etc/samba/smb.d/*.conf; do
-			test -d "$(cat ${conf} | grep "path=" | cut -d"=" -f 2)" || rm ${conf}
+			DIR=$(cat ${conf} | grep "path=" | cut -d"=" -f 2)
+			if [[ "${DIR}" =~ ^/media ]]; then
+				mount | grep ${DIR} >& /dev/null || rm -rf ${DIR}
+				test -d "${DIR}" || rm ${conf}
+			fi
 		done
 	fi
 }
@@ -101,4 +105,3 @@ case "$1" in
 		echo "Syntax: usb-helper.sh [start|stop|prep]"
 		;;
 esac
-

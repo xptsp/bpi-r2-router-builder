@@ -58,7 +58,7 @@ echo '
 					<div class="small-box bg-orange">
 						<div class="inner">
 							<p class="text-lg">USB Drive Sharing</p>
-							<h3>', $sharing == false ? 'Disabled' : ($sharing > 0 ? strval($sharing) : 'No') . ' Devices', '</h3>
+							<h3 id="usb-sharing">Disabled</span></h3>
 						</div>
 						<div class="icon">
 							<i class="fab fa-usb"></i>
