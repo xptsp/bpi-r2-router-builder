@@ -1,7 +1,7 @@
 <?php
 
 # Defaults to "Prompt".  Change this to "Match" to disable login:
-$_SESSION['login_result'] = "Prompt";
+$_SESSION['login_result'] = empty($_SESSION['suppress_login']) ? "Prompt" : "Match";
 
 # Uncomment next line to force testing the login code:
 if ($_GET['action'] == '/logout')
@@ -26,7 +26,10 @@ else
 	
 # If we have a valid username/password combo, set/extend the timeout for 10 minutes:
 if ($_SESSION['login_result'] == "Match")
+{
 	$_SESSION['login_valid_until'] = time() + 10*60;
+	$_SESSION['force_refresh'] = true;
+}
 else
 {
 	# Not a valid username/password combo!  Prompt for username and password:

@@ -4,15 +4,13 @@ ini_set('display_errors',1);
 error_reporting(E_ALL);
 session_start();
 
-# If no action has been passed, assume we want the basic router status:
-$_GET['action'] = str_replace('/subs-', '/', (isset($_GET['action']) and $_GET['action'] != "/") ? $_GET['action'] : '/basic');
+# Change this variable to disable login prompt:
+$suppress_login = false;
 
-# If website status is being requested, pass "Up" back to caller:
-if ($_GET['action'] == '/api/status')
-{
-	echo 'Up';
-	exit();
-}
+# If no action has been passed, assume we want the basic router status:
+$_GET['action'] = (isset($_GET['action']) and $_GET['action'] != '/') ? $_GET['action'] : '/basic';
+$_GET['action'] = preg_replace('/^subs-/', '', ltrim(preg_replace('/[\s\W]+/', '-', $_GET['action']), '-'));
+#echo $_GET['action']; exit();
 
 # Include the PHP site framework functions from the "includes" directory:
 require_once('includes/subs-site.php');

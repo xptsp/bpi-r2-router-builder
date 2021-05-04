@@ -64,8 +64,11 @@ function parse_ifconfig($interface)
 				$ret['inet6'] = $regex[1];
 			if (preg_match("/mtu\s+(\d+)/", $line, $regex))
 				$ret['mtu'] = $regex[1];
-			if (preg_match("/flags\=(\d+)/", $line, $regex))
+			if (preg_match("/flags\=(\d+)\<([^\>]*)\>/", $line, $regex))
+			{
 				$ret['flags'] = $regex[1];
+				$ret['brackets'] = $regex[2];
+			}
 			if (preg_match("/RX packets\s+(\d+)\s+bytes\s+(\d+)/", $line, $regex))
 			{
 				$ret['rx_packets'] = $regex[1];
