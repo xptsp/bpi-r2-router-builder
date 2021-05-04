@@ -25,8 +25,7 @@ function usb_mount()
 	MEDIA=$(blkid ${DEV} -o export | grep "LABEL=" | cut -d"=" -f 2)
 	LABEL=${MEDIA:="${1}"}
 	MEDIA=/media/"${LABEL// /_}"
-	/usr/bin/pmount --umask 000 ${DEV} ${MEDIA}
-	samba_share ${LABEL} ${MEDIA} ${1}
+	/usr/bin/pmount --umask 000 ${DEV} ${MEDIA} && samba_share ${LABEL} ${MEDIA} ${1}
 }
 
 function samba_share()
