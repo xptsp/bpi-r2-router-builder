@@ -26,7 +26,7 @@ function usb_mount()
 	LABEL=${MEDIA:="${1}"}
 	MEDIA=/media/"${LABEL// /_}"
 	/usr/bin/pmount --umask 000 ${DEV} ${MEDIA}
-	samba_share ${LABEL} ${MEDIA}
+	samba_share ${LABEL} ${MEDIA} ${1}
 }
 
 function samba_share()
@@ -42,6 +42,7 @@ only guest=no
 create mask=0755
 directory mask=0755
 public=no
+\#mount_dev=${3}
 EOF
 }
 

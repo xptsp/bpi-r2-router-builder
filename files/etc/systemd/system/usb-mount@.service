@@ -4,7 +4,7 @@ Description=Mount USB Drive on %i
 [Service]
 Type=oneshot
 RemainAfterExit=true
-ExecStart=/usr/local/bin/helpers/usb-helper.sh start %i
-ExecStop=/usr/local/bin/helpers/usb-helper.sh stop %i
+ExecStart=/opt/bpi-r2-router-builder/helpers/usb-helper.sh start %i
+ExecStop=/opt/bpi-r2-router-builder/helpers/usb-helper.sh stop %i
 
 
