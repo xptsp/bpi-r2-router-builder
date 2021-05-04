@@ -1,4 +1,5 @@
 <?php
+header('Content-type: application/json');
 $debug = false;
 
 ##########################################################################################
@@ -37,6 +38,7 @@ foreach (explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")))
 		{
 			$arr['devices'][$id]['name'] = $temp[3];
 			$arr['devices'][$id]['ends'] = intval($temp[0]);
+			break;
 		}
 	}
 }

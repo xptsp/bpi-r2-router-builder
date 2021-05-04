@@ -9,11 +9,11 @@ require_once('subs-detailed.php');
 #######################################################################################################
 $wan_if = parse_ifconfig('wan');
 #$ping = @shell_exec('/bin/ping -I wan -i 1 -c 1 8.8.8.8');
-$net = strpos($wan_if['brackets'], 'RUNNING') === false ? 'DISCONNECTED' : '&nbsp;';
+$net = strpos($wan_if['brackets'], 'RUNNING') === false ? 'Disconnected' : 'Offline';
 echo '
 			<div class="row">
 				<div class="col-md-4">
-					<div id="connectivity-div" class="small-box bg-', $net == '&nbsp;' ? 'success' : 'danger', '">', ($net == "&nbsp;" ? '
+					<div id="connectivity-div" class="small-box bg-', $net == 'Offline' ? 'success' : 'danger', '">', ($net == "Offline" ? '
 						<div class="overlay" id="connectivity-spinner">
 							<i class="fas fa-2x fa-sync-alt fa-spin"></i>
 						</div>' : ''), '
@@ -37,7 +37,7 @@ echo '
 echo '
 				<div class="col-md-4">
 					<div class="small-box bg-indigo">
-						<div class="overlay" id="connectivity-spinner">
+						<div class="overlay" id="devices-spinner">
 							<i class="fas fa-2x fa-sync-alt fa-spin"></i>
 						</div>
 						<div class="inner">
@@ -100,6 +100,25 @@ echo '
 					<div class="small-box bg-secondary">
 						<div class="inner">
 							<p class="text-lg">5GHz Wireless Status</p>
+							<h3>Meh</h3>
+						</div>
+						<div class="icon">
+							<i class="fas fa-wifi"></i>
+						</div>
+						<a href="#" class="small-box-footer">
+							Wireless Settings <i class="fas fa-arrow-circle-right"></i>
+						</a>
+					</div>
+				</div>';
+
+#######################################################################################################
+# Display 5GHz wireless connectivity:
+#######################################################################################################
+echo '
+				<div class="col-md-4">
+					<div class="small-box bg-info">
+						<div class="inner">
+							<p class="text-lg">Guest Networks</p>
 							<h3>Meh</h3>
 						</div>
 						<div class="icon">
@@ -247,6 +266,16 @@ echo '
 			</div>';
 
 #######################################################################################################
-# Close this page:
+# Close this page, including the AJAX call to get information:
 #######################################################################################################
-site_footer();
+site_footer('<script>
+	$.getJSON("/api/status", function(results) {
+		$("#devices-spinner").remove();
+		$("#num_of_devices").html(results.internal);
+		$("#connectivity-spinner").remove();
+		if (results.is_online)
+			$("#connectivity-text").html("Online");
+		else
+			$("#connectivity-div").addClass("bg-danger");
+	});
+</script>');

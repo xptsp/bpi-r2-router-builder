@@ -4,8 +4,9 @@ ini_set('display_errors',1);
 error_reporting(E_ALL);
 session_start();
 
-# Change this variable to disable login prompt:
-$suppress_login = false;
+# Change this variable to disable login prompt if not already set for session:
+if (!isset($_SESSION['suppress_login']))
+	$_SESSION['suppress_login'] = false;
 
 # If no action has been passed, assume we want the basic router status:
 $_GET['action'] = (isset($_GET['action']) and $_GET['action'] != '/') ? $_GET['action'] : '/basic';

@@ -4,10 +4,10 @@
 $_SESSION['login_result'] = empty($_SESSION['suppress_login']) ? "Prompt" : "Match";
 
 # Uncomment next line to force testing the login code:
-if ($_GET['action'] == '/logout')
+if ($_GET['action'] == 'logout')
 {
 	unset($_SESSION['login_valid_until']);
-	$_GET['action'] = '/';
+	$_GET['action'] = '';
 }
 
 # Are we in a valid session?  If so, mark the result as a "Match":
@@ -36,10 +36,10 @@ else
 	$site_title = "Banana Pi Router - Login";
 	site_header();
 	echo '
-<body class="hold-transition login-page">
+<body class="hold-transition login-page bodybg">
 	<div class="login-box">
 		<div class="login-logo">
-			<img src="/dist/img/favicon/favicon-192x192.png" /><br />
+			<img src="/img/favicon/favicon-192x192.png" /><br />
 			<a href="/"><b>Banana Pi</b> Router</a>
 		</div>
 		<!-- /.login-logo -->
@@ -54,7 +54,7 @@ else
 	}
 	echo '
 				<h5 class="login-box-msg">Sign in to start your session</h5>
-				<form action="', str_replace('/basic', '/', $_GET['action']), '" method="post">
+				<form action="', str_replace('//', '/', '/' . $_GET['action']), '" method="post">
 					<div class="input-group mb-3">
 						<input name="username" type="text" value="', $_SESSION['login_user'], '" class="form-control" placeholder="Username">
 						<div class="input-group-append">

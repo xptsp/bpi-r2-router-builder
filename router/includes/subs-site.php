@@ -26,6 +26,23 @@ function site_header()
 </head>';
 }
 
+function menu_link($url, $icon, $text)
+{
+	echo '
+					<li class="nav-item">
+						<a href="', $url, '" class="nav-link', ($url == '/' . $_GET['action'] or ($url == '/' and $_GET['action'] == 'basic')) ? ' active' : '', '">
+							<i class="nav-icon ', $icon, '"></i>
+							<p>', $text, '</p>
+						</a>
+					</li>';
+}
+
+function menu_sep()
+{
+	echo '
+					<li class="nav-item"><hr /></li>';
+}
+
 function site_menu()
 {
 	global $site_title;
@@ -46,34 +63,12 @@ function site_menu()
 			<nav class="mt-2">
 				<ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
 					<!-- Add icons to the links using the .nav-icon class
-							 with font-awesome or any other icon font library -->
-					<li class="nav-item">
-						<a href="/" class="nav-link">
-							<i class="nav-icon fas fa-home"></i>
-							<p>
-								Basic Status
-							</p>
-						</a>
-					</li>
-					<li class="nav-item">
-						<a href="/detailed" class="nav-link">
-							<i class="nav-icon fas fa-info"></i>
-							<p>
-								Detailed Status
-							</p>
-						</a>
-					</li>
-<!--
-					<li class="nav-item"><hr /></li>
-					<li class="nav-item">
-						<a href="/detailed" class="nav-link">
-							<i class="nav-icon fas fa-info-circle"></i>
-							<p>
-								Detailed Status
-							</p>
-						</a>
-					</li>
--->
+							 with font-awesome or any other icon font library -->';
+	menu_link('/', 'fas fa-home', 'Basic Status');
+	menu_link('/detailed', 'fas fa-info', 'Detailed Status');
+	menu_sep();
+	menu_link('/logout', 'fas fa-sign-out-alt', 'Logout');
+	echo '
 				</ul>
 			</nav>
 			<!-- /.sidebar-menu -->
@@ -98,7 +93,7 @@ function site_menu()
 		<section class="content">';
 }
 
-function site_footer()
+function site_footer($javascript = '')
 {
 	echo '
 		</section>
@@ -117,6 +112,8 @@ function site_footer()
 <script src="/plugins/jquery/jquery.min.js"></script>
 <script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="/js/adminlte.min.js"></script>
+',
+$javascript, '
 </body>
 </html>';
 }

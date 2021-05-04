@@ -294,4 +294,5 @@ echo '
 			<!-- container-fluid -->
 		</section>
 		<!-- content -->';
+		
 site_footer();
