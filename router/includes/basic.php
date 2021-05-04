@@ -8,13 +8,12 @@ require_once('subs-detailed.php');
 # Display WAN (internet) connectivity:
 #######################################################################################################
 $wan_if = parse_ifconfig('wan');
-#$ping = @shell_exec('/bin/ping -I wan -i 1 -c 1 8.8.8.8');
 $net = strpos($wan_if['brackets'], 'RUNNING') === false ? 'Disconnected' : 'Offline';
 echo '
 			<div class="row">
 				<div class="col-md-4">
 					<div id="connectivity-div" class="small-box bg-', $net == 'Offline' ? 'success' : 'danger', '">', ($net == "Offline" ? '
-						<div class="overlay" id="connectivity-spinner">
+						<div class="overlay dark" id="connectivity-spinner">
 							<i class="fas fa-2x fa-sync-alt fa-spin"></i>
 						</div>' : ''), '
 						<div class="inner">
@@ -33,11 +32,10 @@ echo '
 #######################################################################################################
 # Display number of attached devices:
 #######################################################################################################
-#$arp_table = explode("\n", @shell_exec('arp | grep -v wan'));
 echo '
 				<div class="col-md-4">
 					<div class="small-box bg-indigo">
-						<div class="overlay" id="devices-spinner">
+						<div class="overlay dark" id="devices-spinner">
 							<i class="fas fa-2x fa-sync-alt fa-spin"></i>
 						</div>
 						<div class="inner">
