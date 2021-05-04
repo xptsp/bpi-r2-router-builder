@@ -1,6 +1,6 @@
 function get_Basic_Data()
 {
-	$.getJSON("/api/status", function(results) {
+	$.getJSON("/api/basic", function(results) {
 		// Update internet connectivity status:
 		if (results.wan_status == "Online")
 			$("#connectivity-div").removeClass("bg-danger");
