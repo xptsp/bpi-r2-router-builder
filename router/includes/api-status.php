@@ -1,28 +1,47 @@
 <?php
-header('Content-type: application/json');
+require_once('subs-detailed.php');
+#header('Content-type: application/json');
+
+##########################################################################################
+# Get information for the AJAX request:
+##########################################################################################
+$load = sys_getloadavg();
+$temp = number_format((float) @file_get_contents('/sys/devices/virtual/thermal/thermal_zone0/temp') / 1000, 1);
+$pihole = @json_decode( @file_get_contents( "http://pi.hole/admin/api.php?summary" ) );
 
 ##########################################################################################
 # Split each line of the results of the "arp" command into array elements:
 ##########################################################################################
-$result = explode("\n", trim(@shell_exec('arp | grep -v -e "^Address"')));
 $arr = array(
-	'is_online' => strpos(@shell_exec('ping -c 1 -W 5 8.8.8.8'), "1 received") > 0,
-	'count' => count($result),
-	'internal' => 0,
-	'external' => 0,
+	'count' => 0,
+	'load0' => number_format((float)$load[0], 2),
+	'load1' => number_format((float)$load[1], 2),
+	'load2' => number_format((float)$load[2], 2),
+	'temp' => $temp,
+	'temp_icon' => 'fa-thermometer-' . ($temp > 70 ? 'full' : ($temp > 60 ? 'three-quarters' : ($temp > 50 ? 'half' : ($temp > 40 ? 'quarter' : 'empty')))),
+	'system_uptime' => system_uptime(),
+	'server_time' => date('Y-m-d H:i:s'),
+	'devices' => array(),
 );
-foreach ($result as $line)
-{
-	$temp = explode(" ", preg_replace("/\s+/", " ", $line));
-	$arr['devices'][] = array(
-		'ip' => $temp[0],
-		'type' => $temp[1],
-		'mac' => $temp[2],
-		#'unknown' => $temp[3],
-		'iface' => $temp[4],
-	);
-	$arr[$temp[4]][] = &$arr['devices'][count($arr['devices']) - 1];
-}
+if (isset($pihole->unique_clients))
+	$arr['unique_clients'] = $pihole->unique_clients;
+if (isset($pihole->dns_queries_today))
+	$arr['dns_queries_today'] = $pihole->dns_queries_today;
+if (isset($pihole->ads_blocked_today))
+	$arr['ads_blocked_today'] = $pihole->ads_blocked_today;
+if (isset($pihole->ads_percentage_today))
+	$arr['ads_percentage_today'] = $pihole->ads_percentage_today;
+if (isset($pihole->domains_being_blocked))
+	$arr['domains_being_blocked'] = $pihole->domains_being_blocked;
+
+##########################################################################################
+# Return WAN status:
+##########################################################################################
+$wan_if = parse_ifconfig('wan');
+if (strpos($wan_if['brackets'], 'RUNNING') === false)
+	$arr['wan_status'] = 'Disconnected';
+else
+	$arr['wan_status'] = strpos(@shell_exec('ping -c 1 -W 1 8.8.8.8'), '1 received') > 0 ? 'Online' : 'Offline';
 
 ##########################################################################################
 # Split each line of the dnsmasq.leases file and place into appropriate element:
@@ -30,21 +49,14 @@ foreach ($result as $line)
 foreach (explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases"))) as $num => $line)
 {
 	$temp = explode(" ", preg_replace("/\s+/", " ", $line));
-	foreach ($arr['devices'] as $id => $device)
-	{
-		if ($device['mac'] == $temp[1])
-		{
-			$arr['devices'][$id]['name'] = $temp[3];
-			$arr['devices'][$id]['ends'] = intval($temp[0]);
-			break;
-		}
-	}
+	$arr['devices'][] = array(
+		'lease_expires' => $temp[0],
+		'mac_address' => $temp[1],
+		'ip_address' => $temp[2],
+		'machine_name' => $temp[3],
+	);
 }
-
-##########################################################################################
-# Debug message
-##########################################################################################
-$arr['internal'] = $arr['count'] - ($arr['external'] = count($arr['wan']));
+$arr['count'] = count($arr['devices']);
 
 ##########################################################################################
 # Output the resulting array:

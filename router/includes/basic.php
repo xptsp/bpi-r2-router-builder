@@ -7,18 +7,16 @@ require_once('subs-detailed.php');
 #######################################################################################################
 # Display WAN (internet) connectivity:
 #######################################################################################################
-$wan_if = parse_ifconfig('wan');
-$net = strpos($wan_if['brackets'], 'RUNNING') === false ? 'Disconnected' : 'Offline';
 echo '
 			<div class="row">
 				<div class="col-md-4">
-					<div id="connectivity-div" class="small-box bg-', $net == 'Offline' ? 'success' : 'danger', '">', ($net == "Offline" ? '
+					<div id="connectivity-div" class="small-box bg-success">
 						<div class="overlay dark" id="connectivity-spinner">
 							<i class="fas fa-2x fa-sync-alt fa-spin"></i>
-						</div>' : ''), '
+						</div>
 						<div class="inner">
 							<p class="text-lg">Internet Status</p>
-							<h3 id="connectivity-text">', $net, '</h3>
+							<h3 id="connectivity-text">&nbsp;</h3>
 						</div>
 						<div class="icon">
 							<i class="fas fa-ethernet"></i>
@@ -40,7 +38,7 @@ echo '
 						</div>
 						<div class="inner">
 							<p class="text-lg">Attached Devices</p>
-							<h3 id="num_of_devices">', max(0, isset($arp_table) ? count($arp_table) - 2 : 0), '</h3>
+							<h3 id="num_of_devices">&nbsp;</h3>
 						</div>
 						<div class="icon">
 							<i class="fas fa-laptop-house"></i>
@@ -146,12 +144,10 @@ echo '
 						<div class="card-header">
 							<h3 class="card-title">
 								<i class="fas fa-globe"></i>
-								Total Queries (', isset($api->unique_clients) ? $api->unique_clients : '&quest;', ' Clients)
+								Total Queries (<span id="unique_clients">0</span> Clients)
 							</h3>
 						</div>
-						<div class="card-body centered text-lg">
-							', isset($api->dns_queries_today) ? $api->dns_queries_today : 'n/a', '
-						</div>
+						<div class="card-body centered text-lg" id="dns_queries_today">0</div>
 					</div>
 				</div>
 				<div class="col-md-3">
@@ -162,9 +158,7 @@ echo '
 								Queries Blocked
 							</h3>
 						</div>
-						<div class="card-body centered text-lg">
-							', isset($api->ads_blocked_today) ? $api->ads_blocked_today : 'n/a', '
-						</div>
+						<div class="card-body centered text-lg" id="ads_blocked_today">0</div>
 					</div>
 				</div>
 				<div class="col-md-3">
@@ -175,9 +169,7 @@ echo '
 								Percent Blocked
 							</h3>
 						</div>
-						<div class="card-body centered text-lg">
-							', isset($api->ads_percentage_today) ? $api->ads_percentage_today : 'n/a', '&percnt;
-						</div>
+						<div class="card-body centered text-lg"><span id="ads_percentage_today">0</span>&percnt;</div>
 					</div>
 				</div>
 				<div class="col-md-3">
@@ -188,9 +180,7 @@ echo '
 								Domains Being Blocked
 							</h3>
 						</div>
-						<div class="card-body centered text-lg">
-							', isset($api->domains_being_blocked) ? $api->domains_being_blocked : 'n/a', '
-						</div>
+						<div class="card-body centered text-lg" id="domains_being_blocked">0</div>
 					</div>
 				</div>
 			</div>';
@@ -198,9 +188,6 @@ echo '
 #######################################################################################################
 # Display system overview
 #######################################################################################################
-$load = sys_getloadavg();
-$temp = number_format((float) @file_get_contents('/sys/devices/virtual/thermal/thermal_zone0/temp') / 1000, 1);
-$icon = 'fa-thermometer-' . ($temp > 70 ? 'full' : ($temp > 60 ? 'three-quarters' : ($temp > 50 ? 'half' : ($temp > 40 ? 'quarter' : 'empty'))));
 echo '
 			<div class="row mb-2">
 				<div class="col-sm-12">
@@ -217,11 +204,11 @@ echo '
 							</h3>
 						</div>
 						<div class="card-body centered text-lg">
-							', $temp, '&deg; C
-						</div>', ($temp > 60 ? '
+							<span id="temp"></span>&deg; C
+						</div>
 						<div class="ribbon-wrapper ribbon-lg">
 							<div class="ribbon bg-danger text-lg">Danger!</div>
-						</div>' : ''), '
+						</div>
 					</div>
 				</div>
 				<div class="col-md-3">
@@ -232,10 +219,10 @@ echo '
 								Average Load:
 							</h3>
 						</div>
-						<div class="card-body centered text-lg">',
-								number_format((float)$load[0], 2), ', ',
-								number_format((float)$load[1], 2), ', ',
-								number_format((float)$load[2], 2), '
+						<div class="card-body centered text-lg">
+								<span id="load0"></span>,
+								<span id="load1"></span>,
+								<span id="load2"></span>
 						</div>
 					</div>
 				</div>
@@ -247,7 +234,7 @@ echo '
 								System Uptime:
 							</h3>
 						</div>
-						<div class="card-body centered text-lg">', system_uptime(),'</div>
+						<div class="card-body centered text-lg" id="system_uptime">&nbsp;</div>
 					</div>
 				</div>
 				<div class="col-md-3">
@@ -258,7 +245,7 @@ echo '
 								System Time:
 							</h3>
 						</div>
-						<div class="card-body centered text-lg">', date('Y-m-d H:i:s'), '</div>
+						<div class="card-body centered text-lg" id="server_time">&nbsp;</div>
 					</div>
 				</div>
 			</div>';
@@ -267,13 +254,6 @@ echo '
 # Close this page, including the AJAX call to get information:
 #######################################################################################################
 site_footer('<script>
-	$.getJSON("/api/status", function(results) {
-		$("#devices-spinner").remove();
-		$("#num_of_devices").html(results.internal);
-		$("#connectivity-spinner").remove();
-		if (results.is_online)
-			$("#connectivity-text").html("Online");
-		else
-			$("#connectivity-div").addClass("bg-danger");
-	});
+	get_Basic_Data();
+	setInterval(get_Basic_Data, 5000);
 </script>');
