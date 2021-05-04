@@ -1,6 +1,5 @@
 <?php
 header('Content-type: application/json');
-$debug = false;
 
 ##########################################################################################
 # Split each line of the results of the "arp" command into array elements:
@@ -31,7 +30,6 @@ foreach ($result as $line)
 foreach (explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases"))) as $num => $line)
 {
 	$temp = explode(" ", preg_replace("/\s+/", " ", $line));
-	if ($debug) { echo '<h3>$temp[', $num , ']</h3><pre>'; print_r($temp); echo "</pre>"; }
 	foreach ($arr['devices'] as $id => $device)
 	{
 		if ($device['mac'] == $temp[1])
@@ -47,7 +45,6 @@ foreach (explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")))
 # Debug message
 ##########################################################################################
 $arr['internal'] = $arr['count'] - ($arr['external'] = count($arr['wan']));
-if ($debug) { echo '<h3>$arr</h3><pre>'; print_r($arr); echo "</pre>"; }
 
 ##########################################################################################
 # Output the resulting array:

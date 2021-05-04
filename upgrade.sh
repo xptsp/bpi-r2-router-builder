@@ -70,6 +70,8 @@ git reset --hard
 git pull
 # Make user "pi" owner of the router UI
 chown pi:pi -R router
+systemctl daemon-reload
+systemctl restart smbd
 
 #####################################################################################
 # Copy files to the boot partition ONLY IF MOUNTED!
