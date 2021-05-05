@@ -260,7 +260,9 @@ case $CMD in
 	update-available)
 		cd /opt/bpi-r2-router-builder
 		git remote update >& /dev/null
-		git status -uno >& /dev/null && echo "Up to date!" || echo "Needs Updated!"
+		CUR=$(git log -1 --format="%at")
+		REM=$(git log -1 --format="%at" origin/master)
+		[[ "$CUR" -eq "$REM" ]] && echo "Up To Date!" || echo "Update Available!"
 		;;
 
 	*)
