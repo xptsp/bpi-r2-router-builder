@@ -46,6 +46,7 @@ function Basic_Data()
 	});
 }
 
+var timer;
 var MyTimer;
 
 function Confirm_Reboot()
@@ -54,13 +55,13 @@ function Confirm_Reboot()
 	$("#reboot_nah").addClass("invisible");
 	$("#reboot_yes").addClass("invisible");
 	$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately 60 seconds.");
-	$("#reboot_timer").html('<h1 class="centered">' + timing.toString() + '</h1>');
-	timing = 60;
+	timer = 60;
+	$("#reboot_timer").html('<h1 class="centered">' + timer.toString() + '</h1>');
 	myTimer = setInterval(function() {
-		--timing;
-		$("#reboot_timer").html('<h1 class="centered">' + timing.toString() + '</h1>');
-		if (timing === 0) {
-			clearInterval(myTimer);
+		--timer;
+		$("#reboot_timer").html('<h1 class="centered">' + timer.toString() + '</h1>');
+		if (timer === 0) {
+			clearInterval(MyTimer);
 			document.location.reload(true);
 		}
 	}, 1000);
@@ -83,4 +84,3 @@ function Stats_Close()
 {
 	clearInterval(myTimer);
 }
-
