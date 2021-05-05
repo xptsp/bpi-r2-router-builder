@@ -7,6 +7,8 @@ RED='\033[1;31m'
 GREEN='\033[1;32m'
 BLUE='\033[1;34m'
 NC='\033[0m'
+BUILD_LST=/var/lib/private/builder.list
+BUILD_TMP=/tmp/builder.list
 
 #####################################################################################
 # Files to copy only:
@@ -55,6 +57,8 @@ function replace()
 				echo -e "${RED}FAIL!${NC}"
 			else
 				echo -e "${GREEN}Success!${NC}"
+				echo ${DEST} >> ${BUILD_LST}
+				sed -i "/^${DEST}$d/" ${BUILD_TMP}
 			fi
 		fi
 	fi
@@ -76,7 +80,6 @@ systemctl restart smbd
 #####################################################################################
 # Copy files to the boot partition ONLY IF MOUNTED!
 #####################################################################################
-cd files
 RW=($(mount | grep " /boot "))
 if [[ ! -z "$RW" ]]; then
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /boot
@@ -87,6 +90,9 @@ fi
 #####################################################################################
 # Copy or link files in the repo to their proper locations:
 #####################################################################################
+cd files
+touch ${BUILD_TMP}
+test -e ${BUILDER} && cp ${BUILD_LST} ${BUILD_TMP}
 for dir in $(find ./ -maxdepth 1 -type d | grep -v "./root"); do 
 	DIR=${dir/.\//};
 	if [[ ! -z "${DIR}" ]]; then

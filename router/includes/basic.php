@@ -1,6 +1,5 @@
 <?php
 $site_title = 'Basic Status';
-site_header();
 site_menu();
 require_once('subs-detailed.php');
 
@@ -253,7 +252,7 @@ echo '
 #######################################################################################################
 # Close this page, including the AJAX call to get information:
 #######################################################################################################
-site_footer('<script>
+site_footer('
 	get_Basic_Data();
 	setInterval(get_Basic_Data, 5000);
-</script>');
+');

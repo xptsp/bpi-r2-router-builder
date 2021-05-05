@@ -98,8 +98,8 @@ case "$1" in
 		add_shares
 		;;
 	"prep")
-		add_shares
 		remove_shares
+		add_shares
 		;;
 	*)
 		echo "Syntax: usb-helper.sh [start|stop|prep]"

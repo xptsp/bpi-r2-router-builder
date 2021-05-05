@@ -1,6 +1,4 @@
 <?php
-$site_title = 'Detailed Status';
-site_header();
 site_menu();
 require_once('subs-detailed.php');
 

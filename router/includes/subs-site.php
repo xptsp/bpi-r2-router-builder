@@ -1,9 +1,10 @@
 <?php
 $site_title = '';
+$header_done = false;
 
 function site_header()
 {
-	global $site_title;
+	global $site_title, $header_done;
 
 	echo '
 <!DOCTYPE html>
@@ -24,13 +25,19 @@ function site_header()
 	<link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css">
 	<link rel="stylesheet" href="/css/custom.css">
 </head>';
+	$header_done = true;
 }
 
 function menu_link($url, $icon, $text)
 {
+	global $site_title;
+
+	$active = ($url == '/' . $_GET['action'] or ($url == '/' and $_GET['action'] == 'basic')) ? ' active' : '';
+	if (!empty($active) and empty($site_title))
+		$site_title = $text;
 	echo '
 					<li class="nav-item">
-						<a href="', $url, '" class="nav-link', ($url == '/' . $_GET['action'] or ($url == '/' and $_GET['action'] == 'basic')) ? ' active' : '', '">
+						<a href="', $url, '" class="nav-link', $active, '">
 							<i class="nav-icon ', $icon, '"></i>
 							<p>', $text, '</p>
 						</a>
@@ -45,8 +52,13 @@ function menu_sep()
 
 function site_menu()
 {
-	global $site_title;
+	global $site_title, $header_done;
 
+	# If header not written yet, cache our output for now:
+	if (!$header_done)
+		ob_start();
+		
+	# Write the menu:
 	echo '
 <body class="hold-transition sidebar-mini layout-boxed bodybg">
 <div class="wrapper">
@@ -81,16 +93,26 @@ function site_menu()
 		<section class="content-header">
 			<div class="container-fluid">
 				<div class="row mb-2">
-					<div class="col-sm-12">
+					<div class="col-sm-6">
 						<a class="float-left nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
 						<h1>', $site_title, '</h1>
 					</div>
-				</div>
+					<div class="col-sm-6">
+                    </div>
+            	</div>
 			</div><!-- /.container-fluid -->
 		</section>
 
 		<!-- Main content -->
 		<section class="content">';
+
+	# If header not written yet, write the header, then the output we cached:
+	if (!$header_done)
+	{
+		$contents = ob_get_clean();
+		site_header();
+		echo $contents;
+	}
 }
 
 function site_footer($javascript = '')
@@ -112,9 +134,10 @@ function site_footer($javascript = '')
 <script src="/plugins/jquery/jquery.min.js"></script>
 <script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="/js/adminlte.min.js"></script>
-<script src="/js/site.js"></script>
-',
-$javascript, '
+<script src="/js/site.js?', time(), '"></script>
+', !empty($javascript) ? '<script>
+' . $javascript . '
+</script>' : '', '
 </body>
 </html>';
 }
