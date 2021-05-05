@@ -73,7 +73,7 @@ echo '
 					<!-- /.col -->';
 
 #######################################################################################################
-# Router Router modal:
+# Reboot Router confirmation modal:
 #######################################################################################################
 echo '
 					<div class="modal fade" id="reboot-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
@@ -160,7 +160,7 @@ echo '
 					<!-- /.col -->';
 
 #######################################################################################################
-# Router Router modal:
+# Reboot Router confirmation modal:
 #######################################################################################################
 echo '
 					<div class="modal fade" id="stats-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
