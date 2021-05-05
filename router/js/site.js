@@ -45,3 +45,21 @@ function get_Basic_Data()
 		$("#server_time").html(results.server_time);
 	});
 }
+
+function Confirm_Reboot()
+{
+	$.get("/api/reboot?sid=" + SID);
+	$("#reboot_nah").addClass("invisible");
+	$("#reboot_yes").addClass("invisible");
+	timing = 60;
+	$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately 60 seconds.");
+	$("#reboot_timer").html('<h1 class="centered">' + timing.toString() + '</h1>');
+	myTimer = setInterval(function() {
+		--timing;
+		$("#reboot_timer").html('<h1 class="centered">' + timing.toString() + '</h1>');
+		if (timing === 0) {
+			clearInterval(myTimer);
+			document.location.reload(true);
+		}
+	}, 1000);
+}

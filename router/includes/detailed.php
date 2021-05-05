@@ -56,8 +56,13 @@ echo '
 										<td>', explode(' ', @file_get_contents('/proc/version'))[2], '</td>
 									</tr>
 									<tr>
-										<td><strong>OS Builder Version</strong></td>
+										<td><strong>Web UI Version</strong></td>
 										<td>v', date('Y.md.Hi', @filemtime('/opt/bpi-r2-router-builder/.git/refs/heads/master')), '</td>
+									</tr>
+									<tr>
+										<td colspan="2" class="centered">
+											<button type="button" class="btn btn-default center_50" data-toggle="modal" data-target="#reboot-modal">Reboot Router</button>
+										</td>
 									</tr>
 								</table>
 							</div>
@@ -66,7 +71,34 @@ echo '
 						<!-- /.card -->
 					</div>
 					<!-- /.col -->';
-					
+
+#######################################################################################################
+# Router Router modal:
+#######################################################################################################
+echo '
+					<div class="modal fade" id="reboot-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h4 class="modal-title">Confirm Reboot Router</h4>
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+										<span aria-hidden="true">×</span>
+									</button>
+								</div>
+								<div class="modal-body">
+									<p id="reboot_msg">Rebooting the router will disrupt active traffic on the network.</p>
+									<p id="reboot_timer">Are you sure you want to do this?</p>
+								</div>
+								<div class="modal-footer justify-content-between" id="reboot_control">
+									<button type="button" class="btn btn-default" id="reboot_nah" data-dismiss="modal">Not Now</button>
+									<button type="button" class="btn btn-primary" id="reboot_yes">Reboot Router</button>
+								</div>
+							</div>
+							<!-- /.modal-content -->
+						</div>
+						<!-- /.modal-dialog -->
+					</div>';
+      
 #######################################################################################################
 # Display information about the Internet Port ("wan" interface):
 #######################################################################################################
@@ -121,7 +153,7 @@ echo '
 						<!-- /.card -->
 					</div>
 					<!-- /.col -->';
-					
+
 #######################################################################################################
 # Display information about the normal Wireless Network (2.4GHz)
 #######################################################################################################
@@ -292,5 +324,9 @@ echo '
 			<!-- container-fluid -->
 		</section>
 		<!-- content -->';
-		
-site_footer();
+
+site_footer('
+	SID="' . strrev(session_id()) . '";
+	$("#reboot_yes").click(Confirm_Reboot);
+');
+
