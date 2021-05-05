@@ -1,4 +1,9 @@
 <?php
+if (!isset($_GET['sid']) or $_GET['sid'] != strrev(session_id()))
+{
+	require_once("404.php");
+	exit();
+}
 require_once("subs-detailed.php");
 $_SESSIONS['ifaces'] = get_network_adapters();
 $SYS = '/sys/class/net/';
@@ -27,8 +32,8 @@ foreach ($_SESSIONS['ifaces'] as $name => $bridged)
 		else
 		{
 			$status .= 'M';
-			$duplex = trim(@file_get_contents($SYS . $name . '/duplex'));
-			if ($duplex != 'unknown')
+			$duplex = ucwords(trim(@file_get_contents($SYS . $name . '/duplex')));
+			if ($duplex != 'Unknown')
 				$status .= '/' . $duplex;
 		}
 		echo '

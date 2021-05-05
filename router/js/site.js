@@ -1,6 +1,6 @@
 function Basic_Data()
 {
-	$.getJSON("/api/basic", function(results) {
+	$.getJSON("/api/basic?sid=" + SID, function(results) {
 		// Update internet connectivity status:
 		if (results.wan_status == "Online")
 			$("#connectivity-div").removeClass("bg-danger");
@@ -69,7 +69,7 @@ function Confirm_Reboot()
 
 function Stats_Get()
 {
-	$.get("/api/stats", function(data) {
+	$.get("/api/stats?sid=" + SID, function(data) {
 		$("#stats_body").html(data);
 	});
 }

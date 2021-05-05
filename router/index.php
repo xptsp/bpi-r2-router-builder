@@ -15,7 +15,8 @@ $_GET['action'] = preg_replace('/^subs-/', '', ltrim(preg_replace('/[\s\W]+/', '
 
 # Include the PHP site framework functions from the "includes" directory:
 require_once('includes/subs-site.php');
-require_once('includes/subs-login.php');
+if (substr($_GET['action'], 0, 4) != 'api-' or !isset($_GET['sid']) or $_GET['sid'] != strrev(session_id()))
+	require_once('includes/subs-login.php');
 
 # Call any needed functions for the specified action:
 $include_file = (file_exists('includes/' . $_GET['action'] . '.php') ? $_GET['action'] : '404');

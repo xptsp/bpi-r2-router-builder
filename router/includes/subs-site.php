@@ -135,9 +135,11 @@ function site_footer($javascript = '')
 <script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="/js/adminlte.min.js"></script>
 <script src="/js/site.js?', time(), '"></script>
-', !empty($javascript) ? '<script>
-' . $javascript . '
-</script>' : '', '
+<script>
+	SID="', strrev(session_id()), '";
+', !empty($javascript) ? '
+' . $javascript : '', '
+</script>
 </body>
 </html>';
 }

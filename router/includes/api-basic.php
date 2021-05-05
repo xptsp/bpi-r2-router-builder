@@ -1,4 +1,9 @@
 <?php
+if (!isset($_GET['sid']) or $_GET['sid'] != strrev(session_id()))
+{
+	require_once("404.php");
+	exit();
+}
 require_once('subs-detailed.php');
 header('Content-type: application/json');
 
