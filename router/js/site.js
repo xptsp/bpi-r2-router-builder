@@ -1,4 +1,4 @@
-function get_Basic_Data()
+function Basic_Data()
 {
 	$.getJSON("/api/basic", function(results) {
 		// Update internet connectivity status:
@@ -46,14 +46,16 @@ function get_Basic_Data()
 	});
 }
 
+var MyTimer;
+
 function Confirm_Reboot()
 {
 	$.get("/api/reboot?sid=" + SID);
 	$("#reboot_nah").addClass("invisible");
 	$("#reboot_yes").addClass("invisible");
-	timing = 60;
 	$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately 60 seconds.");
 	$("#reboot_timer").html('<h1 class="centered">' + timing.toString() + '</h1>');
+	timing = 60;
 	myTimer = setInterval(function() {
 		--timing;
 		$("#reboot_timer").html('<h1 class="centered">' + timing.toString() + '</h1>');
@@ -63,3 +65,18 @@ function Confirm_Reboot()
 		}
 	}, 1000);
 }
+
+function Stats_Show()
+{
+	myTimer = setInterval(function() {
+		$.get("/api/netstats", function(data) {
+			$("#stats_body").html(data);
+		});
+	}, 5000);
+}
+
+function Stats_Close()
+{
+	clearInterval(myTimer);
+}
+

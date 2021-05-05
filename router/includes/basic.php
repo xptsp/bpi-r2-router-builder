@@ -254,5 +254,5 @@ echo '
 #######################################################################################################
 site_footer('
 	get_Basic_Data();
-	setInterval(get_Basic_Data, 5000);
+	setInterval(Basic_Data, 5000);
 ');

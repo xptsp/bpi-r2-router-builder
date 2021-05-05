@@ -61,7 +61,7 @@ echo '
 									</tr>
 									<tr>
 										<td colspan="2" class="centered">
-											<button type="button" class="btn btn-default center_50" data-toggle="modal" data-target="#reboot-modal">Reboot Router</button>
+											<button type="button" class="btn btn-block btn-outline-danger center_50" data-toggle="modal" data-target="#reboot-modal">Reboot Router</button>
 										</td>
 									</tr>
 								</table>
@@ -82,7 +82,7 @@ echo '
 								<div class="modal-header">
 									<h4 class="modal-title">Confirm Reboot Router</h4>
 									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-										<span aria-hidden="true">×</span>
+										<span aria-hidden="true">&times;</span>
 									</button>
 								</div>
 								<div class="modal-body">
@@ -146,6 +146,11 @@ if ($type == 'DHCP')
 										<td>', date('Y-m-d H:i:s', (int)$dhcp[1] + (int)$dhcp[2]), '</td>
 									</tr>';
 echo '
+									<tr>
+										<td colspan="2" class="centered">
+											<button type="button" class="btn btn-block btn-outline-primary center_50" data-toggle="modal" data-target="#stats-modal" id="stats_button">Show Statistics</button>
+										</td>
+									</tr>
 								</table>
 							</div>
 							<!-- /.card-body -->
@@ -154,6 +159,28 @@ echo '
 					</div>
 					<!-- /.col -->';
 
+#######################################################################################################
+# Router Router modal:
+#######################################################################################################
+echo '
+					<div class="modal fade" id="stats-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
+						<div class="modal-dialog modal-xl">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h4 class="modal-title">Network Statistics</h4>
+								</div>
+								<div class="modal-body">
+									<p id="stats_body"></p>
+								</div>
+								<div class="modal-footer justify-content-between">
+									<button type="button" class="btn btn-default bg-primary" id="stats_close" data-dismiss="modal">Close</button>
+								</div>
+							</div>
+							<!-- /.modal-content -->
+						</div>
+						<!-- /.modal-dialog -->
+					</div>';
+      
 #######################################################################################################
 # Display information about the normal Wireless Network (2.4GHz)
 #######################################################################################################
@@ -328,5 +355,7 @@ echo '
 site_footer('
 	SID="' . strrev(session_id()) . '";
 	$("#reboot_yes").click(Confirm_Reboot);
+	$("#stats_button").click(Stats_Show);
+	$("#stats_close").click(Stats_Close);
 ');
 
