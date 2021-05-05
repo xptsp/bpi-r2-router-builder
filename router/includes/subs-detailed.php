@@ -85,11 +85,13 @@ function parse_ifconfig($interface)
 				$ret['tx_packets'] = $regex[1];
 				$ret['tx_bytes'] = $regex[2];
 			}
-			if (preg_match("/TX errors (\d+)\s+dropped\s+(\d+)\s+overruns\s+(\d+)/", $line, $regex))
+			if (preg_match("/TX errors (\d+)\s+dropped\s+(\d+)\s+overruns\s+(\d+)\s+carrier\s+(\d+)\s+collisions\s+(\d+)/", $line, $regex))
 			{
 				$ret['tx_errors'] = $regex[1];
 				$ret['tx_dropped'] = $regex[2];
 				$ret['tx_overruns'] = $regex[3];
+				$ret['carrier'] = $regex[4];
+				$ret['collisions'] = $regex[5];
 			}
 		}
 	}
@@ -110,4 +112,30 @@ function get_dns_servers()
 	}
 	#echo '<pre>'; print_r($ip); exit();
 	return $ip;
+}
+
+################################################################################################
+# Function that returns names of all network adapters on the system:
+################################################################################################
+function get_network_adapters()
+{
+	$arr = array();
+	$bridged = array();
+	foreach (glob("/sys/class/net/*") as $iface)
+	{
+		$name = basename($iface);
+		if (!in_array($name, $bridged))
+		{
+			$arr[$name] = array();
+			foreach (explode("\n", @file_get_contents("/etc/network/interfaces.d/" . $name)) as $line)
+			{
+				if (preg_match('/bridge_ports\s+(.*)/', $line, $regex))
+				{
+					$arr[$name] = $ifaces = explode(" ", $regex[1]);
+					$bridged += $ifaces;
+				}
+			}
+		}
+	}
+	return $arr;
 }

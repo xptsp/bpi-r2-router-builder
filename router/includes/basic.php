@@ -253,6 +253,6 @@ echo '
 # Close this page, including the AJAX call to get information:
 #######################################################################################################
 site_footer('
-	get_Basic_Data();
+	Basic_Data();
 	setInterval(Basic_Data, 5000);
 ');

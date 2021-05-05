@@ -87,8 +87,6 @@ fi
 # Copy or link files in the repo to their proper locations:
 #####################################################################################
 cd files
-touch ${BUILD_TMP}
-test -e ${BUILDER} && cp ${BUILD_LST} ${BUILD_TMP}
 for dir in $(find ./ -maxdepth 1 -type d | grep -v "./root"); do 
 	DIR=${dir/.\//};
 	if [[ ! -z "${DIR}" ]]; then

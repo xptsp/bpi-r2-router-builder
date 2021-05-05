@@ -66,13 +66,17 @@ function Confirm_Reboot()
 	}, 1000);
 }
 
+function Stats_Get()
+{
+	$.get("/api/stats", function(data) {
+		$("#stats_body").html(data);
+	});
+}
+
 function Stats_Show()
 {
-	myTimer = setInterval(function() {
-		$.get("/api/netstats", function(data) {
-			$("#stats_body").html(data);
-		});
-	}, 5000);
+	Stats_Get();
+	myTimer = setInterval(Stats_Get, 5000);
 }
 
 function Stats_Close()
