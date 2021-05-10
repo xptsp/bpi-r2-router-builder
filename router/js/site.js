@@ -1,6 +1,6 @@
 function Basic_Data()
 {
-	$.getJSON("/api/basic?sid=" + SID, function(results) {
+	$.getJSON("/ajax/basic?sid=" + SID, function(results) {
 		// Update internet connectivity status:
 		if (results.wan_status == "Online")
 			$("#connectivity-div").removeClass("bg-danger");
@@ -51,7 +51,7 @@ var MyTimer;
 
 function Confirm_Reboot()
 {
-	$.get("/api/reboot?sid=" + SID);
+	$.get("/ajax/reboot?sid=" + SID);
 	$("#reboot_nah").addClass("invisible");
 	$("#reboot_yes").addClass("invisible");
 	$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately 60 seconds.");
@@ -69,7 +69,7 @@ function Confirm_Reboot()
 
 function Stats_Get()
 {
-	$.get("/api/stats?sid=" + SID, function(data) {
+	$.get("/ajax/stats?sid=" + SID, function(data) {
 		$("#stats_body").html(data);
 	});
 }

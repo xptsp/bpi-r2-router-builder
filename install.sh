@@ -117,6 +117,7 @@ ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
 ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl enable nginx
 systemctl restart nginx
+usermod -aG systemd-journal www-data
 
 ##################################################################################
 # Install TrueCrypt and HD-Idle

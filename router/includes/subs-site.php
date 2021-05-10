@@ -2,10 +2,11 @@
 $site_title = '';
 $header_done = false;
 
-function site_header()
+function site_header($override_title = "")
 {
 	global $site_title, $header_done;
 
+	$site_title = !empty($override_title) ? $override_title : $site_title;
 	echo '
 <!DOCTYPE html>
 <html lang="en">
@@ -28,26 +29,39 @@ function site_header()
 	$header_done = true;
 }
 
-function menu_link($url, $icon, $text)
+function menu_link($url, $text, $icon = "far fa-circle")
 {
 	global $site_title;
 
 	$active = ($url == '/' . $_GET['action'] or ($url == '/' and $_GET['action'] == 'basic')) ? ' active' : '';
 	if (!empty($active) and empty($site_title))
 		$site_title = $text;
-	echo '
-					<li class="nav-item">
-						<a href="', $url, '" class="nav-link', $active, '">
-							<i class="nav-icon ', $icon, '"></i>
-							<p>', $text, '</p>
-						</a>
-					</li>';
+	return 
+		'<li class="nav-item">' .
+			'<a href="' . $url . '" class="nav-link' . $active . '">' .
+				'<i class="nav-icon ' . $icon . '"></i>' .
+				'<p>' . $text . '</p>' .
+			'</a>' . 
+		'</li>';
 }
 
-function menu_sep()
+function menu_submenu($url, $text, $icon = "far fa-circle", $items = array())
 {
-	echo '
-					<li class="nav-item"><hr /></li>';
+	$items = (is_array($items) ? implode('', $items) : $items);
+	return
+		'<li class="nav-item">' .
+			'<a href="#" class="nav-link' . (strrpos($items, 'class="nav-link active">') > 0 ? ' menu-open' : '') . '">' .
+				'<i class="nav-icon ' . $icon . '"></i>' .
+				'<p>' .$text . '<i class="fas fa-angle-left right"></i></p>' .
+			'</a>' .
+		'<ul class="nav nav-treeview">' .
+		$items .
+		'</ul>';
+}
+	
+function menu_sep($text = '<hr />')
+{
+	return '<li class="nav-item">' . $text . '</li>';
 }
 
 function site_menu()
@@ -75,12 +89,11 @@ function site_menu()
 			<nav class="mt-2">
 				<ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
 					<!-- Add icons to the links using the .nav-icon class
-							 with font-awesome or any other icon font library -->';
-	menu_link('/', 'fas fa-home', 'Basic Status');
-	menu_link('/detailed', 'fas fa-info', 'Detailed Status');
-	menu_sep();
-	menu_link('/logout', 'fas fa-sign-out-alt', 'Logout');
-	echo '
+							 with font-awesome or any other icon font library -->
+					', menu_link('/', 'Basic Status', 'fas fa-home'), '
+					', menu_link('/detailed', 'Detailed Status', 'fas fa-info'), '
+					', menu_sep(), '
+					', menu_link('/logout', 'Logout', 'fas fa-sign-out-alt'), '
 				</ul>
 			</nav>
 			<!-- /.sidebar-menu -->
