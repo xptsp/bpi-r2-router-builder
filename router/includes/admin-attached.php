@@ -16,9 +16,9 @@ function list_leases($iface)
 					<thead>
 						<tr>
 							<th style="width: 10px">#</th>
-							<th>IP Address</th>
-							<th>Device Name</th>
 							<th>MAC Address</th>
+							<th>Device Name</th>
+							<th>IP Address</th>
 						</tr>
 					</thead>
 					<tbody>';

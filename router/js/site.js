@@ -94,29 +94,32 @@ function Password_Fail(msg)
 
 function Password_Submit()
 {
-	// Confirm all information has been entered correctly:
-	$("#passwd_icon").removeClass("fa-thumbs-up");
-	if ($("#oldPass").val() == "")
-		return Password_Fail("Current password not specified!");
-	if ($("#newPass").val() == "")
-		return Password_Fail("New password not specified!");
-	if ($("#conPass").val() == "")
-		return Password_Fail("New password not specified!");
-	if ($("#conPass").val() != $("#newPass").val())
-		return Password_Fail("New password does not match Confirm Password!");
-
-	// Perform our AJAX request to change the password:
+	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid': SID,
 		'oldPass': $("#oldPass").val(),
-		'newPass': $("#newPass").val()
+		'newPass': $("#newPass").val(),
+		'conPass': $("#conPass").val()
 	};
+
+	// Confirm all information has been entered correctly:
+	$("#passwd_icon").removeClass("fa-thumbs-up");
+	if (postdata.oldPass == "")
+		return Password_Fail("Current password not specified!");
+	if (postdata.newPass == "")
+		return Password_Fail("New password not specified!");
+	if (postdata.conPass == "")
+		return Password_Fail("New password not specified!");
+	if (postdata.conPass != postdata.newPass)
+		return Password_Fail("New password does not match Confirm Password!");
+
+	// Perform our AJAX request to change the password:
 	$.post("/ajax/password", postdata, function(data) {
 		if (data == "Successful")
 		{
+			$("#passwd_msg").html("Password Change Successful!");
 			$("#passwd_icon").addClass("fa-thumbs-up");
 			$("#alert_msg").removeClass("alert-danger").addClass("alert-success").removeClass("hidden");
-			$("#passwd_msg").html("Password Change Successful!");
 		}
 		else if (data == "No match")
 			Password_Fail("Incorrect Old Password!");

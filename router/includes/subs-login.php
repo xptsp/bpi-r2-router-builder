@@ -54,7 +54,7 @@ else
 	}
 	echo '
 				<h5 class="login-box-msg">Sign in to start your session</h5>
-				<form action="', str_replace('//', '/', '/' . $_GET['action']), '" method="post">
+				<form action="', str_replace('//', '/', '/' . str_replace('-', '/', $_GET['action'])), '" method="post">
 					<div class="input-group mb-3">
 						<input name="username" type="text" value="', $_SESSION['login_user'], '" class="form-control" placeholder="Username">
 						<div class="input-group-append">

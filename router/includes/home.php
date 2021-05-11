@@ -19,7 +19,7 @@ echo '
 						<div class="icon">
 							<i class="fas fa-ethernet"></i>
 						</div>
-						<a href="/detailed" class="small-box-footer">
+						<a href="/admin/status" class="small-box-footer">
 							Detailed Status <i class="fas fa-arrow-circle-right"></i>
 						</a>
 					</div>
@@ -41,7 +41,7 @@ echo '
 						<div class="icon">
 							<i class="fas fa-laptop-house"></i>
 						</div>
-						<a href="#" class="small-box-footer">
+						<a href="/admin/attached" class="small-box-footer">
 							Device List <i class="fas fa-arrow-circle-right"></i>
 						</a>
 					</div>
