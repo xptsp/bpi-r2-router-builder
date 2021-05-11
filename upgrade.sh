@@ -126,5 +126,7 @@ done
 #####################################################################################
 mkdir -p $(basename ${LORG})
 mv ${LNEW} ${LORG}
-for file in $(cat ${LOLD}); do unlink ${file}; done
+for file in $(cat ${LOLD}); do 
+	test -f ${file} && rm ${file}
+done
 rm ${LOLD}
