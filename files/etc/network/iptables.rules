@@ -38,8 +38,14 @@ COMMIT
 :SERVICES - [0:0]
 :MINIUPNPD - [0:0]
 
+# Allow all related/established connections:
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
 # Drop any invalid packets:
 -A INPUT -m conntrack --ctstate INVALID -j DROP
+
+# Accept all IGMP requests on WAN interface:
+-A INPUT -i wan -p igmp -j ACCEPT
 
 # Redirect incoming port 67 on port 68 on WAN interface:
 -A INPUT -i wan -p udp -m udp --sport 67 --dport 68 -j ACCEPT
@@ -56,8 +62,14 @@ COMMIT
 # Allow everything on bridge interfaces:
 -A INPUT -i br+ -j ACCEPT
 
+# Allow everything on access point interfaces:
+-A INPUT -i ap+ -j ACCEPT
+
 # Reject all other input connections:
 -A INPUT -j REJECT
+
+# Forward all related/established connections:
+-A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 # Drop invalid packets:
 -A FORWARD -m conntrack --ctstate INVALID -j DROP
@@ -68,11 +80,23 @@ COMMIT
 # Forward packets on the WAN interface according to rules in the MINIUPNPD chain:
 -A FORWARD -i wan ! -o wan -j MINIUPNPD
 
+# Forward any connections from bridge interfaces to access point interfaces:
+-A FORWARD -i br+ -o ap+ -j ACCEPT
+
+# Forward any connections from access point interfaces to bridge interfaces:
+-A FORWARD -i ap+ -o br+ -j ACCEPT
+
 # Forward connections from any bridge interface to WAN:
 -A FORWARD -i br+ -o wan -j ACCEPT
 
+# Forward connections from any access point interface to WAN:
+-A FORWARD -i ap+ -o wan -j ACCEPT
+
 # Forward any related/established connections back to bridge interfaces:
 -A FORWARD -i wan -o br+ -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+# Forward any related/established connections back to access point interfaces:
+-A FORWARD -i wan -o ap+ -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 # Drop any other connections on the WAN interface:
 -A FORWARD -i wan -j DROP
