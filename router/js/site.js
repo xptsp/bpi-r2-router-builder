@@ -88,15 +88,13 @@ function Stats_Close()
 function Password_Fail(msg)
 {
 	$("#passwd_msg").html(msg);
-	$("#alert_msg").removeClass("alert-success");
 	$("#passwd_icon").removeClass("fa-thumbs-up");
-	$("#alert_msg").removeClass("hidden");
+	$("#alert_msg").addClass("alert-danger").removeClass("alert-success").removeClass("hidden");
 }
 
 function Password_Submit()
 {
 	// Confirm all information has been entered correctly:
-	alert = $("#alert_msg");
 	$("#passwd_icon").removeClass("fa-thumbs-up");
 	if ($("#oldPass").val() == "")
 		return Password_Fail("Current password not specified!");
@@ -117,9 +115,7 @@ function Password_Submit()
 		if (data == "Successful")
 		{
 			$("#passwd_icon").addClass("fa-thumbs-up");
-			alert.removeClass("alert-danger");
-			alert.addClass("alert-success");
-			alert.removeClass("hidden");
+			$("#alert_msg").removeClass("alert-danger").addClass("alert-success").removeClass("hidden");
 			$("#passwd_msg").html("Password Change Successful!");
 		}
 		else if (data == "No match")
