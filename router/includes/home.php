@@ -1,5 +1,4 @@
 <?php
-$site_title = 'Basic Status';
 site_menu();
 require_once('subs-detailed.php');
 

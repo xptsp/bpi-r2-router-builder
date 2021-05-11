@@ -9,7 +9,7 @@ if (!isset($_SESSION['suppress_login']))
 	$_SESSION['suppress_login'] = false;
 
 # If no action has been passed, assume we want the basic router status:
-$_GET['action'] = (isset($_GET['action']) and $_GET['action'] != '/') ? $_GET['action'] : '/basic';
+$_GET['action'] = (isset($_GET['action']) and $_GET['action'] != '/') ? $_GET['action'] : '/home';
 $_GET['action'] = preg_replace('/^subs-/', '', ltrim(preg_replace('/[\s\W]+/', '-', $_GET['action']), '-'));
 #echo $_GET['action']; exit();
 

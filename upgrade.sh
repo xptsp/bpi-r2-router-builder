@@ -7,6 +7,9 @@ RED='\033[1;31m'
 GREEN='\033[1;32m'
 BLUE='\033[1;34m'
 NC='\033[0m'
+LORG=/var/opt/router-builder/bpi-r2-router-builder.list
+LOLD=/tmp/builder.old
+LNEW=/tmp/builder.new
 
 #####################################################################################
 # Files to copy only:
@@ -47,7 +50,9 @@ function replace()
 			fi
 		fi
 	else
-		INFO=$(ls -l /${DEST} | awk '{print $NF}')
+		echo "${DEST}" >> ${LNEW}
+		cat ${LOLD} | grep -v "^${DEST}$" | tee ${LOLD}
+		INFO=$(ls -l ${DEST} | awk '{print $NF}')
 		if [[ ! "${INFO}" == "${SRC}" ]]; then
 			rm ${DEST}
 			echo -e -n "Linking ${BLUE}${SRC}${NC}... "
@@ -61,9 +66,16 @@ function replace()
 }
 
 #####################################################################################
-# Force a complete reset of the repository and pull any updated files:
+# Prepare for logging files that have been linked:
 #####################################################################################
 cd $(dirname $0)
+touch /dev/null ${LOLD}
+test -f ${LORG} && cp ${LORG} ${LOLD}
+cp /dev/null ${L}
+
+#####################################################################################
+# Force a complete reset of the repository and pull any updated files:
+#####################################################################################
 rm -rf router
 rm -rf files
 git reset --hard
@@ -104,7 +116,15 @@ for file in $(find lib/systemd/system/* -type d); do replace $file; done
 #####################################################################################
 for file in $(find root/.[a-z]* -type f); do
 	replace $file
-	replace $file /etc/skel/${file/root/}
-	replace $file /home/pi/${file/root/}
-	replace $file /home/vpn/${file/root/}
+	replace $file etc/skel/${file/root\//}
+	replace $file home/pi/${file/root\//}
+	replace $file home/vpn/${file/root\//}
 done
+
+#####################################################################################
+# Move new linked file list to log directory and remove unnecessary linked files:
+#####################################################################################
+mkdir -p $(basename ${LORG})
+mv ${LNEW} ${LORG}
+for file in $(cat ${LOLD}); do unlink ${file}; done
+rm ${LOLD}

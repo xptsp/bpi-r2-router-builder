@@ -1,0 +1,11 @@
+[Unit]
+Description=IPTables Rules
+Before=networking.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/bpi-r2-router-builder/helpers/iptables-rules.php
+ExecStop=/opt/bpi-r2-router-builder/helpers/iptables-rules.php
+
+[Install]
+WantedBy=multi-user.target
