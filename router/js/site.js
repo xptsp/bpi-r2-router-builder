@@ -84,3 +84,47 @@ function Stats_Close()
 {
 	clearInterval(myTimer);
 }
+
+function Password_Fail(msg)
+{
+	$("#passwd_msg").html(msg);
+	$("#alert_msg").removeClass("alert-success");
+	$("#passwd_icon").removeClass("fa-thumbs-up");
+	$("#alert_msg").removeClass("hidden");
+}
+
+function Password_Submit()
+{
+	// Confirm all information has been entered correctly:
+	alert = $("#alert_msg");
+	$("#passwd_icon").removeClass("fa-thumbs-up");
+	if ($("#oldPass").val() == "")
+		return Password_Fail("Current password not specified!");
+	if ($("#newPass").val() == "")
+		return Password_Fail("New password not specified!");
+	if ($("#conPass").val() == "")
+		return Password_Fail("New password not specified!");
+	if ($("#conPass").val() != $("#newPass").val())
+		return Password_Fail("New password does not match Confirm Password!");
+
+	// Perform our AJAX request to change the password:
+	postdata = {
+		'sid': SID,
+		'oldPass': $("#oldPass").val(),
+		'newPass': $("#newPass").val()
+	};
+	$.post("/ajax/password", postdata, function(data) {
+		if (data == "Successful")
+		{
+			$("#passwd_icon").addClass("fa-thumbs-up");
+			alert.removeClass("alert-danger");
+			alert.addClass("alert-success");
+			alert.removeClass("hidden");
+			$("#passwd_msg").html("Password Change Successful!");
+		}
+		else if (data == "No match")
+			Password_Fail("Incorrect Old Password!");
+		else
+			Password_Fail("Password Change failed for unknown reason!");
+	});
+}

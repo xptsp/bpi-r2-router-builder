@@ -189,6 +189,11 @@ function setLogin()
 		pwd=$(getent shadow ${2} | cut -d: -f2)
 		salt=\$$(echo $pwd | cut -d$ -f2)\$$(echo $pwd | cut -d$ -f3)
 		[ "$(python -c 'import crypt; print crypt.crypt("'"${3}"'", "'${salt}'")')" == "${pwd}" ] && echo "Match" || echo "No match"
+	elif [[ "$1" == "webui" ]]; then
+		echo $(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
+	elif [[ "$1" == "passwd" ]]; then
+		[[ -z "${2}" ]] && echo "Password not specified" && exit 1
+		(echo $2; echo $2) | passwd $(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
 	elif [[ "$1" == "username" ]]; then
 		[[ -z "${2}" ]] && echo "Username not specified" && exit 1
 		usermod -l $2 $(cat /etc/passwd | grep ":1000:" | cut -d: -f1) && echo "Success"

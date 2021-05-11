@@ -51,7 +51,7 @@ function replace()
 		fi
 	else
 		echo "${DEST}" >> ${LNEW}
-		cat ${LOLD} | grep -v "^${DEST}$" | tee ${LOLD}
+		cat ${LOLD} | grep -v "^${DEST}$" | tee ${LOLD} >& /dev/null
 		INFO=$(ls -l ${DEST} | awk '{print $NF}')
 		if [[ ! "${INFO}" == "${SRC}" ]]; then
 			rm ${DEST}
@@ -71,7 +71,7 @@ function replace()
 cd $(dirname $0)
 touch /dev/null ${LOLD}
 test -f ${LORG} && cp ${LORG} ${LOLD}
-cp /dev/null ${L}
+cp /dev/null ${LNEW}
 
 #####################################################################################
 # Force a complete reset of the repository and pull any updated files:
