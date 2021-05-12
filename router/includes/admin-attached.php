@@ -12,7 +12,7 @@ function list_leases($iface)
 			$subnet = $regex[1];
 	}
 	echo '
-				<table class="table">
+                <table class="table table-hover text-nowrap">
 					<thead>
 						<tr>
 							<th style="width: 10px">#</th>
@@ -66,7 +66,7 @@ echo '
 				</li>
 			</ul>
 		</div>
-		<div class="card-body p-0">
+		<div class="card-body table-responsive p-0">
 			<div class="tab-content" id="custom-tabs-one-tabContent">
 				<div class="tab-pane fade show active" id="wired" role="tabpanel" aria-labelledby="wired-tab">';
 list_leases('br0');

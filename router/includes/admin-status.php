@@ -26,8 +26,8 @@ echo '
 								<h3 class="card-title">Router Information</h3>
 							</div>
 							<!-- /.card-header -->
-							<div class="card-body p-0">
-								<table class="table">
+							<div class="card-body table-responsive p-0">
+								<table class="table table-hover text-nowrap">
 									<tr>
 										<td><strong>Internal IP Address</strong></td>
 										<td>', $br0['address'], '</td>
@@ -109,8 +109,8 @@ echo '
 								<h3 class="card-title">Internet Port</h3>
 							</div>
 							<!-- /.card-header -->
-							<div class="card-body p-0">
-								<table class="table">
+							<div class="card-body table-responsive p-0">
+								<table class="table table-hover text-nowrap">
 									<tr>
 										<td><strong>External IP Address</strong></td>
 										<td>', $wan_if['inet'], '</td>
@@ -191,8 +191,8 @@ echo '
 								<h3 class="card-title">Wireless Network (2.4GHz)</h3>
 							</div>
 							<!-- /.card-header -->
-							<div class="card-body p-0">
-								<table class="table">
+							<div class="card-body table-responsive p-0">
+								<table class="table table-hover text-nowrap">
 									<tr>
 										<td width="50%"><strong>Name (SSID)</strong></td>
 										<td>N/A</td>
@@ -235,8 +235,8 @@ echo '
 								<h3 class="card-title">Wireless Network (5GHz)</h3>
 							</div>
 							<!-- /.card-header -->
-							<div class="card-body p-0">
-								<table class="table">
+							<div class="card-body table-responsive p-0">
+								<table class="table table-hover text-nowrap">
 									<tr>
 										<td width="50%"><strong>Name (SSID)</strong></td>
 										<td>N/A</td>
@@ -279,8 +279,8 @@ echo '
 								<h3 class="card-title">Guest Network (2.4GHz)</h3>
 							</div>
 							<!-- /.card-header -->
-							<div class="card-body p-0">
-								<table class="table">
+							<div class="card-body table-responsive p-0">
+								<table class="table table-hover text-nowrap">
 									<tr>
 										<td width="50%"><strong>Name (SSID)</strong></td>
 										<td>N/A</td>
@@ -315,8 +315,8 @@ echo '
 								<h3 class="card-title">Guest Network (5GHz)</h3>
 							</div>
 							<!-- /.card-header -->
-							<div class="card-body p-0">
-								<table class="table">
+							<div class="card-body table-responsive p-0">
+								<table class="table table-hover text-nowrap">
 									<tr>
 										<td width="50%"><strong>Name (SSID)</strong></td>
 										<td>N/A</td>

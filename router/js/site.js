@@ -127,3 +127,20 @@ function Password_Submit()
 			Password_Fail("Password Change failed for unknown reason!");
 	});
 }
+
+function WebUI_Check()
+{
+	$.getJSON("/ajax/webui/check?sid=" + SID, function(data) {
+		$('#latest_ver').html( 'v' + data.remote_ver );
+		if (data.status == "Update Available")
+		{
+			$("#webui_check").addClass("hidden");
+			$("#webui_pull").removeClass("hidden");
+		}
+	});
+}
+
+function WebUI_Pull()
+{
+	alert("Got Here");
+}
