@@ -270,9 +270,7 @@ case $CMD in
 		cd /opt/bpi-r2-router-builder
 		if [[ "$1" == "check" ]]; then
 			git remote update >& /dev/null
-			CUR=$(git log -1 --format="%at")
-			REM=$(git log -1 --format="%at" origin/master)
-			echo "$CUR,$REM"
+			echo "$(git log -1 --format="%at"),$(git log -1 --format="%at" origin/master)"
 		elif [[ "$1" == "update" ]]; then
 			./upgrade.sh
 		fi
