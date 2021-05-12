@@ -142,5 +142,4 @@ function WebUI_Check()
 
 function WebUI_Pull()
 {
-	alert("Got Here");
 }
