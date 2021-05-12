@@ -171,7 +171,7 @@ function Debian_Check()
 	$.getJSON("/ajax/debian/check?sid=" + SID, function(data) {
 		del_overlay("debian_div");
 		$("#updates_avail").html( data.updates );
-		//if (data.updates > 0)
+		if (data.updates > 0)
 		{
 			$("#apt_check_div").addClass("hidden");
 			$("#apt_pull_div").removeClass("hidden");
