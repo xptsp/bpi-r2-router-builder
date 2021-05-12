@@ -10,7 +10,7 @@ echo '
 								<h3 class="card-title">Web UI</h3>
 							</div>
 							<!-- /.card-header -->
-							<div class="card-body table-responsive p-0">
+							<div class="card-body table-responsive p-0" id="main_div">
 								<table class="table">
 									<tr>
 										<td width="50%"><strong>Current Version</strong></td>

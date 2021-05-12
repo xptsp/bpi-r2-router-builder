@@ -133,7 +133,7 @@ function WebUI_Check()
 	$.getJSON("/ajax/webui/check?sid=" + SID, function(data) {
 		$('#current_ver').html( 'v' + data.local_ver );
 		$('#latest_ver').html( 'v' + data.remote_ver );
-		if (data.status == "Update Available")
+		//if (data.status == "Update Available")
 		{
 			$("#check_div").addClass("hidden");
 			$("#pull_div").removeClass("hidden");
@@ -143,9 +143,8 @@ function WebUI_Check()
 
 function WebUI_Pull()
 {
+	$("#main_div").append('<div class="overlay-wrapper" id="loading_div"><div class="overlay"><i class="fas fa-3x fa-sync-alt fa-spin"></i><div class="text-bold pt-2">Loading...</div></div>');
 	$.get("/ajax/webui/pull?sid=" + SID, function(data) {
-		$("#pull_div").addClass("hidden");
-		$("#check_div").removeClass("hidden");
-		WebUI_Check();
+		document.location.reload(true);
 	});
 }
