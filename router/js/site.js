@@ -133,7 +133,7 @@ function WebUI_Check()
 	$.getJSON("/ajax/webui/check?sid=" + SID, function(data) {
 		$('#current_ver').html( 'v' + data.local_ver );
 		$('#latest_ver').html( 'v' + data.remote_ver );
-		//if (data.status == "Update Available")
+		if (data.status == "Update Available")
 		{
 			$("#check_div").addClass("hidden");
 			$("#pull_div").removeClass("hidden");
