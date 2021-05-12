@@ -131,15 +131,21 @@ function Password_Submit()
 function WebUI_Check()
 {
 	$.getJSON("/ajax/webui/check?sid=" + SID, function(data) {
+		$('#current_ver').html( 'v' + data.local_ver );
 		$('#latest_ver').html( 'v' + data.remote_ver );
 		if (data.status == "Update Available")
 		{
-			$("#webui_check").addClass("hidden");
-			$("#webui_pull").removeClass("hidden");
+			$("#check_div").addClass("hidden");
+			$("#pull_div").removeClass("hidden");
 		}
 	});
 }
 
 function WebUI_Pull()
 {
+	$.get("/ajax/webui/pull?sid=" + SID, function(data) {
+		$("#pull_div").addClass("hidden");
+		$("#check_div").removeClass("hidden");
+		WebUI_Check();
+	});
 }

@@ -18,12 +18,16 @@ echo '
 									</tr>
 									<tr>
 										<td><strong>Latest Version</strong></td>
-										<td><span id="latest_ver">', $cur_ver, '</span></td>
+										<td><span id="latest_ver">n/a</span></td>
 									</tr>
-									<tr>
+									<tr id="check_div">
 										<td colspan="2">
-											<button type="button" class="btn btn-block btn-outline-info center_50" id="webui_check">Check for Update</button>
-											<button type="button" class="btn btn-block btn-outline-primary hidden center_50" id="webui_pull">Update WebUI</button>
+											<button type="button" class="btn btn-block btn-outline-info center_50" id="check_button">Check for Update</button>
+										</td>
+									</tr>
+									<tr class="hidden" id="pull_div">
+										<td colspan="2">
+											<button type="button" class="btn btn-block btn-outline-primary center_50" id="pull_button">Update Web UI</button>
 										</td>
 									</tr>
 								</table>
@@ -37,6 +41,6 @@ echo '
 			</div>';
 site_footer('
 	WebUI_Check();
-	$("#webui_check").click(WebUI_Check);
-	$("#webui_pull").click(WebUI_Pull);
+	$("#check_button").click(WebUI_Check);
+	$("#pull_button").click(WebUI_Pull);
 ');
