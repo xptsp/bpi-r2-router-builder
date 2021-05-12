@@ -246,6 +246,10 @@ case $CMD in
 		/usr/local/bin/pihole $@
 		;;
 
+	apt)
+		/usr/bin/apt $@
+		;;
+
 	login)
 		setLogin $@
 		;;
@@ -268,9 +272,7 @@ case $CMD in
 			git remote update >& /dev/null
 			CUR=$(git log -1 --format="%at")
 			REM=$(git log -1 --format="%at" origin/master)
-			MSG="Up To Date"
-			[[ "$CUR" -ne "$REM" ]] && MSG="Update Available"
-			echo "$CUR,$REM,$MSG"
+			echo "$CUR,$REM"
 		elif [[ "$1" == "update" ]]; then
 			./upgrade.sh
 		fi

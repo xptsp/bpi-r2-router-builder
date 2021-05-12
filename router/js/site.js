@@ -103,7 +103,6 @@ function Password_Submit()
 	};
 
 	// Confirm all information has been entered correctly:
-	$("#passwd_icon").removeClass("fa-thumbs-up");
 	if (postdata.oldPass == "")
 		return Password_Fail("Current password not specified!");
 	if (postdata.newPass == "")
@@ -128,23 +127,54 @@ function Password_Submit()
 	});
 }
 
+function add_overlay(id)
+{
+	$("#" + id).append(
+		'<div class="overlay-wrapper" id="' + id + '-loading">' +
+			'<div class="overlay dark">' +
+				'<i class="fas fa-3x fa-sync-alt fa-spin"></i>' +
+			'</div>' +
+		'</div>');
+}	
+
+function del_overlay(id)
+{
+	$("#" + id + "-loading").remove();
+}
+
 function WebUI_Check()
 {
+	add_overlay("webui-div");
 	$.getJSON("/ajax/webui/check?sid=" + SID, function(data) {
+		del_overlay("webui-div");
 		$('#current_ver').html( 'v' + data.local_ver );
 		$('#latest_ver').html( 'v' + data.remote_ver );
-		if (data.status == "Update Available")
+		if (data.local_ver != data.remote_ver)
 		{
-			$("#check_div").addClass("hidden");
-			$("#pull_div").removeClass("hidden");
+			$("#webui_check_div").addClass("hidden");
+			$("#webui_pull_div").removeClass("hidden");
 		}
 	});
 }
 
 function WebUI_Pull()
 {
-	$("#main_div").append('<div class="overlay-wrapper" id="loading_div"><div class="overlay"><i class="fas fa-3x fa-sync-alt fa-spin"></i><div class="text-bold pt-2">Loading...</div></div>');
+	add_overlay("webui-div");
 	$.get("/ajax/webui/pull?sid=" + SID, function(data) {
 		document.location.reload(true);
+	});
+}
+
+function Debian_Check()
+{
+	add_overlay("debian_div");
+	$.getJSON("/ajax/debian/check?sid=" + SID, function(data) {
+		del_overlay("debian_div");
+		$("#updates_avail").html( data.updates );
+		if (data.updates > 0)
+		{
+			$("#apt_check_div").addClass("hidden");
+			$("#apt_pull_div").removeClass("hidden");
+		}
 	});
 }

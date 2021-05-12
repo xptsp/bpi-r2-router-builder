@@ -145,11 +145,11 @@ function site_footer($javascript = '')
 	</div>
 	<!-- /.content-wrapper -->
 
-	<footer class="main-footer">
+	<footer class="main-footer text-sm">
 		<div class="float-right d-none d-sm-block">
-			<b>Version</b> 3.1.0
+			<b>WebUI</b> v', date('Y.md.Hi', @filemtime('/opt/bpi-r2-router-builder/.git/refs/heads/master')), '
 		</div>
-		<strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong> All rights reserved.
+		<strong>Copyright &copy; 2021 <a href="https://github.com/xptsp/bpi-r2-router-builder">BPi-R2 Router Builder</a>.</strong> All rights reserved.
 	</footer>
 </div>
 <!-- ./wrapper -->
