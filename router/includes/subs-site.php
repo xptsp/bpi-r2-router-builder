@@ -100,7 +100,7 @@ function site_menu()
 							menu_link('/admin/attached', 'Attached Devices', 'fas fa-link'),
 							menu_link('/admin/backup', 'Backup Settings', 'fas fa-file-export'),
 							menu_link('/admin/creds', 'Login Credentials', 'fas fa-user-edit'),
-							menu_link('/admin/update', 'Update Router', 'fab fa-linux'),
+							menu_link('/admin/update', 'Router Update', 'fab fa-linux'),
 						)),
 						menu_link('/logout', 'Logout', 'fas fa-sign-out-alt'),
 					)), '

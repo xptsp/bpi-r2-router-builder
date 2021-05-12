@@ -171,10 +171,38 @@ function Debian_Check()
 	$.getJSON("/ajax/debian/check?sid=" + SID, function(data) {
 		del_overlay("debian_div");
 		$("#updates_avail").html( data.updates );
-		if (data.updates > 0)
+		//if (data.updates > 0)
 		{
 			$("#apt_check_div").addClass("hidden");
 			$("#apt_pull_div").removeClass("hidden");
+		}
+	});
+}
+
+function Debian_Pull()
+{
+	$("#output_group").removeClass("hidden");
+	element = $("#output_div");
+	element.html("");
+	last_response_len = false;
+	$.ajax("/ajax/debian/pull?sid=" + SID, {
+		xhrFields: {
+			onprogress: function(e)
+			{
+				var this_response, response = e.currentTarget.response;
+				if(last_response_len === false)
+				{
+					this_response = response;
+					last_response_len = response.length;
+				}
+				else
+				{
+					this_response = response.substring(last_response_len);
+					last_response_len = response.length;
+				}
+				element.append(this_response);
+				element.scrollTop = element.scrollHeight;
+			}
 		}
 	});
 }

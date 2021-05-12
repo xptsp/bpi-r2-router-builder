@@ -10,7 +10,7 @@ echo '
 					<div class="col-md-6">
 						<div class="card">
 							<div class="card-header">
-								<h3 class="card-title">Web UI</h3>
+								<h3 class="card-title"><i class="fab fa-github"></i> Web UI</h3>
 							</div>
 							<!-- /.card-header -->
 							<div class="card-body table-responsive p-0" id="webui-div">
@@ -48,13 +48,13 @@ echo '
 					<div class="col-md-6">
 						<div class="card">
 							<div class="card-header">
-								<h3 class="card-title">Debian Packages</h3>
+								<h3 class="card-title"><i class="fab fa-linux"></i> Debian Packages</h3>
 							</div>
 							<!-- /.card-header -->
 							<div class="card-body table-responsive p-0" id="debian_div">
 								<table class="table">
 									<tr>
-										<td width="50%"><strong>Packages to Update</strong></td>
+										<td width="50%"><strong>Available Updates</strong></td>
 										<td><span id="updates_avail">Unknown</span></td>
 									</tr>
 									<tr>
@@ -77,12 +77,35 @@ echo '
 						</div>
 						<!-- /.card -->
 					</div>
-					<!-- /.col -->
+					<!-- /.col -->';
+
+################################################################################################
+# Display program output in a card:
+################################################################################################
+echo '
+					<div class="col-md-12 hidden" id="output_group">
+						<div class="card">
+							<div class="card-header">
+								<h3 class="card-title"><i class="fas fa-heartbeat"></i></i> Real-Time Output</h3>
+							</div>
+							<!-- /.card-header -->
+							<div class="card-body table-responsive p-0" style="max-height: 500px">
+								<pre id="output_div"></pre>
+							</div>
+						</div>
+					</div>';
+
+echo '
 				</div>
 			</div>';
+
+################################################################################################
+# Close the page:
+################################################################################################
 site_footer('
 	WebUI_Check();
 	$("#webui_check").click(WebUI_Check);
 	$("#webui_pull").click(WebUI_Pull);
 	$("#apt_check").click(Debian_Check);
+	$("#apt_pull").click(Debian_Pull);
 ');

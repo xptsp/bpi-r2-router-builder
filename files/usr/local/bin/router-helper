@@ -247,7 +247,7 @@ case $CMD in
 		;;
 
 	apt)
-		/usr/bin/apt $@
+		/usr/bin/apt $@ 2>1
 		;;
 
 	login)
