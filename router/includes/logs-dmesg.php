@@ -47,7 +47,7 @@ echo '
 
 # Wrap it up:
 site_footer('
-	var MaxPages=' . $pages . ';
+	MaxPages=' . $pages . ';
 	$("#search").on("propertychange input", Logs_Filter);
 	$("#pages").on("click", ".pagelink", Logs_Page);
 	$("#pages").on("click", ".pageprev", Logs_Prev);

@@ -99,10 +99,10 @@ function site_menu()
 							menu_link('/admin/attached', 'Attached Devices', 'fas fa-link'),
 							menu_link('/admin/backup', 'Backup Settings', 'fas fa-file-export'),
 							menu_link('/admin/creds', 'Login Credentials', 'fas fa-user-edit'),
+							menu_submenu('Logs', 'fas fa-cog', array(
+								menu_link('/logs/dmesg', 'Kernel Messages', 'far fa-list-alt'),
+							)),
 							menu_link('/admin/update', 'Router Update', 'fab fa-linux'),
-						)),
-						menu_submenu('Logs', 'fas fa-cog', array(
-							menu_link('/logs/dmesg', 'Kernel Messages', 'far fa-list-alt'),
 						)),
 						menu_link('/logout', 'Logout', 'fas fa-sign-out-alt'),
 					)), '
@@ -162,8 +162,8 @@ function site_footer($javascript = '')
 <script src="/js/site.js?', time(), '"></script>
 <script>
 	SID="', strrev(session_id()), '";
-', !empty($javascript) ? '
-' . $javascript : '', '
+', 
+!empty($javascript) ? trim($javascript, "\n") : '', '
 </script>
 </body>
 </html>';
