@@ -206,3 +206,46 @@ function Debian_Pull()
 		}
 	});
 }
+
+function Logs_Filter()
+{
+	msg = $("#search").val();
+	$(".everything").addClass("hidden");
+	if (msg.length >= 2)
+	{
+		$("#lines > div:contains('" + msg + "')").removeClass("hidden");
+		$(".pagination").addClass("hidden");
+	}
+	else
+	{
+		$(".pagination").removeClass("hidden");
+		$("#lines .page_" + $("#pages .active").text()).removeClass("hidden");
+	}
+}
+
+function Logs_Page()
+{
+	page = $(this).text();
+	$(".everything").addClass("hidden");
+	$("#lines .page_" + page).removeClass("hidden");
+	$("#pages .active").removeClass("active");
+	$("#pages .pagelink_" + page).addClass("active");
+}
+
+function Logs_Prev()
+{
+	page = Math.max(1, parseInt($("#pages .active").text()) - 1);
+	$(".everything").addClass("hidden");
+	$("#lines .page_" + page).removeClass("hidden");
+	$("#pages .active").removeClass("active");
+	$("#pages .pagelink_" + page).addClass("active");
+}
+
+function Logs_Next()
+{
+	page = Math.min(parseInt($("#pages .active").text()) + 1, MaxPages);
+	$(".everything").addClass("hidden");
+	$("#lines .page_" + page).removeClass("hidden");
+	$("#pages .active").removeClass("active");
+	$("#pages .pagelink_" + page).addClass("active");
+}
