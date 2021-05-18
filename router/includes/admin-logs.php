@@ -3,14 +3,13 @@
 $commands = array(
 	0 => array('text' => 'Kernel Messages', 'cmd' => 'dmesg'),
 );
-$cmd = 'dmesg';
 $tab = isset($_GET['tab']) ? $_GET['tab'] : 0;
 $tab = isset($commands[$tab]) ? $tab : 0;
 
 # Divide the program output into pages of specified number of lines:
 $lines = "";
 $per_page = 100;
-foreach (explode("\n", trim(@shell_exec($cmd))) as $num => $line)
+foreach (explode("\n", trim(@shell_exec($commands[$tab]['cmd']))) as $num => $line)
 {
 	$pages = floor(($num + $per_page) / $per_page);
 	$lines .= '<div class="everything page_' . $pages . ($pages > 1 ? ' hidden' : '') . '" id="dmesg-' . $num . '">' . htmlspecialchars($line) . "\n" . '</div>';
