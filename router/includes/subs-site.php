@@ -1,6 +1,10 @@
 <?php
 $site_title = '';
 $header_done = false;
+
+################################################################################################################
+# Define the default sidebar menu:
+################################################################################################################
 $sidebar_menu = array(
 	'home'   => menu_link('/', 'Home', 'fas fa-home'),
 	'setup'  => menu_submenu('Setup', 'fas fa-cog', array(
@@ -23,6 +27,21 @@ $sidebar_menu = array(
 	'logout' => menu_link('/logout', 'Logout', 'fas fa-sign-out-alt'),
 );
 
+################################################################################################################
+# Get the WebUI version once per this session:
+################################################################################################################
+if (isset($_SESSION['webui_version']) and isset($_SESSION['webui_version_last']) and $_SESSION['webui_version_last'] > time() - 600)
+	unset($_SESSION['webui_version']);
+if (!isset($_SESSION['webui_version']))
+{
+	$_SESSION['webui_version'] = date('Y.md.Hi', (int) trim(@shell_exec('/usr/local/bin/router-helper webui current')));
+	$_SESSION['webui_version_last'] = time();
+}
+$webui_version = $_SESSION['webui_version'];
+
+################################################################################################################
+# Function that outputs the header of the web page:
+################################################################################################################
 function site_header($override_title = "")
 {
 	global $site_title, $header_done;
@@ -50,6 +69,9 @@ function site_header($override_title = "")
 	$header_done = true;
 }
 
+################################################################################################################
+# Function that returns a menu item:
+################################################################################################################
 function menu_link($url, $text, $icon = "far fa-circle")
 {
 	global $site_title;
@@ -67,6 +89,9 @@ function menu_link($url, $text, $icon = "far fa-circle")
 		'</li>';
 }
 
+################################################################################################################
+# Function that returns a menu with submenu items in it:
+################################################################################################################
 function menu_submenu($text, $icon = "far fa-circle", $items = array())
 {
 	$items = (is_array($items) ? implode('', $items) : $items);
@@ -81,11 +106,17 @@ function menu_submenu($text, $icon = "far fa-circle", $items = array())
 		'</ul>';
 }
 
+################################################################################################################
+# Function that returns a menu seperator:
+################################################################################################################
 function menu_sep($text = '<hr />')
 {
 	return '<li class="nav-item">' . $text . '</li>';
 }
 
+################################################################################################################
+# Function that outputs the sidebar menu, and the header if not already done:
+################################################################################################################
 function site_menu()
 {
 	global $site_title, $header_done, $sidebar_menu;
@@ -148,8 +179,13 @@ function site_menu()
 	}
 }
 
+################################################################################################################
+# Function that outputs the footer of the web page:
+################################################################################################################
 function site_footer($javascript = '')
 {
+	global $webui_version;
+
 	echo '
 		</section>
 	</div>
@@ -157,7 +193,7 @@ function site_footer($javascript = '')
 
 	<footer class="main-footer text-sm">
 		<div class="float-right d-none d-sm-block">
-			<b>WebUI</b> v', date('Y.md.Hi', @filemtime('/opt/bpi-r2-router-builder/.git/refs/heads/master')), '
+			<b>WebUI</b> v', $webui_version, '
 		</div>
 		<strong>Copyright &copy; 2021 <a href="https://github.com/xptsp/bpi-r2-router-builder">BPi-R2 Router Builder</a>.</strong> All rights reserved.
 	</footer>

@@ -57,7 +57,7 @@ echo '
 									</tr>
 									<tr>
 										<td><strong>Web UI Version</strong></td>
-										<td>v', date('Y.md.Hi', @filemtime('/opt/bpi-r2-router-builder/.git/refs/heads/master')), '</td>
+										<td>v', $_SESSION['webui_version'], '</td>
 									</tr>
 									<tr>
 										<td colspan="2" class="centered">

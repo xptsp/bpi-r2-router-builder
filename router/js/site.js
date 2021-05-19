@@ -155,7 +155,6 @@ function WebUI_Check()
 	add_overlay("webui-div");
 	$.getJSON("/ajax/webui/check?sid=" + SID, function(data) {
 		del_overlay("webui-div");
-		$('#current_ver').html( 'v' + data.local_ver );
 		$('#latest_ver').html( 'v' + data.remote_ver );
 		if (data.local_ver != data.remote_ver)
 		{

@@ -69,9 +69,9 @@ function replace()
 # Prepare for logging files that have been linked:
 #####################################################################################
 cd $(dirname $0)
-touch /dev/null ${LOLD}
+touch ${LOLD}
 test -f ${LORG} && cp ${LORG} ${LOLD}
-cp /dev/null ${LNEW}
+touch ${LNEW}
 
 #####################################################################################
 # Force a complete reset of the repository and pull any updated files:
