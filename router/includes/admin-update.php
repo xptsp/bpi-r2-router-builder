@@ -1,6 +1,20 @@
 <?php
 site_menu();
 
+# Determine last time upgrade was run:
+$last_update = "Unknown";
+$flag = false;
+foreach (file("/var/log/apt/history.log") as $line)
+{
+	if (substr($line, 0, 8) == "Upgrade:")
+		$flag = true;
+	else if (substr($line, 0, 9) == "End-Date:" and $flag)
+	{
+		$flag = false;
+		$last_update = explode(" ", $line, 2)[1];
+	}
+}
+
 ################################################################################################
 # Display Web UI current version and latest version:
 ################################################################################################
@@ -54,12 +68,12 @@ echo '
 							<div class="card-body table-responsive p-0" id="debian_div">
 								<table class="table">
 									<tr>
-										<td width="50%"><strong>Available Updates</strong></td>
-										<td><span id="updates_avail">Unknown</span></td>
+										<td><strong>Last Update On:</strong></td>
+										<td><span id="last_update">', $last_update, '</span></td>
 									</tr>
 									<tr>
-										<td><strong>&nbsp;</strong></td>
-										<td>&nbsp;</td>
+										<td width="50%"><strong>Available Updates</strong></td>
+										<td><span id="updates_avail">Unknown</span></td>
 									</tr>
 									<tr id="apt_check_div">
 										<td colspan="2">
@@ -83,25 +97,34 @@ echo '
 # Display program output in a card:
 ################################################################################################
 echo '
-					<div class="col-md-12 hidden" id="output_group">
+					<div class="col-md-12 hidden" id="updates_list">
 						<div class="card">
 							<div class="card-header">
-								<h3 class="card-title"><i class="fas fa-heartbeat"></i></i> Real-Time Output</h3>
+								<h3 class="card-title"><strong>Available Updates</strong></h3>
 							</div>
 							<!-- /.card-header -->
-							<div class="card-body table-responsive p-0" style="max-height: 500px">
-								<pre id="output_div"></pre>
+							<div class="card-body table-responsive p-0">
+								<table class="table">
+									<thead class="table-primary">
+										<tr>
+											<td>Package Name</td>
+											<td>New Version</td>
+											<td>Old Version</td>
+										</tr>
+									</thead>
+									<tbody id="packages_div">
+									</tbody>
+								</table>
 							</div>
 						</div>
 					</div>';
 
-echo '
-				</div>
-			</div>';
-
 ################################################################################################
 # Close the page:
 ################################################################################################
+echo '
+				</div>
+			</div>';
 site_footer('
 	WebUI_Check();
 	$("#webui_check").click(WebUI_Check);

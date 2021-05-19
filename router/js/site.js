@@ -112,6 +112,14 @@ function Password_Submit()
 	if (postdata.conPass != postdata.newPass)
 		return Password_Fail("New password does not match Confirm Password!");
 
+	// Make sure the specified passwords are valid:
+	tmp = $("#oldPass").val().replace(/[\s\W]+/, '-');
+	if (postdata.conPass != tmp)
+		return Password_Fail("Old Password cannot contain characters other than alphanumeric characters!");
+	tmp = $("#oldPass").val().replace(/[\s\W]+/, '-');
+	if (postdata.conPass != tmp)
+		return Password_Fail("New Password cannot contain characters other than alphanumeric characters!");
+
 	// Perform our AJAX request to change the password:
 	$.post("/ajax/password", postdata, function(data) {
 		if (data == "Successful")
@@ -175,6 +183,8 @@ function Debian_Check()
 		{
 			$("#apt_check_div").addClass("hidden");
 			$("#apt_pull_div").removeClass("hidden");
+			$("#packages_div").html( data.list );
+			$("#updates_list").removeClass("hidden");
 		}
 	});
 }
