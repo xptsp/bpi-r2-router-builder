@@ -1,6 +1,27 @@
 <?php
 $site_title = '';
 $header_done = false;
+$sidebar_menu = array(
+	'home'   => menu_link('/', 'Home', 'fas fa-home'),
+	'setup'  => menu_submenu('Setup', 'fas fa-cog', array(
+		'internet' => menu_link('/setup/internet', 'Internet Setup', 'fas fa-ethernet'),
+		'wireless' => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
+		'firewall' => menu_link('/setup/firewall', 'WAN Setup', 'fas fa-ethernet'),
+		'lan'      => menu_link('/setup/lan', 'LAN Setup', 'fas fa-ethernet'),
+	)),
+	'storage'    => menu_submenu('Storage', 'fas fa-hdd', array(
+		'basic'    => menu_link('/storage/usb-basic', 'Basic Settings', 'fab fa-usb'),
+	)),
+	'admin'  => menu_submenu('Administration', 'fas fa-cog', array(
+		'status'   => menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),
+		'attached' => menu_link('/admin/attached', 'Attached Devices', 'fas fa-link'),
+		'backup'   => menu_link('/admin/backup', 'Backup Settings', 'fas fa-file-export'),
+		'creds'    => menu_link('/admin/creds', 'Login Credentials', 'fas fa-user-edit'),
+		'logs'     => menu_link('/admin/logs', 'Router Logs', 'far fa-list-alt'),
+		'update'   => menu_link('/admin/update', 'Router Update', 'fab fa-linux'),
+	)),
+	'logout' => menu_link('/logout', 'Logout', 'fas fa-sign-out-alt'),
+);
 
 function site_header($override_title = "")
 {
@@ -67,7 +88,7 @@ function menu_sep($text = '<hr />')
 
 function site_menu()
 {
-	global $site_title, $header_done;
+	global $site_title, $header_done, $sidebar_menu;
 
 	# If header not written yet, cache our output for now:
 	if (!$header_done)
@@ -92,18 +113,7 @@ function site_menu()
 					<!-- Add icons to the links using the .nav-icon class
 							 with font-awesome or any other icon font library -->
 					', implode('
-					', array(
-						menu_link('/', 'Home', 'fas fa-home'),
-						menu_submenu('Administration', 'fas fa-cog', array(
-							menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),
-							menu_link('/admin/attached', 'Attached Devices', 'fas fa-link'),
-							menu_link('/admin/backup', 'Backup Settings', 'fas fa-file-export'),
-							menu_link('/admin/creds', 'Login Credentials', 'fas fa-user-edit'),
-							menu_link('/admin/logs', 'Router Logs', 'far fa-list-alt'),
-							menu_link('/admin/update', 'Router Update', 'fab fa-linux'),
-						)),
-						menu_link('/logout', 'Logout', 'fas fa-sign-out-alt'),
-					)), '
+					', $sidebar_menu), '
 				</ul>
 			</nav>
 			<!-- /.sidebar-menu -->

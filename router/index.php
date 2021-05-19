@@ -17,6 +17,8 @@ $_GET['action'] = preg_replace('/^subs-/', '', ltrim(preg_replace('/[\s\W]+/', '
 require_once('includes/subs-site.php');
 if (substr($_GET['action'], 0, 4) != 'api-' or !isset($_GET['sid']) or $_GET['sid'] != strrev(session_id()))
 	require_once('includes/subs-login.php');
+foreach (glob('includes/plugin-*.php') as $file)
+	require_once($file);
 
 # Call any needed functions for the specified action:
 $include_file = (file_exists('includes/' . $_GET['action'] . '.php') ? $_GET['action'] : '404');
