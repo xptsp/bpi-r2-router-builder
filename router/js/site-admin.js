@@ -108,7 +108,7 @@ function WebUI_Check()
 	$.getJSON("/ajax/webui/check?sid=" + SID, function(data) {
 		del_overlay("webui-div");
 		$('#latest_ver').html( 'v' + data.remote_ver );
-		if ($("#current_ver").text() != data.remote_ver)
+		if (data.remote_ver > $("#current_ver").text())
 		{
 			$("#webui_check_div").addClass("hidden");
 			$("#webui_pull_div").removeClass("hidden");
