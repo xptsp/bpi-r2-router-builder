@@ -51,24 +51,24 @@ function User_Login()
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid': SID,
-		'oldPass': $("#login_password").val(),
-		'username': $("#login_username").val(),
+		'oldPass': $("#password").val(),
+		'username': $("#username").val(),
 	};
 
 	// Make sure the username and password is valid:
-	$("#login_div").addClass("hidden");
-	tmp1 = $("#login_username").val().replace(/[\s\W]+/, '-');
-	tmp2 = $("#login_password").val().replace(/[\s\W]+/, '-');
+	$("#div").addClass("hidden");
+	tmp1 = $("#username").val().replace(/[\s\W]+/, '-');
+	tmp2 = $("#password").val().replace(/[\s\W]+/, '-');
 	if (postdata.username == "" || postdata.username != tmp1 || postdata.oldPass == "" || postdata.oldPass != tmp2)
 	{
-		$("#login_div").removeClass("hidden");
+		$("#div").removeClass("hidden");
 		return;
 	}
 
 	// Perform our AJAX request to change the password:
 	$.post("/ajax/password", postdata, function(data) {
 		if (data == "No match")
-			$("#login_div").removeClass("hidden");
+			$("#div").removeClass("hidden");
 		else
 			document.location.reload(true);
 	});

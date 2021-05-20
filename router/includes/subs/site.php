@@ -231,7 +231,7 @@ function site_menu()
 							</div>
 							<h5 class="login-box-msg">Sign in to start your session</h5>
 							<div class="input-group mb-3">
-								<input id="login_username" type="text" class="form-control" placeholder="Username">
+								<input id="username" type="text" class="form-control" placeholder="Username">
 								<div class="input-group-append">
 									<div class="input-group-text">
 										<span class="fas fa-user"></span>
@@ -239,7 +239,7 @@ function site_menu()
 								</div>
 							</div>
 							<div class="input-group mb-3">
-								<input id="login_password" type="password" class="form-control" placeholder="Password">
+								<input id="password" type="password" class="form-control" placeholder="Password">
 								<div class="input-group-append">
 									<div class="input-group-text">
 										<span class="fas fa-lock"></span>

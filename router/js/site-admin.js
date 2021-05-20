@@ -23,6 +23,8 @@ function Stats_Get()
 {
 	$.get("/ajax/stats?sid=" + SID, function(data) {
 		$("#stats_body").html(data);
+	}).fail(function() {
+		$("#stats_body").html("AJAX call failed");
 	});
 }
 
@@ -84,6 +86,8 @@ function Password_Submit()
 			Password_Fail("Incorrect Old Password!");
 		else
 			Password_Fail("Password Change failed for unknown reason!");
+	}).fail(function() {
+		Password_Fail("AJAX call failed!");
 	});
 }
 
@@ -113,6 +117,9 @@ function WebUI_Check()
 			$("#webui_check_div").addClass("hidden");
 			$("#webui_pull_div").removeClass("hidden");
 		}
+	}).fail( function() {
+		del_overlay("webui-div");
+		$('#latest_ver').html("AJAX Call Failed");
 	});
 }
 
@@ -126,9 +133,9 @@ function WebUI_Pull()
 
 function Debian_Check()
 {
-	add_overlay("debian_div");
+	add_overlay("debian-div");
 	$.getJSON("/ajax/debian/check?sid=" + SID, function(data) {
-		del_overlay("debian_div");
+		del_overlay("debian-div");
 		$("#updates_avail").html( data.updates );
 		if (data.updates > 0)
 		{
@@ -137,6 +144,9 @@ function Debian_Check()
 			$("#packages_div").html( data.list );
 			$("#updates_list").removeClass("hidden");
 		}
+	}).fail( function() {
+		del_overlay("debian-div");
+		$('#updates_avail').html("AJAX Call Failed");
 	});
 }
 

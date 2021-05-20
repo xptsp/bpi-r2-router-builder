@@ -65,7 +65,7 @@ echo '
 								<h3 class="card-title"><i class="fab fa-linux"></i> Debian Packages</h3>
 							</div>
 							<!-- /.card-header -->
-							<div class="card-body table-responsive p-0" id="debian_div">
+							<div class="card-body table-responsive p-0" id="debian-div">
 								<table class="table">
 									<tr>
 										<td><strong>Last Update On:</strong></td>

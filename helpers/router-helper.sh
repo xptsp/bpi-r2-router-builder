@@ -247,7 +247,7 @@ case $CMD in
 		;;
 
 	apt)
-		/usr/bin/apt $@ 2>1
+		/usr/bin/apt $@
 		;;
 
 	login)
@@ -261,11 +261,11 @@ case $CMD in
 		[[ -z "${bound[-2]}" ]] && exit
 		echo ${from[-1]} $(echo $(php -r "echo strtotime('${bound[0]} ${bound[1]} ${bound[2]}');")) ${bound[-2]}
 		;;
-	
+
 	reboot)
 		/sbin/reboot now
 		;;
-		
+
 	webui)
 		cd /opt/bpi-r2-router-builder
 		if [[ "$1" == "current" ]]; then
