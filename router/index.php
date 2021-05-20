@@ -4,6 +4,10 @@ ini_set('display_errors',1);
 error_reporting(E_ALL);
 session_start();
 
+# Decide whether the user is logged in or not:
+$logged_in = isset($_SESSION['login_valid_until']) and $_SESSION['login_valid_until'] >= time();
+#$logged_in = true;
+
 # Change this variable to disable login prompt if not already set for session:
 if (!isset($_SESSION['suppress_login']))
 	$_SESSION['suppress_login'] = false;
@@ -14,7 +18,6 @@ $_GET['action'] = str_replace('plugins-', 'plugins/site-', ltrim(preg_replace('/
 
 # Include the PHP site framework functions from the "includes" directory:
 require_once('includes/subs/site.php');
-require_once('includes/subs/login.php');
 foreach (glob('includes/plugins/hook-*.php') as $file)
 	require_once($file);
 

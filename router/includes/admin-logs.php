@@ -74,4 +74,4 @@ site_footer('
 	$("#pages").on("click", ".pagelink", Logs_Page);
 	$("#pages").on("click", ".pageprev", Logs_Prev);
 	$("#pages").on("click", ".pagenext", Logs_Next);
-');
+', 'site-admin');

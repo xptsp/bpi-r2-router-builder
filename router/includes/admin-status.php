@@ -356,5 +356,4 @@ site_footer('
 	$("#reboot_yes").click(Confirm_Reboot);
 	$("#stats_button").click(Stats_Show);
 	$("#stats_close").click(Stats_Close);
-');
-
+', 'site-admin');

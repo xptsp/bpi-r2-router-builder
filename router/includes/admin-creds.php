@@ -33,4 +33,4 @@ echo '
 </div>';
 site_footer('
 	$("#submit").click(Password_Submit);
-');
+', 'site-admin');

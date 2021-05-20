@@ -131,4 +131,4 @@ site_footer('
 	$("#webui_pull").click(WebUI_Pull);
 	$("#apt_check").click(Debian_Check);
 	$("#apt_pull").click(Debian_Pull);
-');
+', 'site-admin');

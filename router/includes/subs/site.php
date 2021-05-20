@@ -24,18 +24,17 @@ $sidebar_menu = array(
 		'logs'     => menu_link('/admin/logs', 'Router Logs', 'far fa-list-alt'),
 		'update'   => menu_link('/admin/update', 'Router Update', 'fab fa-linux'),
 	)),
-	'logout' => menu_link('/logout', 'Logout', 'fas fa-sign-out-alt'),
 );
 
-################################################################################################################
+
 # Get the WebUI version once per this session:
 ################################################################################################################
-if (isset($_SESSION['webui_version']) and isset($_SESSION['webui_version_last']) and $_SESSION['webui_version_last'] > time() - 600)
+if (isset($_SESSION['webui_version']) and isset($_SESSION['webui_version_last']) and $_SESSION['webui_version_last'] > time())
 	unset($_SESSION['webui_version']);
 if (!isset($_SESSION['webui_version']))
 {
 	$_SESSION['webui_version'] = date('Y.md.Hi', (int) trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh webui current')));
-	$_SESSION['webui_version_last'] = time();
+	$_SESSION['webui_version_last'] = time() + 600;
 }
 $webui_version = $_SESSION['webui_version'];
 
@@ -72,15 +71,18 @@ function site_header($override_title = "")
 ################################################################################################################
 # Function that returns a menu item:
 ################################################################################################################
-function menu_link($url, $text, $icon = "far fa-circle")
+function menu_link($url, $text, $icon = "far fa-circle", $login_required = false)
 {
-	global $site_title;
+	global $site_title, $logged_in;
 
 	$test_url = ltrim(preg_replace('/[\s\W]+/', '-', $url), '-');
 	$active = ($test_url == $_GET['action'] or ($url == '/' and $_GET['action'] == 'home')) ? ' active' : '';
 	if (!empty($active))
 		$site_title = $text;
-	return
+	if ($login_required and !$logged_in)
+		return '';
+	else
+		return 
 		'<li class="nav-item">' .
 			'<a href="' . $url . '" class="nav-link' . $active . '">' .
 				'<i class="nav-icon ' . $icon . '"></i>' .
@@ -92,10 +94,14 @@ function menu_link($url, $text, $icon = "far fa-circle")
 ################################################################################################################
 # Function that returns a menu with submenu items in it:
 ################################################################################################################
-function menu_submenu($text, $icon = "far fa-circle", $items = array())
+function menu_submenu($text, $icon = "far fa-circle", $items = array(), $login_required = true)
 {
+	global $logged_in;
 	$items = (is_array($items) ? implode('', $items) : $items);
-	return
+	if ($login_required and !$logged_in)
+		return '';
+	else
+		return 
 		'<li class="nav-item' . (strrpos($items, 'class="nav-link active">') > 0 ? ' menu-open' : '') . '">' .
 			'<a href="#" class="nav-link' . (strrpos($items, 'class="nav-link active">') > 0 ? ' active' : '') . '">' .
 				'<i class="nav-icon ' . $icon . '"></i>' .
@@ -115,11 +121,26 @@ function menu_sep($text = '<hr />')
 }
 
 ################################################################################################################
+# Function that produces the login/logout menu button:
+################################################################################################################
+function menu_log()
+{
+	global $logged_in;
+	return 
+		'<li class="nav-item">' .
+			'<a href="#" class="nav-link" data-toggle="modal" data-target="#login-modal" id="menu_log">' .
+				'<i class="nav-icon fas fa-sign-' . ($logged_in ? 'out' : 'in') . '-alt"></i>' .
+				'<p>' . ($logged_in ? "Logout" : "Login") . '</p>' .
+			'</a>' .
+		'</li>';
+}
+
+################################################################################################################
 # Function that outputs the sidebar menu, and the header if not already done:
 ################################################################################################################
 function site_menu()
 {
-	global $site_title, $header_done, $sidebar_menu;
+	global $site_title, $header_done, $sidebar_menu, $logged_in;
 
 	# If header not written yet, cache our output for now:
 	if (!$header_done)
@@ -133,7 +154,7 @@ function site_menu()
 	<aside class="main-sidebar sidebar-dark-primary elevation-4">
 		<!-- Brand Logo -->
 		<a href="/" class="brand-link">
-			<img src="/img/wifi-router.png" alt="Banana Pi Router" class="brand-image" style="opacity: .8">
+			<img src="/img/wifi-router.png" width="32" height="32" class="brand-image" style="opacity: .8">
 			<span class="brand-text font-weight-light">Banana Pi Router</span>
 		</a>
 		<!-- Sidebar -->
@@ -145,6 +166,7 @@ function site_menu()
 							 with font-awesome or any other icon font library -->
 					', implode('
 					', $sidebar_menu), '
+					', menu_log(), '
 				</ul>
 			</nav>
 			<!-- /.sidebar-menu -->
@@ -169,6 +191,53 @@ function site_menu()
 
 		<!-- Main content -->
 		<section class="content">';
+		
+	# Include the login box if we are not logged in yet:
+	if (!$logged_in)
+		echo '
+			<div class="modal fade" id="login-modal" data-backdrop="static">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h4 class="modal-title"><i class="fas fa-sign-in-alt"></i> Router Login</h4>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div class="callout callout-danger bg-danger hidden" id="login_div">
+								<p><i class="icon fas fa-info-circle"></i>&nbsp;&nbsp;<span id="login_msg">Incorrect username/password!</span></p>
+							</div>
+							<h5 class="login-box-msg">Sign in to start your session</h5>
+							<div class="input-group mb-3">
+								<input id="login_username" type="text" class="form-control" placeholder="Username">
+								<div class="input-group-append">
+									<div class="input-group-text">
+										<span class="fas fa-user"></span>
+									</div>
+								</div>
+							</div>
+							<div class="input-group mb-3">
+								<input id="login_password" type="password" class="form-control" placeholder="Password">
+								<div class="input-group-append">
+									<div class="input-group-text">
+										<span class="fas fa-lock"></span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer justify-content-between">
+							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+							<div class="col-4">
+								<button type="submit" class="btn btn-primary btn-block" id="submit_login">Sign In</button>
+							</div>
+						</div>
+					</div>
+					<!-- /.modal-content -->
+				</div>
+				<!-- /.modal-dialog -->
+			</div>
+			<!-- /.modal -->';
 
 	# If header not written yet, write the header, then the output we cached:
 	if (!$header_done)
@@ -184,7 +253,7 @@ function site_menu()
 ################################################################################################################
 function site_footer($javascript = '')
 {
-	global $webui_version;
+	global $webui_version, $logged_in;
 
 	echo '
 		</section>
@@ -206,8 +275,10 @@ function site_footer($javascript = '')
 <script src="/js/site.js?', time(), '"></script>
 <script>
 	SID="', strrev(session_id()), '";
-', 
-!empty($javascript) ? trim($javascript, "\n") : '', '
+', (!$logged_in ? '
+	$("#submit_login").click(User_Login);' : '
+	$("#menu_log").click(User_Logout);'), '
+', !empty($javascript) ? trim($javascript, "\n") : '', '
 </script>
 </body>
 </html>';

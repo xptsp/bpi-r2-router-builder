@@ -1,5 +1,5 @@
 <?php
-
+/*
 # Defaults to "Prompt".  Change this to "Match" to disable login:
 $_SESSION['login_result'] = empty($_SESSION['suppress_login']) ? "Prompt" : "Match";
 
@@ -96,3 +96,4 @@ else
 </html>';
 	exit();
 }
+*/
