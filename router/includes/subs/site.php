@@ -1,6 +1,7 @@
 <?php
 $site_title = '';
 $header_done = false;
+$output_null = false;
 
 ################################################################################################################
 # Define the default sidebar menu:
@@ -140,7 +141,7 @@ function menu_log()
 ################################################################################################################
 function site_menu()
 {
-	global $site_title, $header_done, $sidebar_menu, $logged_in;
+	global $site_title, $header_done, $sidebar_menu, $logged_in, $output_null;
 
 	# If header not written yet, cache our output for now:
 	if (!$header_done)
@@ -187,8 +188,25 @@ function site_menu()
                     </div>
             	</div>
 			</div><!-- /.container-fluid -->
-		</section>
+		</section>';
 
+	# If header not written yet, write the header, then the output we cached:
+	if (!$header_done)
+	{
+		$contents = ob_get_clean();
+		site_header();
+		echo $contents;
+	}
+
+	# If the user isn't logged in, we can't show them the contents of anything other than the home page and 404:
+	if (!$logged_in and $_GET['action'] != 'home' and $_GET['action'] != '404')
+	{
+		$output_null = true;
+		ob_start();
+	}
+
+	# Output the main contents from here:
+	echo '
 		<!-- Main content -->
 		<section class="content">';
 		
@@ -239,22 +257,20 @@ function site_menu()
 			</div>
 			<!-- /.modal -->';
 
-	# If header not written yet, write the header, then the output we cached:
-	if (!$header_done)
-	{
-		$contents = ob_get_clean();
-		site_header();
-		echo $contents;
-	}
 }
 
 ################################################################################################################
 # Function that outputs the footer of the web page:
 ################################################################################################################
-function site_footer($javascript = '')
+function site_footer($javascript = '', $js_files = array())
 {
-	global $webui_version, $logged_in;
+	global $webui_version, $logged_in, $output_null;
 
+	# Purge the output buffer if we aren't allowed to show anything:
+	if ($output_null)
+		ob_clean();
+		
+	# Start output the footer:
 	echo '
 		</section>
 	</div>
@@ -272,12 +288,31 @@ function site_footer($javascript = '')
 <script src="/plugins/jquery/jquery.min.js"></script>
 <script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="/js/adminlte.min.js"></script>
-<script src="/js/site.js?', time(), '"></script>
+<script src="/js/site.js?', time(), '"></script>';
+
+	# Include any additional javascript files requested by the pages:
+	if (!is_array($js_files))
+		$js_files = array($js_files);
+	foreach ($js_files as $file)
+		echo '
+<script src="/js/', $file, '.js?', time(), '"></script>';
+
+	# Insert the SID we're using, and set the login/logout handlers:
+	echo '
 <script>
-	SID="', strrev(session_id()), '";
-', (!$logged_in ? '
-	$("#submit_login").click(User_Login);' : '
-	$("#menu_log").click(User_Logout);'), '
+	SID="', strrev(session_id()), '";';
+	if ($logged_in)
+		echo '
+	$("#menu_log").click(User_Logout);';
+	else if ($_GET['action'] == 'home')
+		echo '
+	$("#submit_login").click(User_Login);';
+	else
+		echo '
+	document.location = "/";';
+
+	# Output any additional javascript code requested by the pages, then close the page:
+	echo '
 ', !empty($javascript) ? trim($javascript, "\n") : '', '
 </script>
 </body>
