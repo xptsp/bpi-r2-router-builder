@@ -31,7 +31,10 @@ $sidebar_menu = array(
 # Get the WebUI version once per this session:
 ################################################################################################################
 if (isset($_SESSION['webui_version']) and isset($_SESSION['webui_version_last']) and $_SESSION['webui_version_last'] > time())
+{
 	unset($_SESSION['webui_version']);
+	unset($_SESSION['webui_version_last']);
+}
 if (!isset($_SESSION['webui_version']))
 {
 	$_SESSION['webui_version'] = date('Y.md.Hi', (int) trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh webui current')));
