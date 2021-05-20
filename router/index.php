@@ -14,10 +14,10 @@ $_GET['action'] = preg_replace('/^subs-/', '', ltrim(preg_replace('/[\s\W]+/', '
 #echo $_GET['action']; exit();
 
 # Include the PHP site framework functions from the "includes" directory:
-require_once('includes/subs-site.php');
+require_once('includes/subs/site.php');
 if (substr($_GET['action'], 0, 4) != 'api-' or !isset($_GET['sid']) or $_GET['sid'] != strrev(session_id()))
-	require_once('includes/subs-login.php');
-foreach (glob('includes/plugin-*.php') as $file)
+	require_once('includes/subs/login.php');
+foreach (glob('includes/plugins/*.php') as $file)
 	require_once($file);
 
 # Call any needed functions for the specified action:

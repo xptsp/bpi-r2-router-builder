@@ -22,7 +22,7 @@ $descriptorspec = array(
 	2 => array("pipe", "w")    // stderr is a pipe that the child will write to
 );
 flush();
-$process = proc_open('/usr/local/bin/router-helper apt upgrade -y', $descriptorspec, $pipes, realpath('./'), array());
+$process = proc_open('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt upgrade -y', $descriptorspec, $pipes, realpath('./'), array());
 if (is_resource($process)) 
 {
 	while ($s = fgets($pipes[1], 2)) 

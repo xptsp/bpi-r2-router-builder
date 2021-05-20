@@ -34,7 +34,7 @@ if (isset($_SESSION['webui_version']) and isset($_SESSION['webui_version_last'])
 	unset($_SESSION['webui_version']);
 if (!isset($_SESSION['webui_version']))
 {
-	$_SESSION['webui_version'] = date('Y.md.Hi', (int) trim(@shell_exec('/usr/local/bin/router-helper webui current')));
+	$_SESSION['webui_version'] = date('Y.md.Hi', (int) trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh webui current')));
 	$_SESSION['webui_version_last'] = time();
 }
 $webui_version = $_SESSION['webui_version'];

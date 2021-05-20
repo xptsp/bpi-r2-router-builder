@@ -19,7 +19,7 @@ else if (isset($_POST['username']) and isset($_POST['password']))
 {
 	$_SESSION['login_user']   = preg_replace('/[\s\W]+/', '-', $_POST['username']);
 	$_SESSION['login_pass']   = preg_replace('/[\s\W]+/', '-', $_POST['password']);
-	$_SESSION['login_result'] = trim(@shell_exec('/usr/local/bin/router-helper login check ' . $_SESSION['login_user'] . ' ' . $_SESSION['login_pass']));
+	$_SESSION['login_result'] = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check ' . $_SESSION['login_user'] . ' ' . $_SESSION['login_pass']));
 }
 else
 	$_SESSION['login_user'] = '';

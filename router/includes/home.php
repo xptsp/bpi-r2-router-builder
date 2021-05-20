@@ -1,6 +1,6 @@
 <?php
 site_menu();
-require_once('subs-detailed.php');
+require_once('subs/detailed.php');
 
 #######################################################################################################
 # Display WAN (internet) connectivity:

@@ -7,14 +7,14 @@ if (!isset($_GET['sid']) or $_GET['sid'] != strrev(session_id()))
 header('Content-type: application/json');
 
 # Get number of updates available:
-$result = trim(@shell_exec('/usr/local/bin/router-helper apt update | grep "packages"'));
+$result = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt update | grep "packages"'));
 $updates = 0;
 if (preg_match("/(\d+) packages/", $result, $regex))
 	$updates = $regex[1];
 
 # Gather the list of upgradable packages: 
 $table = "";
-$list = explode("\n", trim(@shell_exec('/usr/local/bin/router-helper apt list --upgradable')));
+$list = explode("\n", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt list --upgradable')));
 foreach ($list as $id => $text)
 {
 	if ($text == "Listing...")

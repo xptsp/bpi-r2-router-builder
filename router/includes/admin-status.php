@@ -1,6 +1,6 @@
 <?php
 site_menu();
-require_once('subs-detailed.php');
+require_once('subs/detailed.php');
 
 #######################################################################################################
 # Gather as much information before starting the overview display as we can:
@@ -9,10 +9,10 @@ $load = sys_getloadavg();
 $br0 = get_mac_info('br0');
 $wan = get_mac_info('wan');
 $wan_if = parse_ifconfig('wan');
-$adblocking = @shell_exec('/usr/local/bin/router-helper pihole status');
+$adblocking = @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole status');
 $dns = get_dns_servers();
 $type = strpos($wan['iface'], 'dhcp') > 0 ? 'DHCP' : 'Static IP';
-$dhcp = explode(' ', @shell_exec('/usr/local/bin/router-helper dhcp-info'));
+$dhcp = explode(' ', @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp-info'));
 
 #######################################################################################################
 # Display information about the router:
