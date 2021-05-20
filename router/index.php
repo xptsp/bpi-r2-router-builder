@@ -10,14 +10,12 @@ if (!isset($_SESSION['suppress_login']))
 
 # If no action has been passed, assume we want the basic router status:
 $_GET['action'] = (isset($_GET['action']) and $_GET['action'] != '/') ? $_GET['action'] : '/home';
-$_GET['action'] = preg_replace('/^subs-/', '', ltrim(preg_replace('/[\s\W]+/', '-', $_GET['action']), '-'));
-#echo $_GET['action']; exit();
+$_GET['action'] = str_replace('plugins-', 'plugins/site-', ltrim(preg_replace('/[\s\W]+/', '-', $_GET['action']), '-'));
 
 # Include the PHP site framework functions from the "includes" directory:
 require_once('includes/subs/site.php');
-if (substr($_GET['action'], 0, 4) != 'api-' or !isset($_GET['sid']) or $_GET['sid'] != strrev(session_id()))
-	require_once('includes/subs/login.php');
-foreach (glob('includes/plugins/*.php') as $file)
+require_once('includes/subs/login.php');
+foreach (glob('includes/plugins/hook-*.php') as $file)
 	require_once($file);
 
 # Call any needed functions for the specified action:
