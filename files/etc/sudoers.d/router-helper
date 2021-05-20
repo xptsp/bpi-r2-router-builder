@@ -1,1 +1,1 @@
-www-data ALL = NOPASSWD: /usr/local/bin/router-helper
+www-data ALL = NOPASSWD: /opt/bpi-r2-router-builder/helpers/router-helper.sh
