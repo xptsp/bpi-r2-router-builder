@@ -53,10 +53,13 @@ function list_leases($iface, &$s)
 $leases = explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")));
 $table = array();
 $s = '';
-foreach (get_network_adapters() as $iface => $trash)
+foreach (get_network_adapters() as $iface => $bridged)
 {
 	if (list_leases($iface, $s) > 0)
-		$table[$iface] = $s;
+	{
+		$nickname = isset($bridged['nickname']) ? $bridged['nickname'] : $iface;
+		$table[$nickname] = $s;
+	}
 }	
 
 #########################################################################################
@@ -68,11 +71,16 @@ echo '
 	<div class="card card-primary card-tabs">
 		<div class="card-header p-0 pt-1">
 			<ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">';
+$first = false;
 foreach ($table as $iface => $s)
+{
+	if (!$first)
+		$first = $iface;
 	echo '
 				<li class="nav-item">
-					<a class="nav-link', $iface == 'br0' ? ' active' : '', '" id="', $iface, '-tab" data-toggle="pill" href="#', $iface, '" role="tab" aria-controls="', $iface,' " aria-selected="true">', $iface, '</a>
+					<a class="nav-link', $iface == $first ? ' active' : '', '" id="', $iface, '-tab" data-toggle="pill" href="#', $iface, '" role="tab" aria-controls="', $iface,' " aria-selected="true">', $iface, '</a>
 				</li>';
+}
 echo '
 			</ul>
 		</div>
@@ -80,7 +88,7 @@ echo '
 			<div class="tab-content" id="custom-tabs-one-tabContent">';
 foreach ($table as $iface => $s)
 	echo '
-				<div class="tab-pane fade show', ($iface == 'br0' ? ' active' : ''), '" id="', $iface, '" role="tabpanel" aria-labelledby="', $iface, '-tab">
+				<div class="tab-pane fade show', ($iface == $first ? ' active' : ''), '" id="', $iface, '" role="tabpanel" aria-labelledby="', $iface, '-tab">
 					', $s, '
 				</div>';
 echo '

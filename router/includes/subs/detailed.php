@@ -131,9 +131,11 @@ function get_network_adapters()
 			{
 				if (preg_match('/bridge_ports\s+(.*)/', $line, $regex))
 				{
-					$arr[$name] = $ifaces = explode(" ", $regex[1]);
+					$arr[$name] += $ifaces = explode(" ", $regex[1]);
 					$bridged += $ifaces;
 				}
+				if (preg_match('/Nickname\s+(.*)/', $line, $regex))
+					$arr[$name]['nickname'] = $regex[1];
 			}
 		}
 	}
