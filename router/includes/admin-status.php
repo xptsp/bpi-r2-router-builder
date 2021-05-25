@@ -36,7 +36,7 @@ echo '
 									</tr>
 									<tr>
 										<td><strong>PiHole Adblocking</strong></td>
-										<td id="pihole_state"></td>
+										<td id="pihole_state"><i>Retrieving...</i></td>
 									</tr>
 									<tr>
 										<td colspan="2"><strong><i>Operating System Information</i></strong></td>
@@ -133,15 +133,15 @@ if ($type == 'DHCP')
 	echo '
 									<tr>
 										<td><strong>External DHCP Server</strong></td>
-										<td id="dhcp_server"></td>
+										<td id="dhcp_server"><i>Retrieving...</i></td>
 									</tr>
 									<tr>
 										<td><strong>DHCP Lease Began</strong></td>
-										<td id="dhcp_begin"></td>
+										<td id="dhcp_begin"><i>Retrieving...</i></td>
 									</tr>
 									<tr>
 										<td><strong>DHCP Lease Expires</strong></td>
-										<td id="dhcp_expire"></td>
+										<td id="dhcp_expire"><i>Retrieving...</i></td>
 									</tr>';
 echo '
 									<tr>
