@@ -74,6 +74,10 @@ function Password_Fail(msg)
 	$("#passwd_msg").html(msg);
 	$("#passwd_icon").removeClass("fa-thumbs-up");
 	$("#alert_msg").addClass("alert-danger").removeClass("alert-success").removeClass("hidden");
+	myTimer = setInterval(function() {
+		clearInterval(MyTimer);
+		$("#alert_msg").addClass("hidden");
+	}, 3000);
 }
 
 function Password_Submit()
@@ -92,7 +96,7 @@ function Password_Submit()
 	if (postdata.newPass == "")
 		return Password_Fail("New password not specified!");
 	if (postdata.conPass == "")
-		return Password_Fail("New password not specified!");
+		return Password_Fail("Confirm password not specified!");
 	if (postdata.conPass != postdata.newPass)
 		return Password_Fail("New password does not match Confirm Password!");
 

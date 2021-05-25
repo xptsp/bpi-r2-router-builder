@@ -297,7 +297,7 @@ function site_footer($javascript = '')
 	# Include any additional javascript files requested by the pages:
 	if (!empty($include_js))
 		echo '
-<script src="/js/', $include_js, $post_js, '"></script>';
+<script src="/js/', $include_js, '.js', $post_js, '"></script>';
 
 	# Insert the SID we're using, and set the login/logout handlers:
 	echo '
