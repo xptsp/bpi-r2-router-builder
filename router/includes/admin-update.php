@@ -8,7 +8,7 @@ foreach (file("/var/log/apt/history.log") as $line)
 {
 	if (substr($line, 0, 8) == "Upgrade:")
 		$flag = true;
-	else if (substr($line, 0, 9) == "End-Date:" and $flag)
+	else if (substr($line, 0, 9) == "End-Date:" && $flag)
 	{
 		$flag = false;
 		$last_update = explode(" ", $line, 2)[1];

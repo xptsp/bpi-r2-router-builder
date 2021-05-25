@@ -1,5 +1,5 @@
 <?php
-if (!isset($_POST['sid']) or $_POST['sid'] != strrev(session_id()))
+if (!isset($_POST['sid']) || $_POST['sid'] != strrev(session_id()))
 {
 	require_once("404.php");
 	exit();

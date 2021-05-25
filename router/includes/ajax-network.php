@@ -1,11 +1,11 @@
 <?php
-if (!isset($_GET['sid']) or $_GET['sid'] != strrev(session_id()))
+if (!isset($_GET['sid']) || $_GET['sid'] != strrev(session_id()))
 {
 	require_once("404.php");
 	exit();
 }
 require_once("subs/detailed.php");
-$_SESSIONS['ifaces'] = get_network_adapters();
+$ifaces = get_network_adapters();
 $SYS = '/sys/class/net/';
 
 echo '
@@ -22,12 +22,12 @@ echo '
 		</tr>
 	</thead>
 	<tbody>';
-foreach ($_SESSIONS['ifaces'] as $name => $bridged)
+foreach ($ifaces as $name => $bridged)
 {
-	if ($name != "eth0" and $name != "sit0" and $name != "lo")
+	if ($name != "eth0" && $name != "sit0" && $name != "lo")
 	{
 		$status = trim(@file_get_contents($SYS . $name . '/speed'));
-		if ($status == '-1' or empty($status))
+		if ($status == '-1' || empty($status))
 			$status = 'Link Down';
 		else
 		{

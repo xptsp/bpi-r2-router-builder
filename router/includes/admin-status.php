@@ -9,10 +9,9 @@ $load = sys_getloadavg();
 $br0 = get_mac_info('br0');
 $wan = get_mac_info('wan');
 $wan_if = parse_ifconfig('wan');
-$adblocking = @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole status');
 $dns = get_dns_servers();
 $type = strpos($wan['iface'], 'dhcp') > 0 ? 'DHCP' : 'Static IP';
-$dhcp = explode(' ', @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp-info'));
+#$dhcp = explode(' ', @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp-info'));
 
 #######################################################################################################
 # Display information about the router:
@@ -38,7 +37,7 @@ echo '
 									</tr>
 									<tr>
 										<td><strong>PiHole Adblocking</strong></td>
-										<td>', strpos($adblocking, 'enabled') ? 'Enabled' : 'Disabled', '</td>
+										<td id="pihole_state"></td>
 									</tr>
 									<tr>
 										<td colspan="2"><strong><i>Operating System Information</i></strong></td>

@@ -18,8 +18,8 @@ function Init_Logs(pages)
 function Init_Stats()
 {
 	$("#reboot_yes").click(Confirm_Reboot);
-	$("#stats_button").click(Stats_Show);
-	$("#stats_close").click(Stats_Close);
+	$("#stats_button").click(Network_Get);
+	$("#stats_close").click(Network_Close);
 }
 
 function Init_Updates()
@@ -49,7 +49,7 @@ function Confirm_Reboot()
 	}, 1000);
 }
 
-function Stats_Get()
+function Network_Get()
 {
 	$.get("/ajax/stats?sid=" + SID, function(data) {
 		$("#stats_body").html(data);
@@ -58,13 +58,13 @@ function Stats_Get()
 	});
 }
 
-function Stats_Show()
+function Network_Show()
 {
 	Stats_Get();
-	myTimer = setInterval(Stats_Get, 5000);
+	myTimer = setInterval(Network_Get, 5000);
 }
 
-function Stats_Close()
+function Network_Close()
 {
 	clearInterval(myTimer);
 }
@@ -73,10 +73,10 @@ function Password_Fail(msg)
 {
 	$("#passwd_msg").html(msg);
 	$("#passwd_icon").removeClass("fa-thumbs-up");
-	$("#alert_msg").addClass("alert-danger").removeClass("alert-success").removeClass("hidden");
+	$("#alert_msg").addClass("alert-danger").removeClass("alert-success").fadeIn("slow");
 	myTimer = setInterval(function() {
 		clearInterval(MyTimer);
-		$("#alert_msg").addClass("hidden");
+		$("#alert_msg").fadeOut("slow");
 	}, 3000);
 }
 
@@ -114,7 +114,11 @@ function Password_Submit()
 		{
 			$("#passwd_msg").html("Password Change Successful!");
 			$("#passwd_icon").addClass("fa-thumbs-up");
-			$("#alert_msg").removeClass("alert-danger").addClass("alert-success").removeClass("hidden");
+			$("#alert_msg").removeClass("alert-danger").addClass("alert-success").fadeIn("slow");
+			myTimer = setInterval(function() {
+				clearInterval(MyTimer);
+				$("#alert_msg").fadeOut("slow");
+			}, 3000);
 		}
 		else if (data == "No match")
 			Password_Fail("Incorrect Old Password!");

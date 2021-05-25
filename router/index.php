@@ -10,8 +10,8 @@ $_GET['action'] = ltrim(preg_replace('/[\s\W]+/', '-', $_GET['action']), '-');
 $include_js = $_GET['action']  == 'home' ? '' : 'site-' . explode('-', $_GET['action'])[0];
 
 # Decide whether the user is logged in or not:
-$logged_in = isset($_SESSION['login_valid_until']) and $_SESSION['login_valid_until'] >= time();
-if (!$logged_in or $_GET['action'] == 'logout')
+$logged_in = isset($_SESSION['login_valid_until']) && $_SESSION['login_valid_until'] >= time();
+if (!$logged_in || $_GET['action'] == 'logout')
 	$logged_in = ($_SESSION['login_valid_until'] = 0) != 0;
 else
 	$_SESSION['login_valid_until'] = time() + 600;

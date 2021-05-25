@@ -30,7 +30,7 @@ $sidebar_menu = array(
 
 # Get the WebUI version once per this session:
 ################################################################################################################
-if (isset($_SESSION['webui_version']) and isset($_SESSION['webui_version_last']) and $_SESSION['webui_version_last'] > time())
+if (isset($_SESSION['webui_version']) && isset($_SESSION['webui_version_last']) && $_SESSION['webui_version_last'] > time())
 {
 	unset($_SESSION['webui_version']);
 	unset($_SESSION['webui_version_last']);
@@ -80,10 +80,10 @@ function menu_link($url, $text, $icon = "far fa-circle", $login_required = false
 	global $site_title, $logged_in;
 
 	$test_url = ltrim(preg_replace('/[\s\W]+/', '-', $url), '-');
-	$active = ($test_url == $_GET['action'] or ($url == '/' and $_GET['action'] == 'home')) ? ' active' : '';
+	$active = ($test_url == $_GET['action'] || ($url == '/' && $_GET['action'] == 'home')) ? ' active' : '';
 	if (!empty($active))
 		$site_title = $text;
-	if ($login_required and !$logged_in)
+	if ($login_required && !$logged_in)
 		return '';
 	else
 		return 
@@ -102,7 +102,7 @@ function menu_submenu($text, $icon = "far fa-circle", $items = array(), $login_r
 {
 	global $logged_in;
 	$items = (is_array($items) ? implode('', $items) : $items);
-	if ($login_required and !$logged_in)
+	if ($login_required && !$logged_in)
 		return '';
 	else
 		return 
@@ -187,8 +187,6 @@ function site_menu()
 						<a class="float-left nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
 						<h1>', $site_title, '</h1>
 					</div>
-					<div class="col-sm-6">
-                    </div>
             	</div>
 			</div><!-- /.container-fluid -->
 		</section>';
@@ -202,7 +200,7 @@ function site_menu()
 	}
 
 	# If the user isn't logged in, we can't show them the contents of anything other than the home page and 404:
-	if (!$logged_in and $_GET['action'] != 'home' and $_GET['action'] != '404')
+	if (!$logged_in && $_GET['action'] != 'home' && $_GET['action'] != '404')
 	{
 		$output_null = true;
 		ob_start();
@@ -265,7 +263,7 @@ function site_menu()
 ################################################################################################################
 # Function that outputs the footer of the web page:
 ################################################################################################################
-function site_footer($javascript = '')
+function site_footer($init_str = '')
 {
 	global $webui_version, $logged_in, $output_null, $include_js;
 	$post_js = '?' . time();
@@ -302,8 +300,8 @@ function site_footer($javascript = '')
 	# Insert the SID we're using, and set the login/logout handlers:
 	echo '
 <script>
-	Init_Site("', strrev(session_id()), '");', !empty($javascript) ? '
-	' . trim($javascript) : '', '
+	Init_Site("', strrev(session_id()), '");', !empty($init_str) ? '
+	' . trim($init_str) : '', '
 </script>
 </body>
 </html>';
