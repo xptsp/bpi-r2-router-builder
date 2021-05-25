@@ -11,7 +11,6 @@ $wan = get_mac_info('wan');
 $wan_if = parse_ifconfig('wan');
 $dns = get_dns_servers();
 $type = strpos($wan['iface'], 'dhcp') > 0 ? 'DHCP' : 'Static IP';
-#$dhcp = explode(' ', @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp-info'));
 
 #######################################################################################################
 # Display information about the router:
@@ -128,26 +127,26 @@ echo '
 									</tr>
 									<tr>
 										<td><strong>Connection</strong></td>
-										<td>', $type, '</td>
+										<td id="connection_type">', $type, '</td>
 									</tr>';
 if ($type == 'DHCP')
 	echo '
 									<tr>
 										<td><strong>External DHCP Server</strong></td>
-										<td>', $dhcp[0], '</td>
+										<td id="dhcp_server"></td>
 									</tr>
 									<tr>
 										<td><strong>DHCP Lease Began</strong></td>
-										<td>', date('Y-m-d H:i:s', $dhcp[1]), '</td>
+										<td id="dhcp_begin"></td>
 									</tr>
 									<tr>
 										<td><strong>DHCP Lease Expires</strong></td>
-										<td>', date('Y-m-d H:i:s', (int)$dhcp[1] + (int)$dhcp[2]), '</td>
+										<td id="dhcp_expire"></td>
 									</tr>';
 echo '
 									<tr>
 										<td colspan="2" class="centered">
-											<button type="button" class="btn btn-block btn-outline-primary center_50" data-toggle="modal" data-target="#stats-modal" id="stats_button">Show Statistics</button>
+											<button type="button" class="btn btn-block btn-outline-primary center_50" data-toggle="modal" data-target="#stats-modal" id="stats_button">Network Statistics</button>
 										</td>
 									</tr>
 								</table>

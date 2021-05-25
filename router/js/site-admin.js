@@ -20,6 +20,15 @@ function Init_Stats()
 	$("#reboot_yes").click(Confirm_Reboot);
 	$("#stats_button").click(Network_Get);
 	$("#stats_close").click(Network_Close);
+	$.getJSON("/ajax/status?sid=" + SID, function(data) {
+		$("#pihole_state").html(data.pihole_state);
+		if ($("#connection_type").html() == "DHCP")
+		{
+			$("#dhcp_server").html( data.dhcp_server );
+			$("#dhcp_begin").html( data.dhcp_begin );
+			$("#dhcp_expire").html( data.dhcp_expire );
+		}
+	});
 }
 
 function Init_Updates()
@@ -51,7 +60,7 @@ function Confirm_Reboot()
 
 function Network_Get()
 {
-	$.get("/ajax/stats?sid=" + SID, function(data) {
+	$.get("/ajax/network?sid=" + SID, function(data) {
 		$("#stats_body").html(data);
 	}).fail(function() {
 		$("#stats_body").html("AJAX call failed");
