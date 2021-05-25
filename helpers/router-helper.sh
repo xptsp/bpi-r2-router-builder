@@ -255,8 +255,8 @@ case $CMD in
 		;;
 
 	dhcp-info)
-		bound=($(grep dhclient /var/log/syslog* | grep bound | tail -1 | cut -d":" -f 2-))
-		from=($(grep dhclient /var/log/syslog* | grep from | tail -1 | cut -d":" -f 2-))
+		bound=($(grep dhclient /var/log/syslog* | grep bound | sort | tail -1 | cut -d":" -f 2-))
+		from=($(grep dhclient /var/log/syslog* | grep from | sort | tail -1 | cut -d":" -f 2-))
 		[[ -z "${from[-1]}" ]] && exit
 		[[ -z "${bound[-2]}" ]] && exit
 		echo ${from[-1]} $(echo $(php -r "echo strtotime('${bound[0]} ${bound[1]} ${bound[2]}');")) ${bound[-2]}
