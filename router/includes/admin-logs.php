@@ -68,10 +68,4 @@ echo '
 	</div>';
 
 # Wrap it up:
-site_footer('
-	MaxPages=' . $pages . ';
-	$("#search").on("propertychange input", Logs_Filter);
-	$("#pages").on("click", ".pagelink", Logs_Page);
-	$("#pages").on("click", ".pageprev", Logs_Prev);
-	$("#pages").on("click", ".pagenext", Logs_Next);
-', 'site-admin');
+site_footer('Init_Logs(' . $pages . ');');

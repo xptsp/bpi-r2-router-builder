@@ -77,7 +77,7 @@ echo '
 #######################################################################################################
 echo '
 					<div class="modal fade" id="reboot-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
-						<div class="modal-dialog">
+						<div class="modal-dialog modal-dialog-centered">
 							<div class="modal-content">
 								<div class="modal-header">
 									<h4 class="modal-title">Confirm Reboot Router</h4>
@@ -164,7 +164,7 @@ echo '
 #######################################################################################################
 echo '
 					<div class="modal fade" id="stats-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
-						<div class="modal-dialog modal-lg">
+						<div class="modal-dialog modal-dialog-centered modal-lg">
 							<div class="modal-content">
 								<div class="modal-header">
 									<h4 class="modal-title">Network Statistics</h4>
@@ -352,8 +352,4 @@ echo '
 		</section>
 		<!-- content -->';
 
-site_footer('
-	$("#reboot_yes").click(Confirm_Reboot);
-	$("#stats_button").click(Stats_Show);
-	$("#stats_close").click(Stats_Close);
-', 'site-admin');
+site_footer('Init_Stats();');

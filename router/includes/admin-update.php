@@ -125,10 +125,4 @@ echo '
 echo '
 				</div>
 			</div>';
-site_footer('
-	WebUI_Check();
-	$("#webui_check").click(WebUI_Check);
-	$("#webui_pull").click(WebUI_Pull);
-	$("#apt_check").click(Debian_Check);
-	$("#apt_pull").click(Debian_Pull);
-', 'site-admin');
+site_footer('Init_Updates();');

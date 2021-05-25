@@ -31,6 +31,4 @@ echo '
 	</div>
 	<!-- /.card-body -->
 </div>';
-site_footer('
-	$("#submit").click(Password_Submit);
-', 'site-admin');
+site_footer('Init_Creds();');

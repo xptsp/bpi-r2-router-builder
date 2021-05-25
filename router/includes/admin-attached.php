@@ -98,4 +98,4 @@ echo '
 		<!-- /.card -->
 	</div>
 </div>';
-site_footer('', 'site-admin');
+site_footer();

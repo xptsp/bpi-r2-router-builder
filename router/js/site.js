@@ -1,3 +1,18 @@
+var SID;
+
+function Init_Site(sid)
+{
+	SID=sid;
+	$("#login_close").click(Login_Close);
+	$("#login_submit").click(Login_Submit);
+}
+
+function Init_Home()
+{
+	Basic_Data();
+	setInterval(Basic_Data, 5000);
+}
+
 function Basic_Data()
 {
 	$.getJSON("/ajax/basic?sid=" + SID, function(results) {
@@ -46,7 +61,7 @@ function Basic_Data()
 	});
 }
 
-function User_Login()
+function Login_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
@@ -68,20 +83,13 @@ function User_Login()
 	// Perform our AJAX request to change the password:
 	$.post("/ajax/password", postdata, function(data) {
 		if (data == "No match")
-			$("#div").removeClass("hidden");
+			$("#login_div").removeClass("hidden");
 		else
 			document.location.reload(true);
 	});
 }
 
-function User_Logout()
+function Login_Close()
 {
-	// Perform our AJAX request to change the password:
-	postdata = {
-		'sid': SID,
-		'logout': true,
-	};
-	$.post("/ajax/password", postdata, function(data) {
-		document.location = '/';
-	});
+	$("#login_div").addClass("hidden");
 }

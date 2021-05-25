@@ -1,6 +1,36 @@
 var timer;
 var MyTimer;
 
+function Init_Creds()
+{
+	$("#submit").click(Password_Submit);
+}
+
+function Init_Logs(pages)
+{
+	MaxPages=pages;
+	$("#search").on("propertychange input", Logs_Filter);
+	$("#pages").on("click", ".pagelink", Logs_Page);
+	$("#pages").on("click", ".pageprev", Logs_Prev);
+	$("#pages").on("click", ".pagenext", Logs_Next);
+}
+
+function Init_Stats()
+{
+	$("#reboot_yes").click(Confirm_Reboot);
+	$("#stats_button").click(Stats_Show);
+	$("#stats_close").click(Stats_Close);
+}
+
+function Init_Updates()
+{
+	WebUI_Check();
+	$("#webui_check").click(WebUI_Check);
+	$("#webui_pull").click(WebUI_Pull);
+	$("#apt_check").click(Debian_Check);
+	$("#apt_pull").click(Debian_Pull);
+}
+
 function Confirm_Reboot()
 {
 	$.get("/ajax/reboot?sid=" + SID);

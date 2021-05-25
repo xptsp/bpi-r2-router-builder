@@ -21,7 +21,7 @@ $sidebar_menu = array(
 		'status'   => menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),
 		'attached' => menu_link('/admin/attached', 'Attached Devices', 'fas fa-link'),
 		'backup'   => menu_link('/admin/backup', 'Backup Settings', 'fas fa-file-export'),
-		'creds'    => menu_link('/admin/creds', 'Login Credentials', 'fas fa-user-edit'),
+		'creds'    => menu_link('/admin/creds', 'Credentials', 'fas fa-user-edit'),
 		'logs'     => menu_link('/admin/logs', 'Router Logs', 'far fa-list-alt'),
 		'update'   => menu_link('/admin/update', 'Router Update', 'fab fa-linux'),
 	)),
@@ -132,7 +132,7 @@ function menu_log()
 	global $logged_in;
 	return 
 		'<li class="nav-item">' .
-			'<a href="#" class="nav-link" data-toggle="modal" data-target="#login-modal" id="menu_log">' .
+			'<a href="' . ($logged_in ? '/logout"' : '#" data-toggle="modal" data-target="#login-modal" id="menu_log" ') . ' class="nav-link" >' .
 				'<i class="nav-icon fas fa-sign-' . ($logged_in ? 'out' : 'in') . '-alt"></i>' .
 				'<p>' . ($logged_in ? "Logout" : "Login") . '</p>' .
 			'</a>' .
@@ -248,9 +248,9 @@ function site_menu()
 							</div>
 						</div>
 						<div class="modal-footer justify-content-between">
-							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+							<button type="button" class="btn btn-default"', $logged_in ? '><a href="/logout">Sign Out' : ' data-dismiss="modal" id="login_close">Close', '</button>
 							<div class="col-4">
-								<button type="submit" class="btn btn-primary btn-block" id="submit_login">Sign In</button>
+								<button type="submit" class="btn btn-primary btn-block" id="login_submit">', $logged_in ? 'Unlock' : 'Sign In', '</button>
 							</div>
 						</div>
 					</div>
@@ -265,9 +265,10 @@ function site_menu()
 ################################################################################################################
 # Function that outputs the footer of the web page:
 ################################################################################################################
-function site_footer($javascript = '', $js_files = array())
+function site_footer($javascript = '')
 {
-	global $webui_version, $logged_in, $output_null;
+	global $webui_version, $logged_in, $output_null, $include_js;
+	$post_js = '?' . time();
 
 	# Purge the output buffer if we aren't allowed to show anything:
 	if ($output_null)
@@ -291,32 +292,18 @@ function site_footer($javascript = '', $js_files = array())
 <script src="/plugins/jquery/jquery.min.js"></script>
 <script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="/js/adminlte.min.js"></script>
-<script src="/js/site.js?', time(), '"></script>';
+<script src="/js/site.js', $post_js, '"></script>';
 
 	# Include any additional javascript files requested by the pages:
-	if (!is_array($js_files))
-		$js_files = array($js_files);
-	foreach ($js_files as $file)
+	if (!empty($include_js))
 		echo '
-<script src="/js/', $file, '.js?', time(), '"></script>';
+<script src="/js/', $include_js, $post_js, '"></script>';
 
 	# Insert the SID we're using, and set the login/logout handlers:
 	echo '
 <script>
-	SID="', strrev(session_id()), '";';
-	if ($logged_in)
-		echo '
-	$("#menu_log").click(User_Logout);';
-	else if ($_GET['action'] == 'home')
-		echo '
-	$("#submit_login").click(User_Login);';
-	else
-		echo '
-	document.location = "/";';
-
-	# Output any additional javascript code requested by the pages, then close the page:
-	echo '
-', !empty($javascript) ? trim($javascript, "\n") : '', '
+	Init_Site("', strrev(session_id()), '");', !empty($javascript) ? '
+	' . trim($javascript) : '', '
 </script>
 </body>
 </html>';
