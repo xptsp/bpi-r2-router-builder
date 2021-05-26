@@ -181,6 +181,7 @@ function WebUI_Pull()
 function Debian_Check()
 {
 	add_overlay("debian-div");
+	$("#updates_avail").html("<i>Retrieving...</i>");
 	$.getJSON("/ajax/debian/check?sid=" + SID, function(data) {
 		del_overlay("debian-div");
 		$("#updates_avail").html( data.updates );

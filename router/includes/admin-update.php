@@ -35,7 +35,7 @@ echo '
 									</tr>
 									<tr>
 										<td><strong>Latest Version</strong></td>
-										<td><span id="latest_ver">&nbsp;</span></td>
+										<td><span id="latest_ver"><i>Retrieving...</i></span></td>
 									</tr>
 									<tr id="webui_check_div">
 										<td colspan="2">
