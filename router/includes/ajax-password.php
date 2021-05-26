@@ -20,7 +20,7 @@ else if ($newPass != $conPass || $conPass != $tmp3)
 else
 {
 	if (!isset($_POST['username']))
-		$username = !empty($_POST['newPass']) ? trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login webui')) : '';
+		$username = isset($_POST['newPass']) ? '' : trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login webui'));
 	else
 		$username = isset($_POST['username']) ? $_POST['username'] : '';
 

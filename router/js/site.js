@@ -1,4 +1,5 @@
 var SID;
+var LoginTimer;
 
 function Init_Site(sid)
 {
@@ -82,8 +83,14 @@ function Login_Submit()
 
 	// Perform our AJAX request to change the password:
 	$.post("/ajax/password", postdata, function(data) {
-		if (data != "Successful")
-			$("#login_div").removeClass("hidden");
+		if (data != "Successful" && data != "Match")
+		{
+			$("#login_div").removeClass("hidden").fadeIn("slow");
+			LoginTimer = setInterval(function() {
+				clearInterval(LoginTimer);
+				$("#login_div").fadeOut("slow");
+			}, 3000);
+		}
 		else
 			document.location.reload(true);
 	});
