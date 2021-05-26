@@ -73,7 +73,7 @@ echo '
 									</tr>
 									<tr>
 										<td width="50%"><strong>Available Updates</strong></td>
-										<td><span id="updates_avail">Unknown</span></td>
+										<td><span id="updates_avail"><i>Press <strong>Check for Updates</strong></i></span></td>
 									</tr>
 									<tr id="apt_check_div">
 										<td colspan="2">
