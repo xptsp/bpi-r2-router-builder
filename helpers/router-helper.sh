@@ -292,15 +292,15 @@ case $CMD in
 			mkdir -p /tmp/bpiwrt
 			cd /tmp/bpiwrt
 			if ! tar -xJf /tmp/bpiwrt.cfg; then echo "ERROR: Invalid settings file!"; exit; fi
-			if ! md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null; then echo "ERROR: Checksum Failure"; exit; fi
+			if md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null; then echo "ERROR: Checksum Failure"; exit; fi
 		elif [[ "$1" == "restore" ]]; then
-			if ! test -d /tmp/bpiwrt; then; echo "ERROR: Backup has not been unpacked!"; exit; fi
+			if ! test -d /tmp/bpiwrt; then echo "ERROR: Backup has not been unpacked!"; exit; fi
 			cd /tmp/bpiwrt
-			if ! md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null; then echo "ERROR: Checksum Failure"; exit; fi
+			if md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null; then echo "ERROR: Checksum Failure"; exit; fi
 			while IFS= read -r line; do rm $line; done < etc/default/backup_file.list
 		fi
 		;;
-		
+
 	*)
 		echo "Syntax: $(basename $0) [command] [options]"
 		;;
