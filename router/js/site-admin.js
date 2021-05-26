@@ -109,17 +109,13 @@ function Password_Submit()
 	if (postdata.conPass != postdata.newPass)
 		return Password_Fail("New password does not match Confirm Password!");
 
-	// Make sure the specified passwords are valid:
-	tmp = $("#oldPass").val().replace(/[\s\W]+/, '-');
-	if (postdata.oldPass != tmp)
-		return Password_Fail("Old Password cannot contain characters other than alphanumeric characters!");
-	tmp = $("#newPass").val().replace(/[\s\W]+/, '-');
-	if (postdata.conPass != tmp)
-		return Password_Fail("New Password cannot contain characters other than alphanumeric characters!");
-
 	// Perform our AJAX request to change the password:
 	$.post("/ajax/password", postdata, function(data) {
-		if (data == "Successful")
+		if (data == "oldPass")
+			Password_Fail("Old Password cannot contain characters other than alphanumeric characters!");
+		else if (data == "newPass")
+			Password_Fail("New Password cannot contain characters other than alphanumeric characters!");
+		else if (data == "Successful")
 		{
 			$("#passwd_msg").html("Password Change Successful!");
 			$("#passwd_icon").addClass("fa-thumbs-up");

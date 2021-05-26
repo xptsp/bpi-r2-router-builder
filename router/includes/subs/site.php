@@ -282,7 +282,7 @@ function site_footer($init_str = '')
 		<div class="float-right d-none d-sm-block">
 			<b>WebUI</b> v', $webui_version, '
 		</div>
-		<strong>Copyright &copy; 2021 <a href="https://github.com/xptsp/bpi-r2-router-builder">BPi-R2 Router Builder</a>.</strong> All rights reserved.
+		<strong>Copyright &copy; 2021 <a href="https://github.com/xptsp/bpi-r2-router-builder" target="_blank">BPi-R2 Router Builder</a>.</strong> All rights reserved.
 	</footer>
 </div>
 <!-- ./wrapper -->

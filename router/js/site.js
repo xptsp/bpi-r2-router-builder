@@ -82,7 +82,7 @@ function Login_Submit()
 
 	// Perform our AJAX request to change the password:
 	$.post("/ajax/password", postdata, function(data) {
-		if (data == "No match")
+		if (data != "Successful")
 			$("#login_div").removeClass("hidden");
 		else
 			document.location.reload(true);
