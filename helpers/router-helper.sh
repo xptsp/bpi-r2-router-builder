@@ -285,6 +285,8 @@ case $CMD in
 			md5sum ${ftb[@]} |sed "s|  /|  |g" > md5sum
 			test -f /tmp/bpiwrt.cfg && rm /tmp/bpiwrt.cfg
 			tar -cJf /tmp/bpiwrt.cfg ${ftb[@]} >& /dev/null
+		elif [[ "$1" == "remove" ]]; then
+			rm /tmp/bpiwrt.cfg
 		elif [[ "$1" == "unpack" ]]; then
 			rm -rf /tmp/bpiwrt
 			mkdir -p /tmp/bpiwrt

@@ -11,11 +11,14 @@ if (!isset($_POST['sid']) || $_POST['sid'] != strrev(session_id()) || !in_array(
 ####################################################################################
 if ($restore == "upload")
 {
-	if (strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION)) != "cfg")
+	if (!isset($_FILES['file']))
+		echo "ERROR: No file specified!";
+	else if (strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION)) != "cfg")
 		echo 'ERROR: File extension must be "cfg"!';
 	else
 	{
-		if (move_uploaded_file($_FILES['file']['tmp_name'], '/tmp/bpiwrt.cfg'))
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup remove")
+		if (@move_uploaded_file($_FILES['file']['tmp_name'], '/tmp/bpiwrt.cfg'))
 			echo trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup unpack"));
 		else
 			echo "ERROR: File move failed";
