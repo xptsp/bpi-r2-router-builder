@@ -297,7 +297,7 @@ case $CMD in
 			test -d /tmp/bpiwrt || echo "ERROR: Backup has not been unpacked!" && exit
 			cd /tmp/bpiwrt
 			md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null && echo "ERROR: Checksum Failure" && exit
-			while IFS= read -r line; do rm $line; done << etc/default/backup_files.list
+			while IFS= read -r line; do rm $line; done < etc/default/backup_files.list
 		fi
 		;;
 		

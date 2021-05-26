@@ -124,7 +124,7 @@ done
 #####################################################################################
 # Move new linked file list to log directory and remove unnecessary linked files:
 #####################################################################################
-mkdir -p $(basename ${LORG})
+mkdir -p $(dirname ${LORG})
 mv ${LNEW} ${LORG}
 for file in $(cat ${LOLD}); do 
 	test -f ${file} && rm ${file}
