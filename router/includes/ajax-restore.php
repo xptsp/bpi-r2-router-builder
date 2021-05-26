@@ -6,6 +6,6 @@ if (!isset($_POST['sid']) || $_POST['sid'] != strrev(session_id()) || !in_array(
 	exit;
 }
 if ($restore == "factory")
-	echo @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh reformat -y");
+	echo explode("\n", trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh reformat -y")))[0];
 else
 	echo "ERROR: Not Implemented Yet";
