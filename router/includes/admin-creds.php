@@ -1,5 +1,6 @@
 <?php
 site_menu();
+$debug = false;
 echo '
 <div class="card card-info">
 	<div class="card-header">
@@ -12,19 +13,19 @@ echo '
 		<div class="input-group mb-4">
 			<label for="oldPass" class="col-sm-2 col-form-label">Old Password:</label>
 			<div class="col-sm-10">
-				<input type="password" class="form-control" id="oldPass" value="bananapi" placeholder="Old Password">
+				<input type="password" class="form-control" id="oldPass" name="oldPass"', $debug ? ' value="bananapi"' : '', ' placeholder="Old Password">
 			</div>
 		</div>
 		<div class="input-group mb-4">
 			<label for="newPass" class="col-sm-2 col-form-label">New Password:</label>
 			<div class="col-sm-10">
-				<input type="password" class="form-control" id="newPass" value="meh" placeholder="Required">
+				<input type="password" class="form-control" id="newPass" name="newPass"', $debug ? ' value="meh"' : '', ' placeholder="Required">
 			</div>
 		</div>
 		<div class="input-group mb-4">
 			<label for="conPass" class="col-sm-2 col-form-label">Confirm Password:</label>
 			<div class="col-sm-10">
-				<input type="password" class="form-control" id="conPass" value="meh"  placeholder="Required">
+				<input type="password" class="form-control" id="conPass" name="conPass"', $debug ? ' value="meh"' : '', ' placeholder="Required">
 			</div>
 		</div>
 		<button type="button" class="btn btn-block btn-outline-danger center_50" id="submit">Set Password</button>

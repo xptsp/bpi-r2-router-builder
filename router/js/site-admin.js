@@ -111,7 +111,7 @@ function Password_Submit()
 
 	// Make sure the specified passwords are valid:
 	tmp = $("#oldPass").val().replace(/[\s\W]+/, '-');
-	if (postdata.conPass != tmp)
+	if (postdata.oldPass != tmp)
 		return Password_Fail("Old Password cannot contain characters other than alphanumeric characters!");
 	tmp = $("#newPass").val().replace(/[\s\W]+/, '-');
 	if (postdata.conPass != tmp)
