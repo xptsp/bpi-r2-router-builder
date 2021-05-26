@@ -9,13 +9,13 @@ function Init_Site(sid)
 
 function Init_Home()
 {
-	Basic_Data();
-	setInterval(Basic_Data, 5000);
+	Home_Data();
+	setInterval(Home_Data, 5000);
 }
 
-function Basic_Data()
+function Home_Data()
 {
-	$.getJSON("/ajax/basic?sid=" + SID, function(results) {
+	$.getJSON("/ajax/home?sid=" + SID, function(results) {
 		// Update internet connectivity status:
 		if (results.wan_status == "Online")
 			$("#connectivity-div").removeClass("bg-danger");

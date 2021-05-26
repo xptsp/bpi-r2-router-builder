@@ -1,6 +1,6 @@
 <?php
 site_menu();
-require_once('subs/detailed.php');
+require_once('subs/admin.php');
 
 #######################################################################################################
 # Gather as much information before starting the overview display as we can:
