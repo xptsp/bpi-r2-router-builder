@@ -293,13 +293,37 @@ function Init_Backup()
 	$("#restore_settings").click(Restore_File);
 	$("#factory_settings").click(Restore_Factory);
 	$("#reboot_yes").click(Restore_Confirm);
+	$(function () {
+		bsCustomFileInput.init();
+	});
 }
 
 function Restore_File()
 {
 	restore_type = "file";
 	$("#reboot_title").html("Restore Settings");
-	$("#restore_type").html("");
+	$("#restore_type").html("uploaded");
+	
+	// AJAX request
+	var postdata = new FormData();
+	postdata.append('sid', SID);
+	postdata.append('file', $('#restore_file')[0].files[0]);
+	postdata.append('restore_type', 'upload');
+	$.ajax({
+		url: '/ajax/restore',
+		type: 'post',
+		data: postdata,
+		contentType: false,
+		processData: false,
+		success: function(data) {
+			if (data.indexOf("ERROR:") > -1)
+				Restore_Alert(data);
+			else
+				$("#reboot-modal").modal("show");
+		}
+	}).fail( function() {
+		Restore_Alert("AJAX call failed");
+	});
 }
 
 function Restore_Factory()
@@ -314,6 +338,7 @@ function Restore_Alert(msg)
 	$("#reboot-modal").modal("hide");
 	$("#error_msg").html(msg);
 	$("#error-modal").modal("show");
+	return false;
 }
 
 function Restore_Confirm()

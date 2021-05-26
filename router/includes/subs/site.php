@@ -215,7 +215,7 @@ function site_menu()
 	if (!$logged_in)
 		echo '
 			<div class="modal fade" id="login-modal" data-backdrop="static">
-				<div class="modal-dialog">
+				<div class="modal-dialog modal-dialog-centered">
 					<div class="modal-content">
 						<div class="modal-header">
 							<h4 class="modal-title"><i class="fas fa-sign-in-alt"></i> Router Login</h4>
@@ -291,6 +291,7 @@ function site_footer($init_str = '')
 <script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="/plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>
 <script src="/js/adminlte.min.js"></script>
+<script src="/plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>
 <script src="/js/site.js', $post_js, '"></script>';
 
 	# Include any additional javascript files requested by the pages:

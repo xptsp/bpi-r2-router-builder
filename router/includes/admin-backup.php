@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['backup']))
 {
-	@shell_exec("/opt/bpi-r2-router-builder/router-helper.sh backup");
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup create");
 	$cfg = "/tmp/bpiwrt.cfg";
 	header('Content-Disposition: attachment; filename="' . basename($cfg) . '"');
 	header("Content-Length: " . filesize($cfg));
@@ -28,9 +28,14 @@ echo '
 		<div class="input-group mb-4">
 			<label class="col-sm-6 col-form-label">
 				Restore saved settings from a file
-				<input type="file" name="upload">
+				<div class="input-group">
+					<div class="custom-file col-sm-8">
+						<input type="file" class="custom-file-input" id="restore_file">
+						<label class="custom-file-label" for="exampleInputFile">Choose file</label>
+					</div>
+				</div>
 			</label>
-			<div class="col-sm-6"><button type="button" class="btn btn-block btn-outline-danger" data-toggle="modal" data-target="#reboot-modal" id="restore_settings">Restore Settings</button></div>
+			<div class="col-sm-6"><button type="button" class="btn btn-block btn-outline-danger" id="restore_settings">Restore Settings</button></div>
 		</div>
 		<hr />
 	</div>

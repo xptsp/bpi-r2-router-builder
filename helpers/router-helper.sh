@@ -279,23 +279,28 @@ case $CMD in
 		;;
 
 	backup)
-		ftb=(
-			/etc/hostname
-			/etc/hosts
-			/etc/network/interfaces
-			/etc/network/interfaces.d/*
-			/etc/dnsmasq.d/*
-			/etc/default/*
-			/etc/localtime
-			/etc/locale.gen
-			/etc/shadow
-			/tmp/md5sum
-		)
-		cat ${ftb[@]} | md5sum > /tmp/md5sum
-		test -f /tmp/bpiwrt.cfg && rm /tmp/bpiwrt.cfg
-		tar -czf /tmp/bpiwrt.cfg ${ftb[@]} >& /dev/null
+		if [[ "$1" == "create" ]]; then
+			ftb=($(cat /etc/default/backup_files.list))
+			cd /tmp
+			md5sum ${ftb[@]} |sed "s|  /|  |g" > md5sum
+			test -f /tmp/bpiwrt.cfg && rm /tmp/bpiwrt.cfg
+			tar -cJf /tmp/bpiwrt.cfg ${ftb[@]} >& /dev/null
+		elif [[ "$1" == "unpack" ]]; then
+			rm -rf /tmp/bpiwrt
+			mkdir -p /tmp/bpiwrt
+			cd /tmp/bpiwrt
+			if ! tar -xJf /tmp/bpiwrt.cfg; then
+				echo "ERROR: Invalid settings file!"; exit
+			fi
+			md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null && echo "ERROR: Checksum Failure"
+		elif [[ "$1" == "restore" ]]; then
+			test -d /tmp/bpiwrt || echo "ERROR: Backup has not been unpacked!" && exit
+			cd /tmp/bpiwrt
+			md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null && echo "ERROR: Checksum Failure" && exit
+			while IFS= read -r line; do rm $line; done << etc/default/backup_files.list
+		fi
 		;;
-
+		
 	*)
 		echo "Syntax: $(basename $0) [command] [options]"
 		;;

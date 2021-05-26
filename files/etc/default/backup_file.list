@@ -1,0 +1,10 @@
+/etc/hostname
+/etc/hosts
+/etc/network/interfaces
+/etc/network/interfaces.d/*
+/etc/dnsmasq.d/*
+/etc/default/*
+/etc/localtime
+/etc/locale.gen
+/etc/shadow
+/tmp/md5sum
