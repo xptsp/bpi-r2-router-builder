@@ -5,6 +5,7 @@ if (!isset($_GET['sid']) || $_GET['sid'] != strrev(session_id()))
 	exit();
 }
 header('Content-type: application/json');
+require_once('subs/admin.php');
 
 ##########################################################################################
 # Get information for the AJAX request:
