@@ -289,6 +289,7 @@ function site_footer($init_str = '')
 
 <script src="/plugins/jquery/jquery.min.js"></script>
 <script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>
 <script src="/js/adminlte.min.js"></script>
 <script src="/js/site.js', $post_js, '"></script>';
 

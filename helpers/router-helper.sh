@@ -21,7 +21,7 @@ function check_ro()
 			echo "Add 'bootopts=init=/sbin/overlayRoot.sh' to \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to enable."
 		elif cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "noOverlayRoot$" >& /dev/null; then
 			echo "ERROR: Overlay script has been disabled."
-			ecgi "Remove or comment out \"noOverlayRoot\" from \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to reenable."
+			echo "Remove or comment out \"noOverlayRoot\" from \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to reenable."
 		else
 			echo "ERROR: Readonly filesystem not available!"
 		fi
@@ -269,13 +269,31 @@ case $CMD in
 	webui)
 		cd /opt/bpi-r2-router-builder
 		if [[ "$1" == "current" ]]; then
-			echo "$(git log -1 --format="%at")"
+			echo $(git log -1 --format="%at")
 		elif [[ "$1" == "remote" ]]; then
 			git remote update >& /dev/null
-			echo "$(git log -1 --format="%at" origin/master)"
+			echo $(git log -1 --format="%at" origin/master)
 		elif [[ "$1" == "update" ]]; then
 			./upgrade.sh
 		fi
+		;;
+
+	backup)
+		ftb=(
+			/etc/hostname
+			/etc/hosts
+			/etc/network/interfaces
+			/etc/network/interfaces.d/*
+			/etc/dnsmasq.d/*
+			/etc/default/*
+			/etc/localtime
+			/etc/locale.gen
+			/etc/shadow
+			/tmp/md5sum
+		)
+		cat ${ftb[@]} | md5sum > /tmp/md5sum
+		test -f /tmp/bpiwrt.cfg && rm /tmp/bpiwrt.cfg
+		tar -czf /tmp/bpiwrt.cfg ${ftb[@]} >& /dev/null
 		;;
 
 	*)

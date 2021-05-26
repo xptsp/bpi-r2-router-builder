@@ -1,25 +1,15 @@
 var timer;
 var MyTimer;
+var restore_type;
 
-function Init_Creds()
-{
-	$("#submit").click(Password_Submit);
-}
-
-function Init_Logs(pages)
-{
-	MaxPages=pages;
-	$("#search").on("propertychange input", Logs_Filter);
-	$("#pages").on("click", ".pagelink", Logs_Page);
-	$("#pages").on("click", ".pageprev", Logs_Prev);
-	$("#pages").on("click", ".pagenext", Logs_Next);
-}
-
+//======================================================================================================
+// Javascript functions for "Admin / Router Status"
+//======================================================================================================
 function Init_Stats()
 {
-	$("#reboot_yes").click(Confirm_Reboot);
-	$("#stats_button").click(Network_Get);
-	$("#stats_close").click(Network_Close);
+	$("#reboot_yes").click(Stats_Confirm_Reboot);
+	$("#stats_button").click(Stats_Network_Show);
+	$("#stats_close").click(Stats_Network_Close);
 	$.getJSON("/ajax/status?sid=" + SID, function(data) {
 		$("#pihole_state").html(data.pihole_state);
 		if ($("#connection_type").html() == "DHCP")
@@ -31,26 +21,24 @@ function Init_Stats()
 	});
 }
 
-function Init_Updates()
+function Stats_Reboot_Msg()
 {
-	WebUI_Check();
-	$("#webui_check").click(WebUI_Check);
-	$("#webui_pull").click(WebUI_Pull);
-	$("#apt_check").click(Debian_Check);
-	$("#apt_pull").click(Debian_Pull);
+	txt = timer.toString();
+	per = parseInt(100 * timer / 60);
+	$("#reboot_timer").html('<h1 class="centered">' + txt + '</h1><div class="progress mb-3">' +
+		'<div class="progress-bar bg-info" role="progressbar" aria-valuenow="' + txt + '" aria-valuemin="0" aria-valuemax="60" style="width: ' + per.toString() + '%"></div></div>');
 }
 
-function Confirm_Reboot()
+function Stats_Confirm_Reboot()
 {
 	$.get("/ajax/reboot?sid=" + SID);
-	$("#reboot_nah").addClass("invisible");
-	$("#reboot_yes").addClass("invisible");
+	$("#reboot_control").addClass("hidden");
 	$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately 60 seconds.");
 	timer = 60;
-	$("#reboot_timer").html('<h1 class="centered">' + timer.toString() + '</h1>');
+	Stats_Reboot_Msg();
 	myTimer = setInterval(function() {
 		--timer;
-		$("#reboot_timer").html('<h1 class="centered">' + timer.toString() + '</h1>');
+		Stats_Reboot_Msg();
 		if (timer === 0) {
 			clearInterval(MyTimer);
 			document.location.reload(true);
@@ -58,7 +46,7 @@ function Confirm_Reboot()
 	}, 1000);
 }
 
-function Network_Get()
+function Stats_Network_Get()
 {
 	$.get("/ajax/network?sid=" + SID, function(data) {
 		$("#stats_body").html(data);
@@ -67,18 +55,26 @@ function Network_Get()
 	});
 }
 
-function Network_Show()
+function Stats_Network_Show()
 {
-	Stats_Get();
-	myTimer = setInterval(Network_Get, 5000);
+	Stats_Network_Get();
+	myTimer = setInterval(Stats_Network_Get, 5000);
 }
 
-function Network_Close()
+function Stats_Network_Close()
 {
 	clearInterval(myTimer);
 }
 
-function Password_Fail(msg)
+//======================================================================================================
+// Javascript functions for "Admin / Credentials"
+//======================================================================================================
+function Init_Creds()
+{
+	$("#submit").click(Creds_Password_Submit);
+}
+
+function Creds_Password_Fail(msg)
 {
 	$("#passwd_msg").html(msg);
 	$("#passwd_icon").removeClass("fa-thumbs-up");
@@ -89,7 +85,7 @@ function Password_Fail(msg)
 	}, 3000);
 }
 
-function Password_Submit()
+function Creds_Password_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
@@ -101,20 +97,20 @@ function Password_Submit()
 
 	// Confirm all information has been entered correctly:
 	if (postdata.oldPass == "")
-		return Password_Fail("Current password not specified!");
+		return Creds_Password_Fail("Current password not specified!");
 	if (postdata.newPass == "")
-		return Password_Fail("New password not specified!");
+		return Creds_Password_Fail("New password not specified!");
 	if (postdata.conPass == "")
-		return Password_Fail("Confirm password not specified!");
+		return Creds_Password_Fail("Confirm password not specified!");
 	if (postdata.conPass != postdata.newPass)
-		return Password_Fail("New password does not match Confirm Password!");
+		return Creds_Password_Fail("New password does not match Confirm Password!");
 
 	// Perform our AJAX request to change the password:
 	$.post("/ajax/password", postdata, function(data) {
 		if (data == "oldPass")
-			Password_Fail("Old Password cannot contain characters other than alphanumeric characters!");
+			Creds_Password_Fail("Old Password cannot contain characters other than alphanumeric characters!");
 		else if (data == "newPass")
-			Password_Fail("New Password cannot contain characters other than alphanumeric characters!");
+			Creds_Password_Fail("New Password cannot contain characters other than alphanumeric characters!");
 		else if (data == "Successful")
 		{
 			$("#passwd_msg").html("Password Change Successful!");
@@ -126,15 +122,27 @@ function Password_Submit()
 			}, 3000);
 		}
 		else if (data == "No match")
-			Password_Fail("Incorrect Old Password!");
+			Creds_Password_Fail("Incorrect Old Password!");
 		else
-			Password_Fail("Password Change failed for unknown reason!");
+			Creds_Password_Fail("Password Change failed for unknown reason!");
 	}).fail(function() {
-		Password_Fail("AJAX call failed!");
+		Creds_Password_Fail("AJAX call failed!");
 	});
 }
 
-function add_overlay(id)
+//======================================================================================================
+// Javascript functions for "Admin / Router Updates"
+//======================================================================================================
+function Init_Updates()
+{
+	WebUI_Check();
+	$("#webui_check").click(Updates_WebUI_Check);
+	$("#webui_pull").click(Updates_WebUI_Pull);
+	$("#apt_check").click(Updates_Debian_Check);
+	$("#apt_pull").click(Updates_Debian_Pull);
+}
+
+function Updates_Add_Overlay(id)
 {
 	$("#" + id).append(
 		'<div class="overlay-wrapper" id="' + id + '-loading">' +
@@ -144,16 +152,16 @@ function add_overlay(id)
 		'</div>');
 }	
 
-function del_overlay(id)
+function Updates_Del_Overlay(id)
 {
 	$("#" + id + "-loading").remove();
 }
 
-function WebUI_Check()
+function Updates_WebUI_Check()
 {
-	add_overlay("webui-div");
+	Updates_Add_Overlay("webui-div");
 	$.getJSON("/ajax/webui/check?sid=" + SID, function(data) {
-		del_overlay("webui-div");
+		Updates_Del_Overlay("webui-div");
 		$('#latest_ver').html( 'v' + data.remote_ver );
 		if (data.remote_ver > $("#current_ver").text())
 		{
@@ -161,25 +169,25 @@ function WebUI_Check()
 			$("#webui_pull_div").removeClass("hidden");
 		}
 	}).fail( function() {
-		del_overlay("webui-div");
+		Updates_Del_Overlay("webui-div");
 		$('#latest_ver').html("AJAX Call Failed");
 	});
 }
 
-function WebUI_Pull()
+function Updates_WebUI_Pull()
 {
-	add_overlay("webui-div");
+	Updates_Add_Overlay("webui-div");
 	$.get("/ajax/webui/pull?sid=" + SID, function(data) {
 		document.location.reload(true);
 	});
 }
 
-function Debian_Check()
+function Updates_Debian_Check()
 {
-	add_overlay("debian-div");
+	Updates_Add_Overlay("debian-div");
 	$("#updates_avail").html("<i>Retrieving...</i>");
 	$.getJSON("/ajax/debian/check?sid=" + SID, function(data) {
-		del_overlay("debian-div");
+		Updates_Del_Overlay("debian-div");
 		$("#updates_avail").html( data.updates );
 		if (data.updates > 0)
 		{
@@ -189,12 +197,12 @@ function Debian_Check()
 			$("#updates_list").removeClass("hidden");
 		}
 	}).fail( function() {
-		del_overlay("debian-div");
+		Updates_Del_Overlay("debian-div");
 		$('#updates_avail').html("AJAX Call Failed");
 	});
 }
 
-function Debian_Pull()
+function Updates_Debian_Pull()
 {
 	$("#output_group").removeClass("hidden");
 	element = $("#output_div");
@@ -220,6 +228,18 @@ function Debian_Pull()
 			}
 		}
 	});
+}
+
+//======================================================================================================
+// Javascript functions for "Admin / Router Logs"
+//======================================================================================================
+function Init_Logs(pages)
+{
+	MaxPages=pages;
+	$("#search").on("propertychange input", Logs_Filter);
+	$("#pages").on("click", ".pagelink", Logs_Page);
+	$("#pages").on("click", ".pageprev", Logs_Prev);
+	$("#pages").on("click", ".pagenext", Logs_Next);
 }
 
 function Logs_Filter()
@@ -263,4 +283,52 @@ function Logs_Next()
 	$("#lines .page_" + page).removeClass("hidden");
 	$("#pages .active").removeClass("active");
 	$("#pages .pagelink_" + page).addClass("active");
+}
+
+//======================================================================================================
+// Javascript functions for "Admin/Backup Settings"
+//======================================================================================================
+function Init_Backup()
+{
+	$("#restore_settings").click(Restore_File);
+	$("#factory_settings").click(Restore_Factory);
+	$("#reboot_yes").click(Restore_Confirm);
+}
+
+function Restore_File()
+{
+	restore_type = "file";
+	$("#reboot_title").html("Restore Settings");
+	$("#restore_type").html("");
+}
+
+function Restore_Factory()
+{
+	restore_type = "factory";
+	$("#reboot_title").html("Factory Reset");
+	$("#restore_type").html("factory");
+}
+
+function Restore_Alert(msg)
+{
+	$("#reboot-modal").modal("hide");
+	$("#error_msg").html(msg);
+	$("#error-modal").modal("show");
+}
+
+function Restore_Confirm()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid': SID,
+		'restore_type': restore_type
+	};
+	$.post("/ajax/restore", postdata, function(data) {
+		if (data.indexOf("ERROR:") > -1)
+			Restore_Alert(data);
+		else
+			Stats_Confirm_Reboot();
+	}).fail(function() {
+		Restore_Alert("AJAX call failed!");
+	});
 }
