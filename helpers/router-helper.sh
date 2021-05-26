@@ -284,21 +284,19 @@ case $CMD in
 			cd /tmp
 			md5sum ${ftb[@]} |sed "s|  /|  |g" > md5sum
 			test -f /tmp/bpiwrt.cfg && rm /tmp/bpiwrt.cfg
-			tar -cJf /tmp/bpiwrt.cfg ${ftb[@]} >& /dev/null
+			tar -cJf /tmp/bpiwrt.cfg md5sum ${ftb[@]} >& /dev/null
 		elif [[ "$1" == "remove" ]]; then
 			rm /tmp/bpiwrt.cfg
 		elif [[ "$1" == "unpack" ]]; then
 			rm -rf /tmp/bpiwrt
 			mkdir -p /tmp/bpiwrt
 			cd /tmp/bpiwrt
-			if ! tar -xJf /tmp/bpiwrt.cfg; then
-				echo "ERROR: Invalid settings file!"; exit
-			fi
-			md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null && echo "ERROR: Checksum Failure"
+			if ! tar -xJf /tmp/bpiwrt.cfg; then echo "ERROR: Invalid settings file!"; exit; fi
+			if ! md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null; then echo "ERROR: Checksum Failure"; exit; fi
 		elif [[ "$1" == "restore" ]]; then
-			test -d /tmp/bpiwrt || echo "ERROR: Backup has not been unpacked!" && exit
+			if ! test -d /tmp/bpiwrt; then; echo "ERROR: Backup has not been unpacked!"; exit; fi
 			cd /tmp/bpiwrt
-			md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null && echo "ERROR: Checksum Failure" && exit
+			if ! md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null; then echo "ERROR: Checksum Failure"; exit; fi
 			while IFS= read -r line; do rm $line; done < etc/default/backup_file.list
 		fi
 		;;
