@@ -135,7 +135,7 @@ function Creds_Password_Submit()
 //======================================================================================================
 function Init_Updates()
 {
-	WebUI_Check();
+	Updates_WebUI_Check();
 	$("#webui_check").click(Updates_WebUI_Check);
 	$("#webui_pull").click(Updates_WebUI_Pull);
 	$("#apt_check").click(Updates_Debian_Check);
