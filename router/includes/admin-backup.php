@@ -87,8 +87,8 @@ echo '
 # Disable "Factory Restore" option if the overlay isn't active:
 #######################################################################################################
 $overlay_disabled = false;
-#foreach (@file("/boot/bananapi/bpi-r2/linux/uEnv.txt") as $line)
-#	$overlay_disabled |= preg_match("/^bootopts=(.*)(noOverlayRoot)/", $line, $regex);
+foreach (@file("/boot/bananapi/bpi-r2/linux/uEnv.txt") as $line)
+	$overlay_disabled |= preg_match("/^bootopts=(.*)(noOverlayRoot)/", $line, $regex);
 if (!$overlay_disabled)
 	echo '
 <div class="card card-info">
