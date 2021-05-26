@@ -37,7 +37,6 @@ echo '
 			</label>
 			<div class="col-sm-6"><button type="button" class="btn btn-block btn-outline-danger" id="restore_settings">Restore Settings</button></div>
 		</div>
-		<hr />
 	</div>
 	<!-- /.card-body -->
 </div>';
