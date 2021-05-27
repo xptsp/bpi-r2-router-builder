@@ -31,7 +31,7 @@ echo '
 								<table class="table">
 									<tr>
 										<td width="50%"><strong>Current Version</strong></td>
-										<td>v<span id="current_ver">', date('Y.md.Hi', @filemtime('/opt/bpi-r2-router-builder/.git/refs/heads/master')), '</span></td>
+										<td>v<span id="current_ver">', $webui_version, '</span></td>
 									</tr>
 									<tr>
 										<td><strong>Latest Version</strong></td>
