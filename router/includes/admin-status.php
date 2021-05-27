@@ -11,6 +11,7 @@ $wan = get_mac_info('wan');
 $wan_if = parse_ifconfig('wan');
 $dns = get_dns_servers();
 $type = strpos($wan['iface'], 'dhcp') > 0 ? 'DHCP' : 'Static IP';
+$power_button = file_exists("/etc/modprobe.d/power_button.conf");
 
 #######################################################################################################
 # Display information about the router:
@@ -58,9 +59,12 @@ echo '
 										<td>v', $_SESSION['webui_version'], '</td>
 									</tr>
 									<tr>
-										<td colspan="2" class="centered">
-											<button type="button" class="btn btn-block btn-outline-danger center_50" data-toggle="modal" data-target="#reboot-modal">Reboot Router</button>
-										</td>
+										<td', $power_button ? ' colspan="2" class="centered"' : '', '>
+											<button type="button" class="btn btn-block btn-outline-danger', $power_button ? ' center_50' : '', '" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Reboot Router</button>
+										</td>', !$power_button ? '
+										<td>
+											<button type="button" class="btn btn-block btn-outline-danger" data-toggle="modal" data-target="#reboot-modal" id="power_button">Power Off Router</button>
+										</td>' : '', '
 									</tr>
 								</table>
 							</div>
@@ -78,13 +82,13 @@ echo '
 						<div class="modal-dialog modal-dialog-centered">
 							<div class="modal-content">
 								<div class="modal-header">
-									<h4 class="modal-title">Confirm Reboot Router</h4>
+									<h4 class="modal-title">Confirm <span id="title_msg">Reboot</span> Router</h4>
 									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 										<span aria-hidden="true">&times;</span>
 									</button>
 								</div>
 								<div class="modal-body">
-									<p id="reboot_msg">Rebooting the router will disrupt active traffic on the network.</p>
+									<p id="reboot_msg"><span id="body_msg">Rebooting</span> the router will disrupt active traffic on the network.</p>
 									<p id="reboot_timer">Are you sure you want to do this?</p>
 								</div>
 								<div class="modal-footer justify-content-between" id="reboot_control">
@@ -96,7 +100,7 @@ echo '
 						</div>
 						<!-- /.modal-dialog -->
 					</div>';
-      
+
 #######################################################################################################
 # Display information about the Internet Port ("wan" interface):
 #######################################################################################################
@@ -178,7 +182,7 @@ echo '
 						</div>
 						<!-- /.modal-dialog -->
 					</div>';
-      
+
 #######################################################################################################
 # Display information about the normal Wireless Network (2.4GHz)
 #######################################################################################################

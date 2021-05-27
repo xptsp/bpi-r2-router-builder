@@ -10,6 +10,8 @@ function Init_Stats()
 	$("#reboot_yes").click(Stats_Confirm_Reboot);
 	$("#stats_button").click(Stats_Network_Show);
 	$("#stats_close").click(Stats_Network_Close);
+	$("#reboot_button").click(Stats_Reboot_Button);
+	$("#power_button").click(Stats_Power_Button);
 	$.getJSON("/ajax/status?sid=" + SID, function(data) {
 		$("#pihole_state").html(data.pihole_state);
 		if ($("#connection_type").html() == "DHCP")
@@ -19,6 +21,22 @@ function Init_Stats()
 			$("#dhcp_expire").html( data.dhcp_expire );
 		}
 	});
+}
+
+function Stats_Reboot_Button()
+{
+	restore_type = "reboot";
+	$("#title_msg").html("Reboot");
+	$("#body_msg").html("Rebooting");
+	$("#reboot_yes").html("Reboot Router");
+}
+
+function Stats_Power_Button()
+{
+	restore_type = "power";
+	$("#title_msg").html("Power Off");
+	$("#body_msg").html("Powering off");
+	$("#reboot_yes").html("Power Off Router");
 }
 
 function Stats_Reboot_Msg()
@@ -31,19 +49,27 @@ function Stats_Reboot_Msg()
 
 function Stats_Confirm_Reboot()
 {
-	$.get("/ajax/reboot?sid=" + SID);
-	$("#reboot_control").addClass("hidden");
-	$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately 60 seconds.");
-	timer = 60;
-	Stats_Reboot_Msg();
-	myTimer = setInterval(function() {
-		--timer;
+	mode = "";
+	if (restore_type == "power")
+		mode = ";poweroff"
+	$.get("/ajax/reboot?sid=" + SID + mode);
+	if (restore_type == "power")
+		$("#reboot-modal").modal("hide");
+	else
+	{
+		$("#reboot_control").addClass("hidden");
+		$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately 60 seconds.");
+		timer = 60;
 		Stats_Reboot_Msg();
-		if (timer === 0) {
-			clearInterval(MyTimer);
-			document.location.reload(true);
-		}
-	}, 1000);
+		myTimer = setInterval(function() {
+			--timer;
+			Stats_Reboot_Msg();
+			if (timer === 0) {
+				clearInterval(MyTimer);
+				document.location.reload(true);
+			}
+		}, 1000);
+	}
 }
 
 function Stats_Network_Get()

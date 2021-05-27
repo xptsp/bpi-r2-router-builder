@@ -266,6 +266,10 @@ case $CMD in
 		/sbin/reboot now
 		;;
 
+	poweroff)
+		/sbin/poweroff
+		;;
+
 	webui)
 		cd /opt/bpi-r2-router-builder
 		if [[ "$1" == "current" ]]; then
