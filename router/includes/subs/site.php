@@ -27,7 +27,6 @@ $sidebar_menu = array(
 	)),
 );
 
-
 # Get the WebUI version once per this session:
 ################################################################################################################
 if (isset($_SESSION['webui_version']) && isset($_SESSION['webui_version_last']) && $_SESSION['webui_version_last'] > time())
@@ -246,7 +245,7 @@ function site_menu()
 							</div>
 						</div>
 						<div class="modal-footer justify-content-between">
-							<button type="button" class="btn btn-default"', $logged_in ? '><a href="/logout">Sign Out' : ' data-dismiss="modal" id="login_close">Close', '</button>
+							<button type="button" class="btn btn-default"', $logged_in ? '><a href="/logout">Sign Out</a>' : ' data-dismiss="modal" id="login_close">Close', '</button>
 							<div class="col-4">
 								<button type="submit" class="btn btn-primary btn-block" id="login_submit">', $logged_in ? 'Unlock' : 'Sign In', '</button>
 							</div>
@@ -292,6 +291,7 @@ function site_footer($init_str = '')
 <script src="/plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>
 <script src="/js/adminlte.min.js"></script>
 <script src="/plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>
+<script src="/plugins/bootstrap-switch/js/bootstrap-switch.min.js"></script>
 <script src="/js/site.js', $post_js, '"></script>';
 
 	# Include any additional javascript files requested by the pages:
