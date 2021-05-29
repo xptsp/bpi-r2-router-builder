@@ -141,7 +141,7 @@ function menu_log()
 ################################################################################################################
 # Function that outputs the sidebar menu, and the header if not already done:
 ################################################################################################################
-function site_menu()
+function site_menu($refresh_switch = false)
 {
 	global $site_title, $header_done, $sidebar_menu, $logged_in, $output_null;
 
@@ -185,7 +185,10 @@ function site_menu()
 					<div class="col-sm-6">
 						<a class="float-left nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
 						<h1>', $site_title, '</h1>
-					</div>
+					</div>', $refresh_switch ? '
+					<div class="col-sm-6">
+						<span class="float-right">Refresh <input type="checkbox" id="refresh_switch" checked data-bootstrap-switch></span>
+					</div>' : '', '
             	</div>
 			</div><!-- /.container-fluid -->
 		</section>';

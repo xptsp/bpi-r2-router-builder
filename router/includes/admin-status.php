@@ -162,7 +162,7 @@ echo '
 					<!-- /.col -->';
 
 #######################################################################################################
-# Reboot Router confirmation modal:
+# Network Statistics modal:
 #######################################################################################################
 echo '
 					<div class="modal fade" id="stats-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
@@ -170,6 +170,7 @@ echo '
 							<div class="modal-content">
 								<div class="modal-header">
 									<h4 class="modal-title">Network Statistics</h4>
+									<span class="float-right">Refresh <input type="checkbox" id="refresh_switch" checked data-bootstrap-switch></span>
 								</div>
 								<div class="modal-body">
 									<p id="stats_body"></p>

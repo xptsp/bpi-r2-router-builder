@@ -1,5 +1,5 @@
 <?php
-if (isset($_GET['backup']))
+if (isset($_GET['download']))
 {
 	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup create");
 	$cfg = "/tmp/bpiwrt.cfg";
@@ -22,7 +22,7 @@ echo '
 	<div class="card-body">
 		<div class="input-group mb-4">
 			<label class="col-sm-6 col-form-label">Save a copy of current settings</label>
-			<div class="col-sm-6"><a href="/admin/backup?backup"><button type="button" class="btn btn-block btn-outline-info">Backup Settings</button></a></div>
+			<div class="col-sm-6"><a href="/admin/backup?download"><button type="button" class="btn btn-block btn-outline-info">Backup Settings</button></a></div>
 		</div>
 	</div>
 </div>

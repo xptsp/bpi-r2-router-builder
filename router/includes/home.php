@@ -1,5 +1,5 @@
 <?php
-site_menu();
+site_menu(true);
 
 #######################################################################################################
 # Display WAN (internet) connectivity:
@@ -17,10 +17,10 @@ echo '
 						</div>
 						<div class="icon">
 							<i class="fas fa-ethernet"></i>
-						</div>
+						</div>', $logged_in ? '
 						<a href="/admin/status" class="small-box-footer">
 							Detailed Status <i class="fas fa-arrow-circle-right"></i>
-						</a>
+						</a>' : '', '
 					</div>
 				</div>';
 
@@ -39,10 +39,10 @@ echo '
 						</div>
 						<div class="icon">
 							<i class="fas fa-laptop-house"></i>
-						</div>
+						</div>', $logged_in ? '
 						<a href="/admin/attached" class="small-box-footer">
 							Device List <i class="fas fa-arrow-circle-right"></i>
-						</a>
+						</a>' : '', '
 					</div>
 				</div>';
 
@@ -59,10 +59,10 @@ echo '
 						</div>
 						<div class="icon">
 							<i class="fab fa-usb"></i>
-						</div>
+						</div>', $logged_in ? '
 						<a href="#" class="small-box-footer">
 							USB Sharing Settings <i class="fas fa-arrow-circle-right"></i>
-						</a>
+						</a>' : '', '
 					</div>
 				</div>';
 
@@ -78,10 +78,10 @@ echo '
 						</div>
 						<div class="icon">
 							<i class="fas fa-wifi"></i>
-						</div>
+						</div>', $logged_in ? '
 						<a href="#" class="small-box-footer">
 							Wireless Settings <i class="fas fa-arrow-circle-right"></i>
-						</a>
+						</a>' : '', '
 					</div>
 				</div>';
 
@@ -97,10 +97,10 @@ echo '
 						</div>
 						<div class="icon">
 							<i class="fas fa-wifi"></i>
-						</div>
+						</div>', $logged_in ? '
 						<a href="#" class="small-box-footer">
 							Wireless Settings <i class="fas fa-arrow-circle-right"></i>
-						</a>
+						</a>' : '', '
 					</div>
 				</div>';
 
@@ -116,10 +116,10 @@ echo '
 						</div>
 						<div class="icon">
 							<i class="fas fa-wifi"></i>
-						</div>
+						</div>', $logged_in ? '
 						<a href="#" class="small-box-footer">
 							Wireless Settings <i class="fas fa-arrow-circle-right"></i>
-						</a>
+						</a>' : '', '
 					</div>
 				</div>';
 

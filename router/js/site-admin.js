@@ -21,6 +21,7 @@ function Init_Stats()
 			$("#dhcp_expire").html( data.dhcp_expire );
 		}
 	});
+	$("#refresh_switch").bootstrapSwitch();
 }
 
 function Stats_Reboot_Button()
@@ -85,6 +86,15 @@ function Stats_Network_Show()
 {
 	Stats_Network_Get();
 	myTimer = setInterval(Stats_Network_Get, 5000);
+	$("#refresh_switch").on('switchChange.bootstrapSwitch', function(event, state) {
+		if (state == true)
+		{
+			Stats_Network_Get();
+			myTimer = setInterval(Stats_Network_Get, 5000);
+		}
+		else
+			clearInterval(myTimer);
+	});
 }
 
 function Stats_Network_Close()

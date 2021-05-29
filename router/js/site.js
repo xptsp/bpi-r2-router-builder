@@ -1,5 +1,6 @@
 var SID;
 var LoginTimer;
+var RefreshTimer;
 
 function Init_Site(sid)
 {
@@ -11,7 +12,17 @@ function Init_Site(sid)
 function Init_Home()
 {
 	Home_Data();
-	setInterval(Home_Data, 5000);
+	RefreshTimer = setInterval(Home_Data, 5000);
+	$("#refresh_switch").bootstrapSwitch();
+	$("#refresh_switch").on('switchChange.bootstrapSwitch', function(event, state) {
+		if (state == true)
+		{
+			Home_Data();
+			RefreshTimer = setInterval(Home_Data, 5000);
+		}
+		else
+			clearInterval(RefreshTimer);
+	});
 }
 
 function Home_Data()
