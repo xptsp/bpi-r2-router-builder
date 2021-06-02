@@ -41,7 +41,7 @@ umount ${DEV}* >& /dev/null
 LINE=($(sudo fdisk --list ${DEV} | grep "${DEV}2"))
 END=$(( ${LINE[2]} + 1 ))
 
-FILE=${1:-"bpiwrt_$(date +"%Y%m%d_%H%M").img"}
+FILE=${1:-"bpiwrt_v$(date +"%Y.%m%d.%H%M").img"}
 MB=$(( ${END} / 2 / 1024 / 4))
 SZ=$(( ${END} * 512 ))
 echo -e "${GREEN}================================================================${NC}"

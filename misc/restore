@@ -44,7 +44,7 @@ if [[ "$FILE" == *".img" && -e "${FILE}" ]]; then
 	echo -e "${RED}NOTE:${NC} Writing ${BLUE}${FILE}${NC} to ${BLUE}${DEV}${NC}..."
 	echo -e "${RED}INFO:${NC} $(printf "%'.0f\n" ${END}) blocks = $(printf "%'.0f\n" $(( ${MB} * 4 ))) MB ($(printf "%'.0f\n" ${SZ}))"
 	echo -e "${GREEN}================================================================${NC}"
-	dd of=${DEV} if=${FILE} bs=4M count=$(( ${END} / 2 / 1024 / 4)) status=progress
+	dd of=${DEV} if=${FILE} count=${END} status=progress
 	echo -e "${GREEN}================================================================${NC}"
 	echo -e "${GREEN}SUCCESS!${NC} Image has restored!"
 	partprobe ${DEV}
