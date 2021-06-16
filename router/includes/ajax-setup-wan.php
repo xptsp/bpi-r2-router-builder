@@ -32,21 +32,29 @@ if (isset($parts[1]) && (!is_numeric($parts[1]) || $parts[1] < 5051 || $parts[1]
 # If we have an error message, return it to the user and abort:
 if (!empty($err))
 	die($err);
+#echo '<pre>'; print_r($_POST); echo '</pre>';
 
 #################################################################################################
 # Output the network adapter configuration to the "/tmp" directory:
 #################################################################################################
 $text = 
 'auto wan
-iface wan inet ' . ($_POST['static'] == 'true' ? 'static' : 'dhcp') . '
-    hwaddress ether ' . strtolower($_POST['mac']) . ($_POST['static'] == 'true' ? '
+iface wan inet ' . (!empty($_POST['static']) ? 'static' : 'dhcp') . '
+    hwaddress ether ' . strtolower($_POST['mac']) . (!empty($_POST['static']) ? '
     address ' . $_POST['ip_addr'] . '
     netmask ' . $_POST['ip_mask'] . '
     post-up route add default gw ' . $_POST['ip_gate'] . '
     pre-down route del default gw ' . $_POST['ip_gate'] : '') . '
-    post-up echo 6 > /sys/class/net/wan/queues/rx-0/rps_cpus';
-$handle = fopen("/tmp/wan.conf", "w");
+    post-up echo 6 > /sys/class/net/wan/queues/rx-0/rps_cpus
+';
+$handle = fopen("/tmp/wan", "w");
 fwrite($handle, $text);
 fclose($handle);
 
-echo "OK";
+#################################################################################################
+# Change the DNS servers by calling the router-helper script:
+#################################################################################################
+@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh move_config wan");
+@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns " . $_POST['dns1'] . " " . $_POST['dns2']);
+
+

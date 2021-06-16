@@ -51,7 +51,7 @@ function Setup_Internet_Submit()
 	use_doh = ($("[name=dns_server_opt]:checked").val()) == "doh";
 	postdata = {
 		'sid':      SID,
-		'static':   $("[name=static_dynamic]:checked").val() == 'static',
+		'static':   $("[name=static_dynamic]:checked").val() == 'static' ? 1 : 0,
 		'ip_addr':  $("#ip_addr").val(),
 		'ip_mask':  $("#ip_mask").val(),
 		'ip_gate':  $("#ip_gate").val(),
@@ -64,8 +64,7 @@ function Setup_Internet_Submit()
 
 	// Perform our AJAX request to change the WAN settings:
 	$.post("/ajax/setup-wan", postdata, function(data) {
-		$(".alert_control").removeClass("hidden");
-		$("#apply_msg").html(data);
+		document.location.reload(true);
 	}).fail(function() {
 		$("#apply_msg").html("AJAX call failed!");
 		$(".alert_control").removeClass("hidden");

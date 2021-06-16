@@ -291,6 +291,15 @@ case $CMD in
 		;;
 
 	###########################################################################
+	move_config)
+		if ! ifconfig ${1} >& /dev/null; then echo "ERROR: Invalid adapter specified"; exit; fi
+		if ! test -f /tmp/${1}; then echo "ERROR: Missing Configuration File"; exit; fi
+		mv /tmp/${1} /etc/network/interfaces.d/${1}
+		ifdown ${1}
+		ifup ${1}
+		;;
+
+	###########################################################################
 	*)
 		echo "Syntax: $(basename $0) [command] [options]"
 		;;
