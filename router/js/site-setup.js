@@ -34,6 +34,11 @@ function Setup_Internet(mac)
 	$("#mac_default").click(function() {
 		$("#mac_addr").val("08:00:00:00:00:01").attr("disabled", "disabled");
 	});
+	$("#mac_random").click(function() {
+		$("#mac_addr").val("XX:XX:XX:XX:XX:XX".replace(/X/g, function() {
+			return "0123456789ABCDEF".charAt(Math.floor(Math.random() * 16))
+		})).attr("disabled", "disabled");
+	});
 	$("#mac_computer").click(function() {
 		$("#mac_addr").val(mac).attr("disabled", "disabled");
 	});
@@ -64,7 +69,13 @@ function Setup_Internet_Submit()
 
 	// Perform our AJAX request to change the WAN settings:
 	$.post("/ajax/setup-wan", postdata, function(data) {
-		document.location.reload(true);
+		if (data == "OK")
+			document.location.reload(true);
+		else
+		{
+			$("#apply_msg").html(data);
+			$(".alert_control").removeClass("hidden");
+		}
 	}).fail(function() {
 		$("#apply_msg").html("AJAX call failed!");
 		$(".alert_control").removeClass("hidden");

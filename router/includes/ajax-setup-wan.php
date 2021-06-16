@@ -56,5 +56,5 @@ fclose($handle);
 #################################################################################################
 @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh move_config wan");
 @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns " . $_POST['dns1'] . " " . $_POST['dns2']);
-
+echo "OK";
 

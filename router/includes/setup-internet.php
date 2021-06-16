@@ -11,6 +11,7 @@ $gateway = @trim(shell_exec("ip route | grep default | grep wan | awk '{print $3
 ###################################################################################################
 # Internet IP Address section
 ###################################################################################################
+$dhcp = strpos($cfg['iface'], 'dhcp') > -1;
 echo '
 <div class="card card-info">
 	<div class="card-header">
@@ -19,11 +20,11 @@ echo '
 	<div class="card-body">
 		<div class="form-group clearfix">
 			<div class="icheck-primary">
-				<input type="radio" value="dynamic" id="dynamic_ip" name="static_dynamic"', strpos($cfg['iface'], 'dhcp') > -1 ? ' checked="checked"' : '', '>
+				<input type="radio" value="dynamic" id="dynamic_ip" name="static_dynamic"', $dhcp ? ' checked="checked"' : '', '>
 				<label for="dynamic_ip">Get Dynamically from ISP</label>
 			</div>
 			<div class="icheck-primary">
-				<input type="radio" value="static" id="static_ip" name="static_dynamic"', strpos($cfg['iface'], 'dhcp') > -1 ? '' : ' checked="checked"', '>
+				<input type="radio" value="static" id="static_ip" name="static_dynamic"', $dhcp ? '' : ' checked="checked"', '>
 				<label for="static_ip">Use Static IP Address</label>
 			</div>
 		</div>
@@ -36,7 +37,7 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-						<input id="ip_addr" type="text" class="ip_address form-control" value="', $wan['inet'], '" data-inputmask="\'alias\': \'ip\'" data-mask', strpos($cfg['iface'], 'dhcp') > -1 ? ' disabled="disabled"' : '', '>
+						<input id="ip_addr" type="text" class="ip_address form-control" value="', $wan['inet'], '" data-inputmask="\'alias\': \'ip\'" data-mask', $dhcp ? ' disabled="disabled"' : '', '>
 					</div>
 				</td>
 			</tr>
@@ -48,7 +49,7 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-						<input id="ip_mask" type="text" class="ip_address form-control"  value="', $wan['netmask'], '"data-inputmask="\'alias\': \'ip\'" data-mask', strpos($cfg['iface'], 'dhcp') > -1 ? ' disabled="disabled"' : '', '>
+						<input id="ip_mask" type="text" class="ip_address form-control"  value="', $wan['netmask'], '"data-inputmask="\'alias\': \'ip\'" data-mask', $dhcp ? ' disabled="disabled"' : '', '>
 					</div>
 				</td>
 			</tr>
@@ -60,7 +61,7 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-						<input id="ip_gate" type="text" class="ip_address form-control" value="', $gateway, '" data-inputmask="\'alias\': \'ip\'" data-mask', strpos($cfg['iface'], 'dhcp') > -1 ? ' disabled="disabled"' : '', '>
+						<input id="ip_gate" type="text" class="ip_address form-control" value="', $gateway, '" data-inputmask="\'alias\': \'ip\'" data-mask', $dhcp ? ' disabled="disabled"' : '', '>
 					</div>
 				</td>
 			</tr>
@@ -155,6 +156,10 @@ echo '
 			<div class="icheck-primary">
 				<input class="mac_opt" type="radio" id="mac_computer" name="router_mac"', $mac == $mac_com ? ' checked="checked"' : '', ' data-mac="', $mac_com, '"', $mac_com == "" ? ' disabled="disabled"' : '', '>
 				<label for="mac_computer">Use Computer MAC Address</label>
+			</div>
+			<div class="icheck-primary">
+				<input class="mac_opt" type="radio" id="mac_random" name="router_mac"', $mac == $mac_com ? ' checked="checked"' : '', ' data-mac="', $mac_com, '"', $mac_com == "" ? ' disabled="disabled"' : '', '>
+				<label for="mac_random">Use Randomly Generated MAC Address</label>
 			</div>
 			<div class="icheck-primary">
 				<input class="mac_opt" type="radio" id="mac_custom" name="router_mac"', !$mac_chk ? ' checked="checked"' : '', '>
