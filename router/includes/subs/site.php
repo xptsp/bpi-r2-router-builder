@@ -9,10 +9,10 @@ $output_null = false;
 $sidebar_menu = array(
 	'home'   => menu_link('/', 'Home', 'fas fa-home'),
 	'setup'  => menu_submenu('Setup', 'fas fa-cog', array(
-		'internet' => menu_link('/setup/internet', 'Internet Setup', 'fas fa-ethernet'),
-		'firewall' => menu_link('/setup/firewall', 'Firewall Config', 'fas fa-ethernet'),
-		'lan'      => menu_link('/setup/lan', 'LAN Setup', 'fas fa-ethernet'),
+		'internet' => menu_link('/setup/internet', 'Internet Setup', 'fas fa-globe'),
+		'firewall' => menu_link('/setup/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
 		'wireless' => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
+		'lan'      => menu_link('/setup/lan', 'LAN Setup', 'fas fa-ethernet'),
 	)),
 	'storage'    => menu_submenu('Storage', 'fas fa-hdd', array(
 		'basic'    => menu_link('/storage/usb-basic', 'Basic Settings', 'fab fa-usb'),
@@ -67,6 +67,7 @@ function site_header($override_title = "")
 	<link rel="stylesheet" href="/css/ionicons.min.css">
 	<link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css">
 	<link rel="stylesheet" href="/css/custom.css">
+	<link rel="stylesheet" href="/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
 </head>';
 	$header_done = true;
 }
@@ -295,6 +296,7 @@ function site_footer($init_str = '')
 <script src="/js/adminlte.min.js"></script>
 <script src="/plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>
 <script src="/plugins/bootstrap-switch/js/bootstrap-switch.min.js"></script>
+<script src="/plugins/inputmask/jquery.inputmask.min.js"></script>
 <script src="/js/site.js', $post_js, '"></script>';
 
 	# Include any additional javascript files requested by the pages:

@@ -7,15 +7,13 @@ function Init_Site(sid)
 	SID=sid;
 	$("#login_close").click(Login_Close);
 	$("#login_submit").click(Login_Submit);
-	$("input[data-bootstrap-switch]").each(function(){
-		$(this).bootstrapSwitch('state', $(this).prop('checked')).bootstrapSwitch('size', 'small');
-    });
 }
 
 function Init_Home()
 {
 	Home_Data();
 	RefreshTimer = setInterval(Home_Data, 5000);
+	$("#refresh_switch").bootstrapSwitch();
 	$("#refresh_switch").on('switchChange.bootstrapSwitch', function(event, state) {
 		if (state == true)
 		{

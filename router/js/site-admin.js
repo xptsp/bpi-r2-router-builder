@@ -1,4 +1,5 @@
 var timer;
+var MyTimer;
 var restore_type;
 
 //======================================================================================================
@@ -20,6 +21,7 @@ function Init_Stats()
 			$("#dhcp_expire").html( data.dhcp_expire );
 		}
 	});
+	$("#refresh_switch").bootstrapSwitch();
 }
 
 function Stats_Reboot_Button()
@@ -60,11 +62,11 @@ function Stats_Confirm_Reboot()
 		$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately 60 seconds.");
 		timer = 60;
 		Stats_Reboot_Msg();
-		RefreshTimer = setInterval(function() {
+		myTimer = setInterval(function() {
 			--timer;
 			Stats_Reboot_Msg();
 			if (timer === 0) {
-				clearInterval(RefreshTimer);
+				clearInterval(MyTimer);
 				document.location.reload(true);
 			}
 		}, 1000);
@@ -83,21 +85,21 @@ function Stats_Network_Get()
 function Stats_Network_Show()
 {
 	Stats_Network_Get();
-	RefreshTimer = setInterval(Stats_Network_Get, 5000);
+	myTimer = setInterval(Stats_Network_Get, 5000);
 	$("#refresh_switch").on('switchChange.bootstrapSwitch', function(event, state) {
 		if (state == true)
 		{
 			Stats_Network_Get();
-			RefreshTimer = setInterval(Stats_Network_Get, 5000);
+			myTimer = setInterval(Stats_Network_Get, 5000);
 		}
 		else
-			clearInterval(RefreshTimer);
+			clearInterval(myTimer);
 	});
 }
 
 function Stats_Network_Close()
 {
-	clearInterval(RefreshTimer);
+	clearInterval(myTimer);
 }
 
 //======================================================================================================
@@ -113,8 +115,8 @@ function Creds_Password_Fail(msg)
 	$("#passwd_msg").html(msg);
 	$("#passwd_icon").removeClass("fa-thumbs-up");
 	$("#alert_msg").addClass("alert-danger").removeClass("alert-success").fadeIn("slow");
-	RefreshTimer = setInterval(function() {
-		clearInterval(RefreshTimer);
+	myTimer = setInterval(function() {
+		clearInterval(MyTimer);
 		$("#alert_msg").fadeOut("slow");
 	}, 3000);
 }
@@ -150,8 +152,8 @@ function Creds_Password_Submit()
 			$("#passwd_msg").html("Password Change Successful!");
 			$("#passwd_icon").addClass("fa-thumbs-up");
 			$("#alert_msg").removeClass("alert-danger").addClass("alert-success").fadeIn("slow");
-			RefreshTimer = setInterval(function() {
-				clearInterval(RefreshTimer);
+			myTimer = setInterval(function() {
+				clearInterval(MyTimer);
 				$("#alert_msg").fadeOut("slow");
 			}, 3000);
 		}
