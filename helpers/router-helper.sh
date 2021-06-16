@@ -100,113 +100,13 @@ function valid_ip()
 }
 
 ###########################################################################
-# Function dealing with setting overlay mode:
-###########################################################################
-function setOverlay()
-{
-	if [[ "$1" == "enable" ]]; then
-		if ! cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
-			echo "INFO: Overlay root filesystem script already enabled!"
-		else
-			mount -o remount,rw /boot
-			sed -i "s|init=/sbin/overlayRoot.sh|init=/sbin/overlayRoot.sh noOverlayRoot|g" /boot/bananapi/bpi-r2/linux/uEnv.txt
-			mount -o remount,ro /boot
-			if ! cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
-				echo "ERROR: Unable to enable Overlay Root script!"
-				exit 1
-			else
-				echo "Overlay Root script enabled for next reboot!"
-			fi
-		fi
-	elif [[ "$1" == "disable" ]]; then
-		if cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
-			echo "INFO: Overlay root filesystem script already disabled!"
-		else
-			mount -o remount,rw /boot
-			sed -i "s|init=/sbin/overlayRoot.sh noOverlayRoot|init=/sbin/overlayRoot.sh|g" /boot/bananapi/bpi-r2/linux/uEnv.txt
-			mount -o remount,ro /boot
-			if cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
-				echo "ERROR: Unable to disable Overlay Root script!"
-				exit 1
-			else
-				echo "Overlay Root script disabled for next reboot!"
-			fi
-		fi
-	else
-		echo "SYNTAX: $(basename $0) overlay [enable|disable]"
-	fi
-}
-
-###########################################################################
-# Function dealing with setting reformat persistant storage flag:
-###########################################################################
-function setReformat()
-{
-	if [[ ! -z "$2" && ! "$2" =~ -(y|-yes) ]]; then
-		echo "SYNTAX: $(basename $0) reformat [-y|--yes]"
-		exit 1
-	fi
-	if [[ ! "$2" =~ -(y|-yes) ]]; then
-		echo "WARNING: The router will reboot and persistent storage will be formatted.  This action cannot be undone!\n\n"
-		askYesNo "Are you SURE you want to do this?" || exit 0
-	fi
-	remount_rw
-	sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=yes|g" /ro/etc/overlayRoot.conf
-	remount_ro
-	reboot now
-}
-
-###########################################################################
-# Function that sets the IP address for DNS server we're using:
-###########################################################################
-function setDNS()
-{
-	IP=(${@/\#/ })
-	if ! valid_ip ${IP[0]}; then
-		echo "ERROR: Invalid IP address specified in 2nd parameter!"
-		echo "SYNTAX: $(basename $0) dns [ip address(#optional port)]"
-		exit 1
-	fi
-	if [[ ! -z "${IP[1]}" ]]; then
-		if [[ ! "${IP[1]}" =~ ^[0-9]+$ || ${IP[1]} -gt 65535 ]]; then
-			echo "ERROR: Invalid port number specified in 2nd parameter!"
-			echo "SYNTAX: $(basename $0) dns [ip address(#optional port)]"
-			exit 1
-		fi
-	fi
-	sed -i "/PIHOLE_DNS_/d" /etc/pihole/setupVars.conf
-	echo "PIHOLE_DNS_1=${1}" >> /etc/pihole/setupVars.conf
-	pihole restartdns
-}
-
-###########################################################################
-# Function dealing with login credentials and username:
-###########################################################################
-function setLogin()
-{
-	if [[ "$1" == "check" ]]; then
-		[[ -z "${2}" || -z "${3}" ]] && echo "No match" && exit 1
-		pwd=$(getent shadow ${2} | cut -d: -f2)
-		salt=\$$(echo $pwd | cut -d$ -f2)\$$(echo $pwd | cut -d$ -f3)
-		[ "$(python -c 'import crypt; print crypt.crypt("'"${3}"'", "'${salt}'")')" == "${pwd}" ] && echo "Match" || echo "No match"
-	elif [[ "$1" == "webui" ]]; then
-		echo $(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
-	elif [[ "$1" == "passwd" ]]; then
-		[[ -z "${2}" ]] && echo "Password not specified" && exit 1
-		(echo $2; echo $2) | passwd $(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
-	elif [[ "$1" == "username" ]]; then
-		[[ -z "${2}" ]] && echo "Username not specified" && exit 1
-		usermod -l $2 $(cat /etc/passwd | grep ":1000:" | cut -d: -f1) && echo "Success"
-	fi
-}
-
-###########################################################################
 # Main code
 ###########################################################################
 RO_DEV=$(test -f /ro/etc/fstab && cat /ro/etc/fstab | grep " / " | sed "s|^#||g" | cut -d" " -f 1)
 CMD=$1
 shift
 case $CMD in
+	###########################################################################
 	chroot)
 		check_ro
 		remount_rw
@@ -218,6 +118,7 @@ case $CMD in
 		remount_ro
 		;;
 
+	###########################################################################
 	remount)
 		check_ro
 		if [[ "$1" == "rw" ]]; then
@@ -229,31 +130,111 @@ case $CMD in
 		fi
 		;;
 
+	###########################################################################
 	reformat)
 		check_ro
-		setReformat $@
+		if [[ ! -z "$2" && ! "$2" =~ -(y|-yes) ]]; then
+			echo "SYNTAX: $(basename $0) reformat [-y|--yes]"
+			exit 1
+		fi
+		if [[ ! "$2" =~ -(y|-yes) ]]; then
+			echo "WARNING: The router will reboot and persistent storage will be formatted.  This action cannot be undone!\n\n"
+			askYesNo "Are you SURE you want to do this?" || exit 0
+		fi
+		remount_rw
+		sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=yes|g" /ro/etc/overlayRoot.conf
+		remount_ro
+		reboot now
 		;;
 
+	###########################################################################
 	overlay)
-		setOverlay $@
+		if [[ "$1" == "enable" ]]; then
+			if ! cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
+				echo "INFO: Overlay root filesystem script already enabled!"
+			else
+				mount -o remount,rw /boot
+				sed -i "s|init=/sbin/overlayRoot.sh|init=/sbin/overlayRoot.sh noOverlayRoot|g" /boot/bananapi/bpi-r2/linux/uEnv.txt
+				mount -o remount,ro /boot
+				if ! cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
+					echo "ERROR: Unable to enable Overlay Root script!"
+					exit 1
+				else
+					echo "Overlay Root script enabled for next reboot!"
+				fi
+			fi
+		elif [[ "$1" == "disable" ]]; then
+			if cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
+				echo "INFO: Overlay root filesystem script already disabled!"
+			else
+				mount -o remount,rw /boot
+				sed -i "s|init=/sbin/overlayRoot.sh noOverlayRoot|init=/sbin/overlayRoot.sh|g" /boot/bananapi/bpi-r2/linux/uEnv.txt
+				mount -o remount,ro /boot
+				if cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "init=/sbin/overlayRoot.sh noOverlayRoot" >& /dev/null; then
+					echo "ERROR: Unable to disable Overlay Root script!"
+					exit 1
+				else
+					echo "Overlay Root script disabled for next reboot!"
+				fi
+			fi
+		else
+			echo "SYNTAX: $(basename $0) overlay [enable|disable]"
+		fi
 		;;
 
+	###########################################################################
 	dns)
-		setDNS $@
+		IP=(${@/\#/ })
+		if ! valid_ip ${IP[0]}; then
+			echo "ERROR: Invalid IP address specified in 2nd parameter!"
+			echo "SYNTAX: $(basename $0) dns [ip address(#optional port)]"
+			exit 1
+		fi
+		if [[ ! -z "${IP[1]}" ]]; then
+			if ! valid_ip ${IP[1]}; then
+				if [[ ! "${IP[1]}" =~ ^[0-9]+$ || ${IP[1]} -gt 65535 ]]; then
+					echo "ERROR: Invalid port number specified in 2nd parameter!"
+					echo "SYNTAX: $(basename $0) dns [ip address(#optional port)]"
+					echo "--OR--: $(basename $0) dns [ip address 1] [ip address 2]"
+					exit 1
+				fi
+			fi
+		fi
+		sed -i "/PIHOLE_DNS_/d" /etc/pihole/setupVars.conf
+		echo "PIHOLE_DNS_1=${1}" >> /etc/pihole/setupVars.conf
+		echo "PIHOLE_DNS_2=${2}" >> /etc/pihole/setupVars.conf
+		pihole restartdns
 		;;
 
+	###########################################################################
 	pihole)
 		/usr/local/bin/pihole $@
 		;;
 
+	###########################################################################
 	apt)
 		/usr/bin/apt $@
 		;;
 
+	###########################################################################
 	login)
-		setLogin $@
+		if [[ "$1" == "check" ]]; then
+			[[ -z "${2}" || -z "${3}" ]] && echo "No match" && exit 1
+			pwd=$(getent shadow ${2} | cut -d: -f2)
+			salt=\$$(echo $pwd | cut -d$ -f2)\$$(echo $pwd | cut -d$ -f3)
+			[ "$(python -c 'import crypt; print crypt.crypt("'"${3}"'", "'${salt}'")')" == "${pwd}" ] && echo "Match" || echo "No match"
+		elif [[ "$1" == "webui" ]]; then
+			echo $(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
+		elif [[ "$1" == "passwd" ]]; then
+			[[ -z "${2}" ]] && echo "Password not specified" && exit 1
+			(echo $2; echo $2) | passwd $(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
+		elif [[ "$1" == "username" ]]; then
+			[[ -z "${2}" ]] && echo "Username not specified" && exit 1
+			usermod -l $2 $(cat /etc/passwd | grep ":1000:" | cut -d: -f1) && echo "Success"
+		fi
 		;;
 
+	###########################################################################
 	dhcp-info)
 		bound=($(grep dhclient /var/log/syslog* | grep bound | sort | tail -1 | cut -d":" -f 2-))
 		from=($(grep dhclient /var/log/syslog* | grep from | sort | tail -1 | cut -d":" -f 2-))
@@ -262,14 +243,17 @@ case $CMD in
 		echo ${from[-1]} $(echo $(php -r "echo strtotime('${bound[0]} ${bound[1]} ${bound[2]}');")) ${bound[-2]}
 		;;
 
+	###########################################################################
 	reboot)
 		/sbin/reboot now
 		;;
 
+	###########################################################################
 	poweroff)
 		/sbin/poweroff
 		;;
 
+	###########################################################################
 	webui)
 		cd /opt/bpi-r2-router-builder
 		if [[ "$1" == "current" ]]; then
@@ -282,6 +266,7 @@ case $CMD in
 		fi
 		;;
 
+	###########################################################################
 	backup)
 		if [[ "$1" == "create" ]]; then
 			ftb=($(cat /etc/default/backup_file.list))
@@ -305,6 +290,7 @@ case $CMD in
 		fi
 		;;
 
+	###########################################################################
 	*)
 		echo "Syntax: $(basename $0) [command] [options]"
 		;;

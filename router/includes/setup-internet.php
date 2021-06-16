@@ -19,11 +19,11 @@ echo '
 	<div class="card-body">
 		<div class="form-group clearfix">
 			<div class="icheck-primary">
-				<input type="radio" id="dynamic_ip" name="static_dynamic"', strpos($cfg['iface'], 'dhcp') > -1 ? ' checked="checked"' : '', '>
+				<input type="radio" value="dynamic" id="dynamic_ip" name="static_dynamic"', strpos($cfg['iface'], 'dhcp') > -1 ? ' checked="checked"' : '', '>
 				<label for="dynamic_ip">Get Dynamically from ISP</label>
 			</div>
 			<div class="icheck-primary">
-				<input type="radio" id="static_ip" name="static_dynamic"', strpos($cfg['iface'], 'dhcp') > -1 ? '' : ' checked="checked"', '>
+				<input type="radio" value="static" id="static_ip" name="static_dynamic"', strpos($cfg['iface'], 'dhcp') > -1 ? '' : ' checked="checked"', '>
 				<label for="static_ip">Use Static IP Address</label>
 			</div>
 		</div>
@@ -78,7 +78,6 @@ foreach (file("/etc/pihole/setupVars.conf") as $line)
 	else if (preg_match("/PIHOLE_DNS_2=(.*)/", $line, $regex))
 		$dns2 = $regex[1];
 }
-$dns1 = "127.0.0.1#5051";
 if (preg_match("/\#505(\d)/", $dns1, $regex))
 {
 	$cloudflare = $regex[1];
@@ -91,18 +90,18 @@ echo '
 	<div class="card-body">
 		<div class="form-group clearfix">
 			<div class="icheck-primary">
-				<input type="radio" id="dns_doh" name="dns_server_opt"', empty($cloudflare) ? ' checked="checked"' : '', '>
+				<input type="radio" id="dns_doh" value="doh" name="dns_server_opt"', !empty($cloudflare) ? ' checked="checked"' : '', '>
 				<label for="dns_doh">Use Cloudflare DNS over HTTPS (DoH) Server:</label>
 				<span class="float-right">
-					<select class="form-control select2" style="width: 100%;" id="doh_server" name="doh_server"', empty($cloudflare) ? '' : ' disabled="disabled"', '>
-						<option value="1"', $cloudflare < 2 ? ' selected="selected"' : '', '>Regular 1.1.1.1</option>
+					<select class="form-control select2" style="width: 100%;" id="doh_server" name="doh_server"', !empty($cloudflare) ? '' : ' disabled="disabled"', '>
+						<option value="1"', $cloudflare == 1 ? ' selected="selected"' : '', '>Regular 1.1.1.1</option>
 						<option value="2"', $cloudflare == 2 ? ' selected="selected"' : '', '>Malware Blocking Only</option>
 						<option value="3"', $cloudflare == 3 ? ' selected="selected"' : '', '>Malware and Adult Content Blocking</option>
 					</select>
   				</span>
 			</div>
 			<div class="icheck-primary">
-				<input type="radio" id="dns_custom" name="dns_server_opt"', empty($cloudflare) ? '' : ' checked="checked"', '>
+				<input type="radio" id="dns_custom" value="custom" name="dns_server_opt"', !empty($cloudflare) ? '' : ' checked="checked"', '>
 				<label for="dns_custom">Use These DNS Servers</label>
 			</div>
 		</div>
@@ -115,7 +114,7 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-						<input id="dns1" type="text" class="dns_address form-control" value="', $dns1, '" data-inputmask="\'alias\': \'ip\'" data-mask', empty($cloudflare) ? ' disabled="disabled"' : '', '>
+						<input id="dns1" type="text" class="dns_address form-control" value="', $dns1, '" data-inputmask="\'alias\': \'ip\'" data-mask', !empty($cloudflare) ? ' disabled="disabled"' : '', '>
 					</div>
 				</td>
 			</tr>
@@ -127,7 +126,7 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-						<input id="dns2" type="text" class="dns_address form-control"  value="', $dns2, '"data-inputmask="\'alias\': \'ip\'" data-mask', empty($cloudflare) ? ' disabled="disabled"' : '', '>
+						<input id="dns2" type="text" class="dns_address form-control"  value="', $dns2, '"data-inputmask="\'alias\': \'ip\'" data-mask', !empty($cloudflare) ? ' disabled="disabled"' : '', '>
 					</div>
 				</td>
 			</tr>
@@ -135,7 +134,7 @@ echo '
 	</div>';
 	
 ###################################################################################################
-# Domain Name (DNS) Servers
+# Router MAC Address settings:
 ###################################################################################################
 $mac = explode(" ", trim($cfg['hwaddress']))[1];
 $def = '08:00:00:00:00:01';
@@ -193,7 +192,7 @@ echo '
 				<p id="apply_msg">Please wait while the networking service is restarted....</p>
 			</div>
 			<div class="modal-footer justify-content-between hidden alert_control">
-				<button type="button" class="btn btn-primary" id="reboot_nah" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
 			</div>
 		</div>
 	</div>

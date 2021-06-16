@@ -47,22 +47,24 @@ function Setup_Internet(mac)
 function Setup_Internet_Submit()
 {
 	// Assemble the post data for the AJAX call:
+	doh_addr = "127.0.0.1#505" + $("#doh_server").val();
+	use_doh = ($("[name=dns_server_opt]:checked").val()) == "doh";
 	postdata = {
-		'sid':     SID,
-		'static':  $("#static_ip").val(),
-		'ip_addr': $("#ip_addr").val(),
-		'ip_mask': $("#ip_mask").val(),
-		'ip_gate': $("#ip_gate").val(),
-		'doh':     $("#cloudflare").val(),
-		'dns1':    $("#dns1").val(),
-		'dns2':    $("#dns2").val(),
-		'mac':     $("#mac_addr").val()
+		'sid':      SID,
+		'static':   $("[name=static_dynamic]:checked").val() == 'static',
+		'ip_addr':  $("#ip_addr").val(),
+		'ip_mask':  $("#ip_mask").val(),
+		'ip_gate':  $("#ip_gate").val(),
+		'dns1':     use_doh ? doh_addr : $("#dns1").val(),
+		'dns2':     use_doh ? '' : $("#dns2").val(),
+		'mac':      $("#mac_addr").val()
 	};
 	$(".alert_control").addClass("hidden");
 	$("#apply-modal").modal("show");
 
 	// Perform our AJAX request to change the WAN settings:
 	$.post("/ajax/setup-wan", postdata, function(data) {
+		$(".alert_control").removeClass("hidden");
 		$("#apply_msg").html(data);
 	}).fail(function() {
 		$("#apply_msg").html("AJAX call failed!");
