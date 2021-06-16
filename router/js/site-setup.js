@@ -4,16 +4,10 @@
 function Setup_Internet(mac)
 {
 	$('.ip_address').each(function() {
-		$(this).inputmask({
-			alias: "ip",
-			"placeholder": "_"
-		});
+		$(this).inputmask("ip");
 	});
 	$('.dns_address').each(function() {
-		$(this).inputmask({
-			alias: "ip",
-			"placeholder": "_"
-		});
+		$(this).inputmask("ip");
 	});
 	$("#dynamic_ip").click(function() {
 		$(".ip_address").each(function() {
@@ -52,5 +46,26 @@ function Setup_Internet(mac)
 
 function Setup_Internet_Submit()
 {
-	alert("Got Here!");
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':     SID,
+		'static':  $("#static_ip").val(),
+		'ip_addr': $("#ip_addr").val(),
+		'ip_mask': $("#ip_mask").val(),
+		'ip_gate': $("#ip_gate").val(),
+		'doh':     $("#cloudflare").val(),
+		'dns1':    $("#dns1").val(),
+		'dns2':    $("#dns2").val(),
+		'mac':     $("#mac_addr").val()
+	};
+	$(".alert_control").addClass("hidden");
+	$("#apply-modal").modal("show");
+
+	// Perform our AJAX request to change the WAN settings:
+	$.post("/ajax/setup-wan", postdata, function(data) {
+		$("#apply_msg").html(data);
+	}).fail(function() {
+		$("#apply_msg").html("AJAX call failed!");
+		$(".alert_control").removeClass("hidden");
+	});
 }

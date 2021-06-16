@@ -27,46 +27,44 @@ echo '
 				<label for="static_ip">Use Static IP Address</label>
 			</div>
 		</div>
-		<div class="card-body table-responsive p-0">
-			<table width="100%">
-				<tr>
-					<td width="30px"></td>
-					<td width="45%"><label for="ip_address">IP Address</label></td>
-					<td>
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="fas fa-laptop"></i></span>
-							</div>
-							<input id="ip_address" type="text" class="ip_address form-control" value="', $wan['inet'], '" data-inputmask="\'alias\': \'ip\'" data-mask', strpos($cfg['iface'], 'dhcp') > -1 ? ' disabled="disabled"' : '', '>
+		<table width="100%">
+			<tr>
+				<td width="30px"></td>
+				<td width="45%"><label for="ip_address">IP Address</label></td>
+				<td>
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-					</td>
-				</tr>
-				<tr>
-					<td></td>
-					<td><label for="ip_address">IP Subnet Mask</label></td>
-					<td>
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="fas fa-laptop"></i></span>
-							</div>
-							<input id="ip_address" type="text" class="ip_address form-control"  value="', $wan['netmask'], '"data-inputmask="\'alias\': \'ip\'" data-mask', strpos($cfg['iface'], 'dhcp') > -1 ? ' disabled="disabled"' : '', '>
+						<input id="ip_addr" type="text" class="ip_address form-control" value="', $wan['inet'], '" data-inputmask="\'alias\': \'ip\'" data-mask', strpos($cfg['iface'], 'dhcp') > -1 ? ' disabled="disabled"' : '', '>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td></td>
+				<td><label for="ip_address">IP Subnet Mask</label></td>
+				<td>
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-					</td>
-				</tr>
-				<tr>
-					<td></td>
-					<td><label for="ip_address">IP Gateway Address</label></td>
-					<td>
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="fas fa-laptop"></i></span>
-							</div>
-							<input id="ip_address" type="text" class="ip_address form-control" value="', $gateway, '" data-inputmask="\'alias\': \'ip\'" data-mask', strpos($cfg['iface'], 'dhcp') > -1 ? ' disabled="disabled"' : '', '>
+						<input id="ip_mask" type="text" class="ip_address form-control"  value="', $wan['netmask'], '"data-inputmask="\'alias\': \'ip\'" data-mask', strpos($cfg['iface'], 'dhcp') > -1 ? ' disabled="disabled"' : '', '>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td></td>
+				<td><label for="ip_address">IP Gateway Address</label></td>
+				<td>
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-					</td>
-				</tr>
-			</table>
-		</div>
+						<input id="ip_gate" type="text" class="ip_address form-control" value="', $gateway, '" data-inputmask="\'alias\': \'ip\'" data-mask', strpos($cfg['iface'], 'dhcp') > -1 ? ' disabled="disabled"' : '', '>
+					</div>
+				</td>
+			</tr>
+		</table>
 	</div>';
 
 ###################################################################################################
@@ -108,34 +106,32 @@ echo '
 				<label for="dns_custom">Use These DNS Servers</label>
 			</div>
 		</div>
-		<div class="card-body table-responsive p-0">
-			<table width="100%">
-				<tr>
-					<td width="30px"></td>
-					<td width="45%"><label for="ip_address">Primary DNS Server</label></td>
-					<td>
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="fas fa-laptop"></i></span>
-							</div>
-							<input id="dns1" type="text" class="dns_address form-control" value="', $dns1, '" data-inputmask="\'alias\': \'ip\'" data-mask', empty($cloudflare) ? ' disabled="disabled"' : '', '>
+		<table width="100%">
+			<tr>
+				<td width="30px"></td>
+				<td width="45%"><label for="ip_address">Primary DNS Server</label></td>
+				<td>
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-					</td>
-				</tr>
-				<tr>
-					<td></td>
-					<td><label for="ip_address">Secondary DNS Server</label></td>
-					<td>
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="fas fa-laptop"></i></span>
-							</div>
-							<input id="dns2" type="text" class="dns_address form-control"  value="', $dns2, '"data-inputmask="\'alias\': \'ip\'" data-mask', empty($cloudflare) ? ' disabled="disabled"' : '', '>
+						<input id="dns1" type="text" class="dns_address form-control" value="', $dns1, '" data-inputmask="\'alias\': \'ip\'" data-mask', empty($cloudflare) ? ' disabled="disabled"' : '', '>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td></td>
+				<td><label for="ip_address">Secondary DNS Server</label></td>
+				<td>
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-					</td>
-				</tr>
-			</table>
-		</div>
+						<input id="dns2" type="text" class="dns_address form-control"  value="', $dns2, '"data-inputmask="\'alias\': \'ip\'" data-mask', empty($cloudflare) ? ' disabled="disabled"' : '', '>
+					</div>
+				</td>
+			</tr>
+		</table>
 	</div>';
 	
 ###################################################################################################
@@ -156,9 +152,6 @@ echo '
 			<div class="icheck-primary">
 				<input class="mac_opt" type="radio" id="mac_default" name="router_mac"', $mac == $def ? ' checked="checked"' : '', '>
 				<label for="mac_default">Use Default Address</label>
-				<span class="float-right">
-					<input id="mac_addr" name="mac_addr" type="text" class="form-control" value="', $mac, '" maxlength="17"', $mac_chk ? ' disabled="disabled"' : '', '>
-  				</span>
 			</div>
 			<div class="icheck-primary">
 				<input class="mac_opt" type="radio" id="mac_computer" name="router_mac"', $mac == $mac_com ? ' checked="checked"' : '', ' data-mac="', $mac_com, '"', $mac_com == "" ? ' disabled="disabled"' : '', '>
@@ -167,6 +160,9 @@ echo '
 			<div class="icheck-primary">
 				<input class="mac_opt" type="radio" id="mac_custom" name="router_mac"', !$mac_chk ? ' checked="checked"' : '', '>
 				<label for="mac_custom">Use this MAC Address</label>
+				<span class="float-right">
+					<input id="mac_addr" name="mac_addr" type="text" class="form-control" value="', $mac, '" maxlength="17"', $mac_chk ? ' disabled="disabled"' : '', '>
+  				</span>
 			</div>
 		</div>
 	</div>';
@@ -176,7 +172,7 @@ echo '
 ###################################################################################################
 echo '
 	<div class="card-footer">
-		<button type="button" class="btn btn-block btn-success center_50" data-toggle="modal" data-target="#apply-modal" id="submit">Apply Changes</button>
+		<button type="button" class="btn btn-block btn-success center_50" id="submit">Apply Changes</button>
 	</div>
 </div>';
 
@@ -185,13 +181,19 @@ echo '
 ###################################################################################################
 echo '
 <div class="modal fade" id="apply-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
-	<div class="modal-dialog">
+	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header bg-info">
 				<h4 class="modal-title">Applying Changes</h4>
+				<button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
 			</div>
 			<div class="modal-body">
-				<p>Please wait while the networking service is restarted....</p>
+				<p id="apply_msg">Please wait while the networking service is restarted....</p>
+			</div>
+			<div class="modal-footer justify-content-between hidden alert_control">
+				<button type="button" class="btn btn-primary" id="reboot_nah" data-dismiss="modal">Cancel</button>
 			</div>
 		</div>
 	</div>
