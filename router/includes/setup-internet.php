@@ -150,6 +150,13 @@ echo '
 	<div class="card-body">
 		<div class="form-group clearfix">
 			<div class="icheck-primary">
+				<input class="mac_opt" type="radio" id="mac_custom" name="router_mac"', !$mac_chk ? ' checked="checked"' : '', '>
+				<label for="mac_custom">Use this MAC Address</label>
+				<span class="float-right">
+					<input id="mac_addr" name="mac_addr" type="text" class="form-control" value="', $mac, '" maxlength="17"', $mac_chk ? ' disabled="disabled"' : '', '>
+				</span>
+			</div>
+			<div class="icheck-primary">
 				<input class="mac_opt" type="radio" id="mac_default" name="router_mac"', $mac == $def ? ' checked="checked"' : '', '>
 				<label for="mac_default">Use Default Address</label>
 			</div>
@@ -160,13 +167,6 @@ echo '
 			<div class="icheck-primary">
 				<input class="mac_opt" type="radio" id="mac_random" name="router_mac"', $mac == $mac_com ? ' checked="checked"' : '', ' data-mac="', $mac_com, '"', $mac_com == "" ? ' disabled="disabled"' : '', '>
 				<label for="mac_random">Use Randomly Generated MAC Address</label>
-			</div>
-			<div class="icheck-primary">
-				<input class="mac_opt" type="radio" id="mac_custom" name="router_mac"', !$mac_chk ? ' checked="checked"' : '', '>
-				<label for="mac_custom">Use this MAC Address</label>
-				<span class="float-right">
-					<input id="mac_addr" name="mac_addr" type="text" class="form-control" value="', $mac, '" maxlength="17"', $mac_chk ? ' disabled="disabled"' : '', '>
-  				</span>
 			</div>
 		</div>
 	</div>';
