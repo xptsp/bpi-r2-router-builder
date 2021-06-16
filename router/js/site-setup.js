@@ -1,9 +1,15 @@
 //======================================================================================================
-// Javascript functions for "Admin / Router Status"
+// Javascript functions for "Setup / Internet"
 //======================================================================================================
 function Setup_Internet(mac)
 {
 	$('.ip_address').each(function() {
+		$(this).inputmask({
+			alias: "ip",
+			"placeholder": "_"
+		});
+	});
+	$('.dns_address').each(function() {
 		$(this).inputmask({
 			alias: "ip",
 			"placeholder": "_"
@@ -32,7 +38,7 @@ function Setup_Internet(mac)
 		$("#doh_server").attr("disabled", "disabled");
 	});
 	$("#mac_default").click(function() {
-		$("#mac_addr").val( "08:00:00:00:00:01" ).attr("disabled", "disabled");
+		$("#mac_addr").val("08:00:00:00:00:01").attr("disabled", "disabled");
 	});
 	$("#mac_computer").click(function() {
 		$("#mac_addr").val(mac).attr("disabled", "disabled");
@@ -40,4 +46,11 @@ function Setup_Internet(mac)
 	$("#mac_custom").click(function() {
 		$("#mac_addr").removeAttr("disabled");
 	});
+	$("#mac_addr").inputmask("mac");
+	$("#submit").click(Setup_Internet_Submit);
+}
+
+function Setup_Internet_Submit()
+{
+	alert("Got Here!");
 }
