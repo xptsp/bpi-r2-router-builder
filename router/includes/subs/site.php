@@ -11,8 +11,8 @@ $sidebar_menu = array(
 	'setup'  => menu_submenu('Setup', 'fas fa-cog', array(
 		'internet' => menu_link('/setup/internet', 'Internet Setup', 'fas fa-globe'),
 		'firewall' => menu_link('/setup/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
-		'wireless' => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
 		'lan'      => menu_link('/setup/lan', 'LAN Setup', 'fas fa-ethernet'),
+		'wireless' => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
 	)),
 	'storage'    => menu_submenu('Storage', 'fas fa-hdd', array(
 		'basic'    => menu_link('/storage/usb-basic', 'Basic Settings', 'fab fa-usb'),

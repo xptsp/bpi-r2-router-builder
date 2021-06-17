@@ -1,0 +1,10 @@
+[Unit]
+Description=IPTables Rules
+Before=networking.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/bpi-r2-router-builder/helpers/iptables-rules.sh
+
+[Install]
+WantedBy=multi-user.target

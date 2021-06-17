@@ -1,7 +1,7 @@
 //======================================================================================================
 // Javascript functions for "Setup / Internet"
 //======================================================================================================
-function Setup_Internet(mac)
+function Init_Internet(mac)
 {
 	$('.ip_address').each(function() {
 		$(this).inputmask("ip");
@@ -46,10 +46,10 @@ function Setup_Internet(mac)
 		$("#mac_addr").removeAttr("disabled");
 	});
 	$("#mac_addr").inputmask("mac");
-	$("#submit").click(Setup_Internet_Submit);
+	$("#submit").click(Internet_Submit);
 }
 
-function Setup_Internet_Submit()
+function Internet_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	doh_addr = "127.0.0.1#505" + $("#doh_server").val();
