@@ -2,6 +2,10 @@
 require_once("subs/admin.php");
 require_once("subs/setup.php");
 site_menu();
+
+###################################################################################################
+# Assemble a list of all of the network adapters available on the system:
+###################################################################################################
 $ifaces = get_network_adapters();
 #echo '<pre>'; print_r($ifaces); exit();
 $adapters = get_network_adapters_list();
@@ -10,11 +14,41 @@ $iface = isset($_GET['iface']) ? $_GET['iface'] : 'br0';
 #echo $iface; exit();
 $exclude_regex = "/(docker.+|lo|sit0|wlan.+|eth0|wan)/";
 
+###################################################################################################
 # Get leases for entire system:
+###################################################################################################
 $leases = explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")));
 foreach ($leases as $id => $lease)
 	$leases[$id] = explode(' ', $lease);
 #echo '<pre>'; print_r($leases); exit();
+
+###################################################################################################
+# Assemble some information about the adapter:
+###################################################################################################
+$ifcfg = parse_ifconfig($iface);
+#echo '<pre>'; print_r($iface); exit();
+$cfg = get_mac_info($iface);
+#echo '<pre>'; print_r($cfg); exit();
+$dhcp = explode(",", explode("=", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep dhcp-range=")) . '=')[1]);
+#echo '<pre>'; print_r($dhcp); exit();
+$use_dhcp = isset($dhcp[1]);
+#echo (int) $use_dhcp; exit;
+
+###################################################################################################
+# Assemble DHCP hostname and IP address reservations:
+###################################################################################################
+$reserve = array();
+foreach (explode("\n", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep dhcp-host="))) as $line)
+	$reserve[] = explode(',', explode('=', $line . '=')[1]);
+#echo '<pre>'; print_r($reserve); exit();
+
+$hostname = array();
+foreach (explode("\n", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep host-record="))) as $line)
+{
+	$parts = explode(",", explode("=", $line . '=,')[1]);
+	$hostname[$parts[1]] = $parts[0];
+}
+#echo '<pre>'; print_r($hostname); exit();
 
 ###################################################################################################
 # Device Name
@@ -38,7 +72,12 @@ echo '
 				</td>
 			</tr>
 		</table>
-	</div>
+	</div>';
+	
+###################################################################################################
+# Tabbed interface with list of wired adapters:
+###################################################################################################
+echo '
     <div class="card-header p-0 pt-1">
 		<ul class="nav nav-tabs" id="iface-tab" role="tablist">';
 $init_list = array();
@@ -57,37 +96,9 @@ echo '
 	</div>
 	<div class="card-body">';
 
-#==================================================================================================
-# Assemble some information about the adapter:
-#==================================================================================================
-$ifcfg = parse_ifconfig($iface);
-#echo '<pre>'; print_r($iface); exit();
-$cfg = get_mac_info($iface);
-#echo '<pre>'; print_r($cfg); exit();
-$dhcp = explode(",", explode("=", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep dhcp-range=")) . '=')[1]);
-#echo '<pre>'; print_r($dhcp); exit();
-$use_dhcp = isset($dhcp[1]);
-#echo (int) $use_dhcp; exit;
-
-#==================================================================================================
-# Assemble DHCP hostname and IP address reservations:
-#==================================================================================================
-$reserve = array();
-foreach (explode("\n", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep dhcp-host="))) as $line)
-	$reserve[] = explode(',', explode('=', $line . '=')[1]);
-#echo '<pre>'; print_r($reserve); exit();
-
-$hostname = array();
-foreach (explode("\n", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep host-record="))) as $line)
-{
-	$parts = explode(",", explode("=", $line . '=,')[1]);
-	$hostname[$parts[1]] = $parts[0];
-}
-#echo '<pre>'; print_r($hostname); exit();
-
-#==================================================================================================
+###################################################################################################
 # Interfaces bound to the specified adapter:
-#==================================================================================================
+###################################################################################################
 #echo '<pre>'; print_r($ifaces[$iface]); exit();
 echo '
 		<table width="100%">
@@ -110,9 +121,9 @@ echo '
 				</td>
 			</tr>';
 
-#==================================================================================================
+###################################################################################################
 # Internet IP Address section
-#==================================================================================================
+###################################################################################################
 echo '
 			<tr>
 				<td width="50%"><label for="ip_address">IP Address:</label></td>
@@ -139,9 +150,9 @@ echo '
 		</table>
 		<hr style="border-width: 2px" />';
 
-#==================================================================================================
+###################################################################################################
 # DHCP Settings and IP Range Section
-#==================================================================================================
+###################################################################################################
 echo '
 		<div class="icheck-primary">
 			<input type="checkbox" id="use_dhcp"', $use_dhcp ? ' checked="checked"' : '', '>
@@ -184,9 +195,9 @@ echo '
 		</table>
 		<hr style="border-width: 2px" />';
 
-#==================================================================================================
+###################################################################################################
 # IP Address Reservation section
-#==================================================================================================
+###################################################################################################
 echo '
 		<h5>Address Reservations</h5>
 		<div class="table-responsive p-0 centered">
@@ -199,16 +210,12 @@ echo '
 					<td width="10px">&nbsp;</td>
 				</thead>
 				<tbody>';
-if (count($reserve) == 0)
-	echo '
-					<tr>
-						<td colspan="5">No reservations</td>
-					</tr>';
-else
-	foreach ($reserve as $count => $parts)
+$count = 0;
+foreach ($reserve as $count => $parts)
+{
+	if (isset($parts[1]))
 	{
-		if (isset($parts[1]))
-			echo '
+		echo '
 					<tr>
 						<td>', $parts[2], '</td>
 						<td>', isset($hostname[$parts[2]]) ? $hostname[$parts[2]] : device_name(strtoupper($parts[1])), '</td>
@@ -216,7 +223,14 @@ else
 						<td><a href="#"><i class="fas fa-pen"></i></a>&nbsp;</td>
 						<td><a href="#"><i class="fas fa-trash-alt"></i></a></td>
 					</tr>';
+		$count++;
 	}
+}
+if ($count == 0)
+	echo '
+					<tr>
+						<td colspan="5">No IP Address Reservations</td>
+					</tr>';
 echo '
 				</tbody>
 			</table>
