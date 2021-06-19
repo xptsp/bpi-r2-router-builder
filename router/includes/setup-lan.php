@@ -79,7 +79,7 @@ echo '
 ###################################################################################################
 echo '
     <div class="card-header p-0 pt-1">
-		<ul class="nav nav-tabs" id="iface-tab" role="tablist">';
+		<ul class="nav nav-tabs">';
 $init_list = array();
 foreach ($ifaces as $tface => $details)
 {
@@ -105,14 +105,15 @@ echo '
 			<tr>
 				<td><label for="', $iface . '_bound">Bound Network Adapters:</td>
 				<td>
+					<input id="iface" type="hidden" value="', $iface, '" />
 					<ul class="pagination pagination-sm">';
 foreach (array_merge(array('wan'), $adapters) as $sub)
 {
 	if (!preg_match($exclude_regex, $sub) || $sub == 'wan')
 	{
 		echo '
-						<li class="bound page-item', $sub == $iface || in_array($sub, $ifaces[$iface]) ? ' active' : '', '">
-							<a href="#" class="page-link">', $sub, '</a>
+						<li class="', $sub == 'wan' ? 'wan_bridge' : 'bridge', ' page-item', $sub == $iface || in_array($sub, $ifaces[$iface]) ? ' active' : '', '">
+							<div class="page-link">', $sub, '</div>
 						</li>';
 	}
 }
@@ -182,13 +183,13 @@ echo '
 				</td>
 			</tr>
 			<tr>
-				<td width="50%"><label for="dhcp_end">IP Subnet Mask:</label></td>
+				<td width="50%"><label for="dhcp_mask">IP Subnet Mask:</label></td>
 				<td>
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-						<input id="dhcp_end" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[3]) ? $dhcp[3] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
+						<input id="dhcp_mask" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[3]) ? $dhcp[3] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
 					</div>
 				</td>
 			</tr>
@@ -237,8 +238,8 @@ echo '
 		</div>
 	</div>
 	<div class="card-footer clearfix">
-		<button type="button" class="btn btn-primary float-right"> Apply Changes</button>
-		<button type="button" class="btn btn-primary"><i class="fas fa-plus"></i> Add</button>
+		<button type="button" id="apply_changes" class="btn btn-primary float-right"> Apply Changes</button>
+		<button type="button" id="add_ip" class="btn btn-primary" id="><i class="fas fa-plus"></i> Add</button>
 	</div>
 </div>';
  

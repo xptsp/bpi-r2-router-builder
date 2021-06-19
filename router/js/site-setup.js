@@ -64,10 +64,11 @@ function Internet_Submit()
 		'dns2':     use_doh ? '' : $("#dns2").val(),
 		'mac':      $("#mac_addr").val()
 	};
-	$(".alert_control").addClass("hidden");
-	$("#apply-modal").modal("show");
+	//alert(JSON.stringify(postdata, null, 5));
 
 	// Perform our AJAX request to change the WAN settings:
+	$(".alert_control").addClass("hidden");
+	$("#apply-modal").modal("show");
 	$.post("/ajax/setup-wan", postdata, function(data) {
 		if (data == "OK")
 			document.location.reload(true);
@@ -100,4 +101,32 @@ function Init_Wired(iface)
 				$(this).attr("disabled", "disabled");
 			});
 	});
+	$(".bridge").click(function() {
+		$(this).toggleClass("active");
+	});
+	$(".wan_bridge").click(function() {
+		$(this).toggleClass("active");
+	});
+	$("#apply_changes").click(Wired_Apply);
+}
+
+function Wired_Apply()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':        SID,
+		'iface':      $("#iface").val(),
+		'ip_addr':    $("#ip_addr").val(),
+		'ip_mask':    $("#ip_mask").val(),
+		'use_dhcp':   $("#use_dhcp").is(":checked"),
+		'dhcp_start': $("#dhcp_start").val(),
+		'dhcp_end':   $("#dhcp_end").val(),
+		'dhcp_mask':  $("#dhcp_mask").val(),
+		'bridge':     '',
+	};
+	$(".bridge").each(function() {
+		if ($(this).hasClass("active"))
+			postdata.bridge += " " + $(this).text().trim();
+	});
+	alert(JSON.stringify(postdata, null, 5));
 }
