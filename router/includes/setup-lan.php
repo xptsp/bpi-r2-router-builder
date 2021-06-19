@@ -1,7 +1,14 @@
 <?php
 require_once("subs/admin.php");
+require_once("subs/setup.php");
 site_menu();
+$ifaces = get_network_adapters();
+#echo '<pre>'; print_r($ifaces); exit();
+$adapters = get_network_adapters_list();
+#echo '<pre>'; print_r($adapters); exit();
 $exclude_regex = "/(docker.+|lo|sit0|wlan.+|eth0|wan)/";
+
+# Get leases for entire system:
 $leases = explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")));
 foreach ($leases as $id => $lease)
 	$leases[$id] = explode(' ', $lease);
@@ -10,22 +17,13 @@ foreach ($leases as $id => $lease)
 ###################################################################################################
 # Function displaying settings for the specified network interface:
 ###################################################################################################
-function device_name($mac)
-{
-	global $leases;
-	foreach ($leases as $id => $lease)
-	{
-		if (isset($lease[3]) && $mac == strtoupper($lease[1]))
-			return $lease[3];
-	}
-	return "Unknown";
-}
-
 function display_iface($iface)
 {
-	###################################################################################################
+	global $ifaces, $exclude_regex, $adapters;
+
+	#==================================================================================================
 	# Assemble some information about the adapter:
-	###################################################################################################
+	#==================================================================================================
 	$ifcfg = parse_ifconfig($iface);
 	#echo '<pre>'; print_r($iface); exit();
 	$cfg = get_mac_info($iface);
@@ -35,55 +33,77 @@ function display_iface($iface)
 	$use_dhcp = isset($dhcp[1]);
 	#echo (int) $use_dhcp; exit;
 
-	###################################################################################################
+	#==================================================================================================
 	# Assemble DHCP hostname and IP address reservations:
-	###################################################################################################
+	#==================================================================================================
 	$reserve = array();
 	foreach (explode("\n", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep dhcp-host="))) as $line)
-		$reserve[] = explode(',', explode('=', $line)[1]);
+		$reserve[] = explode(',', explode('=', $line . '=')[1]);
 	#echo '<pre>'; print_r($reserve); exit();
 
 	$hostname = array();
 	foreach (explode("\n", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep host-record="))) as $line)
 	{
-		$parts = explode(",", explode("=", $line)[1]);
+		$parts = explode(",", explode("=", $line . '=,')[1]);
 		$hostname[$parts[1]] = $parts[0];
 	}
 	#echo '<pre>'; print_r($hostname); exit();
 
-	###################################################################################################
-	# Internet IP Address section
-	###################################################################################################
+	#==================================================================================================
+	# Interfaces bound to the specified adapter:
+	#==================================================================================================
+	#echo '<pre>'; print_r($ifaces[$iface]); exit();
 	echo '
 <table width="100%">
 	<tr>
-		<td width="50%"><label for="', $iface . '_ip_address">IP Address</label></td>
+		<td><label for="', $iface . '_bound">Bound Network Adapters:</td>
+		<td>
+			<ul class="pagination pagination-sm">';
+	foreach (array_merge(array('wan'), $adapters) as $sub)
+	{
+		if (!preg_match($exclude_regex, $sub) || $sub == 'wan')
+		{
+			echo '
+				<li class="', $iface, '_bound page-item', $sub == $iface || in_array($sub, $ifaces[$iface]) ? ' active' : '', '"><a href="#" class="page-link">', $sub, '</a></li>';
+		}
+	}
+	echo '
+			</ul>
+		</td>
+	</tr>';
+
+	#==================================================================================================
+	# Internet IP Address section
+	#==================================================================================================
+echo '
+	<tr>
+		<td width="50%"><label for="', $iface . '_ip_address">IP Address:</label></td>
 		<td>
 			<div class="input-group">
 				<div class="input-group-prepend">
 					<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 				</div>
-				<input id="', $iface, '_ip_addr" type="text" class="', $iface, '_ip_address form-control" value="', $ifcfg['inet'], '" data-inputmask="\'alias\': \'ip\'" data-mask>
+				<input id="', $iface, '_ip_addr" type="text" class="', $iface, '_ip_address form-control" value="', isset($ifcfg['inet']) ? $ifcfg['inet'] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask>
 			</div>
 		</td>
 	</tr>
 	<tr>
-		<td width="50%"><label for="ip_mask">IP Subnet Mask</label></td>
+		<td width="50%"><label for="ip_mask">IP Subnet Mask:</label></td>
 		<td>
 			<div class="input-group">
 				<div class="input-group-prepend">
 					<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 				</div>
-				<input id="', $iface, '_ip_mask" type="text" class="', $iface, '_ip_address form-control" value="', $ifcfg['netmask'], '" data-inputmask="\'alias\': \'ip\'" data-mask>
+				<input id="', $iface, '_ip_mask" type="text" class="', $iface, '_ip_address form-control" value="', isset($ifcfg['netmask']) ? $ifcfg['netmask'] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask>
 			</div>
 		</td>
 	</tr>
 </table>
 <hr style="border-width: 2px" />';
 
-	###################################################################################################
-	# Internet IP Address section
-	###################################################################################################
+	#==================================================================================================
+	# DHCP Settings and IP Range Section
+	#==================================================================================================
 	echo '
 <div class="icheck-primary">
 	<input type="checkbox" id="', $iface, '_use_dhcp"', $use_dhcp ? ' checked="checked"' : '', '>
@@ -91,7 +111,7 @@ function display_iface($iface)
 </div>
 <table width="100%">
 	<tr>
-		<td width="50%"><label for="', $iface, '_dhcp_start">Starting IP Address</label></td>
+		<td width="50%"><label for="', $iface, '_dhcp_start">Starting IP Address:</label></td>
 		<td>
 			<div class="input-group">
 				<div class="input-group-prepend">
@@ -102,7 +122,7 @@ function display_iface($iface)
 		</td>
 	</tr>
 	<tr>
-		<td width="50%"><label for="', $iface, '_dhcp_end">Ending IP Address</label></td>
+		<td width="50%"><label for="', $iface, '_dhcp_end">Ending IP Address:</label></td>
 		<td>
 			<div class="input-group">
 				<div class="input-group-prepend">
@@ -113,7 +133,7 @@ function display_iface($iface)
 		</td>
 	</tr>
 	<tr>
-		<td width="50%"><label for="', $iface, '_dhcp_end">IP Subnet Mask</label></td>
+		<td width="50%"><label for="', $iface, '_dhcp_end">IP Subnet Mask:</label></td>
 		<td>
 			<div class="input-group">
 				<div class="input-group-prepend">
@@ -126,27 +146,26 @@ function display_iface($iface)
 </table>
 <hr style="border-width: 2px" />';
 
-	###################################################################################################
+	#==================================================================================================
 	# IP Address Reservation section
-	###################################################################################################
+	#==================================================================================================
 	echo '
-<h5>Address Reservation</h5>
+<h5>Address Reservations</h5>
 <div class="table-responsive p-0 centered">
-	<table class="table table-hover text-nowrap table-sm">
+	<table class="table table-hover text-nowrap table-sm table-striped">
 		<thead class="bg-primary">
-			<td width="10px"><strong>#</strong></td>
-			<td><strong>IP Address</strong></td>
-			<td><strong>Device Name</strong></td>
-			<td><strong>MAC Address</strong></td>
-			<td width="10px"><strong>&nbsp;</strong></td>
-			<td width="10px"><strong>&nbsp;</strong></td>
+			<td>IP Address</td>
+			<td>Device Name</td>
+			<td>MAC Address</td>
+			<td width="10px">&nbsp;</td>
+			<td width="10px">&nbsp;</td>
 		</thead>
 		<tbody>';
 	foreach ($reserve as $count => $parts)
 	{
-		echo '
+		if (isset($parts[1]))
+			echo '
 			<tr>
-				<td>', $count, '.</td>
 				<td>', $parts[2], '</td>
 				<td>', isset($hostname[$parts[2]]) ? $hostname[$parts[2]] : device_name(strtoupper($parts[1])), '</td>
 				<td>', strtoupper($parts[1]), '</td>
@@ -163,7 +182,6 @@ function display_iface($iface)
 ###################################################################################################
 # Device Name
 ###################################################################################################
-$ifaces = get_network_adapters();
 echo '
 <div class="card card-primary">
 	<div class="card-header">
@@ -176,7 +194,7 @@ echo '
 				<td>
 					<div class="input-group">
 						<div class="input-group-prepend">
-							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+							<span class="input-group-text"><i class="fas fa-laptop-code"></i></span>
 						</div>
 						<input id="hostname" type="text" class="form-control" value="', @file_get_contents('/etc/hostname'), '">
 					</div>
