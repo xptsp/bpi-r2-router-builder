@@ -81,3 +81,27 @@ function Internet_Submit()
 		$(".alert_control").removeClass("hidden");
 	});
 }
+
+//======================================================================================================
+// Javascript functions for "Setup / Internet"
+//======================================================================================================
+function Init_Wired(ifaces)
+{
+	var arr = ifaces.split(",");
+	for(var i = 0; i < arr.length; i++) {
+		iface = arr[i];
+		$('.' + iface + '_ip_address').each(function() {
+			$(this).inputmask("ip");
+		});
+		$('#' + iface + '_use_dhcp').click(function() {
+			if ($(this).is(":checked"))
+				$("." + iface + "_dhcp").each(function() {
+					$(this).removeAttr("disabled");
+				});
+			else
+				$("." + iface + "_dhcp").each(function() {
+					$(this).attr("disabled", "disabled");
+				});
+		});
+	}
+}

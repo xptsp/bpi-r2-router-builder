@@ -2,7 +2,7 @@
 site_menu();
 $debug = false;
 echo '
-<div class="card card-info">
+<div class="card card-primary">
 	<div class="card-header">
 		<h3 class="card-title">Set Password</h3>
 	</div>

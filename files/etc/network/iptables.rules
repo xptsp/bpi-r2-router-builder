@@ -47,7 +47,7 @@ COMMIT
 # Accept all IGMP requests on WAN interface:
 -A INPUT -i wan -p igmp -j ACCEPT
 
-# Redirect incoming port 67 on port 68 on WAN interface:
+# Redirect incoming port 67 on WAN interface to port 68:
 -A INPUT -i wan -p udp -m udp --sport 67 --dport 68 -j ACCEPT
 
 # Direct WAN interface to check SERVICES table for further rules:

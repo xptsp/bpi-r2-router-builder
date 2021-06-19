@@ -74,7 +74,7 @@ systemctl stop hostapd
 ##################################################################################
 # Install some new utilities
 ##################################################################################
-apt install -y pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release unzip debconf-utils tree rng-tools
+apt install -y pciutils usbutils sudo iw wireless-tools net-tools wget curl lsb-release unzip debconf-utils tree rng-tools mosquitto-client
 apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance screen parted wpasupplicant
 echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
 

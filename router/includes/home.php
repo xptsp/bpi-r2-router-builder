@@ -137,7 +137,7 @@ echo '
 			</div>
 			<div class="row">
 				<div class="col-md-3">
-					<div class="card">
+					<div class="card card-primary">
 						<div class="card-header">
 							<h3 class="card-title">
 								<i class="fas fa-globe"></i>
@@ -148,7 +148,7 @@ echo '
 					</div>
 				</div>
 				<div class="col-md-3">
-					<div class="card">
+					<div class="card card-primary">
 						<div class="card-header">
 							<h3 class="card-title">
 								<i class="fas fa-hand-paper"></i>
@@ -159,7 +159,7 @@ echo '
 					</div>
 				</div>
 				<div class="col-md-3">
-					<div class="card">
+					<div class="card card-primary">
 						<div class="card-header">
 							<h3 class="card-title">
 								<i class="fas fa-chart-pie"></i>
@@ -170,7 +170,7 @@ echo '
 					</div>
 				</div>
 				<div class="col-md-3">
-					<div class="card">
+					<div class="card card-primary">
 						<div class="card-header">
 							<h3 class="card-title">
 								<i class="fas fa-list-alt"></i>
@@ -193,7 +193,7 @@ echo '
 			</div>
 			<div class="row">
 				<div class="col-md-3">
-					<div class="card">
+					<div class="card card-primary">
 						<div class="card-header">
 							<h3 class="card-title">
 								<i class="fas ', $icon, '"></i>
@@ -209,7 +209,7 @@ echo '
 					</div>
 				</div>
 				<div class="col-md-3">
-					<div class="card">
+					<div class="card card-primary">
 						<div class="card-header">
 							<h3 class="card-title">
 								<i class="fas fa-truck-loading"></i>
@@ -224,7 +224,7 @@ echo '
 					</div>
 				</div>
 				<div class="col-md-3">
-					<div class="card">
+					<div class="card card-primary">
 						<div class="card-header">
 							<h3 class="card-title">
 								<i class="fas fa-stopwatch"></i>
@@ -235,7 +235,7 @@ echo '
 					</div>
 				</div>
 				<div class="col-md-3">
-					<div class="card">
+					<div class="card card-primary">
 						<div class="card-header">
 							<h3 class="card-title">
 								<i class="fas fa-clock"></i>

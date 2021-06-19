@@ -20,7 +20,7 @@ echo '
 			<div class="container-fluid">
 				<div class="row">
 					<div class="col-md-6">
-						<div class="card">
+						<div class="card card-primary">
 							<div class="card-header">
 								<h3 class="card-title">Router Information</h3>
 							</div>
@@ -106,7 +106,7 @@ echo '
 #######################################################################################################
 echo '
 					<div class="col-md-6">
-						<div class="card">
+						<div class="card card-primary">
 							<div class="card-header">
 								<h3 class="card-title">Internet Port</h3>
 							</div>
@@ -189,7 +189,7 @@ echo '
 #######################################################################################################
 echo '
 					<div class="col-md-6">
-						<div class="card">
+						<div class="card card-primary">
 							<div class="card-header">
 								<h3 class="card-title">Wireless Network (2.4GHz)</h3>
 							</div>
@@ -233,7 +233,7 @@ echo '
 #######################################################################################################
 echo '
 					<div class="col-md-6">
-						<div class="card">
+						<div class="card card-primary">
 							<div class="card-header">
 								<h3 class="card-title">Wireless Network (5GHz)</h3>
 							</div>
@@ -277,7 +277,7 @@ echo '
 #######################################################################################################
 echo '
 					<div class="col-md-6">
-						<div class="card">
+						<div class="card card-primary">
 							<div class="card-header">
 								<h3 class="card-title">Guest Network (2.4GHz)</h3>
 							</div>
@@ -313,7 +313,7 @@ echo '
 #######################################################################################################
 echo '
 					<div class="col-md-6">
-						<div class="card">
+						<div class="card card-primary">
 							<div class="card-header">
 								<h3 class="card-title">Guest Network (5GHz)</h3>
 							</div>

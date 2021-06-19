@@ -13,7 +13,7 @@ $gateway = @trim(shell_exec("ip route | grep default | grep wan | awk '{print $3
 ###################################################################################################
 $dhcp = strpos($cfg['iface'], 'dhcp') > -1;
 echo '
-<div class="card card-info">
+<div class="card card-primary">
 	<div class="card-header">
 		<h3 class="card-title">Internet IP Address</h3>
 	</div>

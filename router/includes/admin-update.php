@@ -22,7 +22,7 @@ echo '
 			<div class="container-fluid">
 				<div class="row">
 					<div class="col-md-6">
-						<div class="card">
+						<div class="card card-primary">
 							<div class="card-header">
 								<h3 class="card-title"><i class="fab fa-github"></i> Web UI</h3>
 							</div>
@@ -60,7 +60,7 @@ echo '
 ################################################################################################
 echo '
 					<div class="col-md-6">
-						<div class="card">
+						<div class="card card-primary">
 							<div class="card-header">
 								<h3 class="card-title"><i class="fab fa-linux"></i> Debian Packages</h3>
 							</div>
@@ -98,7 +98,7 @@ echo '
 ################################################################################################
 echo '
 					<div class="col-md-12 hidden" id="updates_list">
-						<div class="card">
+						<div class="card card-primary">
 							<div class="card-header">
 								<h3 class="card-title"><strong>Available Updates</strong></h3>
 							</div>

@@ -15,7 +15,7 @@ if (isset($_GET['download']))
 #######################################################################################################
 site_menu();
 echo '
-<div class="card card-info">
+<div class="card card-primary">
 	<div class="card-header">
 		<h3 class="card-title">Backup Settings</h3>
 	</div>
@@ -26,7 +26,7 @@ echo '
 		</div>
 	</div>
 </div>
-<div class="card card-info">
+<div class="card card-primary">
 	<div class="card-header">
 		<h3 class="card-title">Restore Settings</h3>
 	</div>
