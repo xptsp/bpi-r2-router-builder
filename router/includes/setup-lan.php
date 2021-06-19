@@ -100,7 +100,9 @@ foreach (array_merge(array('wan'), $adapters) as $sub)
 	if (!preg_match($exclude_regex, $sub) || $sub == 'wan')
 	{
 		echo '
-						<li class="bound page-item', $sub == $iface || in_array($sub, $ifaces[$iface]) ? ' active' : '', '"><a href="#" class="page-link">', $sub, '</a></li>';
+						<li class="bound page-item', $sub == $iface || in_array($sub, $ifaces[$iface]) ? ' active' : '', '">
+							<a href="#" class="page-link">', $sub, '</a>
+						</li>';
 	}
 }
 echo '
@@ -113,7 +115,7 @@ echo '
 #==================================================================================================
 echo '
 			<tr>
-				<td width="50%"><label for="', $iface . '_ip_address">IP Address:</label></td>
+				<td width="50%"><label for="ip_address">IP Address:</label></td>
 				<td>
 					<div class="input-group">
 						<div class="input-group-prepend">

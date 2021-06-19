@@ -87,16 +87,16 @@ function Internet_Submit()
 //======================================================================================================
 function Init_Wired(iface)
 {
-	$('.' + iface + '_ip_address').each(function() {
+	$('.ip_address').each(function() {
 		$(this).inputmask("ip");
 	});
-	$('#' + iface + '_use_dhcp').click(function() {
+	$('#use_dhcp').click(function() {
 		if ($(this).is(":checked"))
-			$("." + iface + "_dhcp").each(function() {
+			$(".dhcp").each(function() {
 				$(this).removeAttr("disabled");
 			});
 		else
-			$("." + iface + "_dhcp").each(function() {
+			$(".dhcp").each(function() {
 				$(this).attr("disabled", "disabled");
 			});
 	});
