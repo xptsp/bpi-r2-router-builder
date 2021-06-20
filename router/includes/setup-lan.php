@@ -27,8 +27,6 @@ foreach ($leases as $id => $lease)
 ###################################################################################################
 $ifcfg = parse_ifconfig($iface);
 #echo '<pre>'; print_r($iface); exit();
-$cfg = get_mac_info($iface);
-#echo '<pre>'; print_r($cfg); exit();
 $dhcp = explode(",", explode("=", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep dhcp-range=")) . '=')[1]);
 #echo '<pre>'; print_r($dhcp); exit();
 $use_dhcp = isset($dhcp[1]);
@@ -87,7 +85,7 @@ foreach ($ifaces as $tface => $details)
 	{
 		echo '
 			<li class="nav-item">
-				<a class="nav-link', $iface == $tface ? ' active' : '', '" href="?iface=', $tface, '">', $tface, '</a>
+				<a class="nav-link', $iface == $tface ? ' active' : '', '" href="', $_SERVER['REQUEST_URI'], $tface == "br0" ? '' : '?iface=' . $tface, '">', $tface, '</a>
 			</li>';
 	}
 }
@@ -107,13 +105,13 @@ echo '
 				<td>
 					<input id="iface" type="hidden" value="', $iface, '" />
 					<ul class="pagination pagination-sm">';
-foreach (array_merge(array('wan'), $adapters) as $sub)
+foreach (array_merge(array('wan'), $adapters) as $tface)
 {
-	if (!preg_match($exclude_regex, $sub) || $sub == 'wan')
+	if (!preg_match($exclude_regex, $tface) || $tface == 'wan')
 	{
 		echo '
-						<li class="', $sub == 'wan' ? 'wan_bridge' : 'bridge', ' page-item', $sub == $iface || in_array($sub, $ifaces[$iface]) ? ' active' : '', '">
-							<div class="page-link">', $sub, '</div>
+						<li class="', $tface == 'wan' ? 'wan_bridge' : 'bridge', ' page-item', $tface == $iface || in_array($tface, $ifaces[$iface]) ? ' active' : '', '">
+							<div class="page-link">', $tface, '</div>
 						</li>';
 	}
 }
@@ -236,10 +234,8 @@ echo '
 				</tbody>
 			</table>
 		</div>
-	</div>
-	<div class="card-footer clearfix">
-		<button type="button" id="apply_changes" class="btn btn-primary float-right"> Apply Changes</button>
-		<button type="button" id="add_ip" class="btn btn-primary" id="><i class="fas fa-plus"></i> Add</button>
+		<button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button>
+		<button type="button" id="add_ip_address" class="btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button>
 	</div>
 </div>';
  
