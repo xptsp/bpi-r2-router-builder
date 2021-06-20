@@ -1,17 +1,15 @@
 <?php
 # Decide what program to run:
 $commands = array(
-	array('text' => 'Kernel', 'cmd' => '/bin/dmesg'),
-	array('text' => 'Journal', 'cmd' => '/opt/bpi-r2-router-builder/helpers/router-helper.sh journalctl'),
+	0 => array('text' => 'Kernel Messages', 'cmd' => 'dmesg'),
 );
 $tab = isset($_GET['tab']) ? $_GET['tab'] : 0;
 $tab = isset($commands[$tab]) ? $tab : 0;
 
 # Divide the program output into pages of specified number of lines:
-$in = explode("\n", trim(@shell_exec($commands[$tab]['cmd'])));
 $lines = "";
 $per_page = 100;
-foreach ($in as $num => $line)
+foreach (explode("\n", trim(@shell_exec($commands[$tab]['cmd']))) as $num => $line)
 {
 	$pages = floor(($num + $per_page) / $per_page);
 	$lines .= '<div class="everything page_' . $pages . ($pages > 1 ? ' hidden' : '') . '" id="dmesg-' . $num . '">' . htmlspecialchars($line) . "\n" . '</div>';
@@ -36,13 +34,13 @@ echo '
 <div class="col-12 col-sm-12">
 	<div class="card card-tabs card-primary">
 		<div class="card-header p-0 pt-1">
-			<ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">';
+			<ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
+				<li class="nav-item">';
 foreach ($commands as $id => $ele)
 	echo '
-				<li class="nav-item">
-					<a class="nav-link', $tab == $id ? ' active' : '', '" href="?tab=', $id, '">', $ele['text'], '</a>
-				</li>';
+					<a class="nav-link', $tab == $id ? ' active' : '', '" href="?tab=', $id, '">', $ele['text'], '</a>';
 echo '
+				</li>
 			</ul>
         </div>
         <div class="card p-0 pt-1">

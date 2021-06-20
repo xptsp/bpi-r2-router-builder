@@ -64,7 +64,6 @@ function Internet_Submit()
 		'dns2':     use_doh ? '' : $("#dns2").val(),
 		'mac':      $("#mac_addr").val()
 	};
-	//alert(JSON.stringify(postdata, null, 5));
 
 	// Perform our AJAX request to change the WAN settings:
 	$(".alert_control").addClass("hidden");
@@ -86,7 +85,7 @@ function Internet_Submit()
 //======================================================================================================
 // Javascript functions for "Setup / Internet"
 //======================================================================================================
-function Init_Wired(iface)
+function Init_Wired()
 {
 	$('.ip_address').each(function() {
 		$(this).inputmask("ip");
@@ -101,13 +100,22 @@ function Init_Wired(iface)
 				$(this).attr("disabled", "disabled");
 			});
 	});
-	$(".bridge").click(function() {
-		$(this).toggleClass("active");
+	$(".page-item").each(function() {
+		$(this).click( function() {
+			$(this).toggleClass("active");
+		});
 	});
-	$(".wan_bridge").click(function() {
-		$(this).toggleClass("active");
-	});
+	$(".ip_address").change(Wired_IP);
 	$("#apply_changes").click(Wired_Apply);
+}
+
+function Wired_IP()
+{
+	parts = $("#ip_addr").val().split(".");
+	tmp = $("#dhcp_start").val().split(".");
+	$("#dhcp_start").val( parts[0] + "." + parts[1] + "." + parts[2] + "." + tmp[3] );
+	tmp = $("#dhcp_end").val().split(".");
+	$("#dhcp_end").val( parts[0] + "." + parts[1] + "." + parts[2] + "." + tmp[3] );
 }
 
 function Wired_Apply()
@@ -118,15 +126,30 @@ function Wired_Apply()
 		'iface':      $("#iface").val(),
 		'ip_addr':    $("#ip_addr").val(),
 		'ip_mask':    $("#ip_mask").val(),
-		'use_dhcp':   $("#use_dhcp").is(":checked"),
+		'use_dhcp':   $("#use_dhcp").is(":checked") ? 1 : 0,
 		'dhcp_start': $("#dhcp_start").val(),
 		'dhcp_end':   $("#dhcp_end").val(),
-		'dhcp_mask':  $("#dhcp_mask").val(),
 		'bridge':     '',
 	};
 	$(".bridge").each(function() {
 		if ($(this).hasClass("active"))
 			postdata.bridge += " " + $(this).text().trim();
 	});
-	alert(JSON.stringify(postdata, null, 5));
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to change the WAN settings:
+	$(".alert_control").addClass("hidden");
+	$("#apply-modal").modal("show");
+	$.post("/ajax/setup-lan", postdata, function(data) {
+		if (data == "OK")
+			document.location.reload(true);
+		else
+		{
+			$("#apply_msg").html(data);
+			$(".alert_control").removeClass("hidden");
+		}
+	}).fail(function() {
+		$("#apply_msg").html("AJAX call failed!");
+		$(".alert_control").removeClass("hidden");
+	});
 }

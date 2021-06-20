@@ -26,7 +26,7 @@ foreach ($leases as $id => $lease)
 # Assemble some information about the adapter:
 ###################################################################################################
 $ifcfg = parse_ifconfig($iface);
-#echo '<pre>'; print_r($iface); exit();
+#echo '<pre>'; print_r($ifcfg); echo '</pre>'; #exit();
 $dhcp = explode(",", explode("=", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep dhcp-range=")) . '=')[1]);
 #echo '<pre>'; print_r($dhcp); exit();
 $use_dhcp = isset($dhcp[1]);
@@ -125,7 +125,7 @@ echo '
 ###################################################################################################
 echo '
 			<tr>
-				<td width="50%"><label for="ip_address">IP Address:</label></td>
+				<td width="50%"><label for="ip_addr">IP Address:</label></td>
 				<td>
 					<div class="input-group">
 						<div class="input-group-prepend">
@@ -180,17 +180,6 @@ echo '
 					</div>
 				</td>
 			</tr>
-			<tr>
-				<td width="50%"><label for="dhcp_mask">IP Subnet Mask:</label></td>
-				<td>
-					<div class="input-group">
-						<div class="input-group-prepend">
-							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
-						</div>
-						<input id="dhcp_mask" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[3]) ? $dhcp[3] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
-					</div>
-				</td>
-			</tr>
 		</table>
 		<hr style="border-width: 2px" />';
 
@@ -239,6 +228,29 @@ echo '
 	</div>
 </div>';
  
+###################################################################################################
+# Apply Changes modal:
+###################################################################################################
+echo '
+<div class="modal fade" id="apply-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header bg-info">
+				<h4 class="modal-title">Applying Changes</h4>
+				<button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<p id="apply_msg">Please wait while the networking service is restarted....</p>
+			</div>
+			<div class="modal-footer justify-content-between hidden alert_control">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>';
+
 ###################################################################################################
 # Close page
 ###################################################################################################
