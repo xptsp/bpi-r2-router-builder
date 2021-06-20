@@ -1,7 +1,7 @@
 //======================================================================================================
 // Javascript functions for "Setup / Internet"
 //======================================================================================================
-function Init_Internet(mac)
+function Init_WAN(mac)
 {
 	$('.ip_address').each(function() {
 		$(this).inputmask("ip");
@@ -46,10 +46,10 @@ function Init_Internet(mac)
 		$("#mac_addr").removeAttr("disabled");
 	});
 	$("#mac_addr").inputmask("mac");
-	$("#submit").click(Internet_Submit);
+	$("#submit").click( WAN_Submit );
 }
 
-function Internet_Submit()
+function WAN_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	doh_addr = "127.0.0.1#505" + $("#doh_server").val();
@@ -85,7 +85,7 @@ function Internet_Submit()
 //======================================================================================================
 // Javascript functions for "Setup / Internet"
 //======================================================================================================
-function Init_Wired()
+function Init_LAN()
 {
 	$('.ip_address').each(function() {
 		$(this).inputmask("ip");
@@ -105,11 +105,11 @@ function Init_Wired()
 			$(this).toggleClass("active");
 		});
 	});
-	$(".ip_address").change(Wired_IP);
-	$("#apply_changes").click(Wired_Apply);
+	$(".ip_address").change(LAN_IP);
+	$("#apply_changes").click(LAN_Apply);
 }
 
-function Wired_IP()
+function LAN()
 {
 	parts = $("#ip_addr").val().split(".");
 	tmp = $("#dhcp_start").val().split(".");
@@ -118,7 +118,7 @@ function Wired_IP()
 	$("#dhcp_end").val( parts[0] + "." + parts[1] + "." + parts[2] + "." + tmp[3] );
 }
 
-function Wired_Apply()
+function LAN_Apply()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
