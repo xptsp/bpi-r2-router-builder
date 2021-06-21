@@ -109,8 +109,9 @@ function Init_LAN()
 	$("#apply_changes").click(LAN_Apply);
 }
 
-function LAN()
+function LAN_IP()
 {
+	// Update the DHCP start and end range when the IP address changes:
 	parts = $("#ip_addr").val().split(".");
 	tmp = $("#dhcp_start").val().split(".");
 	$("#dhcp_start").val( parts[0] + "." + parts[1] + "." + parts[2] + "." + tmp[3] );
