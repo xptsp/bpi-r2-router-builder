@@ -92,11 +92,9 @@ function Init_LAN()
 function LAN_IP()
 {
 	// Update the DHCP start and end range when the IP address changes:
-	parts = $("#ip_addr").val().split(".");
-	tmp = $("#dhcp_start").val().split(".");
-	$("#dhcp_start").val( parts[0] + "." + parts[1] + "." + parts[2] + "." + tmp[3] );
-	tmp = $("#dhcp_end").val().split(".");
-	$("#dhcp_end").val( parts[0] + "." + parts[1] + "." + parts[2] + "." + tmp[3] );
+	parts = $("#ip_addr").val().substring(0, $("#ip_addr").val().lastIndexOf('.'));
+	$("#dhcp_start").val( parts + $("#dhcp_start").val().substring( $("#dhcp_start").val().lastIndexOf('.')) );
+	$("#dhcp_end").val( parts + $("#dhcp_end").val().substring( $("#dhcp_end").val().lastIndexOf('.')) );
 }
 
 function LAN_Apply()
@@ -104,6 +102,7 @@ function LAN_Apply()
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':        SID,
+		'hostname':   $("#hostname").val(),
 		'iface':      $("#iface").val(),
 		'ip_addr':    $("#ip_addr").val(),
 		'ip_mask':    $("#ip_mask").val(),
