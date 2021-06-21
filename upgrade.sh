@@ -41,11 +41,13 @@ function replace()
 	done
 	mkdir -p $(dirname ${DEST})
 	if [[ "$COPY" == "true" ]]; then
-		echo -e -n "Copying ${BLUE}${SRC}${NC}... "
-		if ! cp -u ${SRC} ${DEST}; then
-			echo -e "${RED}FAIL!${NC}"
-		else
-			echo -e "${GREEN}Success!${NC}"
+		if ! test -f "${DEST}"; then
+			echo -e -n "Copying ${BLUE}${SRC}${NC}... "
+			if ! cp -u ${SRC} ${DEST}; then
+				echo -e "${RED}FAIL!${NC}"
+			else
+				echo -e "${GREEN}Success!${NC}"
+			fi
 		fi
 	else
 		echo "${DEST}" >> ${LNEW}
