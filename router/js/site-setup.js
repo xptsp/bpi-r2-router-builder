@@ -82,19 +82,16 @@ function Init_LAN()
 		else
 			$(".dhcp").attr("disabled", "disabled");
 	});
-	$(".page-item").click( function() {
+	$(".bridge").click( function() {
 		$(this).toggleClass("active");
 	});
-	$(".ip_address").change(LAN_IP);
+	$("#hostname").inputmask();
+	$(".ip_address").change(function() {
+		parts = $("#ip_addr").val().substring(0, $("#ip_addr").val().lastIndexOf('.'));
+		$("#dhcp_start").val( parts + $("#dhcp_start").val().substring( $("#dhcp_start").val().lastIndexOf('.')) );
+		$("#dhcp_end").val( parts + $("#dhcp_end").val().substring( $("#dhcp_end").val().lastIndexOf('.')) );
+	});
 	$("#apply_changes").click(LAN_Apply);
-}
-
-function LAN_IP()
-{
-	// Update the DHCP start and end range when the IP address changes:
-	parts = $("#ip_addr").val().substring(0, $("#ip_addr").val().lastIndexOf('.'));
-	$("#dhcp_start").val( parts + $("#dhcp_start").val().substring( $("#dhcp_start").val().lastIndexOf('.')) );
-	$("#dhcp_end").val( parts + $("#dhcp_end").val().substring( $("#dhcp_end").val().lastIndexOf('.')) );
 }
 
 function LAN_Apply()

@@ -65,7 +65,7 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop-code"></i></span>
 						</div>
-						<input id="hostname" type="text" class="form-control" value="', @file_get_contents('/etc/hostname'), '">
+						<input id="hostname" type="text" class="form-control" value="', @file_get_contents('/etc/hostname'), '" data-inputmask-regex="([0-9a-zA-Z]|[0-9a-zA-Z][0-9a-zA-Z0-9\-]+)">
 					</div>
 				</td>
 			</tr>
@@ -105,7 +105,7 @@ echo '
 				<td>
 					<input id="iface" type="hidden" value="', $iface, '" />
 					<ul class="pagination pagination-sm">';
-foreach (array_merge(array('wan'), $adapters) as $tface)
+foreach ($adapters as $tface)
 {
 	if (!preg_match($exclude_regex, $tface) || $tface == 'wan')
 	{
