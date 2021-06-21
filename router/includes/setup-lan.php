@@ -12,7 +12,7 @@ $adapters = get_network_adapters_list();
 #echo '<pre>'; print_r($adapters); exit();
 $iface = isset($_GET['iface']) ? $_GET['iface'] : 'br0';
 #echo $iface; exit();
-$exclude_regex = "/(docker.+|lo|sit0|wlan.+|eth0|wan)/";
+$exclude_regex = "/^(docker.+|lo|sit0|wlan.+|eth0|wan)$/";
 
 ###################################################################################################
 # Get leases for entire system:

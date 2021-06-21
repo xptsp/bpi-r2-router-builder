@@ -8,6 +8,10 @@ if (!isset($_POST['sid']) || $_POST['sid'] != strrev(session_id()))
 #################################################################################################
 # Validate the input sent to this script (we paranoid... for the right reasons, of course...):
 #################################################################################################
+$hostname = isset($_POST['hostname']) ? $_POST['hostname'] : '';
+if (!preg_match("/^([0-9a-zA-Z]|[0-9a-zA-Z][0-9a-zA-Z0-9\-]+)$/", $hostname))
+	die("[HOSTNAME] ERROR: " . $_POST['hostname'] . " is not a valid hostname");
+
 $iface = $_POST['iface'] = isset($_POST['iface']) ? $_POST['iface'] : '';
 if (empty($_POST['iface']) || !file_exists("/sys/class/net/" . $_POST['iface']))
 	die('[IFACE] ERROR: "' . $_POST['iface'] . '" is not a valid network interface!');
@@ -52,7 +56,7 @@ $old_addr = trim(@shell_exec('cat /etc/network/interfaces.d/' . $iface . ' | gre
 $text = 
 'auto ' . $iface . '
 iface ' . $iface . ' inet static
-    hwaddress ether ' . trim(@shell_exec('cat /etc/network/interfaces.d/' . $iface . ' | grep hwaddress')) . '
+    hwaddress ether ' . explode(" ", trim(@shell_exec('grep "hwaddress" /etc/network/interfaces.d/' . $iface)))[2] . '
     address ' . $_POST['ip_addr'] . '
     netmask ' . $_POST['ip_mask'] . (!empty($_POST['bridge']) ? '
     bridge_ports ' . trim($_POST['bridge']) . '
@@ -60,7 +64,7 @@ iface ' . $iface . ' inet static
     bridge_stp no' : '') . ($iface == "br0" ? '
     post-up echo 6 > /sys/class/net/wan/queues/rx-0/rps_cpus' : '') . '
 ';
-#echo '<pre>'; echo $text; exit;
+#echo echo '<pre>'; echo $text; exit;
 $handle = fopen("/tmp/" . $iface, "w");
 fwrite($handle, $text);
 fclose($handle);
