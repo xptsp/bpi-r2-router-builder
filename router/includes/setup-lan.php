@@ -12,7 +12,8 @@ $adapters = get_network_adapters_list();
 #echo '<pre>'; print_r($adapters); exit();
 $iface = isset($_GET['iface']) ? $_GET['iface'] : 'br0';
 #echo $iface; exit();
-$exclude_regex = "/^(docker.+|lo|sit0|mt.+|eth0|wan)$/";
+$exclude_regex = '/^(' . implode('|',array_merge(explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'"))), array("docker.+", "lo", "sit.+", "eth0", "wan"))) . ')$/';
+#echo $exclude_regex; exit;
 
 ###################################################################################################
 # Get leases for entire system:
