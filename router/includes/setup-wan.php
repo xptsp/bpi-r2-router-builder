@@ -12,6 +12,7 @@ $gateway = @trim(shell_exec("ip route | grep default | grep wan | awk '{print $3
 # Internet IP Address section
 ###################################################################################################
 $dhcp = strpos($cfg['iface'], 'dhcp') > -1;
+$dhcp = false;
 echo '
 <div class="card card-primary">
 	<div class="card-header">
@@ -206,4 +207,4 @@ echo '
 ###################################################################################################
 # Close page
 ###################################################################################################
-site_footer('Init_LAN("' . $mac_com . '");');
+site_footer('Init_WAN("' . $mac_com . '");');

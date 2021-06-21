@@ -3,32 +3,20 @@
 //======================================================================================================
 function Init_WAN(mac)
 {
-	$('.ip_address').each(function() {
-		$(this).inputmask("ip");
-	});
-	$('.dns_address').each(function() {
-		$(this).inputmask("ip");
-	});
+	$('.ip_address').inputmask("ip");
+	$('.dns_address').inputmask("ip");
 	$("#dynamic_ip").click(function() {
-		$(".ip_address").each(function() {
-			$(this).attr("disabled", "disabled");
-		});
+		$(".ip_address").attr("disabled", "disabled");
 	});
 	$("#static_ip").click(function() {
-		$(".ip_address").each(function() {
-			$(this).removeAttr("disabled");
-		});
+		$(".ip_address").removeAttr("disabled");
 	});
 	$("#dns_doh").click(function() {
-		$(".dns_address").each(function() {
-			$(this).attr("disabled", "disabled");
-		});
+		$(".dns_address").attr("disabled", "disabled");
 		$("#doh_server").removeAttr("disabled");
 	});
 	$("#dns_custom").click(function() {
-		$(".dns_address").each(function() {
-			$(this).removeAttr("disabled");
-		});
+		$(".dns_address").removeAttr("disabled");
 		$("#doh_server").attr("disabled", "disabled");
 	});
 	$("#mac_default").click(function() {
@@ -87,23 +75,15 @@ function WAN_Submit()
 //======================================================================================================
 function Init_LAN()
 {
-	$('.ip_address').each(function() {
-		$(this).inputmask("ip");
-	});
+	$('.ip_address').inputmask("ip");
 	$('#use_dhcp').click(function() {
 		if ($(this).is(":checked"))
-			$(".dhcp").each(function() {
-				$(this).removeAttr("disabled");
-			});
+			$(".dhcp").removeAttr("disabled");
 		else
-			$(".dhcp").each(function() {
-				$(this).attr("disabled", "disabled");
-			});
+			$(".dhcp").attr("disabled", "disabled");
 	});
-	$(".page-item").each(function() {
-		$(this).click( function() {
-			$(this).toggleClass("active");
-		});
+	$(".page-item").click( function() {
+		$(this).toggleClass("active");
 	});
 	$(".ip_address").change(LAN_IP);
 	$("#apply_changes").click(LAN_Apply);
