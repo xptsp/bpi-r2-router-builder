@@ -8,22 +8,24 @@ $output_null = false;
 ################################################################################################################
 $sidebar_menu = array(
 	'home'   => menu_link('/', 'Home', 'fas fa-home'),
-	'setup'  => menu_submenu('Setup', 'fas fa-cog', array(
+	'setup'  => array('Setup', 'fas fa-cog', array(
 		'internet' => menu_link('/setup/wan', 'Internet Setup', 'fas fa-globe'),
 		'firewall' => menu_link('/setup/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
 		'lan'      => menu_link('/setup/lan', 'LAN Setup', 'fas fa-ethernet'),
 		'wireless' => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
 	)),
-	'storage'    => menu_submenu('Storage', 'fas fa-hdd', array(
+	'storage'    => array('Storage', 'fas fa-hdd', array(
 		'basic'    => menu_link('/storage/usb-basic', 'Basic Settings', 'fab fa-usb'),
 	)),
-	'admin'  => menu_submenu('Administration', 'fas fa-cog', array(
+	'admin'  => array('Administration', 'fas fa-cog', array(
 		'status'   => menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),
 		'attached' => menu_link('/admin/attached', 'Attached Devices', 'fas fa-link'),
 		'backup'   => menu_link('/admin/backup', 'Backup &amp; Restore', 'fas fa-file-export'),
 		'creds'    => menu_link('/admin/creds', 'Credentials', 'fas fa-user-edit'),
 		'logs'     => menu_link('/admin/logs', 'Router Logs', 'far fa-list-alt'),
 		'update'   => menu_link('/admin/update', 'Router Update', 'fab fa-linux'),
+	)),
+	'plugins' => array('Plug-Ins', 'fas fa-puzzle-piece', array(
 	)),
 );
 
@@ -108,7 +110,7 @@ function menu_submenu($text, $icon = "far fa-circle", $items = array(), $login_r
 {
 	global $logged_in;
 	$items = (is_array($items) ? implode('', $items) : $items);
-	if ($login_required && !$logged_in)
+	if (($login_required && !$logged_in) || empty($items))
 		return '';
 	else
 		return 
@@ -174,8 +176,10 @@ function site_menu($refresh_switch = false)
 				<ul class="nav nav-pills nav-sidebar flex-column nav-child-indent nav-collapse-hide-child" data-widget="treeview" role="menu" data-accordion="false">
 					<!-- Add icons to the links using the .nav-icon class
 							 with font-awesome or any other icon font library -->
-					', implode('
-					', $sidebar_menu), '
+					';
+foreach ($sidebar_menu as $item)
+	echo !is_array($item) ? $item : ((isset($item[2]) & is_array($item[2])) ? menu_submenu($item[0], $item[1], $item[2]) : '');
+echo '
 					', menu_log(), '
 				</ul>
 			</nav>
@@ -268,7 +272,7 @@ function site_menu($refresh_switch = false)
 			<!-- /.modal -->';
 
 	# Display a box indicating that the router doesn't have persistent storage:
-	if ($logged_in && !empty($_SESSION['critical_alerts']))
+	if (false && $logged_in && !empty($_SESSION['critical_alerts']))
 	{
 		echo '
 			<div class="alert alert-danger alert-dismissible">
