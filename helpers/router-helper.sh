@@ -55,8 +55,7 @@ function remount_rw()
 # Remount writable lower filesystem as readonly:
 function remount_ro()
 {
-	umount /ro/etc/debian_chroot >& /dev/null
-	test -e /tmp/debian_chroot && chattr -i /tmp/debian_chroot && rm /tmp/debian_chroot
+	umount /ro/tmp >& /dev/null
 	umount /ro/sys >& /dev/null
 	umount /ro/proc >& /dev/null
 	umount /ro/run >& /dev/null
@@ -111,11 +110,11 @@ case $CMD in
 		check_ro
 		remount_rw
 		echo "CHROOT" > /tmp/debian_chroot
-		chattr +i /tmp/debian_chroot
 		mount --bind /tmp/debian_chroot /ro/etc/debian_chroot
-		shift
 		chroot /ro $@
-		remount_ro
+		umount /ro/etc/debian_chroot >& /dev/null
+		rm /tmp/debian_chroot
+		remount_ro || reboot now
 		;;
 
 	###########################################################################
