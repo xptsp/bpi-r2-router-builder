@@ -1,5 +1,5 @@
 <?php
-if (!isset($_GET['sid']) || $_GET['sid'] != strrev(session_id()))
+if (!isset($_GET['sid']) || $_GET['sid'] != $_SESSION['sid'])
 	require_once("404.php");
 else
 {

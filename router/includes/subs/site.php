@@ -41,6 +41,12 @@ if (!isset($_SESSION['webui_version']))
 }
 $webui_version = $_SESSION['webui_version'];
 
+# Get whether the router is operating on a temporary overlay in RAM:
+################################################################################################################
+if (!isset($_SESSION['critical_alerts']))
+	$_SESSION['critical_alerts'] = explode("\n", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login double_check')));
+#echo '<pre>'; print_r($_SESSION['critical_alerts']); exit;
+
 ################################################################################################################
 # Function that outputs the header of the web page:
 ################################################################################################################
@@ -261,6 +267,21 @@ function site_menu($refresh_switch = false)
 			</div>
 			<!-- /.modal -->';
 
+	# Display a box indicating that the router doesn't have persistent storage:
+	if ($logged_in && !empty($_SESSION['critical_alerts']))
+	{
+		echo '
+			<div class="alert alert-danger alert-dismissible">
+				<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>';
+		if (in_array("Temp", $_SESSION['critical_alerts']))
+			echo '
+				<h5><i class="icon fas fa-exclamation-triangle"></i> This router does not have persistent storage.  Go <a href="#">here</a> to fix this issue!</h5>';
+		if (in_array("Default", $_SESSION['critical_alerts']))
+			echo '
+				<h5><i class="icon fas fa-exclamation-triangle"></i> This router has the default passwords installed.  Go <a href="#">here</a> to fix this issue!</h5>';
+		echo '
+			</div>';
+	}
 }
 
 ################################################################################################################
@@ -307,7 +328,7 @@ function site_footer($init_str = '')
 	# Insert the SID we're using, and set the login/logout handlers:
 	echo '
 <script>
-	Init_Site("', strrev(session_id()), '");', !empty($init_str) ? '
+	Init_Site("', $_SESSION['sid'], '");', !empty($init_str) ? '
 	' . trim($init_str) : '', '
 </script>
 </body>

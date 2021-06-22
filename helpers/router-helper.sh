@@ -231,6 +231,9 @@ case $CMD in
 		elif [[ "$1" == "username" ]]; then
 			[[ -z "${2}" ]] && echo "Username not specified" && exit 1
 			usermod -l $2 $(cat /etc/passwd | grep ":1000:" | cut -d: -f1) && echo "Success"
+		elif [[ "$1" == "double_check" ]]; then
+			cat /etc/shadow | grep -e "^pi" | grep '$6$Zd38CUbc2qA.6DU4$Avu9JdKcspaY5eBIUHkjzGGw9jZ3N0Y5XaT6X3npl7IUFdQomjnaY9vJ8OMC91x2lS68x4yw721Z.6kua5WcY1' >& /dev/null && echo "Default"
+			mount | grep -e "^tmp-root-rw on /rw " >& /dev/null && echo "Temp"
 		fi
 		;;
 

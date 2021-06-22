@@ -25,12 +25,22 @@ echo '
 			<div class="col-sm-6"><a href="/admin/backup?download"><button type="button" class="btn btn-block btn-outline-info">Backup Settings</button></a></div>
 		</div>
 	</div>
-</div>
+</div>';
+
+#######################################################################################################
+# Disable "Factory Restore" option if the overlay isn't active or temporary overlay is active:
+#######################################################################################################
+echo '
 <div class="card card-primary">
 	<div class="card-header">
 		<h3 class="card-title">Restore Settings</h3>
 	</div>
-	<div class="card-body">
+	<div class="card-body">';
+if (in_array("Temp", $_SESSION['critical_alerts']))
+	echo '<label>You must enable persistent storage before you can restore settings to this router.</label>';
+else
+{
+	echo '
 		<div class="input-group mb-4">
 			<label class="col-sm-6 col-form-label">
 				Restore saved settings from a file
@@ -44,20 +54,17 @@ echo '
 			<div class="col-sm-6"><button type="button" class="btn btn-block btn-outline-danger" id="restore_settings">Restore Settings</button></div>
 		</div>';
 
-#######################################################################################################
-# Disable "Factory Restore" option if the overlay isn't active:
-#######################################################################################################
-$overlay_disabled = strpos('tmp-root-rw', trim(@shell_exec("mount | grep tmp-root-rw"))) == 0;
-foreach (@file("/boot/bananapi/bpi-r2/linux/uEnv.txt") as $line)
-	$overlay_disabled |= preg_match("/^bootopts=(.*)(noOverlayRoot)/", $line, $regex);
-if (!$overlay_disabled)
-	echo '
+	$overlay_disabled = false;
+	foreach (@file("/boot/bananapi/bpi-r2/linux/uEnv.txt") as $line)
+		$overlay_disabled |= preg_match("/^bootopts=(.*)(noOverlayRoot)/", $line, $regex);
+	if (!$overlay_disabled)
+		echo '
 		<hr />
 		<div class="input-group mb-4">
 			<label class="col-sm-6 col-form-label">Restore to default settings</label>
 			<div class="col-sm-6"><button type="button" class="btn btn-block btn-outline-danger" data-toggle="modal" data-target="#reboot-modal" id="factory_settings">Erase Settings</button></div>
 		</div>';
-		
+}
 echo '
 	</div>
 	<!-- /.card-body -->

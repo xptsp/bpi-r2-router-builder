@@ -1,6 +1,6 @@
 <?php
 $mode = isset($_POST['restore_type']) ? $_POST['restore_type'] : 'fail';
-if (!isset($_POST['sid']) || $_POST['sid'] != strrev(session_id()) || !in_array($mode, array('file', 'factory', 'upload')))
+if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'] || !in_array($mode, array('file', 'factory', 'upload')))
 {
 	require_once("404.php");
 	exit;

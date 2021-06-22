@@ -12,6 +12,8 @@ $include_js = $_GET['action']  == 'home' ? '' : 'site-' . explode('-', $_GET['ac
 # Decide whether the user is logged in or not:
 $logged_in = isset($_SESSION['login_valid_until']) && $_SESSION['login_valid_until'] >= time();
 $logged_in = true;
+if ($_GET['action'] == 'logout')
+	unset($_SESSION['sid']);
 if (!$logged_in || $_GET['action'] == 'logout')
 	$logged_in = ($_SESSION['login_valid_until'] = 0) != 0;
 else
@@ -23,6 +25,11 @@ if (!$logged_in and !in_array($_GET['action'], array('home', 'ajax-password', 'a
 	header('Location: http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/', true, 301);
 	die();
 }
+
+# Generate a random SID for use in the session:
+if (!isset($_SESSION['sid']))
+	$_SESSION['sid'] = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 32);
+#echo $_SESSION['sid']; exit;
 
 # Include the PHP site framework functions from the "includes" directory:
 require_once('includes/subs/site.php');
