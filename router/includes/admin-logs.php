@@ -1,10 +1,11 @@
 <?php
 # Decide what program to run:
 $commands = array(
-	0 => array('text' => 'Kernel Messages', 'cmd' => 'dmesg'),
+	'kernel'  => array('text' => 'Kernel', 'cmd' => 'dmesg'),
+	'journal' => array('text' => 'Journal', 'cmd' => 'journalctl'),
 );
-$tab = isset($_GET['tab']) ? $_GET['tab'] : 0;
-$tab = isset($commands[$tab]) ? $tab : 0;
+$tab = isset($_GET['tab']) ? $_GET['tab'] : 'kernel';
+$tab = isset($commands[$tab]) ? $tab : 'kernel';
 
 # Divide the program output into pages of specified number of lines:
 $lines = "";
@@ -34,13 +35,13 @@ echo '
 <div class="col-12 col-sm-12">
 	<div class="card card-tabs card-primary">
 		<div class="card-header p-0 pt-1">
-			<ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
-				<li class="nav-item">';
+			<ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">';
 foreach ($commands as $id => $ele)
 	echo '
-					<a class="nav-link', $tab == $id ? ' active' : '', '" href="?tab=', $id, '">', $ele['text'], '</a>';
+				<li class="nav-item">
+					<a class="nav-link', $tab == $id ? ' active' : '', '" href="?tab=', $id, '">', $ele['text'], '</a>
+				</li>';
 echo '
-				</li>
 			</ul>
         </div>
         <div class="card p-0 pt-1">
