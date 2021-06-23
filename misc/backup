@@ -36,7 +36,6 @@ DEV=$(sudo blkid | grep "BPI-BOOT" | grep -v "/dev/loop" | cut -d":" -f 1 | head
 if [[ -z "${DEV}" ]]; then
 	echo -e "${RED}ERROR:${NC} SD Card not detected with partition 1 label of ${BLUE}BPI-BOOT${NC}!"
 	exit 1
-fi
 elif [[ "${DEV}" =~ /dev/mmcblk* ]]; then 
 	DEV=${DEV:0:12}
 	SRCH=${DEV}p2
