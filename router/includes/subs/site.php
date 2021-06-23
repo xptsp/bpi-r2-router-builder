@@ -46,7 +46,7 @@ $webui_version = $_SESSION['webui_version'];
 # Get whether the router is operating on a temporary overlay in RAM:
 ################################################################################################################
 if (!isset($_SESSION['critical_alerts']))
-	$_SESSION['critical_alerts'] = explode("\n", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login double_check')));
+	$_SESSION['critical_alerts'] = explode("\n", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh security-check')));
 #echo '<pre>'; print_r($_SESSION['critical_alerts']); exit;
 
 ################################################################################################################
