@@ -56,14 +56,22 @@ DEV=($(los ${FILE}))
 
 echo -e "${GREEN}NOTE:${NC} Extracting empty BPIWRT disk image..."
 cp $(dirname $(ls -l $0 | awk '{print $NF}'))/bpiwrt_empty.img.gz /tmp
-gunzip /tmp/bpiwrt_empty.img.gz
+gunzip -f /tmp/bpiwrt_empty.img.gz
 
 echo -e "${GREEN}NOTE:${NC} Copy kernel files from partition 1..."
 OUT=($(los /tmp/bpiwrt_empty.img))
 cp -aR ${DEV[1]}/* ${OUT[1]}/
 
-echo -e "${GREEN}NOTE:${NC} Removing unnecessary files from partition 2..."
+echo -e "${GREEN}NOTE:${NC} Clearing the local repository of retrieved package files..."
 A=${DEV[2]}
+chroot ${A} apt-get clean
+chroot ${A} apt-get autoclean
+echo -e "${GREEN}NOTE:${NC} Purge unnecessary packages..."
+chroot ${A} apt-get -y purge --autoremove
+echo -e "${GREEN}NOTE:${NC} Clearing PiHole stats..."
+chroot ${A} pihole -f
+
+echo -e "${GREEN}NOTE:${NC} Removing unnecessary files from partition 2..."
 rm -rf ${A}/tmp/* >& /dev/null
 rm -rf ${A}/root/.config >& /dev/null
 rm -rf ${A}/root/.local >& /dev/null
@@ -77,25 +85,13 @@ for file in $(find ${A}/var/log -type f | grep -v /var/log/apt/history.log); do 
 cat /var/log/apt/history.log | tail -3 > /tmp/history.log
 mv /tmp/history.log /var/log/apt/history.log
 
-echo -e "${GREEN}NOTE:${NC} Clearing the local repository of retrieved package files..."
-chroot ${A} apt-get clean
-chroot ${A} apt-get autoclean
-echo -e "${GREEN}NOTE:${NC} Purge unnecessary packages..."
-chroot ${A} apt-get -y purge --autoremove
-echo -e "${GREEN}NOTE:${NC} Clearing PiHole stats..."
-chroot ${A} pihole -f
-echo -e "${GREEN}NOTE:${NC} Zeroing free space from partition 2..."
-cp /dev/zero ${A}/zero >& /dev/null
-rm ${A}/zero
-
 echo -e "${GREEN}NOTE:${NC} Copy system files from partition 2..."
-OUT=($(los /tmp/bpiwrt_empty.img))
 cp -aR ${DEV[2]}/* ${OUT[2]}/
 
 echo -e "${GREEN}NOTE:${NC} Unmount partitions from system..."
 losd ${DEV[0]}
 losd ${OUT[0]}
-exit
+mv /tmp/bpiwrt_empty.img ${FILE}
 
 echo -e "${GREEN}================================================================${NC}"
 echo -e "${GREEN}NOTE:${NC} Compressing image..."
