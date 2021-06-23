@@ -115,15 +115,15 @@ echo '
 								<table class="table table-hover text-nowrap">
 									<tr>
 										<td><strong>External IP Address</strong></td>
-										<td>', $wan_if['inet'], '</td>
-									</tr>
-									<tr>
-										<td width="50%"><strong>External MAC Address</strong></td>
-										<td>', $wan_if['ether'], '</td>
+										<td>', isset($wan_if['inet']) ? $wan_if['inet'] : '<i>Disconnected</i>', '</td>
 									</tr>
 									<tr>
 										<td><strong>External Subnet Mask</strong></td>
-										<td>', $wan_if['netmask'], '</td>
+										<td>', isset($wan_if['netmask']) ? $wan_if['netmask'] : '<i>Disconnected</i>', '</td>
+									</tr>
+									<tr>
+										<td width="50%"><strong>External MAC Address</strong></td>
+										<td>', isset($wan_if['ether']) ? $wan_if['ether'] : '<i>Disconnected</i>', '</td>
 									</tr>
 									<tr>
 										<td><strong>Domain Name Server', isset($dns[1]) ? 's' : '', '</strong></td>

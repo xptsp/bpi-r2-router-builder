@@ -32,14 +32,20 @@ losd() {
 	sudo losetup -d "$1"
 }
 
-DEV=$(sudo blkid | grep "BPI-BOOT" | grep "/dev/sd" | cut -d":" -f 1 | head -1 | cut -c1-8)
+DEV=$(sudo blkid | grep "BPI-BOOT" | grep -v "/dev/loop" | cut -d":" -f 1 | head -1)
 if [[ -z "${DEV}" ]]; then
-	echo "${RED}ERROR:${NC} SD Card not detected with partition 1 label of ${BLUE}BPI-BOOT${NC}!"
+	echo -e "${RED}ERROR:${NC} SD Card not detected with partition 1 label of ${BLUE}BPI-BOOT${NC}!"
 	exit 1
 fi
+elif [[ "${DEV}" =~ /dev/mmcblk* ]]; then 
+	DEV=${DEV:0:12}
+	SRCH=${DEV}p2
+else 
+	DEV=${DEV:0:8}
+	SRCH=${DEV}2
+fi
 umount ${DEV}* >& /dev/null
-LINE=($(sudo fdisk --list ${DEV} | grep "${DEV}2"))
-END=$(( ${LINE[2]} + 1 ))
+END=$(( $(sudo fdisk --list ${DEV} | grep "${SRCH}" | awk '{print $3}') + 1 ))
 
 FILE=${1:-"bpiwrt_v$(date +"%Y.%m%d.%H%M").img"}
 MB=$(( ${END} / 2 / 1024 / 4))

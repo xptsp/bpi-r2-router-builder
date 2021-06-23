@@ -53,10 +53,15 @@ fi
 echo -e "${GREEN}================================================================${NC}"
 echo -e "${GREEN}NOTE:${NC} Mounting partitions within the image..."
 DEV=($(los ${FILE}))
-echo -e "${GREEN}NOTE:${NC} Zeroing free space from partition 1..."
-A=${DEV[1]}
-cp /dev/zero ${A}/zero >& /dev/null
-rm ${A}/zero
+
+echo -e "${GREEN}NOTE:${NC} Extracting empty BPIWRT disk image..."
+cp $(dirname $(ls -l $0 | awk '{print $NF}'))/bpiwrt_empty.img.gz /tmp
+gunzip /tmp/bpiwrt_empty.img.gz
+
+echo -e "${GREEN}NOTE:${NC} Copy kernel files from partition 1..."
+OUT=($(los /tmp/bpiwrt_empty.img))
+cp -aR ${DEV[1]}/* ${OUT[1]}/
+
 echo -e "${GREEN}NOTE:${NC} Removing unnecessary files from partition 2..."
 A=${DEV[2]}
 rm -rf ${A}/tmp/* >& /dev/null
@@ -71,6 +76,7 @@ rm -r ${A}/var/log/*.{xz,gz,1,2} >& /dev/null
 for file in $(find ${A}/var/log -type f | grep -v /var/log/apt/history.log); do echo -n > $file; done
 cat /var/log/apt/history.log | tail -3 > /tmp/history.log
 mv /tmp/history.log /var/log/apt/history.log
+
 echo -e "${GREEN}NOTE:${NC} Clearing the local repository of retrieved package files..."
 chroot ${A} apt-get clean
 chroot ${A} apt-get autoclean
@@ -81,8 +87,16 @@ chroot ${A} pihole -f
 echo -e "${GREEN}NOTE:${NC} Zeroing free space from partition 2..."
 cp /dev/zero ${A}/zero >& /dev/null
 rm ${A}/zero
+
+echo -e "${GREEN}NOTE:${NC} Copy system files from partition 2..."
+OUT=($(los /tmp/bpiwrt_empty.img))
+cp -aR ${DEV[2]}/* ${OUT[2]}/
+
 echo -e "${GREEN}NOTE:${NC} Unmount partitions from system..."
 losd ${DEV[0]}
+losd ${OUT[0]}
+exit
+
 echo -e "${GREEN}================================================================${NC}"
 echo -e "${GREEN}NOTE:${NC} Compressing image..."
 gzip -fkv ${FILE}
