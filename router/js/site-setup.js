@@ -1,16 +1,9 @@
 //======================================================================================================
 // Javascript functions for "Setup / Internet"
 //======================================================================================================
-function Init_WAN(mac)
+function Init_Device(mac)
 {
-	$('.ip_address').inputmask("ip");
 	$('.dns_address').inputmask("ip");
-	$("#dynamic_ip").click(function() {
-		$(".ip_address").attr("disabled", "disabled");
-	});
-	$("#static_ip").click(function() {
-		$(".ip_address").removeAttr("disabled");
-	});
 	$("#dns_doh").click(function() {
 		$(".dns_address").attr("disabled", "disabled");
 		$("#doh_server").removeAttr("disabled");
@@ -34,20 +27,17 @@ function Init_WAN(mac)
 		$("#mac_addr").removeAttr("disabled");
 	});
 	$("#mac_addr").inputmask("mac");
-	$("#submit").click( WAN_Submit );
+	$("#submit").click( Device_Submit );
 }
 
-function WAN_Submit()
+function Device_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	doh_addr = "127.0.0.1#505" + $("#doh_server").val();
 	use_doh = ($("[name=dns_server_opt]:checked").val()) == "doh";
 	postdata = {
 		'sid':      SID,
-		'static':   $("[name=static_dynamic]:checked").val() == 'static' ? 1 : 0,
-		'ip_addr':  $("#ip_addr").val(),
-		'ip_mask':  $("#ip_mask").val(),
-		'ip_gate':  $("#ip_gate").val(),
+		'hostname': $("#hostname").val(),
 		'dns1':     use_doh ? doh_addr : $("#dns1").val(),
 		'dns2':     use_doh ? '' : $("#dns2").val(),
 		'mac':      $("#mac_addr").val()
@@ -56,7 +46,7 @@ function WAN_Submit()
 	// Perform our AJAX request to change the WAN settings:
 	$(".alert_control").addClass("hidden");
 	$("#apply-modal").modal("show");
-	$.post("/ajax/setup-wan", postdata, function(data) {
+	$.post("/ajax/setup-device", postdata, function(data) {
 		if (data == "OK")
 			document.location.reload(true);
 		else
@@ -73,9 +63,17 @@ function WAN_Submit()
 //======================================================================================================
 // Javascript functions for "Setup / Internet"
 //======================================================================================================
-function Init_LAN()
+function Init_Wired()
 {
 	$('.ip_address').inputmask("ip");
+	$("#dynamic_ip").click(function() {
+		$(".ip_address").attr("disabled", "disabled");
+		$(".static_section").addClass("hidden");
+	});
+	$("#static_ip").click(function() {
+		$(".ip_address").removeAttr("disabled");
+		$(".static_section").removeClass("hidden");
+	});
 	$('#use_dhcp').click(function() {
 		if ($(this).is(":checked"))
 			$(".dhcp").removeAttr("disabled");
@@ -91,15 +89,14 @@ function Init_LAN()
 		$("#dhcp_start").val( parts + $("#dhcp_start").val().substring( $("#dhcp_start").val().lastIndexOf('.')) );
 		$("#dhcp_end").val( parts + $("#dhcp_end").val().substring( $("#dhcp_end").val().lastIndexOf('.')) );
 	});
-	$("#apply_changes").click(LAN_Apply);
+	$("#apply_changes").click(Wired_Submit);
 }
 
-function LAN_Apply()
+function Wired_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':        SID,
-		'hostname':   $("#hostname").val(),
 		'iface':      $("#iface").val(),
 		'ip_addr':    $("#ip_addr").val(),
 		'ip_mask':    $("#ip_mask").val(),

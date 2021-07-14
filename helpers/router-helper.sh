@@ -260,6 +260,15 @@ case $CMD in
 		;;
 
 	###########################################################################
+	hostname)
+		OLD_HOST=$(hostname)
+		ORIG="$(grep ${OLD_HOST} /etc/hosts)"
+		REPL="$(echo "${ORIG}" | sed "s|${OLD_HOST}|${1}|g")"
+		sed -i "s|^${ORIG}\$|${REPL}|g" /etc/hosts
+		/bin/hostname $1
+		;;
+
+	###########################################################################
 	webui)
 		cd /opt/bpi-r2-router-builder
 		if [[ "$1" == "current" ]]; then
@@ -308,7 +317,8 @@ case $CMD in
 
 	###########################################################################
 	mac)
-		sed -i "s|hwaddress ether .*|hwaddress ether ${M}|g" /etc/network/interfaces.d/{br0,lan*,wan}
+		sed -i "s|hwaddress ether .*|hwaddress ether ${1}|g" /etc/network/interfaces.d/{br0,lan*,wan}
+		systemctl restart networking
 		;;
 
 	###########################################################################
