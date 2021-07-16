@@ -269,11 +269,3 @@ git clone https://github.com/xptsp/bpi-r2-ssd1306-display /opt/stats
 ln -sf /opt/stats/stats.service /etc/systemd/system/stats.service
 systemctl enable stats
 systemctl start stats
-
-##################################################################################
-# Install the necessary support utils and a copy of "mkcert":
-##################################################################################
-apt install -y libnss3-tools
-wget https://github.com/FiloSottile/mkcert/releases/download/v1.4.3/mkcert-v1.4.3-linux-arm -O /ro/usr/local/bin/mkcert-v1.4.3-linux-arm
-chmod +x /ro/usr/local/bin/mkcert-v1.4.3-linux-arm
-ln -sf /ro/usr/local/bin/mkcert-v1.4.3-linux-arm /usr/local/bin/mkcert

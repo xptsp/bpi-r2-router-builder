@@ -103,11 +103,22 @@ function Stats_Network_Close()
 }
 
 //======================================================================================================
-// Javascript functions for "Admin / Credentials"
+// Javascript functions for "Admin / 7Credentials"
 //======================================================================================================
 function Init_Creds()
 {
 	$("#submit").click(Creds_Password_Submit);
+	$(".input-group-append").click(Creds_Password_Toggle);
+}
+
+function Creds_Password_Toggle()
+{
+	input = $(this).parent().find(".form-control");
+	if (input.attr("type") === "password")
+		input.attr("type", "text");
+	else
+        input.attr("type", "password");
+	$(this).find(".fas").toggleClass("fa-eye fa-eye-slash");
 }
 
 function Creds_Password_Fail(msg)

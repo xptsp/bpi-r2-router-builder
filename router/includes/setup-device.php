@@ -19,7 +19,8 @@ echo '
 	<div class="card-body">
 		<table width="100%">
 			<tr>
-				<td width="50%"><label for="hostname">Device Name</label></td>
+				<td width="30px"></td>
+				<td width="45%"><label for="hostname">Device Name</label></td>
 				<td>
 					<div class="input-group">
 						<div class="input-group-prepend">

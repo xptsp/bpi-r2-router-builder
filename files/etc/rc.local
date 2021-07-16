@@ -14,4 +14,7 @@
 # Rename the MT7615 interfaces if they are present:
 /opt/bpi-r2-router-builder/helpers/mt7615-rename.sh
 
+# Turn the blue light on on the side opposite the network ports:
+echo 1 > /sys/class/leds/bpi-r2:pio:blue/brightness
+
 exit 0
