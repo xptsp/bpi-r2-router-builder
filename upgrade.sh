@@ -102,7 +102,7 @@ fi
 #####################################################################################
 # Copy or link files in the repo to their proper locations:
 #####################################################################################
-cd files
+cd files || (echo "ERROR: Something went really wrong!  Aborting!!"; exit)
 for dir in $(find ./ -maxdepth 1 -type d | grep -v "./root"); do 
 	DIR=${dir/.\//};
 	if [[ ! -z "${DIR}" ]]; then

@@ -62,6 +62,9 @@ COMMIT
 # Allow everything on bridge interfaces:
 -A INPUT -i br+ -j ACCEPT
 
+# Allow everything on bridge interfaces:
+-A INPUT -i mt+ -j ACCEPT
+
 # Reject all other input connections:
 -A INPUT -j REJECT
 
@@ -78,10 +81,22 @@ COMMIT
 -A FORWARD -i wan ! -o wan -j MINIUPNPD
 
 # Forward connections from any bridge interface to WAN:
+-A FORWARD -i br+ -o mt+ -j ACCEPT
+
+# Forward connections from any bridge interface to WAN:
+-A FORWARD -i mt+ -o br+ -j ACCEPT
+
+# Forward connections from any bridge interface to WAN:
 -A FORWARD -i br+ -o wan -j ACCEPT
 
 # Forward any related/established connections back to bridge interfaces:
 -A FORWARD -i wan -o br+ -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+# Forward connections from any bridge interface to WAN:
+-A FORWARD -i mt+ -o wan -j ACCEPT
+
+# Forward any related/established connections back to bridge interfaces:
+-A FORWARD -i wan -o mt+ -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 # Drop any other connections on the WAN interface:
 -A FORWARD -i wan -j DROP
