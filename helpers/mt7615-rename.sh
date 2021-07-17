@@ -12,6 +12,7 @@ if [[ ! -z "${PCI}" ]]; then
 		ifconfig ${IFACE} down
 		ip link set ${IFACE} name ${NEW}
 		ifconfig ${NEW} up
+		systemctl start hostapd@${NEW}
 	done
 fi
 exit 0
