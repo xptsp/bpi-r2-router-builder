@@ -74,16 +74,20 @@ test -f ${LORG} && cp ${LORG} ${LOLD}
 touch ${LNEW}
 
 #####################################################################################
-# Force a complete reset of the repository and pull any updated files:
+# Assuming the GIT command is available upon script execution, force a complete
+# reset of the files and webui parts of the repository and pull any updated files:
 #####################################################################################
-rm -rf router
-rm -rf files
-git reset --hard
-git pull
-# Make user "pi" owner of the router UI
-chown pi:pi -R router
-systemctl daemon-reload
-systemctl restart smbd
+GIT=($(whereis git | cut -d":" -f 2))
+if [[ ! -z "${GIT[@]}" ]]; then
+	rm -rf router
+	rm -rf files
+	git reset --hard
+	git pull
+	# Make user "pi" owner of the router UI
+	chown pi:pi -R router
+	systemctl daemon-reload
+	systemctl restart smbd
+fi
 
 #####################################################################################
 # Copy files to the boot partition ONLY IF MOUNTED!
