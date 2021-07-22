@@ -53,6 +53,10 @@ ln -s /usr/share/zoneinfo/America/Chicago /etc/localtime
 sed -i "s|# en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen
 locale-gen
 
+# Place a list of english words in "/usr/share/dict/" for our password generator:
+wget https://github.com/dobsondev/php-password-generator/raw/master/php-password-generator/adjectives.list -O /usr/share/dict/adjectives.list
+wget https://github.com/dobsondev/php-password-generator/raw/master/php-password-generator/animals.list -O /usr/share/dict/animals.list
+
 # Install any packages that need updating:
 apt update
 apt dist-upgrade -y
