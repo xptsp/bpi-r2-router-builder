@@ -46,7 +46,7 @@ if [[ "$FILE" == *".img" && -e "${FILE}" ]]; then
 	echo -e "${GREEN}================================================================${NC}"
 	dd of=${DEV} if=${FILE} count=${END} status=progress
 	echo -e "${GREEN}================================================================${NC}"
-	echo -e "${GREEN}SUCCESS!${NC} Image has restored!"
+	echo -e "${GREEN}SUCCESS!${NC} Image has been restored!"
 	partprobe ${DEV}
 elif [[ "$FILE" == *".img.gz" && -e "${FILE}" ]]; then
 	echo -e "${GREEN}================================================================${NC}"
@@ -55,7 +55,7 @@ elif [[ "$FILE" == *".img.gz" && -e "${FILE}" ]]; then
 	gunzip -c ${FILE} | dd of=${DEV} bs=4M status=progress
 	partprobe ${DEV}
 	echo -e "${GREEN}================================================================${NC}"
-	echo -e "${GREEN}SUCCESS!${NC} Image has decompressed and restored!"
+	echo -e "${GREEN}SUCCESS!${NC} Image has been decompressed and restored!"
 else
 	echo "ERROR: Unrecognized extension!  Aborting..."
 fi
