@@ -15,11 +15,11 @@ if [[ ! -z "${PCI}" ]]; then
 		if [[ -f /etc/hostapd/${NEW}.conf ]]; then
 			if [[ "$(cat /etc/hostapd/${NEW}.conf | grep wpa_passphrase | cut -d"=" -f 2)" == "bananapi" ]]; then
 				if [[ -f /boot/wifi.conf ]]; then
-					PASS=$(cat /boot/wifi.conf)
+					source /boot/wifi.conf
 				else
-					PASS=$(php /opt/bpi-r2-router-builder/router/includes/ajax-newpass.php)
+					PASS=$(curl http://localhost/ajax/newpass)
 					mount -o remount,rw /boot
-					echo $PASS > /boot/wifi.conf
+					echo "PASS=$PASS" > /boot/wifi.conf
 					mount -o remount,ro /boot
 				fi
 				sed -i "s|wpa_passphrase=.*|wpa_passphrase=${PASS}|g" /etc/hostapd/${NEW}.conf
