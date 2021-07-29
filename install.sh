@@ -57,14 +57,15 @@ locale-gen
 wget https://github.com/dobsondev/php-password-generator/raw/master/php-password-generator/adjectives.list -O /usr/share/dict/adjectives.list
 wget https://github.com/dobsondev/php-password-generator/raw/master/php-password-generator/animals.list -O /usr/share/dict/animals.list
 
-# Install any packages that need updating:
-apt update
-apt dist-upgrade -y
+# Modify networking service configuration to exclude "eth0" adapter.  Service file
+# changes take care of this without breaking the service when restarting it.
+sed -i "s|#EXCLUDE_INTERFACES=.*|#EXCLUDE_INTERFACES=eth0|g" /etc/default/networking
 
 ##################################################################################
-# Modify default network configuration to never bring up "eth0" adapter:
+# Install any packages that need updating:
 ##################################################################################
-sed -i "s|#EXCLUDE_INTERFACES=.*|#EXCLUDE_INTERFACES=eth0|g" /etc/default/networking
+apt update
+apt dist-upgrade -y
 
 ##################################################################################
 # Install a few packages so we can create our custom login message

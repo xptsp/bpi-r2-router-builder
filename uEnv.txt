@@ -1,3 +1,12 @@
-# Replace init script with the /sbin/overlayRoot.sh script.
-# Add "noOverlayRoot" to the following line to completely disable overlayRoot.sh script.
-bootopts=init=/sbin/overlayRoot.sh
+kernel=uImage_nodt
+fdt=bpi-r2.dtb
+bootmenu_default=2
+
+bootmenu_2=3. Boot from SD/EMMC with overlay.=run boot1
+boot1=run selectmmc; setenv bootopts init=/sbin/overlayRoot.sh; run newboot2;
+
+bootmenu_3=4. Boot from SD/EMMC without overlay.=run boot2
+boot2=run selectmmc; run newboot2;
+
+#bootmenu_4=5. Copy SD card to EMMC.=run boot3
+#boot3=(needs implementation)
