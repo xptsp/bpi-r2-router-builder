@@ -304,7 +304,7 @@ case $CMD in
 		RO=$(mount | grep "/boot" | grep "(ro,")
 		[[ -z "$RO" ]] && mount -o remount,rw /boot
 		dtc -q -O dts /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb > /tmp/dts
-		sed -i "s|mac-address = \[.*\]|mac-address = [ ${1} ]|g" /tmp/dts
+		sed -i "s|mac-address = \[.*\]|mac-address = [ ${MAC//:/ } ]|g" /tmp/dts
 		dtc -q -O dtb /tmp/dts > /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
 		[[ -z "$RO" ]] && mount -o remount,ro /boot
 		echo "DTB updated"
