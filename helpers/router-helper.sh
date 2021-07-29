@@ -20,11 +20,9 @@ function check_ro()
 			exit 1
 		fi
 		DEF=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep bootmenu_default | cut -d= -f 2)
-			echo "ERROR: Overlay script line missing."
-			echo "Add 'bootopts=init=/sbin/overlayRoot.sh' to \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to enable."
-		elif cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "noOverlayRoot$" >& /dev/null; then
+		if [[ "$DEF" != "2" ]]; then
 			echo "ERROR: Overlay script has been disabled."
-			echo "Remove or comment out \"noOverlayRoot\" from \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to reenable."
+			echo "Change \"bootmenu_default\" to \"2\" in order to enable readonly overlay script."
 		else
 			echo "ERROR: Readonly filesystem not available!"
 		fi
