@@ -150,12 +150,16 @@ case $CMD in
 	###########################################################################
 	overlay)
 		if [[ "$1" == "enable" || "$1" == "disable" ]]; then
+			FILE=/boot/bananapi/bpi-r2/linux/uEnv.txt
+			OLD=$(cat ${FILE} | grep bootmenu_default | cut -d= -f 2)
+			NEW=$([[ "$1" == "enable" ]] && echo "2" || echo "3")
+			TXT=$([[ "$NEW" == "2" ]] && echo "enabled" || echo "disabled")
+			[[ "$OLD" == "$NEW" ]] && echo "ERROR: Overlay script already ${TXT}!" && exit
 			RO=$(mount | grep "/boot" | grep "(ro,")
-			EN=$([[ "$1" == "enable" ]] && echo "2" || echo "3")
 			[[ -z "$RO" ]] && mount -o remount,rw /boot
-			sed -i "s|bootmenu_default=.*|bootmenu_default=${EN}
+			sed -i "s|bootmenu_default=.*|bootmenu_default=${NEW}" ${FILE}
 			[[ -z "$RO" ]] && mount -o remount,ro /boot
-			echo "Overlay Root script $([[ "$EN" == "2" ]] && echo "enabled" || echo "disabled") for next reboot!"
+			echo "Overlay Root script ${TXT} for next reboot!"
 		else
 			echo "SYNTAX: $(basename $0) overlay [enable|disable]"
 		fi
@@ -165,14 +169,14 @@ case $CMD in
 	dns)
 		IP=(${@/\#/ })
 		if ! valid_ip ${IP[0]}; then
-			echo "ERROR: Invalid IP address specified in 2nd parameter!"
+			echo "ERROR: Invalid IP address specified!"
 			echo "SYNTAX: $(basename $0) dns [ip address(#optional port)]"
 			exit 1
 		fi
 		if [[ ! -z "${IP[1]}" ]]; then
 			if ! valid_ip ${IP[1]}; then
 				if [[ ! "${IP[1]}" =~ ^[0-9]+$ || ${IP[1]} -gt 65535 ]]; then
-					echo "ERROR: Invalid port number specified in 2nd parameter!"
+					echo "ERROR: Invalid port number specified!"
 					echo "SYNTAX: $(basename $0) dns [ip address(#optional port)]"
 					echo "--OR--: $(basename $0) dns [ip address 1] [ip address 2]"
 					exit 1
@@ -297,8 +301,13 @@ case $CMD in
 
 	###########################################################################
 	mac)
-		sed -i "s|hwaddress ether .*|hwaddress ether ${1}|g" /etc/network/interfaces.d/{br0,lan*,wan}
-		systemctl restart networking
+		RO=$(mount | grep "/boot" | grep "(ro,")
+		[[ -z "$RO" ]] && mount -o remount,rw /boot
+		dtc -q -O dts /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb > /tmp/dts
+		sed -i "s|mac-address = \[.*\]|mac-address = [ ${1} ]|g" /tmp/dts
+		dtc -q -O dtb /tmp/dts > /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
+		[[ -z "$RO" ]] && mount -o remount,ro /boot
+		echo "DTB updated"
 		;;
 
 	###########################################################################
