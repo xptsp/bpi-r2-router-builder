@@ -16,7 +16,7 @@ function check_ro()
 			exit 1
 		elif ! test -e /boot/bananapi/bpi-r2/linux/uEnv.txt; then
 			echo "ERROR: uEnv.txt file is missing."
-			echo "Add 'bootopts=init=/sbin/overlayRoot.sh' to \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to enable."
+			echo "Copy '/opt/bpi-r2-router-builder/uEnv.txt' to \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to enable."
 			exit 1
 		fi
 		DEF=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep bootmenu_default | cut -d= -f 2)
@@ -143,7 +143,6 @@ case $CMD in
 		fi
 		remount_rw
 		sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=yes|g" /ro/etc/overlayRoot.conf
-		remount_ro
 		reboot now
 		;;
 
@@ -156,9 +155,9 @@ case $CMD in
 			TXT=$([[ "$NEW" == "2" ]] && echo "enabled" || echo "disabled")
 			[[ "$OLD" == "$NEW" ]] && echo "ERROR: Overlay script already ${TXT}!" && exit
 			RO=$(mount | grep "/boot" | grep "(ro,")
-			[[ -z "$RO" ]] && mount -o remount,rw /boot
+			[[ ! -z "$RO" ]] && mount -o remount,rw /boot
 			sed -i "s|bootmenu_default=.*|bootmenu_default=${NEW}" ${FILE}
-			[[ -z "$RO" ]] && mount -o remount,ro /boot
+			[[ ! -z "$RO" ]] && mount -o remount,ro /boot
 			echo "Overlay Root script ${TXT} for next reboot!"
 		else
 			echo "SYNTAX: $(basename $0) overlay [enable|disable]"
@@ -221,7 +220,7 @@ case $CMD in
 	security-check)
 		[[ "$($0 login check $($0 login webui) bananapi)" == "Match" ]] && echo "Default"
 		[[ "$($0 login check root bananapi)" == "Match" ]] && echo "Root"
-		mount | grep -e "^tmp-root-rw on /rw " >& /dev/null && echo "Temp"
+		mount | grep -e "^emergency-root-rw on /rw " >& /dev/null && echo "Temp"
 		;;
 
 	###########################################################################
@@ -247,7 +246,7 @@ case $CMD in
 	hostname)
 		OLD_HOST=$(hostname)
 		ORIG="$(grep ${OLD_HOST} /etc/hosts)"
-		REPL="$(echo "${ORIG}" | sed "s|${OLD_HOST}|${1}|g")"
+		REPL="${ORIG//${OLD_HOST}/${1}}"
 		sed -i "s|^${ORIG}\$|${REPL}|g" /etc/hosts
 		/bin/hostname $1
 		;;
@@ -302,11 +301,11 @@ case $CMD in
 	###########################################################################
 	mac)
 		RO=$(mount | grep "/boot" | grep "(ro,")
-		[[ -z "$RO" ]] && mount -o remount,rw /boot
+		[[ ! -z "$RO" ]] && mount -o remount,rw /boot
 		dtc -q -O dts /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb > /tmp/dts
 		sed -i "s|mac-address = \[.*\]|mac-address = [ ${MAC//:/ } ]|g" /tmp/dts
 		dtc -q -O dtb /tmp/dts > /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
-		[[ -z "$RO" ]] && mount -o remount,ro /boot
+		[[ ! -z "$RO" ]] && mount -o remount,ro /boot
 		echo "DTB updated"
 		;;
 

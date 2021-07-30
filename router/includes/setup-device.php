@@ -3,7 +3,7 @@ require_once("subs/admin.php");
 site_menu();
 $wan = parse_ifconfig('wan');
 #echo '<pre>'; print_r($wan); exit();
-$cfg = get_mac_info('wan');
+$cfg = parse_ifconfig('wan');
 #echo '<pre>'; print_r($cfg); exit();
 $gateway = @trim(shell_exec("ip route | grep default | grep wan | awk '{print $3}'"));
 #echo $gateway; exit();
@@ -102,7 +102,7 @@ echo '
 ###################################################################################################
 # Router MAC Address settings:
 ###################################################################################################
-$mac = explode(" ", trim($cfg['hwaddress']))[1];
+$mac = trim($cfg['ether']);
 $def = '08:00:00:00:00:01';
 $leases = explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")));
 $mac_com = trim(@shell_exec("arp -n | grep " . $_SERVER['REMOTE_ADDR'] . " | awk '{print $3}'"));

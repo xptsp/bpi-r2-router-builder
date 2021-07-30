@@ -61,6 +61,9 @@ wget https://github.com/dobsondev/php-password-generator/raw/master/php-password
 wget https://github.com/frank-w/BPI-R2-4.14/raw/4.14-main/utils/mmc/mmc -O /usr/local/bin/mmc
 chmod +x /usr/local/bin/mmc
 
+# Get the file we'll need to flash during SD->EMMC copies:
+wget https://github.com/BPI-SINOVOIP/BPI-files/raw/master/SD/100MB/BPI-R2-EMMC-boot0-DDR1600-0k-0905.img.gz -O /boot/BPI-R2-EMMC-boot0-DDR1600-0k-0905.img.gz
+
 # Modify networking service configuration to exclude "eth0" adapter.  Service file
 # changes take care of this without breaking the service when restarting it.
 sed -i "s|#EXCLUDE_INTERFACES=.*|#EXCLUDE_INTERFACES=eth0|g" /etc/default/networking

@@ -6,7 +6,7 @@ require_once('subs/admin.php');
 # Gather as much information before starting the overview display as we can:
 #######################################################################################################
 $load = sys_getloadavg();
-$br0 = get_mac_info('br0');
+$br0 = parse_ifconfig('br0');
 $wan = get_mac_info('wan');
 $wan_if = parse_ifconfig('wan');
 $dns = get_dns_servers();
@@ -29,11 +29,11 @@ echo '
 								<table class="table table-hover text-nowrap">
 									<tr>
 										<td><strong>Internal IP Address</strong></td>
-										<td>', $br0['address'], '</td>
+										<td>', $br0['inet'], '</td>
 									</tr>
 									<tr>
 										<td width="50%"><strong>Internal MAC Address</strong></td>
-										<td>', explode(' ', trim($br0['hwaddress']))[1], '</td>
+										<td>', trim($br0['ether']), '</td>
 									</tr>
 									<tr>
 										<td><strong>PiHole Adblocking</strong></td>

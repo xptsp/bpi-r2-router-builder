@@ -60,6 +60,7 @@ gunzip -f /tmp/bpiwrt_empty.img.gz
 
 echo -e "${GREEN}NOTE:${NC} Copy kernel files from partition 1..."
 OUT=($(los /tmp/bpiwrt_empty.img))
+rm ${DEV[1]}/bananapi/bpi-r2/linux/uImage >& /dev/null
 cp -aR ${DEV[1]}/* ${OUT[1]}/
 
 echo -e "${GREEN}NOTE:${NC} Clearing the local repository of retrieved package files..."
