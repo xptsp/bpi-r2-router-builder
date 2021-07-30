@@ -3,10 +3,10 @@ fdt=bpi-r2.dtb
 bootmenu_default=2
 
 bootmenu_2=3. Boot from SD/EMMC with overlay.=run boot1
-boot1=run selectmmc; setenv bootopts init=/sbin/overlayRoot.sh; run newboot2;
+boot1=run selectmmc; run loadbootenv; run importenv; setenv bootopts "$bootopts init=/sbin/overlayRoot.sh"; run newboot2;
 
 bootmenu_3=4. Boot from SD/EMMC without overlay.=run boot2
-boot2=run selectmmc; run newboot2;
+boot2=boot1=run selectmmc; run loadbootenv; run importenv; run newboot2;
 
 #bootmenu_4=5. Copy SD card to EMMC.=run boot3
 #boot3=(needs implementation)

@@ -57,6 +57,10 @@ locale-gen
 wget https://github.com/dobsondev/php-password-generator/raw/master/php-password-generator/adjectives.list -O /usr/share/dict/adjectives.list
 wget https://github.com/dobsondev/php-password-generator/raw/master/php-password-generator/animals.list -O /usr/share/dict/animals.list
 
+# Download the "mmc" binary and place in "/usr/local/bin":
+wget https://github.com/frank-w/BPI-R2-4.14/raw/4.14-main/utils/mmc/mmc -O /usr/local/bin/mmc
+chmod +x /usr/local/bin/mmc
+
 # Modify networking service configuration to exclude "eth0" adapter.  Service file
 # changes take care of this without breaking the service when restarting it.
 sed -i "s|#EXCLUDE_INTERFACES=.*|#EXCLUDE_INTERFACES=eth0|g" /etc/default/networking
