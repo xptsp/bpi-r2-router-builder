@@ -12,6 +12,7 @@ $wan_if = parse_ifconfig('wan');
 $dns = get_dns_servers();
 $type = strpos($wan['iface'], 'dhcp') > 0 ? 'DHCP' : 'Static IP';
 $power_button = file_exists("/etc/modprobe.d/power_button.conf");
+$model = explode(":", shell_exec("dmesg | grep 'Machine model'"));
 
 #######################################################################################################
 # Display information about the router:
@@ -43,8 +44,8 @@ echo '
 										<td colspan="2"><strong><i>Operating System Information</i></strong></td>
 									</tr>
 									<tr>
-										<td width="50%"><strong>Hardware Version</strong></td>
-										<td>Banana Pi R2</td>
+										<td width="50%"><strong>Machine Model</strong></td>
+										<td>', str_replace("Bananapi", "Banana Pi", $model[ count($model) - 1 ]), '</td>
 									</tr>
 									<tr>
 										<td><strong>OS Version</strong></td>

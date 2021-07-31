@@ -156,7 +156,7 @@ case $CMD in
 			[[ "$OLD" == "$NEW" ]] && echo "ERROR: Overlay script already ${TXT}!" && exit
 			RO=$(mount | grep "/boot" | grep "(ro,")
 			[[ ! -z "$RO" ]] && mount -o remount,rw /boot
-			sed -i "s|bootmenu_default=.*|bootmenu_default=${NEW}" ${FILE}
+			sed -i "s|bootmenu_default=.*|bootmenu_default=${NEW}|g" ${FILE}
 			[[ ! -z "$RO" ]] && mount -o remount,ro /boot
 			echo "Overlay Root script ${TXT} for next reboot!"
 		else
@@ -220,7 +220,7 @@ case $CMD in
 	security-check)
 		[[ "$($0 login check $($0 login webui) bananapi)" == "Match" ]] && echo "Default"
 		[[ "$($0 login check root bananapi)" == "Match" ]] && echo "Root"
-		mount | grep -e "^emergency-root-rw on /rw " >& /dev/null && echo "Temp"
+		mount | grep -e "[emergency|tmp]-root-rw on /rw " >& /dev/null && echo "Temp"
 		;;
 
 	###########################################################################
