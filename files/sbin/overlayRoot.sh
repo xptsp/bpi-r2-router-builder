@@ -64,6 +64,20 @@ defaults(){
 
 	ON_RW_MEDIA_NOT_FOUND=tmpfs
 
+	# An image file on the RW partition to use as the RW layer in the overlayfs.
+	# Default: none
+	RW_IMAGE_NAME=none
+
+	# What to do if the specified image file doesn't exist.  Default is "ignore".
+	# ignore = continue running script, assuming RW partition is RW layer.
+	# create = create the image file, as large as requested.
+	RW_IMAGE_CREATE=ignore
+	
+	# What size to create the image file.  Default is "all"
+	# all = all remaining space on the partition
+	# (x)g = x gigabytes (aka 10g)
+	RW_IMAGE_SIZE=all
+	
 	LOGGING=warning
 
 	LOG_FILE=/var/log/overlayRoot.log
@@ -82,20 +96,20 @@ FAILURES=0
 WARNINGS=0
 
 log_fail(){
-	echo -e "[FAIL:overlay] $@" | tee -a /mnt/overlayRoot.log
+	echo -e "[FAIL] $@" | tee -a /mnt/overlayRoot.log
 	((FAILURES++))
 }
 
 log_warning(){
 	if [ $LOGGING == "warning" ] || [ $LOGGING == "info" ]; then
-		echo -e "[FAIL:overlay] $@" | tee -a /mnt/overlayRoot.log
+		echo -e "[FAIL] $@" | tee -a /mnt/overlayRoot.log
 	fi
 	((WARNINGS++))
 }
 
 log_info(){
 	if [ $LOGGING == "info" ]; then
-		echo -e "[INFO:overlay] $1" | tee -a /mnt/overlayRoot.log
+		echo -e "[INFO] $1" | tee -a /mnt/overlayRoot.log
 	fi
 }
 
@@ -301,6 +315,18 @@ mkdir /mnt/newroot
 run_protected_command "$RW_MOUNT"
 run_protected_command "$ROOT_MOUNT"
 
+# we need to see if we need to format and/or mount an image file on the rw partition:
+if [[ ! -z "${RW_IMAGE_FILE}" && "${RW_IMAGE_FILE}" != "none" ]]; then
+	EXT4=/mnt/ext4
+	mkdir $EXT4
+	if [[ ! -f $RW/${RW_IMAGE_FILE} && "${RW_IMAGE_CREATE}" != "create" ]]; then
+		[[ "${RW_IMAGE_SIZE}" == "all" ]] && RW_IMAGE_SIZE=$(df -BM --output=used $DEV | tail -1)
+		run_protected_command "fallocate -l ${RW_IMAGE_SIZE} $RW/${RW_IMAGE_FILE}"
+		run_protected_command "mkfs.ext4 $RW/${RW_IMAGE_FILE}"
+	fi
+	[[ ! -f $RW/${RW_IMAGE_FILE} ]] && run_protected_command "mount -o loop $RW/${RW_IMAGE_FILE} $EXT4 && RW=$EXT4"
+fi
+
 mkdir -p $RW/upper
 mkdir -p $RW/work
 
@@ -312,7 +338,8 @@ mkdir -p /mnt/newroot/rw
 
 # remove root mount from fstab (non-permanent modification on tmpfs rw media)
 if ! test -e /mnt/newroot/etc/fstab || cat /mnt/newroot/etc/fstab | grep -e "^$RO_DEV" >& /dev/null; then
-	sed "s|^${RO_DEV}|#${RO_DEV}|g" /mnt/lower/etc/fstab > /mnt/newroot/etc/fstab
+	sed "s|^${RO_DEV} |#${RO_DEV}|g" /mnt/lower/etc/fstab > /mnt/newroot/etc/fstab
+	echo "" >> /mnt/newroot/etc/fstab
 	echo "#the original root mount has been commented out by overlayRoot.sh" >> /mnt/newroot/etc/fstab
 	echo "#this is only a temporary modification, the original fstab" >> /mnt/newroot/etc/fstab
 	echo "#stored on the disk can be found in /ro/etc/fstab" >> /mnt/newroot/etc/fstab
