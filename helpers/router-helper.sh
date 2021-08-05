@@ -255,16 +255,18 @@ case $CMD in
 		;;
 
 	###########################################################################
-	webui)
-		cd /opt/bpi-r2-router-builder
+	git)
+		cd /opt/{$2:-"bpi-r2-router-builder"}
 		if [[ "$1" == "current" ]]; then
-			echo $(git log -1 --format="%at")
+			git log -1 --format="%at"
 		elif [[ "$1" == "remote" ]]; then
 			git remote update >& /dev/null
-			echo $(git log -1 --format="%at" origin/master)
+			git log -1 --format="%at" origin/master
 		elif [[ "$1" == "update" ]]; then
-			if [[ -d /ro ]]; then
-				echo $0 chroot $PWD/upgrade.sh
+			if [[ "${2:-"bpi-r2-router-builder"} " != "bpi-r2-router-builder" ]]; then
+				git pull
+			elif [[ -d /ro ]]; then
+				$0 chroot $PWD/upgrade.sh
 			else
 				./upgrade.sh
 			fi

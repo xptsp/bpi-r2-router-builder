@@ -14,13 +14,14 @@ foreach (file("/var/log/apt/history.log") as $line)
 		$last_update = explode(" ", $line, 2)[1];
 	}
 }
+echo '
+			<div class="container-fluid">
+				<div class="row">';
 
 ################################################################################################
 # Display Web UI current version and latest version:
 ################################################################################################
 echo '
-			<div class="container-fluid">
-				<div class="row">
 					<div class="col-md-6">
 						<div class="card card-primary">
 							<div class="card-header">
@@ -31,11 +32,11 @@ echo '
 								<table class="table">
 									<tr>
 										<td width="50%"><strong>Current Version</strong></td>
-										<td>v<span id="current_ver">', $webui_version, '</span></td>
+										<td><span id="webui_current">v', $webui_version, '</span></td>
 									</tr>
 									<tr>
 										<td><strong>Latest Version</strong></td>
-										<td><span id="latest_ver"><i>Retrieving...</i></span></td>
+										<td><span id="webui_latest"><i>Retrieving...</i></span></td>
 									</tr>
 									<tr id="webui_check_div">
 										<td colspan="2">
@@ -45,6 +46,44 @@ echo '
 									<tr class="hidden" id="webui_pull_div">
 										<td colspan="2">
 											<button type="button" class="btn btn-block btn-outline-primary center_50" id="webui_pull">Update Web UI</button>
+										</td>
+									</tr>
+								</table>
+							</div>
+							<!-- /.card-body -->
+						</div>
+						<!-- /.card -->
+					</div>
+					<!-- /.col -->';
+
+################################################################################################
+# Display Web UI current version and latest version:
+################################################################################################
+echo '
+					<div class="col-md-6">
+						<div class="card card-primary">
+							<div class="card-header">
+								<h3 class="card-title"><i class="fab fa-github"></i> Regulatory Database</h3>
+							</div>
+							<!-- /.card-header -->
+							<div class="card-body table-responsive p-0" id="regdb-div">
+								<table class="table">
+									<tr>
+										<td width="50%"><strong>Current Version</strong></td>
+										<td><span id="regdb_current"><i>Retrieving...</i></span></td>
+									</tr>
+									<tr>
+										<td><strong>Latest Version</strong></td>
+										<td><span id="regdb_latest"><i>Retrieving...</i></span></td>
+									</tr>
+									<tr id="regdb_check_div">
+										<td colspan="2">
+											<button type="button" class="btn btn-block btn-outline-info center_50" id="regdb_check">Check for Update</button>
+										</td>
+									</tr>
+									<tr class="hidden" id="regdb_pull_div">
+										<td colspan="2">
+											<button type="button" class="btn btn-block btn-outline-primary center_50" id="regdb_pull">Update Database</button>
 										</td>
 									</tr>
 								</table>
@@ -123,6 +162,6 @@ echo '
 # Close the page:
 ################################################################################################
 echo '
-				</div>
-			</div>';
+	</div>
+</div>';
 site_footer('Init_Updates();');

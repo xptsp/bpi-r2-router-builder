@@ -182,9 +182,11 @@ function Creds_Password_Submit()
 //======================================================================================================
 function Init_Updates()
 {
-	Updates_WebUI_Check();
-	$("#webui_check").click(Updates_WebUI_Check);
+	Updates_Check();
+	$("#webui_check").click(Updates_Check);
 	$("#webui_pull").click(Updates_WebUI_Pull);
+	$("#regdb_check").click(Updates_Check);
+	$("#regdb_pull").click(Updates_WebUI_Pull);
 	$("#apt_check").click(Updates_Debian_Check);
 	$("#apt_pull").click(Updates_Debian_Pull);
 }
@@ -204,20 +206,29 @@ function Updates_Del_Overlay(id)
 	$("#" + id + "-loading").remove();
 }
 
-function Updates_WebUI_Check()
+function Updates_Check()
 {
 	Updates_Add_Overlay("webui-div");
+	Updates_Add_Overlay("regdb-div");
 	$.getJSON("/ajax/webui/check?sid=" + SID, function(data) {
 		Updates_Del_Overlay("webui-div");
-		$('#latest_ver').html( 'v' + data.remote_ver );
-		if (data.remote_ver > $("#current_ver").text())
+		Updates_Del_Overlay("regdb-div");
+		$('#webui_latest').html( 'v' + data.webui_remote );
+		$('#regdb_current').html( 'v' + data.regdb_current );
+		$('#regdb_latest').html( 'v' + data.regdb_remote );
+		if (data.rwebui_remote > $("#webui_current").text())
 		{
 			$("#webui_check_div").addClass("hidden");
 			$("#webui_pull_div").removeClass("hidden");
 		}
+		if (data.regdb_remote > $("#regdb_current").text())
+		{
+			$("#regdb_check_div").addClass("hidden");
+			$("#regdb_pull_div").removeClass("hidden");
+		}
 	}).fail( function() {
 		Updates_Del_Overlay("webui-div");
-		$('#latest_ver').html("AJAX Call Failed");
+		$('#webui_latest').html("AJAX Call Failed");
 	});
 }
 
