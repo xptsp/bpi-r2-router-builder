@@ -32,7 +32,7 @@ echo '
 								<table class="table">
 									<tr>
 										<td width="50%"><strong>Current Version</strong></td>
-										<td><span id="webui_current">v', $webui_version, '</span></td>
+										<td>v<span id="webui_current">', $webui_version, '</span></td>
 									</tr>
 									<tr>
 										<td><strong>Latest Version</strong></td>
@@ -70,7 +70,7 @@ echo '
 								<table class="table">
 									<tr>
 										<td width="50%"><strong>Current Version</strong></td>
-										<td><span id="regdb_current"><i>Retrieving...</i></span></td>
+										<td>v<span id="webui_current">', $_SESSION['regdb_version'], '</span></td>
 									</tr>
 									<tr>
 										<td><strong>Latest Version</strong></td>

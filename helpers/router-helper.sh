@@ -256,19 +256,17 @@ case $CMD in
 
 	###########################################################################
 	git)
-		cd /opt/{$2:-"bpi-r2-router-builder"}
+		cd /opt/${2:-"bpi-r2-router-builder"}
 		if [[ "$1" == "current" ]]; then
 			git log -1 --format="%at"
 		elif [[ "$1" == "remote" ]]; then
 			git remote update >& /dev/null
 			git log -1 --format="%at" origin/master
 		elif [[ "$1" == "update" ]]; then
-			if [[ "${2:-"bpi-r2-router-builder"} " != "bpi-r2-router-builder" ]]; then
-				git pull
-			elif [[ -d /ro ]]; then
-				$0 chroot $PWD/upgrade.sh
+			if [[ "$2 " == "wireless-regdb" ]]; then
+				$([[ -d /ro ]] && echo "$0 chroot") /opt/bpi-r2-router-builder/misc/wireless-regdb
 			else
-				./upgrade.sh
+				$([[ -d /ro ]] && echo "$0 chroot") $PWD/upgrade.sh
 			fi
 		fi
 		;;

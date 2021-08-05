@@ -1,4 +1,0 @@
-#!/bin/bash
-rm -rf squashfs-root
-unsquashfs kernel.squashfs
-[[ ! -e kernel ]] && ln -sf squashfs-root kernel

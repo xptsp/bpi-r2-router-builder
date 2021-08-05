@@ -182,11 +182,12 @@ function Creds_Password_Submit()
 //======================================================================================================
 function Init_Updates()
 {
-	Updates_Check();
-	$("#webui_check").click(Updates_Check);
+	Updates_WebUI_Check();
+	Updates_RegDB_Check();
+	$("#webui_check").click(Updates_WebUI_Check);
 	$("#webui_pull").click(Updates_WebUI_Pull);
-	$("#regdb_check").click(Updates_Check);
-	$("#regdb_pull").click(Updates_WebUI_Pull);
+	$("#regdb_check").click(Updates_RegDB_Check);
+	$("#regdb_pull").click(Updates_RegDB_Pull);
 	$("#apt_check").click(Updates_Debian_Check);
 	$("#apt_pull").click(Updates_Debian_Pull);
 }
@@ -206,25 +207,16 @@ function Updates_Del_Overlay(id)
 	$("#" + id + "-loading").remove();
 }
 
-function Updates_Check()
+function Updates_WebUI_Check()
 {
 	Updates_Add_Overlay("webui-div");
-	Updates_Add_Overlay("regdb-div");
 	$.getJSON("/ajax/webui/check?sid=" + SID, function(data) {
 		Updates_Del_Overlay("webui-div");
-		Updates_Del_Overlay("regdb-div");
 		$('#webui_latest').html( 'v' + data.webui_remote );
-		$('#regdb_current').html( 'v' + data.regdb_current );
-		$('#regdb_latest').html( 'v' + data.regdb_remote );
-		if (data.rwebui_remote > $("#webui_current").text())
+		if (data.webui_remote > $("#webui_current").text())
 		{
 			$("#webui_check_div").addClass("hidden");
 			$("#webui_pull_div").removeClass("hidden");
-		}
-		if (data.regdb_remote > $("#regdb_current").text())
-		{
-			$("#regdb_check_div").addClass("hidden");
-			$("#regdb_pull_div").removeClass("hidden");
 		}
 	}).fail( function() {
 		Updates_Del_Overlay("webui-div");
@@ -237,6 +229,23 @@ function Updates_WebUI_Pull()
 	Updates_Add_Overlay("webui-div");
 	$.get("/ajax/webui/pull?sid=" + SID, function(data) {
 		document.location.reload(true);
+	});
+}
+
+function Updates_RegDB_Check()
+{
+	Updates_Add_Overlay("regdb-div");
+	$.getJSON("/ajax/regdb/check?sid=" + SID, function(data) {
+		Updates_Del_Overlay("regdb-div");
+		$('#regdb_latest').html( 'v' + data.regdb_remote );
+		if (data.regdb_remote > $("#regdb_current").text())
+		{
+			$("#regdb_check_div").addClass("hidden");
+			$("#regdb_pull_div").removeClass("hidden");
+		}
+	}).fail( function() {
+		Updates_Del_Overlay("regdb-div");
+		$('#regdb').html("AJAX Call Failed");
 	});
 }
 

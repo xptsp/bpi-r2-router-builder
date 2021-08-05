@@ -34,11 +34,13 @@ $sidebar_menu = array(
 if (isset($_SESSION['webui_version']) && isset($_SESSION['webui_version_last']) && $_SESSION['webui_version_last'] > time())
 {
 	unset($_SESSION['webui_version']);
+	unset($_SESSION['regdb_version']);
 	unset($_SESSION['webui_version_last']);
 }
 if (!isset($_SESSION['webui_version']))
 {
-	$_SESSION['webui_version'] = date('Y.md.Hi', (int) trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh webui current')));
+	$_SESSION['webui_version'] = date('Y.md.Hi', (int) trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current')));
+	$_SESSION['regdb_version'] = date('Y.md.Hi', (int) trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current wireless-regdb')));
 	$_SESSION['webui_version_last'] = time() + 600;
 }
 $webui_version = $_SESSION['webui_version'];
