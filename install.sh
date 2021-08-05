@@ -32,8 +32,9 @@ echo -e "bananapi\nbananapi" | passwd -q pi
 useradd -m -G users -s /usr/sbin/nologin vpn
 usermod -aG vpn pi
 
-# Create symlink to use "clear" as "cls":
+# Create necessary symlinks for a few commands:
 ln -sf /usr/bin/clear /usr/local/bin/cls
+ln -sf /opt/bpi-r2-router-builder/helpers/router-helper.sh /usr/local/bin/router-helper
 
 # Set hostname:
 echo "bpiwrt" > /etc/hostname

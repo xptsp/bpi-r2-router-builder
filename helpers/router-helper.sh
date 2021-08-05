@@ -138,7 +138,7 @@ case $CMD in
 			exit 1
 		fi
 		if [[ ! "$2" =~ -(y|-yes) ]]; then
-			echo "WARNING: The router will reboot and persistent storage will be formatted.  This action cannot be undone!\n\n"
+			echo "WARNING: The router will reboot and persistent storage will be formatted.  This action cannot be undone!"
 			askYesNo "Are you SURE you want to do this?" || exit 0
 		fi
 		remount_rw
@@ -159,8 +159,11 @@ case $CMD in
 			sed -i "s|bootmenu_default=.*|bootmenu_default=${NEW}|g" ${FILE}
 			[[ ! -z "$RO" ]] && mount -o remount,ro /boot
 			echo "Overlay Root script ${TXT} for next reboot!"
+		elif [[ "$1" == "status" ]]; then
+			STAT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "bootmenu_default=2" >& /dev/null && echo "enabled" || echo "disabled")
+			echo "Overlay Root script is ${STAT}."
 		else
-			echo "SYNTAX: $(basename $0) overlay [enable|disable]"
+			echo "SYNTAX: $(basename $0) overlay [enable|disable|status]"
 		fi
 		;;
 
@@ -260,7 +263,11 @@ case $CMD in
 			git remote update >& /dev/null
 			echo $(git log -1 --format="%at" origin/master)
 		elif [[ "$1" == "update" ]]; then
-			./upgrade.sh
+			if [[ -d /ro ]]; then
+				echo $0 chroot $PWD/upgrade.sh
+			else
+				./upgrade.sh
+			fi
 		fi
 		;;
 
