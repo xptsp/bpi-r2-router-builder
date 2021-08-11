@@ -302,10 +302,24 @@ case $CMD in
 
 	###########################################################################
 	mac)
+		MAC=$1
+		if [[ "$MAC" == "random" ]]; then
+			MAC=$(printf '%01X2:%02X:%02X:%02X:%02X:%02X\n' $[RANDOM%16] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256])
+			echo "INFO: Using MAC Address: $MAC"
+		fi
+		if [[ ! "$MAC" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then
+			echo "ERROR: Invalid MAC address specified!"
+			exit 1
+		fi
 		RO=$(mount | grep "/boot" | grep "(ro,")
 		[[ ! -z "$RO" ]] && mount -o remount,rw /boot
 		dtc -q -O dts /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb > /tmp/dts
-		sed -i "s|mac-address = \[.*\]|mac-address = [ ${MAC//:/ } ]|g" /tmp/dts
+		if grep "mac-address \= \[" /tmp/dts >& /dev/null; then
+			sed -i "s|mac-address = \[.*\]|mac-address = [ ${MAC//:/ } ]|g" /tmp/dts
+		else
+			sed -i "s|mediatek,mt7530\"|mediatek,mt7530\";\n\t\t\t\tmac-address = [ ${MAC//:/ } ]|g" /tmp/dts
+		fi
+		echo $MAC > /boot/eth0.conf
 		dtc -q -O dtb /tmp/dts > /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
 		[[ ! -z "$RO" ]] && mount -o remount,ro /boot
 		echo "DTB updated"

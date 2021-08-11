@@ -1,7 +1,7 @@
 //======================================================================================================
 // Javascript functions for "Setup / Global Settings"
 //======================================================================================================
-function Init_Global(mac)
+function Init_Global(mac_com, mac_cur)
 {
 	$('.dns_address').inputmask("ip");
 	$("#dns_doh").click(function() {
@@ -13,7 +13,7 @@ function Init_Global(mac)
 		$("#doh_server").attr("disabled", "disabled");
 	});
 	$("#mac_default").click(function() {
-		$("#mac_addr").val("08:00:00:00:00:01").attr("disabled", "disabled");
+		$("#mac_addr").val(mac_cur).attr("disabled", "disabled");
 	});
 	$("#mac_random").click(function() {
 		s = "X" + "26AE".charAt(Math.floor(Math.random() * 4)) + ":XX:XX:XX:XX:XX";
@@ -22,7 +22,7 @@ function Init_Global(mac)
 		})).attr("disabled", "disabled");
 	});
 	$("#mac_computer").click(function() {
-		$("#mac_addr").val(mac).attr("disabled", "disabled");
+		$("#mac_addr").val(mac_com).attr("disabled", "disabled");
 	});
 	$("#mac_custom").click(function() {
 		$("#mac_addr").removeAttr("disabled");

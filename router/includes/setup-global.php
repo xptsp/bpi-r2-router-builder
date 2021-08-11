@@ -124,14 +124,14 @@ echo '
 			</div>
 			<div class="icheck-primary">
 				<input class="mac_opt" type="radio" id="mac_default" name="router_mac"', $mac == $def ? ' checked="checked"' : '', '>
-				<label for="mac_default">Use Default Address</label>
+				<label for="mac_default">Use Current MAC Address</label>
 			</div>
 			<div class="icheck-primary">
-				<input class="mac_opt" type="radio" id="mac_computer" name="router_mac"', $mac == $mac_com ? ' checked="checked"' : '', ' data-mac="', $mac_com, '"', $mac_com == "" ? ' disabled="disabled"' : '', '>
+				<input class="mac_opt" type="radio" id="mac_computer" name="router_mac"', $mac == $mac_com ? ' checked="checked"' : '', '>
 				<label for="mac_computer">Use Computer MAC Address</label>
 			</div>
 			<div class="icheck-primary">
-				<input class="mac_opt" type="radio" id="mac_random" name="router_mac"', $mac == $mac_com ? ' checked="checked"' : '', ' data-mac="', $mac_com, '"', $mac_com == "" ? ' disabled="disabled"' : '', '>
+				<input class="mac_opt" type="radio" id="mac_random" name="router_mac"', $mac == $mac_com ? ' checked="checked"' : '', '>
 				<label for="mac_random">Generate Random MAC Address</label>
 			</div>
 		</div>
@@ -172,4 +172,4 @@ echo '
 ###################################################################################################
 # Close page
 ###################################################################################################
-site_footer('Init_Global("' . $mac_com . '");');
+site_footer('Init_Global("' . $mac_com . '", "' . $mac . '");');

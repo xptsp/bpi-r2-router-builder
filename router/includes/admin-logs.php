@@ -2,7 +2,6 @@
 # Decide what program to run:
 $commands = array(
 	'kernel'  => array('text' => 'Kernel', 'cmd' => 'dmesg'),
-	'journal' => array('text' => 'Journal', 'cmd' => 'journalctl'),
 );
 $tab = isset($_GET['tab']) ? $_GET['tab'] : 'kernel';
 $tab = isset($commands[$tab]) ? $tab : 'kernel';

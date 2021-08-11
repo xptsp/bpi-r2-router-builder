@@ -35,7 +35,7 @@ echo '
 									</tr>
 									<tr>
 										<td width="50%"><strong>Internal MAC Address</strong></td>
-										<td>', trim($br0['ether']), '</td>
+										<td>', strtoupper(trim($br0['ether'])), '</td>
 									</tr>
 									<tr>
 										<td><strong>PiHole Adblocking</strong></td>
@@ -121,7 +121,7 @@ echo '
 									</tr>
 									<tr>
 										<td width="50%"><strong>External MAC Address</strong></td>
-										<td>', isset($wan_if['ether']) ? $wan_if['ether'] : '<i>Disconnected</i>', '</td>
+										<td>', isset($wan_if['ether']) ? strtoupper($wan_if['ether']) : '<i>Disconnected</i>', '</td>
 									</tr>
 									<tr>
 										<td><strong>Domain Name Server', isset($dns[1]) ? 's' : '', '</strong></td>
