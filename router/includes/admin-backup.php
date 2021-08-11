@@ -54,10 +54,7 @@ else
 			<div class="col-sm-6"><button type="button" class="btn btn-block btn-outline-danger" id="restore_settings">Restore Settings</button></div>
 		</div>';
 
-	$overlay_disabled = false;
-	foreach (@file("/boot/bananapi/bpi-r2/linux/uEnv.txt") as $line)
-		$overlay_disabled |= preg_match("/^bootopts=(.*)(noOverlayRoot)/", $line, $regex);
-	if (!$overlay_disabled)
+	if (strpos(@file_get_contents("/boot/bananapi/bpi-r2/linux/uEnv.txt"), "bootmenu_default=2") == -1)
 		echo '
 		<hr />
 		<div class="input-group mb-4">

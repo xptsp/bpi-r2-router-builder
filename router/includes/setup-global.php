@@ -103,7 +103,7 @@ echo '
 # Router MAC Address settings:
 ###################################################################################################
 $mac = trim($cfg['ether']);
-$def = @file_get_contents('/boot/default_mac.txt');
+$def = @file_get_contents('/boot/eth0.conf');
 $def = empty($def) ? $mac : $def;
 $leases = explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")));
 $mac_com = trim(@shell_exec("arp -n | grep " . $_SERVER['REMOTE_ADDR'] . " | awk '{print $3}'"));

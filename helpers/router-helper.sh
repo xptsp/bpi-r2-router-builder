@@ -115,7 +115,7 @@ case $CMD in
 		chroot /ro $@
 		umount /ro/etc/debian_chroot >& /dev/null
 		rm /tmp/debian_chroot
-		remount_ro || reboot now
+		remount_ro || echo "Setting RO Failed"
 		;;
 
 	###########################################################################

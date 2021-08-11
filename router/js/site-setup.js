@@ -16,7 +16,8 @@ function Init_Device(mac)
 		$("#mac_addr").val("08:00:00:00:00:01").attr("disabled", "disabled");
 	});
 	$("#mac_random").click(function() {
-		$("#mac_addr").val("XX:XX:XX:XX:XX:XX".replace(/X/g, function() {
+		s = "X" + "26AE".charAt(Math.floor(Math.random() * 4)) + ":XX:XX:XX:XX:XX";
+		$("#mac_addr").val(s.replace(/X/g, function() {
 			return "0123456789ABCDEF".charAt(Math.floor(Math.random() * 16))
 		})).attr("disabled", "disabled");
 	});
