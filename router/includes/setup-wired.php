@@ -8,13 +8,13 @@ site_menu();
 ###################################################################################################
 $ifaces = get_network_adapters();
 #echo '<pre>'; print_r($ifaces); exit();
-$adapters = get_network_adapters_list();
+$adapters = array_merge(array('wan'), get_network_adapters_list());
 #echo '<pre>'; print_r($adapters); exit();
 $iface = isset($_GET['iface']) ? $_GET['iface'] : 'wan';
 #echo $iface; exit();
 $exclude_regex = '/^(' . implode('|',array_merge(explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'"))), array("docker.+", "lo", "sit.+", "eth0"))) . ')$/';
 #echo $exclude_regex; exit;
-$cfg = get_mac_info('wan');
+$cfg = get_mac_info($iface);
 #echo '<pre>'; print_r($cfg); exit();
 
 ###################################################################################################
@@ -78,35 +78,39 @@ echo '
 ###################################################################################################
 # Interfaces bound to the specified adapter:
 ###################################################################################################
-#echo '<pre>'; print_r($ifaces[$iface]); exit();
-echo '
+if ($iface != "wan")
+{
+	#echo '<pre>'; print_r($ifaces[$iface]); exit();
+	echo '
 		<table width="100%">
 			<tr>
 				<td width="50%"><label for="', $iface . '_bound">Bound Network Adapters:</td>
 				<td>
 					<input id="iface" type="hidden" value="', $iface, '" />
 					<ul class="pagination pagination-sm">';
-foreach ($adapters as $tface)
-{
-	if (!preg_match($exclude_regex, $tface) || $tface == 'wan')
+	foreach ($adapters as $tface)
 	{
-		echo '
+		if (!preg_match($exclude_regex, $tface) || $tface == 'wan')
+		{
+			echo '
 						<li class="', $tface == 'wan' ? 'wan_bridge' : 'bridge', ' page-item', $tface == $iface || in_array($tface, $ifaces[$iface]) ? ' active' : '', '">
 							<div class="page-link">', $tface, '</div>
 						</li>';
+		}
 	}
-}
-echo '
+	echo '
 					</ul>
 				</td>
 			</tr>
 		</table>
 		<hr style="border-width: 2px" />';
+}
 
 ###################################################################################################
 # Internet IP Address section
 ###################################################################################################
 $dynamic = strpos($cfg['iface'], 'dhcp') > -1;
+#echo '$cfg[\'iface\'] = ', $cfg['iface'], '<br />$dynamic = ', (int) $dynamic; exit();
 $gateway = @trim(shell_exec("ip route | grep default | grep wan | awk '{print $3}'"));
 #echo $gateway; exit();
 echo '
@@ -128,7 +132,7 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-						<input id="ip_addr" type="text" class="ip_address form-control" value="', isset($ifcfg['inet']) ? $ifcfg['inet'] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask', $use_dhcp ? ' disabled="disabled"' : '', '>
+						<input id="ip_addr" type="text" class="ip_address form-control" value="', isset($ifcfg['inet']) ? $ifcfg['inet'] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask', $dynamic ? ' disabled="disabled"' : '', '>
 					</div>
 				</td>
 			</tr>
@@ -139,7 +143,7 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-						<input id="ip_mask" type="text" class="ip_address form-control" value="', isset($ifcfg['netmask']) ? $ifcfg['netmask'] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask', $use_dhcp ? ' disabled="disabled"' : '', '>
+						<input id="ip_mask" type="text" class="ip_address form-control" value="', isset($ifcfg['netmask']) ? $ifcfg['netmask'] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask', $dynamic ? ' disabled="disabled"' : '', '>
 					</div>
 				</td>
 			</tr>
@@ -150,7 +154,7 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-						<input id="ip_gate" type="text" class="ip_address form-control" value="', $gateway, '" data-inputmask="\'alias\': \'ip\'" data-mask', $use_dhcp ? ' disabled="disabled"' : '', '>
+						<input id="ip_gate" type="text" class="ip_address form-control" value="', $gateway, '" data-inputmask="\'alias\': \'ip\'" data-mask', $dynamic ? ' disabled="disabled"' : '', '>
 					</div>
 				</td>
 			</tr>
@@ -159,7 +163,9 @@ echo '
 ###################################################################################################
 # DHCP Settings and IP Range Section
 ###################################################################################################
-echo '
+if ($iface != "wan")
+{
+	echo '
 		<div class="static_section', $dynamic ? ' hidden' : '', '">
 			<hr style="border-width: 2px" />
 			<div class="icheck-primary">
@@ -195,7 +201,7 @@ echo '
 ###################################################################################################
 # IP Address Reservation section
 ###################################################################################################
-echo '
+	echo '
 			<h5>Address Reservations</h5>
 			<div class="table-responsive p-0 centered">
 				<table class="table table-hover text-nowrap table-sm table-striped">
@@ -207,12 +213,12 @@ echo '
 						<td width="10px">&nbsp;</td>
 					</thead>
 					<tbody>';
-$count = 0;
-foreach ($reserve as $count => $parts)
-{
-	if (isset($parts[1]))
+	$count = 0;
+	foreach ($reserve as $count => $parts)
 	{
-		echo '
+		if (isset($parts[1]))
+		{
+			echo '
 						<tr>
 							<td>', $parts[2], '</td>
 							<td>', isset($hostname[$parts[2]]) ? $hostname[$parts[2]] : device_name(strtoupper($parts[1])), '</td>
@@ -220,21 +226,25 @@ foreach ($reserve as $count => $parts)
 							<td><a href="#"><i class="fas fa-pen"></i></a>&nbsp;</td>
 							<td><a href="#"><i class="fas fa-trash-alt"></i></a></td>
 						</tr>';
-		$count++;
+			$count++;
+		}
 	}
-}
-if ($count == 0)
-	echo '
+	if ($count == 0)
+		echo '
 						<tr>
 							<td colspan="5">No IP Address Reservations</td>
 						</tr>';
-echo '
+	echo '
 					</tbody>
 				</table>
 			</div>
-			<button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button>
-			<button type="button" id="add_ip_address" class="btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button>
-		</div>
+		</div>';
+}
+echo '
+	</div>
+    <div class="card-footer">
+			<button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button>' . ($iface != 'wan' ? '
+			<button type="button" id="add_ip_address" class="btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button>' : '') . '
 	</div>
 </div>';
  

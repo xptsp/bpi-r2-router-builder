@@ -37,6 +37,8 @@ echo '
 				</div>
 			</div>
 		</div>
+	</div>
+	<div class="card-footer">
 		<button type="button" class="btn btn-block btn-outline-danger center_50" id="submit">Set Password</button>
 	</div>
 	<!-- /.card-body -->

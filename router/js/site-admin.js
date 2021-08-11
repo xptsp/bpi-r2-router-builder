@@ -229,6 +229,9 @@ function Updates_WebUI_Pull()
 	Updates_Add_Overlay("webui-div");
 	$.get("/ajax/webui/pull?sid=" + SID, function(data) {
 		document.location.reload(true);
+	}).fail( function() {
+		Updates_Del_Overlay("regdb-div");
+		$('#regdb_latest').html("AJAX Call Failed");
 	});
 }
 
@@ -245,7 +248,18 @@ function Updates_RegDB_Check()
 		}
 	}).fail( function() {
 		Updates_Del_Overlay("regdb-div");
-		$('#regdb').html("AJAX Call Failed");
+		$('#regdb_latest').html("AJAX Call Failed");
+	});
+}
+
+function Updates_RegDB_Pull()
+{
+	Updates_Add_Overlay("webui-div");
+	$.get("/ajax/regdb/pull?sid=" + SID, function(data) {
+		document.location.reload(true);
+	}).fail( function() {
+		Updates_Del_Overlay("regdb-div");
+		$('#regdb_latest').html("AJAX Call Failed");
 	});
 }
 
@@ -355,7 +369,7 @@ function Logs_Next()
 //======================================================================================================
 // Javascript functions for "Admin/Backup Settings"
 //======================================================================================================
-function Init_Backup()
+function Init_Restore()
 {
 	$("#restore_settings").click(Restore_File);
 	$("#factory_settings").click(Restore_Factory);

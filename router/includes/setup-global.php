@@ -14,7 +14,7 @@ $gateway = @trim(shell_exec("ip route | grep default | grep wan | awk '{print $3
 echo '
 <div class="card card-primary">
 	<div class="card-header">
-		<h3 class="card-title">Wired Network Setup</h3>
+		<h3 class="card-title"><i class="fas fa-tag"></i> Wired Network Setup</h3>
 	</div>
 	<div class="card-body">
 		<table width="100%">
@@ -51,7 +51,7 @@ if (preg_match("/\#505(\d)/", $dns1, $regex))
 }
 echo '
 	<div class="card-header">
-		<h3 class="card-title">Domain Name (DNS) Servers</h3>
+		<h3 class="card-title"><i class="fas fa-server"></i> Domain Name (DNS) Servers</h3>
 	</div>
 	<div class="card-body">
 		<div class="form-group clearfix">
@@ -103,13 +103,14 @@ echo '
 # Router MAC Address settings:
 ###################################################################################################
 $mac = trim($cfg['ether']);
-$def = '08:00:00:00:00:01';
+$def = @file_get_contents('/boot/default_mac.txt');
+$def = empty($def) ? $mac : $def;
 $leases = explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")));
 $mac_com = trim(@shell_exec("arp -n | grep " . $_SERVER['REMOTE_ADDR'] . " | awk '{print $3}'"));
 $mac_chk = ($mac == $def || $mac == $mac_com);
 echo '
 	<div class="card-header">
-		<h3 class="card-title">Router MAC Address</h3>
+		<h3 class="card-title"><i class="far fa-address-card"></i> Router MAC Address</h3>
 	</div>
 	<!-- /.card-header -->
 	<div class="card-body">
