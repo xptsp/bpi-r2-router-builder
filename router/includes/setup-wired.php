@@ -172,7 +172,7 @@ if ($iface != "wan")
 				<input type="checkbox" id="use_dhcp"', $use_dhcp ? ' checked="checked"' : '', '>
 				<label for="use_dhcp">Use DHCP on interface ', $iface, '</label>
 			</div>
-			<table width="100%">
+			<table width="100%" class="dhcp_div', $use_dhcp ? '' : ' hidden', '">
 				<tr>
 					<td width="50%"><label for="dhcp_start">Starting IP Address:</label></td>
 					<td>
@@ -196,14 +196,14 @@ if ($iface != "wan")
 					</td>
 				</tr>
 			</table>
-			<hr style="border-width: 2px" />';
+			<hr style="border-width: 2px" class="dhcp_div', $use_dhcp ? '' : ' hidden', '" />';
 
 ###################################################################################################
 # IP Address Reservation section
 ###################################################################################################
 	echo '
-			<h5>Address Reservations</h5>
-			<div class="table-responsive p-0 centered">
+			<h5 class="dhcp_div', $use_dhcp ? '' : ' hidden', '">Address Reservations</h5>
+			<div class="dhcp_div', $use_dhcp ? '' : ' hidden', ' table-responsive p-0 centered">
 				<table class="table table-hover text-nowrap table-sm table-striped">
 					<thead class="bg-primary">
 						<td>IP Address</td>
@@ -243,8 +243,8 @@ if ($iface != "wan")
 echo '
 	</div>
     <div class="card-footer">
-			<button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button>' . ($iface != 'wan' ? '
-			<button type="button" id="add_ip_address" class="btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button>' : '') . '
+		<button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button>' . ($iface != 'wan' ? '
+		<button type="button" id="add_ip_address" class="dhcp_div' . ($use_dhcp ? '' : 'hidden') . ' btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button>' : '') . '
 	</div>
 </div>';
  

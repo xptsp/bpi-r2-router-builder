@@ -13,6 +13,7 @@ $dns = get_dns_servers();
 $type = strpos($wan['iface'], 'dhcp') > 0 ? 'DHCP' : 'Static IP';
 $power_button = file_exists("/etc/modprobe.d/power_button.conf");
 $model = explode(":", shell_exec("dmesg | grep 'Machine model'"));
+$debian_version = @file_get_contents('/etc/debian_version');
 
 #######################################################################################################
 # Display information about the router:
@@ -49,7 +50,7 @@ echo '
 									</tr>
 									<tr>
 										<td><strong>OS Version</strong></td>
-										<td>Debian ', @file_get_contents('/etc/debian_version'), '</td>
+										<td>Debian ', $debian_version < 11 ? 'Buster' : 'Bullseye', ' ', $debian_version, '</td>
 									</tr>
 									<tr>
 										<td><strong>OS Kernel</strong></td>
@@ -59,15 +60,11 @@ echo '
 										<td><strong>Web UI Version</strong></td>
 										<td>v', $_SESSION['webui_version'], '</td>
 									</tr>
-									<tr>
-										<td', $power_button ? ' colspan="2" class="centered"' : '', '>
-											<button type="button" class="btn btn-block btn-outline-danger', $power_button ? ' center_50' : '', '" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Reboot Router</button>
-										</td>', !$power_button ? '
-										<td>
-											<button type="button" class="btn btn-block btn-outline-danger" data-toggle="modal" data-target="#reboot-modal" id="power_button">Power Off Router</button>
-										</td>' : '', '
-									</tr>
 								</table>
+							</div>
+							<!-- /.card-body -->
+							<div class="card-footer">
+								<button type="button" class="btn btn-block btn-outline-danger center_50" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Reboot Router</button>
 							</div>
 							<!-- /.card-body -->
 						</div>
@@ -149,14 +146,12 @@ if ($type == 'DHCP')
 										<td id="dhcp_expire"><i>Retrieving...</i></td>
 									</tr>';
 echo '
-									<tr>
-										<td colspan="2" class="centered">
-											<button type="button" class="btn btn-block btn-outline-primary center_50" data-toggle="modal" data-target="#stats-modal" id="stats_button">Network Statistics</button>
-										</td>
-									</tr>
 								</table>
 							</div>
 							<!-- /.card-body -->
+							<div class="card-footer centered">
+								<button type="button" class="btn btn-block btn-outline-primary center_50" data-toggle="modal" data-target="#stats-modal" id="stats_button">Network Statistics</button>
+							</div>
 						</div>
 						<!-- /.card -->
 					</div>

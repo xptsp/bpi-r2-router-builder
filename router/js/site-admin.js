@@ -7,11 +7,16 @@ var restore_type;
 //======================================================================================================
 function Init_Stats()
 {
+	Stats_Update();
 	$("#reboot_yes").click(Stats_Confirm_Reboot);
 	$("#stats_button").click(Stats_Network_Show);
 	$("#stats_close").click(Stats_Network_Close);
 	$("#reboot_button").click(Stats_Reboot_Button);
 	$("#power_button").click(Stats_Power_Button);
+}
+
+function Stats_Update()
+{
 	$.getJSON("/ajax/status?sid=" + SID, function(data) {
 		$("#pihole_state").html(data.pihole_state);
 		if ($("#connection_type").html() == "DHCP")
@@ -19,6 +24,12 @@ function Init_Stats()
 			$("#dhcp_server").html( data.dhcp_server );
 			$("#dhcp_begin").html( data.dhcp_begin );
 			$("#dhcp_expire").html( data.dhcp_expire );
+			timer = setInterval(function() {
+				if (timer === 0) {
+					clearInterval(timer);
+					Stats_Update();
+				}
+			}, data.dhcp_refresh + 60);
 		}
 	});
 	$("#refresh_switch").bootstrapSwitch();

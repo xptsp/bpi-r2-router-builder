@@ -1,7 +1,7 @@
 //======================================================================================================
-// Javascript functions for "Setup / Internet"
+// Javascript functions for "Setup / Global Settings"
 //======================================================================================================
-function Init_Device(mac)
+function Init_Global(mac)
 {
 	$('.dns_address').inputmask("ip");
 	$("#dns_doh").click(function() {
@@ -28,10 +28,10 @@ function Init_Device(mac)
 		$("#mac_addr").removeAttr("disabled");
 	});
 	$("#mac_addr").inputmask("mac");
-	$("#submit").click( Device_Submit );
+	$("#submit").click( Global_Submit );
 }
 
-function Device_Submit()
+function Global_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	doh_addr = "127.0.0.1#505" + $("#doh_server").val();
@@ -62,7 +62,7 @@ function Device_Submit()
 }
 
 //======================================================================================================
-// Javascript functions for "Setup / Internet"
+// Javascript functions for "Setup / Wired Setup"
 //======================================================================================================
 function Init_Wired()
 {
@@ -76,10 +76,13 @@ function Init_Wired()
 		$(".static_section").removeClass("hidden");
 	});
 	$('#use_dhcp').click(function() {
-		if ($(this).is(":checked"))
+		if ($(this).is(":checked")) {
 			$(".dhcp").removeAttr("disabled");
-		else
+			$(".dhcp_div").removeClass("hidden");
+		} else {
 			$(".dhcp").attr("disabled", "disabled");
+			$(".dhcp_div").addClass("hidden");
+		}
 	});
 	$(".bridge").click( function() {
 		$(this).toggleClass("active");

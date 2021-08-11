@@ -242,7 +242,7 @@ systemctl start cloudflared@3
 # Install the wireless regulatory table
 ##################################################################################
 apt install -y wireless-regdb crda
-git clone https://kernel.googlesource.com/pub/scm/linux/kernel/git/sforshee/wireless-regdb /opt/wireless-regdb
+git clone https://github.com/sforshee/wireless-regdb /opt/wireless-regdb
 ln -sf /opt/wireless-regdb/regulatory.db /lib/firmware/
 ln -sf /opt/wireless-regdb/regulatory.db.p7s /lib/firmware/
 

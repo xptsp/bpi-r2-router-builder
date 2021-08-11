@@ -132,7 +132,7 @@ echo '
 			</div>
 			<div class="icheck-primary">
 				<input class="mac_opt" type="radio" id="mac_random" name="router_mac"', $mac == $mac_com ? ' checked="checked"' : '', ' data-mac="', $mac_com, '"', $mac_com == "" ? ' disabled="disabled"' : '', '>
-				<label for="mac_random">Use Randomly Generated MAC Address</label>
+				<label for="mac_random">Generate Random MAC Address</label>
 			</div>
 		</div>
 	</div>';
@@ -172,4 +172,4 @@ echo '
 ###################################################################################################
 # Close page
 ###################################################################################################
-site_footer('Init_Device("' . $mac_com . '");');
+site_footer('Init_Global("' . $mac_com . '");');
