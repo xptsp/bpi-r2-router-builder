@@ -339,11 +339,11 @@ mkdir -p /mnt/newroot/rw
 # remove root mount from fstab (non-permanent modification on tmpfs rw media)
 if ! test -e /mnt/newroot/etc/fstab || cat /mnt/newroot/etc/fstab | grep -e "^$RO_DEV" >& /dev/null; then
 	sed "s|^${RO_DEV} |#${RO_DEV}|g" /mnt/lower/etc/fstab > /mnt/newroot/etc/fstab
-	sed "s|^${SECONDARY_RW_RESOLUTION} |#${SECONDARY_RW_RESOLUTION}|g" /mnt/lower/etc/fstab > /mnt/newroot/etc/fstab
+	sed -i "s|^${SECONDARY_RW_RESOLUTION} |#${SECONDARY_RW_RESOLUTION}|g" /mnt/newroot/etc/fstab
 	echo "" >> /mnt/newroot/etc/fstab
-	echo "#the original root mount has been commented out by overlayRoot.sh" >> /mnt/newroot/etc/fstab
-	echo "#this is only a temporary modification, the original fstab" >> /mnt/newroot/etc/fstab
-	echo "#stored on the disk can be found in /ro/etc/fstab" >> /mnt/newroot/etc/fstab
+	echo "# the original overlay mount points has been commented out by" >> /mnt/newroot/etc/fstab
+	echo "# overlayRoot.sh.  this is only a temporary modification, the" >> /mnt/newroot/etc/fstab
+	echo "# original fstab stored on the disk can be found in /ro/etc/fstab" >> /mnt/newroot/etc/fstab
 fi
 
 # change to the new overlay root
