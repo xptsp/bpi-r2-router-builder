@@ -319,7 +319,7 @@ run_protected_command "$ROOT_MOUNT"
 if [[ ! -z "${RW_IMAGE_FILE}" && "${RW_IMAGE_FILE}" != "none" ]]; then
 	EXT4=/mnt/ext4
 	mkdir $EXT4
-	if [[ ! -f $RW/${RW_IMAGE_FILE} && "${RW_IMAGE_CREATE}" != "create" ]]; then
+	if [[ ! -f $RW/${RW_IMAGE_FILE} && "${RW_IMAGE_CREATE}" == "create" ]]; then
 		[[ "${RW_IMAGE_SIZE}" == "all" ]] && RW_IMAGE_SIZE=$(df -BM --output=used $DEV | tail -1)
 		run_protected_command "fallocate -l ${RW_IMAGE_SIZE} $RW/${RW_IMAGE_FILE}"
 		run_protected_command "mkfs.ext4 $RW/${RW_IMAGE_FILE}"
