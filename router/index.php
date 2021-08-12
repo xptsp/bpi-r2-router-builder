@@ -28,7 +28,7 @@ if (!$logged_in and !in_array($_GET['action'], array('home', 'ajax-password', 'a
 
 # Generate a random SID for use in the session:
 if (!isset($_SESSION['sid']))
-	$_SESSION['sid'] = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 32);
+	$_SESSION['sid'] = substr(bin2hex(random_bytes(32)), 0, 32);
 #echo $_SESSION['sid']; exit;
 
 # Include the PHP site framework functions from the "includes" directory:

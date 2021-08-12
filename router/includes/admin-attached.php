@@ -92,10 +92,9 @@ foreach ($table as $iface => $s)
 					', $s, '
 				</div>';
 echo '
-				</div>
 			</div>
 		</div>
-		<!-- /.card -->
 	</div>
+	<!-- /.card -->
 </div>';
 site_footer();

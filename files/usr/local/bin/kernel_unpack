@@ -5,7 +5,8 @@ if [[ -z "$1" || ! -f "$1" ]]; then
 fi
 
 # Remount root and boot partitions as writable:
-mount -o remount,rw /boot
+RO=$(mount | grep "/boot" | grep "(ro,")
+[[ ! -z "$RO" ]] && mount -o remount,rw /boot
 ROOT=/
 if test -d /ro; then
 	ROOT=/ro
@@ -18,6 +19,10 @@ sudo tar -xzvf ${1} -C /boot/ --strip-components=1 BPI-BOOT
 # Unpack the new kernel modules into the root partition:
 sudo tar -xzvf ${1} -C ${ROOT} --strip-components=1 BPI-ROOT
 
+# Write the current MAC address to the DTB file:
+CUR=($(ifconfig wan | grep ether))
+router-helper mac ${CUR[1]}
+
 # Remount root and boot partitons as read-only if they are before we started:
-mount -o remount,ro /boot
+[[ ! -z "$RO" ]] && mount -o remount,ro /boot
 test -d /ro && mount -o remount,ro /ro

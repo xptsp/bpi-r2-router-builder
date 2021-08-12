@@ -302,23 +302,34 @@ case $CMD in
 
 	###########################################################################
 	mac)
+		CUR=($(ifconfig wan | grep ether))
 		MAC=$1
-		if [[ "$MAC" == "random" ]]; then
+		[[ "$MAC" == "saved" ]] && MAC=$(cat /boot/eth0.conf 2> /dev/null)
+		if [[ -z "$MAC" || "$MAC" == "current" ]]; then
+			MAC=${CUR[1]}
+			echo "INFO: Using MAC Address: $MAC"
+		elif [[ "$MAC" == "random" ]]; then
 			MAC=$(printf '%01X2:%02X:%02X:%02X:%02X:%02X\n' $[RANDOM%16] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256])
 			echo "INFO: Using MAC Address: $MAC"
-		fi
-		if [[ ! "$MAC" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then
+		elif [[ ! "$MAC" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then
 			echo "ERROR: Invalid MAC address specified!"
 			exit 1
 		fi
-		RO=$(mount | grep "/boot" | grep "(ro,")
-		[[ ! -z "$RO" ]] && mount -o remount,rw /boot
 		dtc -q -O dts /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb > /tmp/dts
-		if grep "mac-address \= \[" /tmp/dts >& /dev/null; then
+		MAC=${MAC,,}
+		LINE="$(grep "mac-address \= \[" /tmp/dts)"
+		OLD=$(echo ${LINE// /:} | cut -d: -f 4-9)
+		if [[ "${OLD,,}" == "${MAC}" ]]; then
+			echo "INFO: Same MAC address.  Exiting!"
+			exit
+		fi		
+		if [[ ! -z "${OLD}" ]]; then
 			sed -i "s|mac-address = \[.*\]|mac-address = [ ${MAC//:/ } ]|g" /tmp/dts
 		else
-			sed -i "s|mediatek,mt7530\"|mediatek,mt7530\";\n\t\t\t\tmac-address = [ ${MAC//:/ } ]|g" /tmp/dts
+			sed -i "s|mediatek,eth-mac\"|mediatek,eth-mac\";\n\t\t\t\tmac-address = [ ${MAC//:/ } ]|g" /tmp/dts
 		fi
+		RO=$(mount | grep "/boot" | grep "(ro,")
+		[[ ! -z "$RO" ]] && mount -o remount,rw /boot
 		echo $MAC > /boot/eth0.conf
 		dtc -q -O dtb /tmp/dts > /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
 		[[ ! -z "$RO" ]] && mount -o remount,ro /boot

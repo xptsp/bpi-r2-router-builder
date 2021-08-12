@@ -1,4 +1,4 @@
+allow-hotplug wan
 auto wan
 iface wan inet dhcp
-    hwaddress ether 08:00:00:00:00:01
     post-up echo 6 > /sys/class/net/wan/queues/rx-0/rps_cpus
