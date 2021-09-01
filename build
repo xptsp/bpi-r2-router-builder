@@ -1,0 +1,92 @@
+#!/bin/bash
+
+# If we are not doing this as root, we need to change to root now!
+if [[ "${UID}" -ne 0 ]]; then
+	sudo $0 $@
+	exit $?
+fi
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+BLUE='\033[1;34m'
+NC='\033[0m'
+
+##############################################################################################
+# Functions to prompt yes or no, and to mount and unmount chroot folder:
+##############################################################################################
+function askYesNo {
+	QUESTION=$1
+	DEFAULT=$2
+	if [ "$DEFAULT" = true ]; then
+		OPTIONS="[Y/n]"
+		DEFAULT="y"
+	else
+		OPTIONS="[y/N]"
+		DEFAULT="n"
+	fi
+	read -p "$QUESTION $OPTIONS " -n 1 -s -r INPUT
+	INPUT=${INPUT:-${DEFAULT}}
+	echo ${INPUT}
+	ANSWER=false
+	[[ "$INPUT" =~ ^[yY]$ ]] && ANSWER=true
+}
+
+function mount_chroot()
+{
+	mount | grep " ${target}/proc " >& /dev/null || mount --bind /proc ${target}/proc
+	mount | grep " ${target}/sys " >& /dev/null || mount --bind /sys ${target}/sys
+	mount | grep " ${target}/tmp " >& /dev/null || mount --bind /tmp ${target}/tmp
+}
+
+function umount_chroot()
+{
+	umount ${target}/tmp >& /dev/null
+	umount ${target}/sys >& /dev/null
+	umount ${target}/proc >& /dev/null
+}
+
+##############################################################################################
+# Install necessary tools for building this image:
+##############################################################################################
+if [[ ! -f /usr/bin/qemu-arm-static ]]; then
+	echo -e "${GREEN}INFO:${NC} Installing necessary tools on this computer..."
+	apt-get install -y qemu-user-static debootstrap binfmt-support
+fi
+
+##############################################################################################
+# Build the root filesystem using debootstrap:
+##############################################################################################
+distro=buster
+arch=armhf
+cd $(dirname $0)
+target=$(dirname $PWD)/debian_${distro}_${arch}
+ANSWER=true
+if [[ -d ${target} ]]; then
+	echo -en "${RED}INFO:${NC} "
+	askYesNo "Debian ${distro^} chroot already exists.  Remove and rebuild?" true
+	if [[ "${ANSWER}" == "true" ]]; then
+		umount_chroot
+		umount ${target} >& /dev/null
+		rm -rf ${target}
+	fi
+fi
+if [[ "${ANSWER}" == "true" ]]; then
+	mkdir ${target} >& /dev/null
+	mount -t tmpfs tmpfs ${target}
+	debootstrap --arch=${arch} --foreign ${distro} ${target}
+fi
+
+##############################################################################################
+# We need some files from this machine, as well as the entire Git repository:
+##############################################################################################
+[[ ! -f ${target}/usr/bin/ ]] && cp /usr/bin/qemu-arm-static ${target}/usr/bin/
+cp /etc/resolv.conf ${target}/etc
+rm -rf ${target}/opt/bpiwrt-builder >& /dev/null
+cp -R ./ ${target}/opt/bpiwrt-builder
+
+##############################################################################################
+# Execute second-stage of image building:
+##############################################################################################
+mount_chroot
+chroot ${target} # /opt/bpiwrt-builder/misc/stage_2
+umount_chroot
+

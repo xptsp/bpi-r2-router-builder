@@ -26,6 +26,9 @@ COPY_ONLY=(
 	/etc/pihole/
 	/etc/pivpn/
 	/root/
+	/home/pi/
+	/home/vpn/
+	/etc/skel/
 )
 
 #####################################################################################
@@ -42,20 +45,22 @@ function replace()
 	mkdir -p $(dirname ${DEST})
 	if [[ "$COPY" == "true" ]]; then
 		if ! test -f "${DEST}"; then
-			echo -e -n "Copying ${BLUE}${SRC}${NC}... "
+			echo -e -n "Copying ${BLUE}${DEST}${NC}... "
 			if ! cp -u ${SRC} ${DEST}; then
 				echo -e "${RED}FAIL!${NC}"
 			else
 				echo -e "${GREEN}Success!${NC}"
 			fi
+		else
+			echo -e -n "Skipped Copying ${BLUE}${DEST}${NC}..."
 		fi
 	else
 		echo "${DEST}" >> ${LNEW}
 		cat ${LOLD} | grep -v "^${DEST}$" | tee ${LOLD} >& /dev/null
-		INFO=$(ls -l ${DEST} | awk '{print $NF}')
+		INFO=$(ls -l ${DEST} 2> /dev/null | awk '{print $NF}')
 		if [[ ! "${INFO}" == "${SRC}" ]]; then
-			rm ${DEST}
-			echo -e -n "Linking ${BLUE}${SRC}${NC}... "
+			rm ${DEST} >& /dev/null
+			echo -e -n "Linking ${BLUE}${DEST}${NC}... "
 			if ! ln -sf ${SRC} ${DEST}; then
 				echo -e "${RED}FAIL!${NC}"
 			else
@@ -102,7 +107,10 @@ fi
 #####################################################################################
 # Copy or link files in the repo to their proper locations:
 #####################################################################################
-cd files || (echo "ERROR: Something went really wrong!  Aborting!!"; exit)
+if ! cd files; then
+	echo "ERROR: Something went really wrong!  Aborting!!"
+	exit
+fi
 for dir in $(find ./ -maxdepth 1 -type d | grep -v "./root"); do 
 	DIR=${dir/.\//};
 	if [[ ! -z "${DIR}" ]]; then

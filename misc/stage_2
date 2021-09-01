@@ -1,0 +1,224 @@
+#!/bin/bash
+export DEBIAN_FRONTEND=noninteractive
+export LANG=C
+
+##############################################################################################
+# Execute second-stage of image building:
+##############################################################################################
+/debootstrap/debootstrap --second-stage
+
+##############################################################################################
+# Install files from the GitHub repository, then upgrade any packages needing upgrading:
+##############################################################################################
+$(dirname $0)/upgrade.sh
+apt update
+apt upgrade -y
+
+##############################################################################################
+# Install some necessary packages:
+##############################################################################################
+apt install -y locales wget git apt-transport-https toilet pmount eject lsb-release
+
+##############################################################################################
+# Create our default users and assign default passwords to users:
+##############################################################################################
+# Assign default password to user "root":
+echo -e "bananapi\nbananapi" | passwd -q root
+
+# Create a user named "pi", being a member of the "sudo" and "users" group.
+useradd -m -G sudo,users -s /bin/bash pi
+echo -e "bananapi\nbananapi" | passwd -q pi
+
+# Create a user name "vpn", being a member of the "users" and "pi" group:
+useradd -m -G users -s /usr/sbin/nologin vpn
+usermod -aG vpn pi
+
+##############################################################################################
+# Do some tasks necessary to make this image work correctly:
+##############################################################################################
+# Create necessary symlinks for a few commands:
+ln -sf /usr/bin/clear /usr/local/bin/cls
+ln -sf /opt/bpi-r2-router-builder/helpers/router-helper.sh /usr/local/bin/router-helper
+
+# Set hostname:
+echo "bpiwrt" > /etc/hostname
+
+# Set IP address of both hostname and pi.hole
+echo "192.168.2.1     bpiwrt" >> /etc/hosts
+
+# Refreshes the certificates:
+update-ca-certificates -f
+
+# Sets timezone to "America/Chicago":
+rm /etc/localtime
+ln -s /usr/share/zoneinfo/America/Chicago /etc/localtime
+
+# Set a placeholder file for chrooting into read-only filesystem:
+touch /etc/debian_chroot
+
+# Sets locale to "en_US.UTF-8":
+sed -i "s|# en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen
+locale-gen
+
+##############################################################################################
+# Place a list of english words in "/usr/share/dict/" for our password generator:
+##############################################################################################
+wget https://github.com/dobsondev/php-password-generator/raw/master/php-password-generator/adjectives.list -O /usr/share/dict/adjectives.list
+wget https://github.com/dobsondev/php-password-generator/raw/master/php-password-generator/animals.list -O /usr/share/dict/animals.list
+
+##############################################################################################
+# Download the "mmc" binary and place in "/usr/local/bin":
+##############################################################################################
+wget https://github.com/frank-w/BPI-R2-4.14/raw/4.14-main/utils/mmc/mmc -O /usr/local/bin/mmc
+chmod +x /usr/local/bin/mmc
+
+##############################################################################################
+# Get the file we'll need to flash during SD->EMMC copies:
+##############################################################################################
+wget https://github.com/BPI-SINOVOIP/BPI-files/raw/master/SD/100MB/BPI-R2-EMMC-boot0-DDR1600-0k-0905.img.gz -O /boot/BPI-R2-EMMC-boot0-DDR1600-0k-0905.img.gz
+
+##################################################################################
+# Create our custom login message:
+##################################################################################
+rm /etc/motd
+rm /etc/update-motd.d/10-uname
+ln -s /var/run/motd /etc/motd
+
+##################################################################################
+# Install some new utilities
+##################################################################################
+apt install -y openssh-server openssh-client bridge-utils dnsmasq hostapd ppp pppoeconf
+sed -i "s|#PermitRootLogin prohibit-password|PermitRootLogin yes|g" /etc/ssh/sshd_config
+systemctl enable dnsmasq
+systemctl enable hostapd
+systemctl enable ssh
+apt install -y pciutils usbutils sudo iw wireless-tools net-tools curl unzip debconf-utils tree rng-tools screen parted device-tree-compiler
+echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
+
+##################################################################################
+# Q: Maybe install these packages?
+##################################################################################
+#apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance 
+
+##################################################################################
+# Install avahi utilities
+##################################################################################
+apt install -y avahi-daemon 
+systemctl enable avahi-daemon
+
+##################################################################################
+# Install utility to track internet usage by adapter:
+##################################################################################
+apt install -y vnstat
+systemctl disable vnstat
+
+##################################################################################
+# Install Samba
+##################################################################################
+echo "samba-common samba-common/dhcp boolean true" | debconf-set-selections
+apt install -y samba
+echo -e "bananapi\nbananapi" | smbpasswd -a pi
+# NOTE: Modify the Samba configuration to make sharing USB sticks more automatic
+sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" /etc/samba/smb.conf
+touch /etc/samba/includes.conf
+sed -i "s|/var/run|/run|g" /lib/systemd/system/?mbd.service
+systemctl enable smbd
+systemctl enable nmbd
+
+##################################################################################
+# Install NGINX and PHP 7.3
+##################################################################################
+apt install -y nginx php7.3-fpm php7.3-cgi php7.3-xml php7.3-sqlite3 php7.3-intl apache2-utils php7.3-mysql php7.3-sqlite3 sqlite3 php7.3-zip openssl php7.3-curl
+sed -i "s|display_errors = .*|display_errors = On|g" /etc/php/7.3/fpm/php.ini
+rm /etc/nginx/sites-enabled/default
+ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
+usermod -aG systemd-journal www-data
+systemctl enable php7.3-fpm
+systemctl enable nginx
+
+##################################################################################
+# Install and configure miniupnp install
+##################################################################################
+# NOTE: Install the miniupnp install quietly
+echo "miniupnpd miniupnpd/start_daemon boolean true" | debconf-set-selection7s
+echo "miniupnpd miniupnpd/ip6script boolean false" | debconf-set-selections
+echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
+echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
+apt install -y miniupnpd miniupnpc
+# NOTE: Configure the service:
+sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
+sed -i "s|#http_port=0|http_port=5000|g" /etc/miniupnpd/miniupnpd.conf
+sed -i "s|#enable_upnp=no|enable_upnp=yes|g" /etc/miniupnpd/miniupnpd.conf
+sed -i "s|#enable_natpmp=yes|enable_natpmp=yes|g" /etc/miniupnpd/miniupnpd.conf
+rm /etc/init.d/miniupnpd
+rm /etc/miniupnpd/*.sh
+systemctl enable miniupnpd
+
+##################################################################################
+# Install minissdpd package
+##################################################################################
+# NOTE: Set some default settings for minissdpd package:
+echo "minissdpd minissdpd/listen string br0" | debconf-set-selections
+echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
+echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
+# NOTE: Install minissdpd package:
+apt install -y minissdpd
+systemctl enable minissdpd
+
+##################################################################################
+# Install docker and add bin directory on docker partition to system path
+##################################################################################
+curl -L https://get.docker.com | bash
+usermod -aG docker pi
+sed -i "s|PATH=\"|PATH=\"/var/lib/docker/bin:|g" /etc/profile
+
+##################################################################################
+# Download docker-compose into the /usr/local/bin directory
+##################################################################################
+wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
+pushd /tmp
+tar xvzf /tmp/docker.tgz
+mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
+ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
+popd
+
+##################################################################################
+# Install the wireless regulatory table
+##################################################################################
+apt install -y wireless-regdb crda
+git clone https://github.com/sforshee/wireless-regdb /opt/wireless-regdb
+ln -sf /opt/wireless-regdb/regulatory.db /lib/firmware/
+ln -sf /opt/wireless-regdb/regulatory.db.p7s /lib/firmware/
+
+##################################################################################
+# Install Transmission-BT program
+##################################################################################
+mv /etc/transmission-daemon/settings.json /tmp/settings.json
+apt install -y transmission-daemon
+mv /tmp/settings.json /etc/transmission-daemon/settings.json
+chown -R vpn:vpn /etc/transmission-daemon/
+chown -R vpn:vpn /var/lib/transmission-daemon/
+chmod -R 775 /etc/transmission-daemon/
+chmod -R 775 /var/lib/transmission-daemon/
+mkdir /home/vpn/{Incomplete,Download}
+chown -R vpn:vpn /home/vpn/{Incomplete,Download}
+chmod -R 775 /home/vpn/{Incomplete,Download}
+systemctl enable transmission-daemon
+
+##################################################################################
+# Install TrueCrypt and HD-Idle
+##################################################################################
+wget https://github.com/stefansundin/truecrypt.deb/releases/download/7.1a-15/truecrypt-cli_7.1a-15_armhf.deb -O /tmp/truecrypt.deb
+wget https://github.com/adelolmo/hd-idle/releases/download/v1.12/hd-idle_1.12_armhf.deb -O /tmp/hdidle.deb
+mv /etc/default/hd-idle /tmp/
+apt install -y /tmp/*.deb
+mv /tmp/hd-idle /etc/default/hd-idle
+rm /tmp/*.deb
+
+##################################################################################
+# Pull ydns's bash-updater repo and modify to pull settings from elsewhere
+##################################################################################
+git clone https://github.com/ydns/bash-updater /opt/ydns-updater
+sed -i "s|^YDNS_LASTIP_FILE|[[ -f /etc/default/ydns-updater ]] \&\& source /etc/default/ydns-updater\nYDNS_LASTIP_FILE|" /opt/ydns-updater/updater.sh
+chown www-data:www-data /etc/default/ydns-updater
+
