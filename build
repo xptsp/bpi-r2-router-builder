@@ -70,19 +70,15 @@ while :; do
 	# Decide which options to show the user:
 	##############################################################################################
 	if [[ ! -d "${target}" ]]; then
-		CHOICES=(	"1" "Build Chroot environment" )
+		CHOICES=(	"2" "Build Chroot environment" )
 	else
-		CHOICES=(	"1" "Rebuild Chroot environment" )
+		CHOICES=(	"1" "Enter Chroot environment" \
+					"2" "Rebuild Chroot environment" \
+					"3" "Pack Chroot into ${distro}.squashfs" )
 	fi
 	if [[ -f "$(dirname $PWD)/${distro}.squashfs" ]]; then
-		CHOICES[${#CHOICES[@]}]=2
-		CHOICES[${#CHOICES[@]}]="Unpack ${distro}.squashfs"
-	fi
-	CHOICES[${#CHOICES[@]}]=3
-	CHOICES[${#CHOICES[@]}]="Enter Chroot environment"
-	if [[ -d "${target}" ]]; then
 		CHOICES[${#CHOICES[@]}]=4
-		CHOICES[${#CHOICES[@]}]="Pack Chroot into ${distro}.squashfs"
+		CHOICES[${#CHOICES[@]}]="Unpack ${distro}.squashfs"
 	fi
 
 	##############################################################################################
@@ -96,6 +92,10 @@ while :; do
 	##############################################################################################
 	case ${OPTION} in
 		1)
+			enter_chroot
+			;;
+
+		2)
 			remove_chroot
 			mkdir ${target} >& /dev/null
 			mount -t tmpfs tmpfs ${target}
@@ -103,7 +103,13 @@ while :; do
 			enter_chroot /opt/bpiwrt-builder/misc/stage_2
 			;;
 
-		2)
+		3)
+			rm $(dirname $PWD)/${distro}.squashfs >& /dev/null
+			mksquashfs ${target} $(dirname $PWD)/${distro}.squashfs
+			pause
+			;;
+
+		4)
 			remove_chroot
 			mkdir ${target} >& /dev/null
 			mount -t tmpfs tmpfs ${target}
@@ -111,16 +117,6 @@ while :; do
 			unsquashfs -d /tmp/squash $(dirname $PWD)/${distro}.squashfs
 			mv /tmp/squash/* ${target}
 			rm -rf /tmp/squash
-			pause
-			;;
-
-		3)
-			enter_chroot
-			;;
-
-		4)
-			rm $(dirname $PWD)/${distro}.squashfs >& /dev/null
-			mksquashfs ${target} $(dirname $PWD)/${distro}.squashfs
 			pause
 			;;
 	esac
