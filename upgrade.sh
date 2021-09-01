@@ -44,15 +44,15 @@ function replace()
 	done
 	mkdir -p $(dirname ${DEST})
 	if [[ "$COPY" == "true" ]]; then
+		echo -e -n "Copying ${BLUE}${DEST}${NC}... "
 		if ! test -f "${DEST}"; then
-			echo -e -n "Copying ${BLUE}${DEST}${NC}... "
 			if ! cp -u ${SRC} ${DEST}; then
 				echo -e "${RED}FAIL!${NC}"
 			else
 				echo -e "${GREEN}Success!${NC}"
 			fi
 		else
-			echo -e -n "Skipped Copying ${BLUE}${DEST}${NC}..."
+			echo -e "${GREEN}Skipped${NC}"
 		fi
 	else
 		echo "${DEST}" >> ${LNEW}

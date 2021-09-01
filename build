@@ -11,25 +11,13 @@ BLUE='\033[1;34m'
 NC='\033[0m'
 
 ##############################################################################################
-# Functions to prompt yes or no, and to mount and unmount chroot folder:
+# Supporting functions:
 ##############################################################################################
-function askYesNo {
-	QUESTION=$1
-	DEFAULT=$2
-	if [ "$DEFAULT" = true ]; then
-		OPTIONS="[Y/n]"
-		DEFAULT="y"
-	else
-		OPTIONS="[y/N]"
-		DEFAULT="n"
-	fi
-	read -p "$QUESTION $OPTIONS " -n 1 -s -r INPUT
-	INPUT=${INPUT:-${DEFAULT}}
-	echo ${INPUT}
-	ANSWER=false
-	[[ "$INPUT" =~ ^[yY]$ ]] && ANSWER=true
+function pause(){
+	read -s -n 1 -p "Press any key to continue . . ."
+	echo ""
 }
-
+ 
 function mount_chroot()
 {
 	mount | grep " ${target}/proc " >& /dev/null || mount --bind /proc ${target}/proc
@@ -44,6 +32,24 @@ function umount_chroot()
 	umount ${target}/proc >& /dev/null
 }
 
+function remove_chroot()
+{
+	umount_chroot
+	umount ${target} >& /dev/null
+	rm -rf ${target} >& /dev/null
+}
+
+function enter_chroot()
+{
+	[[ ! -f ${target}/usr/bin/ ]] && cp /usr/bin/qemu-arm-static ${target}/usr/bin/
+	cp /etc/resolv.conf ${target}/etc
+	rm -rf ${target}/opt/bpiwrt-builder >& /dev/null
+	cp -R ./ ${target}/opt/bpiwrt-builder
+	mount_chroot
+	chroot ${target} ${1}
+	umount_chroot
+}
+
 ##############################################################################################
 # Install necessary tools for building this image:
 ##############################################################################################
@@ -51,42 +57,73 @@ if [[ ! -f /usr/bin/qemu-arm-static ]]; then
 	echo -e "${GREEN}INFO:${NC} Installing necessary tools on this computer..."
 	apt-get install -y qemu-user-static debootstrap binfmt-support
 fi
-
-##############################################################################################
-# Build the root filesystem using debootstrap:
-##############################################################################################
 distro=buster
 arch=armhf
 cd $(dirname $0)
 target=$(dirname $PWD)/debian_${distro}_${arch}
-ANSWER=true
-if [[ -d ${target} ]]; then
-	echo -en "${RED}INFO:${NC} "
-	askYesNo "Debian ${distro^} chroot already exists.  Remove and rebuild?" true
-	if [[ "${ANSWER}" == "true" ]]; then
-		umount_chroot
-		umount ${target} >& /dev/null
-		rm -rf ${target}
+
+##############################################################################################
+# Loop through our menu until "Cancel" is chosen:
+##############################################################################################
+while :; do
+	##############################################################################################
+	# Decide which options to show the user:
+	##############################################################################################
+	if [[ -d "${target}" ]]; then
+		CHOICES=(	"1" "Build Chroot environment" )
+	else
+		CHOICES=(	"1" "Rebuild Chroot Environment" )
 	fi
-fi
-if [[ "${ANSWER}" == "true" ]]; then
-	mkdir ${target} >& /dev/null
-	mount -t tmpfs tmpfs ${target}
-	debootstrap --arch=${arch} --foreign ${distro} ${target}
-fi
+	if [[ -f "$(dirname $PWD)/${distro}.squashfs" ]]; then
+		CHOICES[${#CHOICES[@]}]=2
+		CHOICES[${#CHOICES[@]}]="Unpack ${distro}.squashfs"
+	fi
+	CHOICES[${#CHOICES[@]}]=3
+	CHOICES[${#CHOICES[@]}]="Enter Chroot environment"
+	if [[ -d "${target}" ]]; then
+		CHOICES[${#CHOICES[@]}]=4
+		CHOICES[${#CHOICES[@]}]="Pack Chroot into ${distro}.squashfs"
+	fi
 
-##############################################################################################
-# We need some files from this machine, as well as the entire Git repository:
-##############################################################################################
-[[ ! -f ${target}/usr/bin/ ]] && cp /usr/bin/qemu-arm-static ${target}/usr/bin/
-cp /etc/resolv.conf ${target}/etc
-rm -rf ${target}/opt/bpiwrt-builder >& /dev/null
-cp -R ./ ${target}/opt/bpiwrt-builder
+	##############################################################################################
+	# Show the dialog box with the options we've decided on.  Exit script if they select "Cancel":
+	##############################################################################################
+	OPTION=$(whiptail --title "BPIWRT Builder" --menu "What do you want to do?" 15 60 4 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
+	[[ "$?" -gt 0 ]] && exit
 
-##############################################################################################
-# Execute second-stage of image building:
-##############################################################################################
-mount_chroot
-chroot ${target} # /opt/bpiwrt-builder/misc/stage_2
-umount_chroot
+	##############################################################################################
+	# Do the choice that the user selected:
+	##############################################################################################
+	case ${OPTION} in
+		1)
+			remove_chroot
+			mkdir ${target} >& /dev/null
+			mount -t tmpfs tmpfs ${target}
+			debootstrap --arch=${arch} --foreign ${distro} ${target}
+			enter_chroot /opt/bpiwrt-builder/misc/stage_2
+			;;
+
+		2)
+			remove_chroot
+			mkdir ${target} >& /dev/null
+			mount -t tmpfs tmpfs ${target}
+			[[ -d /tmp/squash ]] && rm -rf /tmp/squash
+			unsquashfs -d /tmp/squash $(dirname $PWD)/${distro}.squashfs
+			mv /tmp/squash/* ${target}
+			rm -rf /tmp/squash
+			pause
+			;;
+
+		3)
+			enter_chroot
+			;;
+
+		4)
+			rm $(dirname $PWD)/${distro}.squashfs >& /dev/null
+			mksquashfs ${target} $(dirname $PWD)/${distro}.squashfs
+			pause
+			;;
+	esac
+done
+exit
 
