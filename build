@@ -69,10 +69,10 @@ while :; do
 	##############################################################################################
 	# Decide which options to show the user:
 	##############################################################################################
-	if [[ -d "${target}" ]]; then
+	if [[ ! -d "${target}" ]]; then
 		CHOICES=(	"1" "Build Chroot environment" )
 	else
-		CHOICES=(	"1" "Rebuild Chroot Environment" )
+		CHOICES=(	"1" "Rebuild Chroot environment" )
 	fi
 	if [[ -f "$(dirname $PWD)/${distro}.squashfs" ]]; then
 		CHOICES[${#CHOICES[@]}]=2
