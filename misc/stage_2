@@ -10,7 +10,7 @@ export LANG=C
 ##############################################################################################
 # Install files from the GitHub repository, then upgrade any packages needing upgrading:
 ##############################################################################################
-$(dirname $0)/upgrade.sh
+$(dirname $0)/upgrade.sh --force-copy
 apt update
 apt upgrade -y
 

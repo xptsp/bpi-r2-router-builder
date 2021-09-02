@@ -10,6 +10,8 @@ NC='\033[0m'
 LORG=/var/opt/router-builder/bpi-r2-router-builder.list
 LOLD=/tmp/builder.old
 LNEW=/tmp/builder.new
+FORCE_COPY=false
+SKIP_COPY=false
 
 #####################################################################################
 # Files to copy only:
@@ -43,16 +45,19 @@ function replace()
 		[[ "${DEST}" == "${MATCH}"* ]] && COPY=true
 	done
 	mkdir -p $(dirname ${DEST})
-	if [[ "$COPY" == "true" ]]; then
-		echo -e -n "Copying ${BLUE}${DEST}${NC}... "
-		if ! test -f "${DEST}"; then
-			if ! cp -u ${SRC} ${DEST}; then
-				echo -e "${RED}FAIL!${NC}"
+	if [[ "${COPY}" == "true" ]]; then
+		if [[ "${SKIP_COPY}" == "false" ]]; then
+			echo -e -n "Copying ${BLUE}${DEST}${NC}... "
+			[[ "${FORCE_COPY}" == "true" ]] && rm "${DEST}" >& /dev/null
+			if ! test -f "${DEST}"; then
+				if ! cp -u ${SRC} ${DEST}; then
+					echo -e "${RED}FAIL!${NC}"
+				else
+					echo -e "${GREEN}Success!${NC}"
+				fi
 			else
-				echo -e "${GREEN}Success!${NC}"
+				echo -e "${GREEN}Skipped${NC}"
 			fi
-		else
-			echo -e "${GREEN}Skipped${NC}"
 		fi
 	else
 		echo "${DEST}" >> ${LNEW}
@@ -71,6 +76,23 @@ function replace()
 }
 
 #####################################################################################
+# Process all command-line arguments:
+#####################################################################################
+for i in "$@"; do
+	case $i in
+		-f|--force-copy)
+			FORCE_COPY=true
+			shift
+			;;
+		
+		-s|--skip-copy)
+			SKIP_COPY=true
+			shift
+			;;
+	esac
+done
+
+#####################################################################################
 # Prepare for logging files that have been linked:
 #####################################################################################
 cd $(dirname $0)
@@ -83,7 +105,7 @@ touch ${LNEW}
 # reset of the files and webui parts of the repository and pull any updated files:
 #####################################################################################
 GIT=($(whereis git | cut -d":" -f 2))
-if [[ ! -z "${GIT[@]}" ]]; then
+if [[ ! -z "${GIT[@]}" && -d $(dirname $0)/.git ]]; then
 	rm -rf router
 	rm -rf files
 	git reset --hard
