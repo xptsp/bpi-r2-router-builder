@@ -31,6 +31,7 @@ COPY_ONLY=(
 	/home/pi/
 	/home/vpn/
 	/etc/skel/
+	/etc/apt/sources.list
 )
 
 #####################################################################################
@@ -154,6 +155,7 @@ for file in $(find root/.[a-z]* -type f); do
 	replace $file home/pi/${file/root\//}
 	replace $file home/vpn/${file/root\//}
 done
+chmod +x /home/{pi,vpn}/{.bash*,.profile} /etc/skel/{.bash*,.profile}
 
 #####################################################################################
 # Move new linked file list to log directory and remove unnecessary linked files:
@@ -164,3 +166,4 @@ for file in $(cat ${LOLD}); do
 	test -f ${file} && rm ${file}
 done
 rm ${LOLD}
+

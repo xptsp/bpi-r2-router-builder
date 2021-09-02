@@ -13,11 +13,6 @@ NC='\033[0m'
 ##############################################################################################
 # Supporting functions:
 ##############################################################################################
-function pause(){
-	read -s -n 1 -p "Press any key to continue . . ."
-	echo ""
-}
-
 function mount_chroot()
 {
 	mount | grep " ${target}/proc " >& /dev/null || mount --bind /proc ${target}/proc
@@ -44,10 +39,36 @@ function enter_chroot()
 	[[ ! -f ${target}/usr/bin/ ]] && cp /usr/bin/qemu-arm-static ${target}/usr/bin/
 	cp /etc/resolv.conf ${target}/etc
 	rm -rf ${target}/opt/bpiwrt-builder >& /dev/null
-	cp -R ./ ${target}/opt/bpiwrt-builder
+	mkdir -p ${target}/opt
+	cp -R $(dirname $0) ${target}/opt/bpiwrt-builder
 	mount_chroot
 	chroot ${target} ${1}
 	umount_chroot
+}
+
+los() {
+	img="$1"
+	dev="$(sudo losetup --show -f -P "$img")"
+	echo "$dev"
+	for part in "$dev"?*; do
+		[ "$part" = "${dev}p*" ] && part="${dev}"
+		dst="/mnt/$(basename "$part")"
+		echo "$dst"
+		sudo mkdir -p "$dst"
+		sudo mount "$part" "$dst"
+	done
+}
+
+losd() {
+	for part in "${1}"?*; do
+		if [ "${part}" = "${1}p*" ]; then
+			part="${1}"
+		fi
+		dst="/mnt/$(basename "$part")"
+		sudo umount "$dst"
+		sudo rmdir "$dst"
+	done
+	sudo losetup -d "$1"
 }
 
 ##############################################################################################
@@ -57,7 +78,7 @@ if [[ ! -f /usr/bin/qemu-arm-static ]]; then
 	echo -e "${GREEN}INFO:${NC} Installing necessary tools on this computer..."
 	apt-get install -y qemu-user-static debootstrap binfmt-support
 fi
-distro=buster
+distro=bullseye
 arch=armhf
 cd $(dirname $0)
 parent=$(dirname $PWD)
@@ -75,22 +96,24 @@ while :; do
 	else
 		CHOICES=(	"1" "Enter Chroot environment" \
 					"2" "Rebuild Chroot environment" \
-					"3" "Pack Chroot into ${distro}.squashfs" )
+					"3" "Pack Chroot into ${distro}.squashfs" \
+					"4" "Copy Chroot into IMG file" )
 	fi
 	if [[ -f "${parent}/${distro}.squashfs" ]]; then
-		CHOICES[${#CHOICES[@]}]=4
-		CHOICES[${#CHOICES[@]}]="Unpack ${distro}.squashfs"
+		CHOICES[${#CHOICES[@]}]=X
+		CHOICES[${#CHOICES[@]}]="Extract ${distro}.squashfs"
 	fi
 
 	##############################################################################################
 	# Show the dialog box with the options we've decided on.  Exit script if they select "Cancel":
 	##############################################################################################
-	OPTION=$(whiptail --title "BPIWRT Builder" --menu "What do you want to do?" 15 60 4 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
+	OPTION=$(whiptail --title "BPIWRT Builder" --menu "What do you want to do?" 15 60 8 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
 	[[ "$?" -gt 0 ]] && exit
 
 	##############################################################################################
 	# Do the choice that the user selected:
 	##############################################################################################
+	echo -e "${GREEN}##############################################################################################${NC}"
 	case ${OPTION} in
 		1)
 			enter_chroot
@@ -107,10 +130,34 @@ while :; do
 		3)
 			rm ${parent}/${distro}.squashfs >& /dev/null
 			mksquashfs ${target} ${parent}/${distro}.squashfs
-			pause
 			;;
 
 		4)
+			echo -e "${GREEN}INFO:${NC} Unpacking empty image into temporary folder..."
+			cp misc/bpiwrt_empty.img.gz /tmp
+			gunzip -f /tmp/bpiwrt_empty.img.gz
+			OUT=($(los /tmp/bpiwrt_empty.img))
+			mkdir -p ${OUT[2]}/boot
+			mount --bind ${OUT[1]} ${OUT[2]}/boot
+			echo -e "${GREEN}INFO:${NC} Copying chroot environment into BPIWRT image..."
+			cp -aR ${target}/* ${OUT[2]}
+			if [[ -d ${parent}/SD/BPI-BOOT ]]; then
+				echo -e "${GREEN}INFO:${NC} Copying compiled kernel to boot partition..."
+				rsync -r ${parent}/SD/BPI-BOOT/* ${OUT[1]}/
+			fi
+			if [[ -d ${parent}/SD/BPI-ROOT ]]; then
+				echo -e "${GREEN}INFO:${NC} Copying compiled kernel to root partition..."
+				rsync -r ${parent}/SD/BPI-ROOT/* ${OUT[2]}/
+			fi
+			echo -e "${GREEN}INFO:${NC} Unmounting new BPIWRT image..."
+			umount ${OUT[2]}/boot
+			losd ${OUT[0]}
+			echo -e "${GREEN}INFO:${NC} Copy BPIWRT image to parent directory..."
+			img=bpiwrt_v$(date +"%Y.%m%d.%H%M").img
+			mv /tmp/bpiwrt_empty.img ${parent}/${img}
+			;;
+
+		X)
 			remove_chroot
 			mkdir ${target} >& /dev/null
 			mount -t tmpfs tmpfs ${target}
@@ -118,8 +165,8 @@ while :; do
 			unsquashfs -d /tmp/squash ${parent}/${distro}.squashfs
 			mv /tmp/squash/* ${target}
 			rm -rf /tmp/squash
-			pause
 			;;
+
 	esac
 done
 exit
