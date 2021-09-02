@@ -38,8 +38,8 @@ echo '
 										<td>', strtoupper(trim($br0['ether'])), '</td>
 									</tr>
 									<tr>
-										<td><strong>PiHole Adblocking</strong></td>
-										<td id="pihole_state"><i>Retrieving...</i></td>
+										<td>&nbsp;</td>
+										<td>&nbsp;</td>
 									</tr>
 									<tr>
 										<td colspan="2"><strong><i>Operating System Information</i></strong></td>

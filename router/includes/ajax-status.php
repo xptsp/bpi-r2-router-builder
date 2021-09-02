@@ -9,7 +9,6 @@ $dhcp = explode(' ', @shell_exec('/opt/bpi-r2-router-builder/helpers/router-help
 $dhcp_begin = intval($dhcp[1]);
 $dhcp_expire = $dhcp_begin + intval($dhcp[2]);
 echo  json_encode(array(
-	'pihole_state' => strpos(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole status'), 'enabled') ? 'Enabled' : 'Disabled',
 	'dhcp_server'  => $dhcp[0],
 	'dhcp_begin'   => date('Y-m-d H:i:s', $dhcp_begin),
 	'dhcp_expire'  => date('Y-m-d H:i:s', $dhcp_expire),

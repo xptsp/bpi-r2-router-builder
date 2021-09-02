@@ -121,64 +121,6 @@ echo '
 							Wireless Settings <i class="fas fa-arrow-circle-right"></i>
 						</a>' : '', '
 					</div>
-				</div>';
-
-#######################################################################################################
-# Display system overview
-#######################################################################################################
-$api = @json_decode(@file_get_contents('http://pi.hole/admin/api.php?summary'));
-#echo '<pre>'; print_r($api); exit();
-echo '
-			</div>
-			<div class="row mb-2">
-				<div class="col-sm-12">
-					<h3>Daily Pi-Hole Stats</h1>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-3">
-					<div class="card card-primary">
-						<div class="card-header">
-							<h3 class="card-title">
-								<i class="fas fa-globe"></i>
-								Total Queries (<span id="unique_clients">0</span> Clients)
-							</h3>
-						</div>
-						<div class="card-body centered text-lg" id="dns_queries_today">0</div>
-					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="card card-primary">
-						<div class="card-header">
-							<h3 class="card-title">
-								<i class="fas fa-hand-paper"></i>
-								Queries Blocked
-							</h3>
-						</div>
-						<div class="card-body centered text-lg" id="ads_blocked_today">0</div>
-					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="card card-primary">
-						<div class="card-header">
-							<h3 class="card-title">
-								<i class="fas fa-chart-pie"></i>
-								Percent Blocked
-							</h3>
-						</div>
-						<div class="card-body centered text-lg"><span id="ads_percentage_today">0</span>&percnt;</div>
-					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="card card-primary">
-						<div class="card-header">
-							<h3 class="card-title">
-								<i class="fas fa-list-alt"></i>
-								Domains Being Blocked
-							</h3>
-						</div>
-						<div class="card-body centered text-lg" id="domains_being_blocked">0</div>
-					</div>
 				</div>
 			</div>';
 

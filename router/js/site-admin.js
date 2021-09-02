@@ -18,7 +18,6 @@ function Init_Stats()
 function Stats_Update()
 {
 	$.getJSON("/ajax/status?sid=" + SID, function(data) {
-		$("#pihole_state").html(data.pihole_state);
 		if ($("#connection_type").html() == "DHCP")
 		{
 			$("#dhcp_server").html( data.dhcp_server );

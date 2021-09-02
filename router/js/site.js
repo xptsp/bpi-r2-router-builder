@@ -48,13 +48,6 @@ function Home_Data()
 		else
 			$("#usb-sharing").html("Disabled");
 
-		// Update PiHole statistics:
-		$("#unique_clients").html(results.unique_clients);
-		$("#dns_queries_today").html(results.dns_queries_today);
-		$("#ads_blocked_today").html(results.ads_blocked_today);
-		$("#ads_percentage_today").html(results.ads_percentage_today);
-		$("#domains_being_blocked").html(results.domains_being_blocked);
-
 		// Update system temperature:
 		$("#temp").html(results.temp);
 		if (results.temp > 60)

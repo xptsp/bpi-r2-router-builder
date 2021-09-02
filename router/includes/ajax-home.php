@@ -12,7 +12,6 @@ require_once('subs/admin.php');
 ##########################################################################################
 $load = sys_getloadavg();
 $temp = number_format((float) @file_get_contents('/sys/devices/virtual/thermal/thermal_zone0/temp') / 1000, 1);
-$pihole = @json_decode( @file_get_contents( "http://pi.hole/admin/api.php?summary" ) );
 
 ##########################################################################################
 # Insert hardware statistics information into array:
@@ -30,20 +29,6 @@ $arr = array(
 	'usb_devices' => array(),
 	'usb_count' => 0,
 );
-
-##########################################################################################
-# Insert Pi-Hole statistics information into array:
-##########################################################################################
-if (isset($pihole->unique_clients))
-	$arr['unique_clients'] = $pihole->unique_clients;
-if (isset($pihole->dns_queries_today))
-	$arr['dns_queries_today'] = $pihole->dns_queries_today;
-if (isset($pihole->ads_blocked_today))
-	$arr['ads_blocked_today'] = $pihole->ads_blocked_today;
-if (isset($pihole->ads_percentage_today))
-	$arr['ads_percentage_today'] = $pihole->ads_percentage_today;
-if (isset($pihole->domains_being_blocked))
-	$arr['domains_being_blocked'] = $pihole->domains_being_blocked;
 
 ##########################################################################################
 # Return WAN status:
