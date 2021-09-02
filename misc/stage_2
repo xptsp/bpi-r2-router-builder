@@ -17,7 +17,7 @@ apt upgrade -y
 ##############################################################################################
 # Install some necessary packages:
 ##############################################################################################
-apt install -y locales wget git apt-transport-https toilet pmount eject lsb-release
+apt install -y locales wget git apt-transport-https toilet pmount eject lsb-release bash-completion
 
 ##############################################################################################
 # Create our default users and assign default passwords to users:
