@@ -24,19 +24,6 @@ function my_chroot()
 	umount ${target}/proc >& /dev/null
 }
 
-function mount_img() {
-	dev="$(sudo losetup --show -f -P "$1")"
-	mount ${dev}p2 $2
-	mount ${dev}p1 $2/boot
-}
-
-function umount_img() {
-	dev=$1
-	umount ${dev}p1
-	umount ${dev}p2
-	losetup -d "$1"
-}
-
 ##############################################################################################
 # Install necessary tools for building this image:
 ##############################################################################################
@@ -92,15 +79,15 @@ while :; do
 			rm -rf ${target}/opt/bpiwrt-builder >& /dev/null
 			mkdir -p ${target}/opt
 			cp -R $(dirname $0) ${target}/opt/bpi-r2-router-builder/
-			my_chroot /opt/bpiwrt-builder/misc/stage_2
+			my_chroot /opt/bpi-r2-router-builder/misc/stage_2
 
 			if [[ -d ${parent}/SD/BPI-BOOT ]]; then
 				echo -e "${GREEN}INFO:${NC} Copying compiled kernel to boot partition..."
-				cp -R ${parent}/SD/BPI-BOOT/* ${target}/boot/
+				rsync -r ${parent}/SD/BPI-BOOT/* ${target}/boot/
 			fi
 			if [[ -d ${parent}/SD/BPI-ROOT ]]; then
 				echo -e "${GREEN}INFO:${NC} Copying compiled kernel to root partition..."
-				cp -R ${parent}/SD/BPI-ROOT/* ${target}/
+				rsync -r ${parent}/SD/BPI-ROOT/* ${target}/
 			fi
 
 			echo -e "${GREEN}INFO:${NC} Unmounting ${BLUE}${img}${NC}..."
