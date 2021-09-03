@@ -11,20 +11,6 @@ BLUE='\033[1;34m'
 NC='\033[0m'
 
 ##############################################################################################
-# Supporting functions:
-##############################################################################################
-function my_chroot()
-{
-	mount | grep " ${target}/proc " >& /dev/null || mount --bind /proc ${target}/proc
-	mount | grep " ${target}/sys " >& /dev/null || mount --bind /sys ${target}/sys
-	mount | grep " ${target}/tmp " >& /dev/null || mount --bind /tmp ${target}/tmp
-	chroot ${target} $1
-	umount ${target}/tmp >& /dev/null
-	umount ${target}/sys >& /dev/null
-	umount ${target}/proc >& /dev/null
-}
-
-##############################################################################################
 # Install necessary tools for building this image:
 ##############################################################################################
 if [[ ! -f /usr/bin/qemu-arm-static ]]; then
@@ -44,7 +30,8 @@ while :; do
 	##############################################################################################
 	# Decide which options to show the user:
 	##############################################################################################
-	CHOICES=(	"1" "Create Chroot environment" )
+	CHOICES=(	"1" "Create Chroot environment" 
+				"2" "Enter Chroot Environment")
 
 	##############################################################################################
 	# Show the dialog box with the options we've decided on.  Exit script if they select "Cancel":
@@ -57,6 +44,9 @@ while :; do
 	##############################################################################################
 	echo -e "${GREEN}##############################################################################################${NC}"
 	case ${OPTION} in
+		##############################################################################################
+		# Build Chroot Environment
+		##############################################################################################
 		1)
 			img=${parent}/bpiwrt_v$(date +"%Y.%m%d.%H%M").img
 			echo -e "${GREEN}INFO:${NC} Unpacking empty image into ${BLUE}${img}${NC}..."
@@ -64,8 +54,8 @@ while :; do
 			cp misc/bpiwrt_empty.img.gz ${img}.gz
 			gunzip -f ${img}.gz
 
-			echo -e "${GREEN}INFO:${NC} Mounting ${BLUE}${img}${NC}..."
 			dev="$(sudo losetup --show -f -P "${img}")"
+			echo -e "${GREEN}INFO:${NC} Mounting ${BLUE}${dev}${NC} on ${BLUE}${img}${NC}..."
 			mount ${dev}p2 ${target}
 			mkdir ${target}/boot
 			mount ${dev}p1 ${target}/boot
@@ -79,7 +69,13 @@ while :; do
 			rm -rf ${target}/opt/bpiwrt-builder >& /dev/null
 			mkdir -p ${target}/opt
 			cp -R $(dirname $0) ${target}/opt/bpi-r2-router-builder/
-			my_chroot /opt/bpi-r2-router-builder/misc/stage_2
+			mount --bind /proc ${target}/proc
+			mount --bind /sys ${target}/sys
+			mount --bind /tmp ${target}/tmp
+			chroot ${target} /opt/bpi-r2-router-builder/misc/stage_2
+			umount ${target}/tmp >& /dev/null
+			umount ${target}/sys >& /dev/null
+			umount ${target}/proc >& /dev/null
 
 			if [[ -d ${parent}/SD/BPI-BOOT ]]; then
 				echo -e "${GREEN}INFO:${NC} Copying compiled kernel to boot partition..."
@@ -91,6 +87,44 @@ while :; do
 			fi
 
 			echo -e "${GREEN}INFO:${NC} Unmounting ${BLUE}${img}${NC}..."
+			umount ${target}/boot
+			umount ${target}
+			losetup -d ${dev}
+			;;
+			
+		##############################################################################################
+		# Enter Chroot Environment
+		##############################################################################################
+		2)
+			# Assemble the list of imgs to display:
+			count=0
+			while read -r img
+			do
+				 options+=($((++count)) "$(basename $img)")
+			done <<< $(ls -r ${parent}/*.img)
+
+			# Display the dialog box:
+			cmd=(dialog --keep-tite --menu "Select Image to Restore:" 22 76 16)
+			CHOICE=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+			[[ "$CHOICE" -eq 0 ]] && continue
+			img=${parent}/${options[ $(( $CHOICE * 2 - 1)) ]}
+
+			dev="$(sudo losetup --show -f -P "${img}")"
+			echo -e "${GREEN}INFO:${NC} Mounting ${BLUE}${dev}${NC} on ${BLUE}${img}${NC}..."
+			mkdir ${target} >& /dev/null
+			mount ${dev}p2 ${target}
+			mount ${dev}p1 ${target}/boot
+
+			echo -e "${GREEN}INFO:${NC} Entering Chroot Environment..."
+			mount --bind /proc ${target}/proc
+			mount --bind /sys ${target}/sys
+			mount --bind /tmp ${target}/tmp
+			chroot ${target} $1
+			umount ${target}/tmp >& /dev/null
+			umount ${target}/sys >& /dev/null
+			umount ${target}/proc >& /dev/null
+
+			echo -e "${GREEN}INFO:${NC} Unmounting Chroot Environment..."
 			umount ${target}/boot
 			umount ${target}
 			losetup -d ${dev}
