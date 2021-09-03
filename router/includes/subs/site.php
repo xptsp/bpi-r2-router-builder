@@ -9,9 +9,9 @@ $output_null = false;
 $sidebar_menu = array(
 	'home'   => menu_link('/', 'Home', 'fas fa-home'),
 	'setup'  => array('Setup', 'fas fa-cog', array(
-		'device'   => menu_link('/setup/global', 'Global Settings', 'fas fa-globe'),
+		'device'   => menu_link('/setup/wan', 'Internet Settings', 'fas fa-globe'),
 		'firewall' => menu_link('/setup/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
-		'wired'    => menu_link('/setup/wired', 'Wired Setup', 'fas fa-ethernet'),
+		'wired'    => menu_link('/setup/lan', 'Network Setup', 'fas fa-ethernet'),
 		'wireless' => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
 	)),
 	'storage'    => array('Storage', 'fas fa-hdd', array(

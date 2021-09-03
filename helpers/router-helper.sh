@@ -169,31 +169,22 @@ case $CMD in
 
 	###########################################################################
 	dns)
-		IP=(${@/\#/ })
-		if ! valid_ip ${IP[0]}; then
-			echo "ERROR: Invalid IP address specified!"
-			echo "SYNTAX: $(basename $0) dns [ip address(#optional port)]"
-			exit 1
-		fi
-		if [[ ! -z "${IP[1]}" ]]; then
+		for IP in $@; do
 			if ! valid_ip ${IP[1]}; then
 				if [[ ! "${IP[1]}" =~ ^[0-9]+$ || ${IP[1]} -gt 65535 ]]; then
 					echo "ERROR: Invalid port number specified!"
-					echo "SYNTAX: $(basename $0) dns [ip address(#optional port)]"
+					echo "SYNTAX: $(basename $0) dns [ip address]"
 					echo "--OR--: $(basename $0) dns [ip address 1] [ip address 2]"
 					exit 1
 				fi
 			fi
-		fi
-		sed -i "/PIHOLE_DNS_/d" /etc/pihole/setupVars.conf
-		echo "PIHOLE_DNS_1=${1}" >> /etc/pihole/setupVars.conf
-		echo "PIHOLE_DNS_2=${2}" >> /etc/pihole/setupVars.conf
-		pihole restartdns
-		;;
-
-	###########################################################################
-	pihole)
-		/usr/local/bin/pihole $@
+		done
+		FILE=/etc/resolvconf/resolv.conf.d/head
+		sed -i "/^nameserver /d" ${FILE}
+		sed -i "/^$/d" ${FILE}
+		echo "" >> ${FILE}
+		echo "nameserver ${1}" >> $FILE
+		[[ -z "$2" ]] && echo "nameserver ${2}" >> $FILE
 		;;
 
 	###########################################################################

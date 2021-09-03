@@ -13,62 +13,28 @@ NC='\033[0m'
 ##############################################################################################
 # Supporting functions:
 ##############################################################################################
-function mount_chroot()
+function my_chroot()
 {
 	mount | grep " ${target}/proc " >& /dev/null || mount --bind /proc ${target}/proc
 	mount | grep " ${target}/sys " >& /dev/null || mount --bind /sys ${target}/sys
 	mount | grep " ${target}/tmp " >& /dev/null || mount --bind /tmp ${target}/tmp
-}
-
-function umount_chroot()
-{
+	chroot ${target} $1
 	umount ${target}/tmp >& /dev/null
 	umount ${target}/sys >& /dev/null
 	umount ${target}/proc >& /dev/null
 }
 
-function remove_chroot()
-{
-	umount_chroot
-	umount ${target} >& /dev/null
-	rm -rf ${target} >& /dev/null
+function mount_img() {
+	dev="$(sudo losetup --show -f -P "$1")"
+	mount ${dev}p2 $2
+	mount ${dev}p1 $2/boot
 }
 
-function enter_chroot()
-{
-	[[ ! -f ${target}/usr/bin/ ]] && cp /usr/bin/qemu-arm-static ${target}/usr/bin/
-	cp /etc/resolv.conf ${target}/etc
-	rm -rf ${target}/opt/bpiwrt-builder >& /dev/null
-	mkdir -p ${target}/opt
-	cp -R $(dirname $0) ${target}/opt/bpiwrt-builder
-	mount_chroot
-	chroot ${target} ${1}
-	umount_chroot
-}
-
-los() {
-	img="$1"
-	dev="$(sudo losetup --show -f -P "$img")"
-	echo "$dev"
-	for part in "$dev"?*; do
-		[ "$part" = "${dev}p*" ] && part="${dev}"
-		dst="/mnt/$(basename "$part")"
-		echo "$dst"
-		sudo mkdir -p "$dst"
-		sudo mount "$part" "$dst"
-	done
-}
-
-losd() {
-	for part in "${1}"?*; do
-		if [ "${part}" = "${1}p*" ]; then
-			part="${1}"
-		fi
-		dst="/mnt/$(basename "$part")"
-		sudo umount "$dst"
-		sudo rmdir "$dst"
-	done
-	sudo losetup -d "$1"
+function umount_img() {
+	dev=$1
+	umount ${dev}p1
+	umount ${dev}p2
+	losetup -d "$1"
 }
 
 ##############################################################################################
@@ -91,18 +57,7 @@ while :; do
 	##############################################################################################
 	# Decide which options to show the user:
 	##############################################################################################
-	if [[ ! -d "${target}" ]]; then
-		CHOICES=(	"2" "Build Chroot environment" )
-	else
-		CHOICES=(	"1" "Enter Chroot environment" \
-					"2" "Rebuild Chroot environment" \
-					"3" "Pack Chroot into ${distro}.squashfs" \
-					"4" "Copy Chroot into IMG file" )
-	fi
-	if [[ -f "${parent}/${distro}.squashfs" ]]; then
-		CHOICES[${#CHOICES[@]}]=X
-		CHOICES[${#CHOICES[@]}]="Extract ${distro}.squashfs"
-	fi
+	CHOICES=(	"1" "Create Chroot environment" )
 
 	##############################################################################################
 	# Show the dialog box with the options we've decided on.  Exit script if they select "Cancel":
@@ -116,57 +71,43 @@ while :; do
 	echo -e "${GREEN}##############################################################################################${NC}"
 	case ${OPTION} in
 		1)
-			enter_chroot
-			;;
-
-		2)
-			remove_chroot
+			img=${parent}/bpiwrt_v$(date +"%Y.%m%d.%H%M").img
+			echo -e "${GREEN}INFO:${NC} Unpacking empty image into ${BLUE}${img}${NC}..."
 			mkdir ${target} >& /dev/null
-			mount -t tmpfs tmpfs ${target}
+			cp misc/bpiwrt_empty.img.gz ${img}.gz
+			gunzip -f ${img}.gz
+
+			echo -e "${GREEN}INFO:${NC} Mounting ${BLUE}${img}${NC}..."
+			dev="$(sudo losetup --show -f -P "${img}")"
+			mount ${dev}p2 ${target}
+			mkdir ${target}/boot
+			mount ${dev}p1 ${target}/boot
+
+			echo -e "${GREEN}INFO:${NC} Starting stage 1 of debootstrap process..."
 			debootstrap --arch=${arch} --foreign ${distro} ${target}
-			enter_chroot /opt/bpiwrt-builder/misc/stage_2
-			;;
 
-		3)
-			rm ${parent}/${distro}.squashfs >& /dev/null
-			mksquashfs ${target} ${parent}/${distro}.squashfs
-			;;
+			echo -e "${GREEN}INFO:${NC} Starting stage 2 of debootstrap process..."
+			[[ ! -f ${target}/usr/bin/ ]] && cp /usr/bin/qemu-arm-static ${target}/usr/bin/
+			cp /etc/resolv.conf ${target}/etc
+			rm -rf ${target}/opt/bpiwrt-builder >& /dev/null
+			mkdir -p ${target}/opt
+			cp -R $(dirname $0) ${target}/opt/bpi-r2-router-builder/
+			my_chroot /opt/bpiwrt-builder/misc/stage_2
 
-		4)
-			echo -e "${GREEN}INFO:${NC} Unpacking empty image into temporary folder..."
-			cp misc/bpiwrt_empty.img.gz /tmp
-			gunzip -f /tmp/bpiwrt_empty.img.gz
-			OUT=($(los /tmp/bpiwrt_empty.img))
-			mkdir -p ${OUT[2]}/boot
-			mount --bind ${OUT[1]} ${OUT[2]}/boot
-			echo -e "${GREEN}INFO:${NC} Copying chroot environment into BPIWRT image..."
-			cp -aR ${target}/* ${OUT[2]}
 			if [[ -d ${parent}/SD/BPI-BOOT ]]; then
 				echo -e "${GREEN}INFO:${NC} Copying compiled kernel to boot partition..."
-				rsync -r ${parent}/SD/BPI-BOOT/* ${OUT[1]}/
+				cp -R ${parent}/SD/BPI-BOOT/* ${target}/boot/
 			fi
 			if [[ -d ${parent}/SD/BPI-ROOT ]]; then
 				echo -e "${GREEN}INFO:${NC} Copying compiled kernel to root partition..."
-				rsync -r ${parent}/SD/BPI-ROOT/* ${OUT[2]}/
+				cp -R ${parent}/SD/BPI-ROOT/* ${target}/
 			fi
-			echo -e "${GREEN}INFO:${NC} Unmounting new BPIWRT image..."
-			umount ${OUT[2]}/boot
-			losd ${OUT[0]}
-			echo -e "${GREEN}INFO:${NC} Copy BPIWRT image to parent directory..."
-			img=bpiwrt_v$(date +"%Y.%m%d.%H%M").img
-			mv /tmp/bpiwrt_empty.img ${parent}/${img}
-			;;
 
-		X)
-			remove_chroot
-			mkdir ${target} >& /dev/null
-			mount -t tmpfs tmpfs ${target}
-			[[ -d /tmp/squash ]] && rm -rf /tmp/squash
-			unsquashfs -d /tmp/squash ${parent}/${distro}.squashfs
-			mv /tmp/squash/* ${target}
-			rm -rf /tmp/squash
+			echo -e "${GREEN}INFO:${NC} Unmounting ${BLUE}${img}${NC}..."
+			umount ${target}/boot
+			umount ${target}
+			losetup -d ${dev}
 			;;
-
 	esac
 done
 exit

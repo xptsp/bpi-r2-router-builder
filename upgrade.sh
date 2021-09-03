@@ -121,7 +121,7 @@ fi
 # Copy files to the boot partition ONLY IF MOUNTED!
 #####################################################################################
 RW=($(mount | grep " /boot "))
-if [[ ! -z "$RW" ]]; then
+if [[ ! -z "${RW[5]}" ]]; then
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /boot
 	cp uEnv.txt /boot/bananapi/bpi-r2/linux/
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /boot

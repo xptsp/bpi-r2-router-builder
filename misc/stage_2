@@ -2,9 +2,15 @@
 export DEBIAN_FRONTEND=noninteractive
 
 ##############################################################################################
+# Execute second-stage of image building:
+##############################################################################################
+/debootstrap/debootstrap --second-stage
+
+##############################################################################################
 # Install files from the GitHub repository:
 ##############################################################################################
 /opt/bpi-r2-router-builder/upgrade.sh --force-copy
+systemctl enable firewall
 
 ##############################################################################################
 # Update the sources.list with correct codename, then upgrade any packages needing upgrading:
@@ -16,7 +22,9 @@ apt upgrade -y
 ##############################################################################################
 # Install some necessary packages:
 ##############################################################################################
-apt install -y locales wget git apt-transport-https toilet pmount eject lsb-release bash-completion
+apt install -y locales wget git apt-transport-https toilet pmount eject lsb-release bash-completion resolvconf
+echo "nameserver=1.1.1.1" >> /etc/resolvconf/resolv.conf.d/head
+systemctl enable resolvconf
 
 ##############################################################################################
 # Create our default users and assign default passwords to users:
