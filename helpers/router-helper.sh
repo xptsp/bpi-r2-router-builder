@@ -153,7 +153,7 @@ case $CMD in
 			OLD=$(cat ${FILE} | grep bootmenu_default | cut -d= -f 2)
 			NEW=$([[ "$1" == "enable" ]] && echo "2" || echo "3")
 			TXT=$([[ "$NEW" == "2" ]] && echo "enabled" || echo "disabled")
-			[[ "$OLD" == "$NEW" ]] && echo "ERROR: Overlay script already ${TXT}!" && exit
+			[[ "$OLD" == "$NEW" ]] && echo "INFO: Overlay script already ${TXT}!" && exit
 			RO=$(mount | grep "/boot" | grep "(ro,")
 			[[ ! -z "$RO" ]] && mount -o remount,rw /boot
 			sed -i "s|bootmenu_default=.*|bootmenu_default=${NEW}|g" ${FILE}
@@ -165,26 +165,6 @@ case $CMD in
 		else
 			echo "SYNTAX: $(basename $0) overlay [enable|disable|status]"
 		fi
-		;;
-
-	###########################################################################
-	dns)
-		for IP in $@; do
-			if ! valid_ip ${IP[1]}; then
-				if [[ ! "${IP[1]}" =~ ^[0-9]+$ || ${IP[1]} -gt 65535 ]]; then
-					echo "ERROR: Invalid port number specified!"
-					echo "SYNTAX: $(basename $0) dns [ip address]"
-					echo "--OR--: $(basename $0) dns [ip address 1] [ip address 2]"
-					exit 1
-				fi
-			fi
-		done
-		FILE=/etc/resolvconf/resolv.conf.d/head
-		sed -i "/^nameserver /d" ${FILE}
-		sed -i "/^$/d" ${FILE}
-		echo "" >> ${FILE}
-		echo "nameserver ${1}" >> $FILE
-		[[ -z "$2" ]] && echo "nameserver ${2}" >> $FILE
 		;;
 
 	###########################################################################
@@ -324,7 +304,7 @@ case $CMD in
 		echo $MAC > /boot/eth0.conf
 		dtc -q -O dtb /tmp/dts > /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
 		[[ ! -z "$RO" ]] && mount -o remount,ro /boot
-		echo "DTB updated"
+		echo "REBOOT"
 		;;
 
 	###########################################################################

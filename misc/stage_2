@@ -1,5 +1,6 @@
 #!/bin/bash
 export DEBIAN_FRONTEND=noninteractive
+export LANG=C
 
 ##############################################################################################
 # Execute second-stage of image building:

@@ -1,16 +1,21 @@
 //======================================================================================================
-// Javascript functions for "Setup / Global Settings"
+// Javascript functions for "Setup / WAN Settings"
 //======================================================================================================
-function Init_Global(mac_com, mac_cur)
+function Init_WAN(mac_com, mac_cur)
 {
+	$('.ip_address').inputmask("ip");
+	$("#dynamic_ip").click(function() {
+		$(".ip_address").attr("disabled", "disabled");
+	});
+	$("#static_ip").click(function() {
+		$(".ip_address").removeAttr("disabled");
+	});
 	$('.dns_address').inputmask("ip");
-	$("#dns_doh").click(function() {
+	$("#dns_isp").click(function() {
 		$(".dns_address").attr("disabled", "disabled");
-		$("#doh_server").removeAttr("disabled");
 	});
 	$("#dns_custom").click(function() {
 		$(".dns_address").removeAttr("disabled");
-		$("#doh_server").attr("disabled", "disabled");
 	});
 	$("#mac_default").click(function() {
 		$("#mac_addr").val(mac_cur).attr("disabled", "disabled");
@@ -28,26 +33,30 @@ function Init_Global(mac_com, mac_cur)
 		$("#mac_addr").removeAttr("disabled");
 	});
 	$("#mac_addr").inputmask("mac");
-	$("#submit").click( Global_Submit );
+	$("#submit").click( WAN_Submit );
 }
 
-function Global_Submit()
+function WAN_Submit()
 {
 	// Assemble the post data for the AJAX call:
-	doh_addr = "127.0.0.1#505" + $("#doh_server").val();
-	use_doh = ($("[name=dns_server_opt]:checked").val()) == "doh";
 	postdata = {
 		'sid':      SID,
 		'hostname': $("#hostname").val(),
-		'dns1':     use_doh ? doh_addr : $("#dns1").val(),
-		'dns2':     use_doh ? '' : $("#dns2").val(),
+		'static':   ($("[name=static_dynamic]:checked").val()) == "dynamic" ? 0 : 1,
+		'ip_addr':  $("#ip_addr").val(),
+		'ip_mask':  $("#ip_mask").val(),
+		'ip_gate':  $("#ip_gate").val(),
+		'use_isp':  ($("[name=dns_server_opt]:checked").val()) == "isp" ? 0 : 1,
+		'dns1':     $("#dns1").val(),
+		'dns2':     $("#dns2").val(),
 		'mac':      $("#mac_addr").val()
 	};
 
 	// Perform our AJAX request to change the WAN settings:
+	$("#apply_msg").html("Please wait while the networking service is restarted...");
 	$(".alert_control").addClass("hidden");
 	$("#apply-modal").modal("show");
-	$.post("/ajax/setup-device", postdata, function(data) {
+	$.post("/ajax/setup-wan", postdata, function(data) {
 		if (data == "OK")
 			document.location.reload(true);
 		else

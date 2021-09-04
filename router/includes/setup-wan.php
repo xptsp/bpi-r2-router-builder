@@ -12,7 +12,6 @@ $gateway = @trim(shell_exec("ip route | grep default | grep wan | awk '{print $3
 # Internet IP Address section
 ###################################################################################################
 $dhcp = strpos($cfg['iface'], 'dhcp') > -1;
-$dhcp = false;
 echo '
 <div class="card card-primary">
 	<div class="card-header">
@@ -72,18 +71,22 @@ echo '
 ###################################################################################################
 # Domain Name (DNS) Servers
 ###################################################################################################
-$dns1 = $dns2 = $cloudflare = '';
-foreach (file("/etc/pihole/setupVars.conf") as $line)
+$current = array();
+$contents = @file("/etc/network/interfaces.d/wan");
+foreach (is_array($contents) ? $contents : array() as $line)
 {
-	if (preg_match("/PIHOLE_DNS_1=(.*)/", $line, $regex))
-		$dns1 = $regex[1];
-	else if (preg_match("/PIHOLE_DNS_2=(.*)/", $line, $regex))
-		$dns2 = $regex[1];
+	if (preg_match("/nameserver (.*) >/", $line, $regex))
+		$current[ count($current) ] = $regex[1];
 }
-if (preg_match("/\#505(\d)/", $dns1, $regex))
+$custom = !empty($current);
+if (empty($current))
 {
-	$cloudflare = $regex[1];
-	$dns1 = $dns2 = '1.1.1.1';
+	$contents = @file("/etc/resolv.conf");
+	foreach (is_array($contents) ? $contents : array() as $line)
+	{
+		if (preg_match("/nameserver (.*)/", $line, $regex))
+			$current[ count($current) ] = $regex[1];
+	}
 }
 echo '
 	<div class="card-header">
@@ -92,18 +95,11 @@ echo '
 	<div class="card-body">
 		<div class="form-group clearfix">
 			<div class="icheck-primary">
-				<input type="radio" id="dns_doh" value="doh" name="dns_server_opt"', !empty($cloudflare) ? ' checked="checked"' : '', '>
-				<label for="dns_doh">Use Cloudflare DNS over HTTPS (DoH) Server:</label>
-				<span class="float-right">
-					<select class="form-control select2" style="width: 100%;" id="doh_server" name="doh_server"', !empty($cloudflare) ? '' : ' disabled="disabled"', '>
-						<option value="1"', $cloudflare == 1 ? ' selected="selected"' : '', '>Regular 1.1.1.1</option>
-						<option value="2"', $cloudflare == 2 ? ' selected="selected"' : '', '>Malware Blocking Only</option>
-						<option value="3"', $cloudflare == 3 ? ' selected="selected"' : '', '>Malware and Adult Content Blocking</option>
-					</select>
-  				</span>
+				<input type="radio" id="dns_isp" value="isp" name="dns_server_opt"', empty($custom) ? ' checked="checked"' : '', '>
+				<label for="dns_isp">Get Automatically from ISP</label>
 			</div>
 			<div class="icheck-primary">
-				<input type="radio" id="dns_custom" value="custom" name="dns_server_opt"', !empty($cloudflare) ? '' : ' checked="checked"', '>
+				<input type="radio" id="dns_custom" value="custom" name="dns_server_opt"', empty($custom) ? '' : ' checked="checked"', '>
 				<label for="dns_custom">Use These DNS Servers</label>
 			</div>
 		</div>
@@ -116,7 +112,7 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-						<input id="dns1" type="text" class="dns_address form-control" value="', $dns1, '" data-inputmask="\'alias\': \'ip\'" data-mask', !empty($cloudflare) ? ' disabled="disabled"' : '', '>
+						<input id="dns1" type="text" class="dns_address form-control" value="', empty($current[0]) ? '' : $current[0], '" data-inputmask="\'alias\': \'ip\'" data-mask', empty($custom) ? ' disabled="disabled"' : '', '>
 					</div>
 				</td>
 			</tr>
@@ -128,7 +124,7 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-						<input id="dns2" type="text" class="dns_address form-control"  value="', $dns2, '"data-inputmask="\'alias\': \'ip\'" data-mask', !empty($cloudflare) ? ' disabled="disabled"' : '', '>
+						<input id="dns2" type="text" class="dns_address form-control"  value="', empty($current[1]) ? '' : $current[1], '"data-inputmask="\'alias\': \'ip\'" data-mask', empty($custom) ? ' disabled="disabled"' : '', '>
 					</div>
 				</td>
 			</tr>
@@ -138,8 +134,9 @@ echo '
 ###################################################################################################
 # Router MAC Address settings:
 ###################################################################################################
-$mac = explode(" ", trim($cfg['hwaddress']))[1];
-$def = '08:00:00:00:00:01';
+$mac = trim($wan['ether']);
+$def = explode("\n", trim(@file("/boot/mac.conf")));
+$def = empty($def) ? $mac : $def;
 $leases = explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")));
 $mac_com = trim(@shell_exec("arp -n | grep " . $_SERVER['REMOTE_ADDR'] . " | awk '{print $3}'"));
 $mac_chk = ($mac == $def || $mac == $mac_com);
@@ -207,4 +204,4 @@ echo '
 ###################################################################################################
 # Close page
 ###################################################################################################
-site_footer('Init_WAN("' . $mac_com . '");');
+site_footer('Init_WAN("' . $mac_com . '", "' . $mac . '");');
