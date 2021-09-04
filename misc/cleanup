@@ -1,4 +1,4 @@
-#!/bin/bash
+7#!/bin/bash
 if [[ "$UID" -ne 0 ]]; then
 	sudo $0 $@
 	exit
@@ -65,6 +65,7 @@ gunzip -f /tmp/bpiwrt_empty.img.gz
 echo -e "${GREEN}NOTE:${NC} Copy kernel files from partition 1..."
 OUT=($(los /tmp/bpiwrt_empty.img))
 rm ${DEV[1]}/bananapi/bpi-r2/linux/uImage >& /dev/null
+rm ${DEV[1]}/{eth0,wifi}.conf >& /dev/null
 cp -aR ${DEV[1]}/* ${OUT[1]}/
 
 ####################################################################################################

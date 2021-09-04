@@ -36,3 +36,15 @@ function device_name($mac)
 	return "Unknown";
 }
 
+function get_invalid_adapters($iface)
+{
+	global $ifaces;
+	$arr = array();
+	foreach ($ifaces as $tface => $bound)
+	{
+		if ($tface != $iface)
+			$arr = array_merge($bound, $arr);
+	}
+	return $arr;
+}
+	

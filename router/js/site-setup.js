@@ -71,9 +71,9 @@ function WAN_Submit()
 }
 
 //======================================================================================================
-// Javascript functions for "Setup / Wired Setup"
+// Javascript functions for "Setup / LAN Setup"
 //======================================================================================================
-function Init_Wired()
+function Init_LAN()
 {
 	$('.ip_address').inputmask("ip");
 	$("#dynamic_ip").click(function() {
@@ -102,14 +102,15 @@ function Init_Wired()
 		$("#dhcp_start").val( parts + $("#dhcp_start").val().substring( $("#dhcp_start").val().lastIndexOf('.')) );
 		$("#dhcp_end").val( parts + $("#dhcp_end").val().substring( $("#dhcp_end").val().lastIndexOf('.')) );
 	});
-	$("#apply_changes").click(Wired_Submit);
+	$("#apply_changes").click(LAN_Submit);
 }
 
-function Wired_Submit()
+function LAN_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':        SID,
+		'hostname':   $("#hostname").val(),
 		'iface':      $("#iface").val(),
 		'ip_addr':    $("#ip_addr").val(),
 		'ip_mask':    $("#ip_mask").val(),
@@ -125,6 +126,7 @@ function Wired_Submit()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to change the WAN settings:
+	$("#apply_msg").html("Please wait while the networking service is restarted...");
 	$(".alert_control").addClass("hidden");
 	$("#apply-modal").modal("show");
 	$.post("/ajax/setup-lan", postdata, function(data) {

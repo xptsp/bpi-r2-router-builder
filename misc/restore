@@ -8,8 +8,8 @@ GREEN='\033[1;32m'
 BLUE='\033[1;34m'
 NC='\033[0m'
 
-DEV=$(sudo blkid | grep "BPI-BOOT" | cut -d":" -f 1 | head -1)
-[[ "${DEV}" =~ /dev/loop?p? ]] && DEV=${DEV:0:-2} || DEV=${DEV:0:-1}
+DEV=$(sudo blkid | grep "BPI-BOOT" | grep -v loop | cut -d":" -f 1 | head -1)
+DEV=${DEV:0:-1}
 if [[ -z "${DEV}" ]]; then
 	echo -e "${RED}ERROR:${NC} SD Card not detected with partition 1 label of ${BLUE}BPI-BOOT${NC}!"
 	exit 1

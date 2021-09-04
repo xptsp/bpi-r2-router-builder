@@ -14,6 +14,8 @@ $iface = isset($_GET['iface']) ? $_GET['iface'] : 'br0';
 #echo $iface; exit();
 $exclude_regex = '/^(' . implode('|',array_merge(explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'"))), array("docker.+", "lo", "sit.+", "eth0", "wan"))) . ')$/';
 #echo $exclude_regex; exit;
+$invalid = get_invalid_adapters($iface);
+#echo '<pre>'; print_r($invalid); exit();
 
 ###################################################################################################
 # Get leases for entire system:
@@ -80,13 +82,14 @@ echo '
     <div class="card-header p-0 pt-1">
 		<ul class="nav nav-tabs">';
 $init_list = array();
+$URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 foreach ($ifaces as $tface => $details)
 {
 	if (!preg_match($exclude_regex, $tface))
 	{
 		echo '
 			<li class="nav-item">
-				<a class="nav-link', $iface == $tface ? ' active' : '', '" href="', $_SERVER['REQUEST_URI'], $tface == "br0" ? '' : '?iface=' . $tface, '">', $tface, '</a>
+				<a class="nav-link', $iface == $tface ? ' active' : '', '" href="', $URL, $tface == "br0" ? '' : '?iface=' . $tface, '">', $tface, '</a>
 			</li>';
 	}
 }
@@ -108,10 +111,11 @@ echo '
 					<ul class="pagination pagination-sm">';
 foreach ($adapters as $tface)
 {
-	if (!preg_match($exclude_regex, $tface) || $tface == 'wan')
+	if (!preg_match($exclude_regex, $tface))
 	{
-		echo '
-						<li class="', $tface == 'wan' ? 'wan_bridge' : 'bridge', ' page-item', $tface == $iface || in_array($tface, $ifaces[$iface]) ? ' active' : '', '">
+		if (!in_array($tface, $invalid))
+			echo '
+						<li class="bridge page-item', $tface == $iface || in_array($tface, $ifaces[$iface]) ? ' active' : '', '">
 							<div class="page-link">', $tface, '</div>
 						</li>';
 	}
@@ -158,7 +162,7 @@ echo '
 			<input type="checkbox" id="use_dhcp"', $use_dhcp ? ' checked="checked"' : '', '>
 			<label for="use_dhcp">Use DHCP on interface ', $iface, '</label>
 		</div>
-		<table width="100%">
+		<table width="100%" class="dhcp_div">
 			<tr>
 				<td width="50%"><label for="dhcp_start">Starting IP Address:</label></td>
 				<td>
@@ -182,14 +186,14 @@ echo '
 				</td>
 			</tr>
 		</table>
-		<hr style="border-width: 2px" />';
+		<hr style="border-width: 2px" class="dhcp_div" />';
 
 ###################################################################################################
 # IP Address Reservation section
 ###################################################################################################
 echo '
-		<h5>Address Reservations</h5>
-		<div class="table-responsive p-0 centered">
+		<h5 class="dhcp_div">Address Reservations</h5>
+		<div class="table-responsive p-0 centered dhcp_div">
 			<table class="table table-hover text-nowrap table-sm table-striped">
 				<thead class="bg-primary">
 					<td>IP Address</td>
@@ -224,8 +228,10 @@ echo '
 				</tbody>
 			</table>
 		</div>
+	</div>
+	<div class="card-footer">
 		<button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button>
-		<button type="button" id="add_ip_address" class="btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button>
+		<button type="button" id="add_ip_address" class="dhcp_div btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button>
 	</div>
 </div>';
  
