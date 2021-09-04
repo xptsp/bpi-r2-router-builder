@@ -38,10 +38,6 @@ echo '
 										<td>', strtoupper(trim($br0['ether'])), '</td>
 									</tr>
 									<tr>
-										<td>&nbsp;</td>
-										<td>&nbsp;</td>
-									</tr>
-									<tr>
 										<td colspan="2"><strong><i>Operating System Information</i></strong></td>
 									</tr>
 									<tr>
@@ -60,6 +56,11 @@ echo '
 										<td><strong>Web UI Version</strong></td>
 										<td>v', $_SESSION['webui_version'], '</td>
 									</tr>
+									<tr>
+										<td><strong>Wifi Regulatory Database</strong></td>
+										<td>v', $_SESSION['regdb_version'], '</td>
+									</tr>
+
 								</table>
 							</div>
 							<!-- /.card-body -->
