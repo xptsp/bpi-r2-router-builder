@@ -41,4 +41,5 @@ if [[ ! -z "${PCI}" ]]; then
 		fi
 	done
 fi
+systemctl restart dnsmasq
 exit 0
