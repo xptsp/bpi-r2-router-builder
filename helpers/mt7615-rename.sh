@@ -7,10 +7,16 @@ if [[ ! -z "${PCI}" ]]; then
 	cd /sys/class/net
 	IFACES=($(ls -l | grep "${PCI}" | awk '{print $9}' | grep -v "^mt${MDL}_"))
 	for IFACE in ${IFACES[@]}; do
-		NEW=mt${MDL}_24g && IP=192.168.10.1
-		[[ "${IFACE}" == "rename"* ]] && NEW=mt${MDL}_5g && IP=192.168.20.1
+		pushd ${IFACE}
+		NEW=mt${MDL}_24g
+		IP=192.168.10.1
+		if [[ ! -f /sys/kernel/debug/ieee80211/$(basename $(ls -l phy80211 | awk '{print $NF}'))/mt76/dbdc ]]; then
+			NEW=mt${MDL}_5g
+			IP=192.168.20.1
+		fi
+		popd
 		ip link set ${IFACE} down
-		ip addr flush dev ${IFACE} 
+		ip addr flush dev ${IFACE}
 		ip link set ${IFACE} name ${NEW}
 		iw dev ${NEW} set power_save off
 		iw dev ${NEW} set txpower fixed 2500
@@ -27,10 +33,10 @@ if [[ ! -z "${PCI}" ]]; then
 					mount -o remount,ro /boot
 				fi
 				sed -i "s|wpa_passphrase=.*|wpa_passphrase=${PASS}|g" /etc/hostapd/${NEW}.conf
-			fi			
+			fi
 			systemctl start hostapd@${NEW}
 		fi
 	done
 fi
-pihole restartdns
+[[ -f /usr/local/bin/pihole ]] && pihole restartdns
 exit 0
