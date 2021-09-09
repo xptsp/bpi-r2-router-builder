@@ -109,7 +109,7 @@ cp -aR ${DEV[2]}/* ${OUT[2]}/
 echo -e "${GREEN}NOTE:${NC} Unmount partitions from system..."
 losd ${DEV[0]}
 losd ${OUT[0]}
-mv /tmp/bpiwrt_empty.img ${FILE}
+mv ${DEST}/bpiwrt_empty.img ${FILE}
 
 ####################################################################################################
 echo -e "${GREEN}================================================================${NC}"
