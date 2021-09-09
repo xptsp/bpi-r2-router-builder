@@ -55,6 +55,8 @@ echo -e "${GREEN}INFO:${NC} $(printf "%'.0f\n" ${END}) blocks = $(printf "%'.0f\
 echo -e "${GREEN}================================================================${NC}"
 dd if=${DEV} of=${FILE} bs=4M count=${MB} status=progress
 echo -e "${GREEN}================================================================${NC}"
-[[ ! "${DEV}" =~ "/dev/mmcblk" ]] && eject ${DEV}
-echo -e "${GREEN}INFO:${NC} ${BLUE}${DEV}${NC} has been ejected!"
+if [[ ! "${DEV}" =~ "/dev/mmcblk" ]]; then
+	eject ${DEV}
+	echo -e "${GREEN}INFO:${NC} ${BLUE}${DEV}${NC} has been ejected!"
+fi
 $(dirname $0)/cleanup ${FILE}

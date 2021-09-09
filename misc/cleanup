@@ -58,12 +58,13 @@ DEV=($(los ${FILE}))
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Extracting empty BPIWRT disk image..."
-cp $(dirname $(ls -l $0 | awk '{print $NF}'))/bpiwrt_empty.img.gz /tmp
-gunzip -f /tmp/bpiwrt_empty.img.gz
+[[ "$(df /tmp | grep -v Filesystem | head -1 | awk '{print $4}')" -lt 2129921 ]] && DEST=./ || DEST=/tmp
+cp $(dirname $(ls -l $0 | awk '{print $NF}'))/bpiwrt_empty.img.gz ${DEST}
+gunzip -f ${DEST}/bpiwrt_empty.img.gz
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Copy kernel files from partition 1..."
-OUT=($(los /tmp/bpiwrt_empty.img))
+OUT=($(los ${DEST}/bpiwrt_empty.img))
 rm ${DEV[1]}/bananapi/bpi-r2/linux/uImage >& /dev/null
 rm ${DEV[1]}/{eth0,wifi}.conf >& /dev/null
 cp -aR ${DEV[1]}/* ${OUT[1]}/
