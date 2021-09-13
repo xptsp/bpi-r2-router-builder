@@ -170,9 +170,10 @@ rm ${LOLD}
 #####################################################################################
 # Perform same operations in the read-only partition:
 #####################################################################################
-if [[ -d /ro ]]; then
-	mount -o remount,rw /ro
-	chroot /ro $0
-	mount -o remount,ro /ro
+RW=($(mount | grep " /ro "))
+if [[ ! -z "${RW[5]}" ]]; then
+	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /ro
+	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh
+	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /ro
 fi
 
