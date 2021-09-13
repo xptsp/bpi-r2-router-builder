@@ -22,7 +22,8 @@ $sidebar_menu = array(
 		'attached' => menu_link('/admin/attached', 'Attached Devices', 'fas fa-link'),
 		'backup'   => menu_link('/admin/backup', 'Backup &amp; Restore', 'fas fa-file-export'),
 		'creds'    => menu_link('/admin/creds', 'Credentials', 'fas fa-user-edit'),
-		'logs'     => menu_link('/admin/logs', 'Router Logs', 'far fa-list-alt'),
+		'kernel'   => menu_link('/admin/kernel', 'Kernel Logs', 'far fa-list-alt'),
+		'system'   => menu_link('/admin/system', 'System Logs', 'far fa-list-alt'),
 		'update'   => menu_link('/admin/update', 'Router Update', 'fab fa-linux'),
 	)),
 	'plugins' => array('Plug-Ins', 'fas fa-puzzle-piece', array(

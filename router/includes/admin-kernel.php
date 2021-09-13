@@ -1,15 +1,9 @@
 <?php
-# Decide what program to run:
-$commands = array(
-	'kernel'  => array('text' => 'Kernel', 'cmd' => 'dmesg'),
-);
-$tab = isset($_GET['tab']) ? $_GET['tab'] : 'kernel';
-$tab = isset($commands[$tab]) ? $tab : 'kernel';
 
 # Divide the program output into pages of specified number of lines:
 $lines = "";
 $per_page = 100;
-foreach (explode("\n", trim(@shell_exec($commands[$tab]['cmd']))) as $num => $line)
+foreach (explode("\n", trim(@shell_exec('dmesg'))) as $num => $line)
 {
 	$pages = floor(($num + $per_page) / $per_page);
 	$lines .= '<div class="everything page_' . $pages . ($pages > 1 ? ' hidden' : '') . '" id="dmesg-' . $num . '">' . htmlspecialchars($line) . "\n" . '</div>';
@@ -33,15 +27,8 @@ site_menu();
 echo '
 <div class="col-12 col-sm-12">
 	<div class="card card-tabs card-primary">
-		<div class="card-header p-0 pt-1">
-			<ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">';
-foreach ($commands as $id => $ele)
-	echo '
-				<li class="nav-item">
-					<a class="nav-link', $tab == $id ? ' active' : '', '" href="?tab=', $id, '">', $ele['text'], '</a>
-				</li>';
-echo '
-			</ul>
+		<div class="card-header">
+			<h3 class="card-title">Kernel Logs</h3>
         </div>
         <div class="card p-0 pt-1">
 			<div class="card-header">

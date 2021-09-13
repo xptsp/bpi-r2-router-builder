@@ -83,12 +83,10 @@ for i in "$@"; do
 	case $i in
 		-f|--force-copy)
 			FORCE_COPY=true
-			shift
 			;;
 		
 		-s|--skip-copy)
 			SKIP_COPY=true
-			shift
 			;;
 	esac
 done
