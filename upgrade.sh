@@ -111,7 +111,7 @@ if [[ ! -z "${GIT[@]}" && -d $(dirname $0)/.git ]]; then
 	git pull
 	# Make user "pi" owner of the router UI
 	chown pi:pi -R router
-	if [[ $(ischroot; echo $?) -ne 1 ]]; then
+	if [[ $(ischroot; echo $?) -eq 1 ]]; then
 		systemctl daemon-reload
 		systemctl restart smbd
 	fi
