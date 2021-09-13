@@ -111,8 +111,10 @@ if [[ ! -z "${GIT[@]}" && -d $(dirname $0)/.git ]]; then
 	git pull
 	# Make user "pi" owner of the router UI
 	chown pi:pi -R router
-	systemctl daemon-reload
-	systemctl restart smbd
+	if [[ $(ischroot; echo $?) -ne 1 ]]; then
+		systemctl daemon-reload
+		systemctl restart smbd
+	fi
 fi
 
 #####################################################################################
@@ -164,4 +166,13 @@ for file in $(cat ${LOLD}); do
 	test -f ${file} && rm ${file}
 done
 rm ${LOLD}
+
+#####################################################################################
+# Perform same operations in the read-only partition:
+#####################################################################################
+if [[ -d /ro ]]; then
+	mount -o remount,rw /ro
+	chroot /ro $0
+	mount -o remount,ro /ro
+fi
 
