@@ -51,6 +51,26 @@ $old_addr = trim(@shell_exec('cat /etc/network/interfaces.d/' . $_POST['iface'] 
 //echo $old_addr; exit;
 
 #################################################################################################
+# Create the network configuration for each of the bound network adapters:
+#################################################################################################
+$bridged = explode(" ", trim($_POST['bridge']));
+if (count($bridged) > 1)
+{
+	foreach ($bridged as $IFACE)
+	{
+		$handle = fopen("/tmp/" . $IFACE, "w");
+		fwrite($handle, "allow-hotplug " . $IFACE . "\nauto " . $IFACE . "\niface " . $IFACE . " inet manual");
+		fclose($handle);
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh net_config " . $IFACE);
+	}
+}
+else if (substr($_POST['iface'], 0, 2) == "br")
+{
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh rem_config " . $_POST['iface']);
+	$_POST['iface'] = $bridged[0];
+}
+
+#################################################################################################
 # Output the network adapter configuration to the "/tmp" directory:
 #################################################################################################
 $text = 

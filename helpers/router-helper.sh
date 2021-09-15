@@ -264,13 +264,20 @@ case $CMD in
 		;;
 
 	###########################################################################
-	move_config)
+	net_config)
 		if ! ifconfig ${1} >& /dev/null; then echo "ERROR: Invalid adapter specified"; exit; fi
-		if [[ ! -z "${2}" && ! -d "${2}" ]]; then echo "ERROR: Invalid destination specified"; fi
 		if ! test -f /tmp/${1}; then echo "ERROR: Missing Configuration File"; exit; fi
-		mv /tmp/${1} ${2:-"/etc/network/interfaces.d"}/${1}
-		ifdown ${1}
-		ifup ${1}
+		mv /tmp/${1} /etc/network/interfaces.d/${1}
+		;;
+
+	###########################################################################
+	rem_config)
+		rm /etc/network/interfaces.d/${1}
+		;;
+
+	###########################################################################
+	systemctl)
+		systemctl $@
 		;;
 
 	###########################################################################
