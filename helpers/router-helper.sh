@@ -241,8 +241,10 @@ case $CMD in
 
 	###########################################################################
 	backup)
+		if ! cd /rw/upper; then echo "ERROR: Overlay is disabled."; exit; fi
 		if [[ "$1" == "create" ]]; then
-			ftb=($(cat /etc/default/backup_file.list))
+			find . | grep -v -E "/var|/opt|/home|/run|/tmp|/root|/rw|/ro" | grep -E ".conf|.json" > /tmp/backup_file.list
+			ftb=($(cat /tmp/backup_file.list))
 			cd /tmp
 			md5sum ${ftb[@]} |sed "s|  /|  |g" > md5sum
 			test -f /tmp/bpiwrt.cfg && rm /tmp/bpiwrt.cfg
@@ -267,13 +269,13 @@ case $CMD in
 	net_config)
 		if ! ifconfig ${1} >& /dev/null; then echo "ERROR: Invalid adapter specified"; exit; fi
 		if ! test -f /tmp/${1}; then echo "ERROR: Missing Configuration File"; exit; fi
-		mv /tmp/${1} /etc/network/interfaces.d/${1}
-		chroot root:root /etc/network/interfaces.d/${1}		
+		mv /tmp/${1} /etc/network/interfaces.d/${1}.conf
+		chroot root:root /etc/network/interfaces.d/${1}.conf	
 		;;
 
 	###########################################################################
 	rem_config)
-		rm /etc/network/interfaces.d/${1}
+		rm /etc/network/interfaces.d/${1}.conf
 		;;
 
 	###########################################################################
