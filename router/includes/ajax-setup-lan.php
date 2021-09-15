@@ -5,6 +5,8 @@ if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
 	exit();
 }
 
+#echo '<pre>'; print_r($_POST); exit();
+
 #################################################################################################
 # Validate the input sent to this script (we paranoid... for the right reasons, of course...):
 #################################################################################################
@@ -24,25 +26,29 @@ $_POST['ip_mask'] = isset($_POST['ip_mask']) ? $_POST['ip_mask'] : '';
 if (!filter_var($_POST['ip_mask'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
 	die('[IP_MASK] ERROR: "' . $_POST['ip_mask'] . '" is an invalid IPv4 address!');
 
-$_POST['dhcp_start'] = isset($_POST['dhcp_start']) ? $_POST['dhcp_start'] : '';
-if (!filter_var($_POST['dhcp_start'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
-	die('[DHCP_START] ERROR: "' . $_POST['dhcp_start'] . '" is an invalid IPv4 address!');
-
-$_POST['dhcp_end'] = isset($_POST['dhcp_end']) ? $_POST['dhcp_end'] : '';
-if (!filter_var($_POST['dhcp_end'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
-	die('[DHCP_END] ERROR: "' . $_POST['dhcp_end'] . '" is an invalid IPv4 address!');
-
 #################################################################################################
-# Make sure the IP address is held within the DHCP address range:
+# If using DHCP on this interface, make sure addresses are valid:
 #################################################################################################
-$ip_addr    = implode('.', explode(".", substr($_POST['ip_addr'], 0, strrpos($_POST['ip_addr'], '.'))));
-if ($ip_addr != implode('.', explode(".", substr($_POST['dhcp_start'], 0, strrpos($_POST['dhcp_start'], '.')))))
-	die('[DHCP_START] ERROR: Starting IP Address needs to start with "' . $ip_addr . '"!');
+if (!empty($_POST['use_dhcp']))
+{
+	$_POST['dhcp_start'] = isset($_POST['dhcp_start']) ? $_POST['dhcp_start'] : '';
+	if (!filter_var($_POST['dhcp_start'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
+		die('[DHCP_START] ERROR: "' . $_POST['dhcp_start'] . '" is an invalid IPv4 address!');
 
-if ($ip_addr != implode('.', explode(".", substr($_POST['dhcp_end'], 0, strrpos($_POST['dhcp_end'], '.')))))
-	die('[DHCP_END] ERROR: Starting IP Address needs to start with "' . $ip_addr . '"!');
+	$_POST['dhcp_end'] = isset($_POST['dhcp_end']) ? $_POST['dhcp_end'] : '';
+	if (!filter_var($_POST['dhcp_end'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
+		die('[DHCP_END] ERROR: "' . $_POST['dhcp_end'] . '" is an invalid IPv4 address!');
 
-#echo '<pre>'; print_r($_POST); exit();
+	#################################################################################################
+	# Make sure the IP address is held within the DHCP address range:
+	#################################################################################################
+	$ip_addr    = implode('.', explode(".", substr($_POST['ip_addr'], 0, strrpos($_POST['ip_addr'], '.'))));
+	if ($ip_addr != implode('.', explode(".", substr($_POST['dhcp_start'], 0, strrpos($_POST['dhcp_start'], '.')))))
+		die('[DHCP_START] ERROR: Starting IP Address needs to start with "' . $ip_addr . '"!');
+
+	if ($ip_addr != implode('.', explode(".", substr($_POST['dhcp_end'], 0, strrpos($_POST['dhcp_end'], '.')))))
+		die('[DHCP_END] ERROR: Starting IP Address needs to start with "' . $ip_addr . '"!');
+}
 
 #################################################################################################
 # Get old IP address for the adapter in question:
@@ -53,7 +59,10 @@ $old_addr = trim(@shell_exec('cat /etc/network/interfaces.d/' . $_POST['iface'] 
 #################################################################################################
 # Create the network configuration for each of the bound network adapters:
 #################################################################################################
+@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh rem_config " . $_POST['iface']);
 $bridged = explode(" ", trim($_POST['bridge']));
+if (empty($bridged))
+	die("[BRIDGE] ERROR: No interfaces specified in bridge configuration!");
 if (count($bridged) > 1)
 {
 	foreach ($bridged as $IFACE)
@@ -63,12 +72,11 @@ if (count($bridged) > 1)
 		fclose($handle);
 		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh net_config " . $IFACE);
 	}
+	if (substr($_POST['iface'], 0, 2) != "br")
+		$_POST['iface'] = 'br' . strval( intval(str_replace("/etc/network/interfaces.d/br", "", trim(@shell_exec("ls /etc/network/interfaces.d/br* | sort | tail -1")))) + 1 );
 }
 else if (substr($_POST['iface'], 0, 2) == "br")
-{
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh rem_config " . $_POST['iface']);
 	$_POST['iface'] = $bridged[0];
-}
 
 #################################################################################################
 # Output the network adapter configuration to the "/tmp" directory:
@@ -87,9 +95,11 @@ iface ' . $_POST['iface'] . ' inet static
 $handle = fopen("/tmp/" . $_POST['iface'], "w");
 fwrite($handle, $text);
 fclose($handle);
+@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh net_config " . $_POST['iface']);
 
 #################################################################################################
-# Change the DNS servers by calling the router-helper script:
+# Restarting networking service:
 #################################################################################################
-@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh move_config " . $_POST['iface']);
+@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart networking");
 echo "OK";
+

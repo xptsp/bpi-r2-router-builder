@@ -268,6 +268,7 @@ case $CMD in
 		if ! ifconfig ${1} >& /dev/null; then echo "ERROR: Invalid adapter specified"; exit; fi
 		if ! test -f /tmp/${1}; then echo "ERROR: Missing Configuration File"; exit; fi
 		mv /tmp/${1} /etc/network/interfaces.d/${1}
+		chroot root:root /etc/network/interfaces.d/${1}		
 		;;
 
 	###########################################################################
