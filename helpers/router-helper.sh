@@ -232,9 +232,9 @@ case $CMD in
 			git log -1 --format="%at" origin/master
 		elif [[ "$1" == "update" ]]; then
 			if [[ "$2" == "wireless-regdb" ]]; then
-				$([[ -d /ro ]] && echo "$0 chroot") /opt/bpi-r2-router-builder/misc/wireless-regdb
+				/opt/bpi-r2-router-builder/misc/wireless-regdb.sh
 			else
-				$([[ -d /ro ]] && echo "$0 chroot") $PWD/upgrade.sh
+				$PWD/upgrade.sh
 			fi
 		fi
 		;;
