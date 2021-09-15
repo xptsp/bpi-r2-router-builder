@@ -17,7 +17,7 @@ function Init_Stats()
 
 function Stats_Update()
 {
-	$.getJSON("/ajax/status?sid=" + SID, function(data) {
+	$.getJSON("/ajax/admin/status?sid=" + SID, function(data) {
 		if ($("#connection_type").html() == "DHCP")
 		{
 			$("#dhcp_server").html( data.dhcp_server );
@@ -63,7 +63,7 @@ function Stats_Confirm_Reboot()
 	mode = "";
 	if (restore_type == "power")
 		mode = ";poweroff"
-	$.get("/ajax/reboot?sid=" + SID + mode);
+	$.get("/ajax/admin/reboot?sid=" + SID + mode);
 	if (restore_type == "power")
 		$("#reboot-modal").modal("hide");
 	else
@@ -85,7 +85,7 @@ function Stats_Confirm_Reboot()
 
 function Stats_Network_Get()
 {
-	$.get("/ajax/network?sid=" + SID, function(data) {
+	$.get("/ajax/admin/network?sid=" + SID, function(data) {
 		$("#stats_body").html(data);
 	}).fail(function() {
 		$("#stats_body").html("AJAX call failed");
@@ -163,7 +163,7 @@ function Creds_Password_Submit()
 		return Creds_Password_Fail("New password does not match Confirm Password!");
 
 	// Perform our AJAX request to change the password:
-	$.post("/ajax/password", postdata, function(data) {
+	$.post("/ajax/admin/password", postdata, function(data) {
 		if (data == "oldPass")
 			Creds_Password_Fail("Old Password cannot contain characters other than alphanumeric characters!");
 		else if (data == "newPass")
@@ -220,7 +220,7 @@ function Updates_Del_Overlay(id)
 function Updates_WebUI_Check()
 {
 	Updates_Add_Overlay("webui-div");
-	$.getJSON("/ajax/webui/check?sid=" + SID, function(data) {
+	$.getJSON("/ajax/admin/webui/check?sid=" + SID, function(data) {
 		Updates_Del_Overlay("webui-div");
 		$('#webui_latest').html( 'v' + data.webui_remote );
 		if (data.webui_remote > $("#webui_current").text())
@@ -237,7 +237,7 @@ function Updates_WebUI_Check()
 function Updates_WebUI_Pull()
 {
 	Updates_Add_Overlay("webui-div");
-	$.get("/ajax/webui/pull?sid=" + SID, function(data) {
+	$.get("/ajax/admin/webui/pull?sid=" + SID, function(data) {
 		document.location.reload(true);
 	}).fail( function() {
 		Updates_Del_Overlay("regdb-div");
@@ -248,7 +248,7 @@ function Updates_WebUI_Pull()
 function Updates_RegDB_Check()
 {
 	Updates_Add_Overlay("regdb-div");
-	$.getJSON("/ajax/regdb/check?sid=" + SID, function(data) {
+	$.getJSON("/ajax/admin/regdb/check?sid=" + SID, function(data) {
 		Updates_Del_Overlay("regdb-div");
 		$('#regdb_latest').html( 'v' + data.regdb_remote );
 		if (data.regdb_remote > $("#regdb_current").text())
@@ -265,7 +265,7 @@ function Updates_RegDB_Check()
 function Updates_RegDB_Pull()
 {
 	Updates_Add_Overlay("webui-div");
-	$.get("/ajax/regdb/pull?sid=" + SID, function(data) {
+	$.get("/ajax/admin/regdb/pull?sid=" + SID, function(data) {
 		document.location.reload(true);
 	}).fail( function() {
 		Updates_Del_Overlay("regdb-div");
@@ -277,7 +277,7 @@ function Updates_Debian_Check()
 {
 	Updates_Add_Overlay("debian-div");
 	$("#updates_avail").html("<i>Retrieving...</i>");
-	$.getJSON("/ajax/debian/check?sid=" + SID, function(data) {
+	$.getJSON("/ajax/admin/debian/check?sid=" + SID, function(data) {
 		Updates_Del_Overlay("debian-div");
 		$("#updates_avail").html( data.updates );
 		if (data.updates > 0)
@@ -299,7 +299,7 @@ function Updates_Debian_Pull()
 	element = $("#output_div");
 	element.html("");
 	last_response_len = false;
-	$.ajax("/ajax/debian/pull?sid=" + SID, {
+	$.ajax("/ajax/admin/debian/pull?sid=" + SID, {
 		xhrFields: {
 			onprogress: function(e)
 			{
@@ -401,7 +401,7 @@ function Restore_File()
 	postdata.append('file', $('#restore_file')[0].files[0]);
 	postdata.append('restore_type', 'upload');
 	$.ajax({
-		url: '/ajax/restore',
+		url: '/ajax/admin/restore',
 		type: 'post',
 		data: postdata,
 		contentType: false,
@@ -439,7 +439,7 @@ function Restore_Confirm()
 		'sid': SID,
 		'restore_type': restore_type
 	};
-	$.post("/ajax/restore", postdata, function(data) {
+	$.post("/ajax/admin/restore", postdata, function(data) {
 		if (data.indexOf("ERROR:") > -1)
 			Restore_Alert(data);
 		else
