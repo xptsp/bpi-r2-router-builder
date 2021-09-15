@@ -314,7 +314,16 @@ case $CMD in
 		echo $MAC > /boot/eth0.conf
 		dtc -q -O dtb /tmp/dts > /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
 		[[ ! -z "$RO" ]] && mount -o remount,ro /boot
-		echo "REBOOT"
+		
+		# We need to change the MAC address on our ethernet interfaces:
+		EXCLUDE=($(iw dev | grep Interface | awk '{print $NF}'))
+		IFACES=$(for dev in $(netstat -i | awk '{print $1}' | grep -v docker); do [[ ! "${EXCLUDE[@]}" =~ "$dev" && -f /etc/network/interfaces.d/$dev ]] && echo $dev; done)
+		for dev in $IFACES; do
+			ifconfig $dev down
+			ifconfig $dev hw ether $MAC
+			ifconfig $dev up
+		done
+		echo "OK"
 		;;
 
 	###########################################################################
