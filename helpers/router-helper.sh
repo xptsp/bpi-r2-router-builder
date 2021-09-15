@@ -199,8 +199,8 @@ case $CMD in
 
 	###########################################################################
 	dhcp-info)
-		bound=($(grep dhclient /var/log/syslog* | grep bound | sort | tail -1))
-		from=($(grep dhclient /var/log/syslog* | grep from | sort | tail -1))
+		bound=($(cat /var/log/syslog* | grep dhclient | grep bound | sort | tail -1))
+		from=($(cat /var/log/syslog* | grep dhclient | grep from | sort | tail -1))
 		[[ -z "${from[-1]}" ]] && exit
 		[[ -z "${bound[-2]}" ]] && exit
 		echo ${from[-1]} ${bound[0]} ${bound[1]} ${bound[2]} ${bound[-2]}
