@@ -31,7 +31,7 @@ function system_uptime($sep = ', ')
 ################################################################################################
 function get_mac_info($interface)
 {
-	$file = @file_get_contents('/etc/network/interfaces.d/' . $interface . '.conf');
+	$file = @file_get_contents('/etc/network/interfaces.d/' . $interface);
 	$arr = array();
 	foreach (explode("\n", $file) as $line)
 	{
@@ -127,7 +127,7 @@ function get_network_adapters()
 		if (!in_array($name, $bridged))
 		{
 			$arr[$name] = array();
-			foreach (explode("\n", @file_get_contents("/etc/network/interfaces.d/" . $name . '.conf')) as $line)
+			foreach (explode("\n", @file_get_contents("/etc/network/interfaces.d/" . $name)) as $line)
 			{
 				if (preg_match('/bridge_ports\s+(.*)/', $line, $regex))
 				{

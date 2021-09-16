@@ -11,7 +11,7 @@ function get_network_adapters_list($get_bridged = true)
 		$base = basename($iface);
 		if ($base != 'wan')
 		{
-			$arr = explode("\n", @file_get_contents("/etc/network/interfaces.d/" . $base . ".conf"));
+			$arr = explode("\n", @file_get_contents("/etc/network/interfaces.d/" . $base));
 			$found = false;
 			foreach ($arr as $line)
 			{
