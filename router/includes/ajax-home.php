@@ -28,6 +28,7 @@ $arr = array(
 	'lan_count' => 0,
 	'usb_devices' => array(),
 	'usb_count' => 0,
+	'domains_blocked' => number_format((int) @shell_exec("wc -l /etc/hosts.adblock | awk '{print $1}'")),
 );
 
 ##########################################################################################

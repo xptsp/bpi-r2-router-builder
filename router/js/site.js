@@ -63,6 +63,9 @@ function Home_Data()
 		// Update server uptime and local time:
 		$("#system_uptime").html(results.system_uptime);
 		$("#server_time").html(results.server_time);
+	
+		// Update number of domains blocked:
+		$("#domains-blocked").html(results.domains_blocked);
 	});
 }
 

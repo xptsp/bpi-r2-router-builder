@@ -105,21 +105,19 @@ echo '
 				</div>';
 
 #######################################################################################################
-# Display 5GHz wireless connectivity:
+# Display number of domains blocked by our adblocking script:
 #######################################################################################################
 echo '
 				<div class="col-md-4">
 					<div class="small-box bg-info">
 						<div class="inner">
-							<p class="text-lg">Guest Networks</p>
-							<h3>Meh</h3>
+							<p class="text-lg">Domains Blocked</p>
+							<h3 id="domains-blocked">&nbsp;</span></h3>
 						</div>
 						<div class="icon">
-							<i class="fas fa-wifi"></i>
-						</div>', $logged_in ? '
-						<a href="#" class="small-box-footer">
-							Wireless Settings <i class="fas fa-arrow-circle-right"></i>
-						</a>' : '', '
+							<i class="fas fa-lock"></i>
+						</div>
+						<a href="#" class="small-box-footer">&nbsp;</a>
 					</div>
 				</div>
 			</div>';
