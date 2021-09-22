@@ -28,8 +28,17 @@ $arr = array(
 	'lan_count' => 0,
 	'usb_devices' => array(),
 	'usb_count' => 0,
-	'domains_blocked' => number_format((int) @shell_exec("wc -l /etc/hosts.adblock | awk '{print $1}'")),
 );
+
+##########################################################################################
+# Get the number of domains blocked by our adblock script:
+##########################################################################################
+if (!isset($_SESSION['domains_blocked']) || (isset($_SESSION['domains_filemtime']) && $_SESSION['domains_filemtime'] != @filemtime("/etc/hosts.adblock")))
+{
+	$_SESSION['domains_blocked'] = number_format((int) @shell_exec("wc -l /etc/hosts.adblock | awk '{print $1}'"));
+	$_SESSION['domains_filemtime'] = @filemtime("/etc/hosts.adblock");
+}
+$arr['domains_blocked'] = $_SESSION['domains_blocked'];
 
 ##########################################################################################
 # Return WAN status:
