@@ -82,7 +82,7 @@ echo '
 							<div class="modal-content">
 								<div class="modal-header">
 									<h4 class="modal-title">Confirm <span id="title_msg">Reboot</span> Router</h4>
-									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close" id="reboot_close">
 										<span aria-hidden="true">&times;</span>
 									</button>
 								</div>

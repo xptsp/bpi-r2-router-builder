@@ -1,6 +1,7 @@
 var timer;
 var MyTimer;
 var restore_type;
+var max_timer;
 
 //======================================================================================================
 // Javascript functions for "Admin / Router Status"
@@ -53,9 +54,14 @@ function Stats_Power_Button()
 function Stats_Reboot_Msg()
 {
 	txt = timer.toString();
-	per = parseInt(100 * timer / 60);
+	per = parseInt(100 * timer / max_timer);
 	$("#reboot_timer").html('<h1 class="centered">' + txt + '</h1><div class="progress mb-3">' +
-		'<div class="progress-bar bg-info" role="progressbar" aria-valuenow="' + txt + '" aria-valuemin="0" aria-valuemax="60" style="width: ' + per.toString() + '%"></div></div>');
+		'<div class="progress-bar bg-info" role="progressbar" aria-valuenow="' + txt + '" aria-valuemin="0" aria-valuemax="' + max_timer + '" style="width: ' + per.toString() + '%"></div></div>');
+	--timer;
+	if (timer == 0) {
+		clearInterval(MyTimer);
+		document.location.reload(true);
+	}
 }
 
 function Stats_Confirm_Reboot()
@@ -69,17 +75,12 @@ function Stats_Confirm_Reboot()
 	else
 	{
 		$("#reboot_control").addClass("hidden");
-		$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately 60 seconds.");
-		timer = 60;
+		$("#reboot_close").addClass("hidden");
+		max_timer = 60;
+		timer = max_timer;
+		$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately " + max_timer + " seconds.");
 		Stats_Reboot_Msg();
-		myTimer = setInterval(function() {
-			--timer;
-			Stats_Reboot_Msg();
-			if (timer === 0) {
-				clearInterval(MyTimer);
-				document.location.reload(true);
-			}
-		}, 1000);
+		myTimer = setInterval(Stats_Reboot_Msg, 1000);
 	}
 }
 
