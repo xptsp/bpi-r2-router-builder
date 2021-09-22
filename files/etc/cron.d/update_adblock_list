@@ -1,0 +1,3 @@
+@reboot   /usr/local/bin/update_adblock_list
+0 0 * * * /usr/local/bin/update_adblock_list
+
