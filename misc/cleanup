@@ -66,7 +66,9 @@ gunzip -f ${DEST}/bpiwrt_empty.img.gz
 echo -e "${GREEN}NOTE:${NC} Copy kernel files from partition 1..."
 OUT=($(los ${DEST}/bpiwrt_empty.img))
 rm ${DEV[1]}/bananapi/bpi-r2/linux/uImage >& /dev/null
-rm ${DEV[1]}/{eth0,wifi}.conf >& /dev/null
+rm ${DEV[1]}/*.conf >& /dev/null
+FILE=${DEV[1]}/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
+[[ -f ${FILE}.old ]] && mv ${FILE}.old ${FILE}
 cp -aR ${DEV[1]}/* ${OUT[1]}/
 
 ####################################################################################################
@@ -76,6 +78,8 @@ chroot ${A} apt-get clean
 chroot ${A} apt-get autoclean
 echo -e "${GREEN}NOTE:${NC} Purge unnecessary packages..."
 chroot ${A} apt-get -y purge --autoremove
+
+####################################################################################################
 if [[ -f ${A}/usr/local/bin/pihole ]]; then
 	echo -e "${GREEN}NOTE:${NC} Clearing PiHole stats..."
 	chroot ${A} pihole -f

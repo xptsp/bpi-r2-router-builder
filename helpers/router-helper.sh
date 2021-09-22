@@ -285,11 +285,10 @@ case $CMD in
 
 	###########################################################################
 	mac)
-		CUR=($(ifconfig wan | grep ether))
 		MAC=$1
-		[[ "$MAC" == "saved" ]] && MAC=$(cat /boot/eth0.conf 2> /dev/null)
-		if [[ -z "$MAC" || "$MAC" == "current" ]]; then
-			MAC=${CUR[1]}
+		[[ "$MAC" == "saved" && -f /boot/eth0.conf ]] && source /boot/eth0.conf
+		if [[ -z "$MAC" || "$MAC" == "saved" || "$MAC" == "current" ]]; then
+			MAC=$(ifconfig wan | grep ether | awk '{print $2}')
 			echo "INFO: Using MAC Address: $MAC"
 		elif [[ "$MAC" == "random" ]]; then
 			MAC=$(printf '%01X2:%02X:%02X:%02X:%02X:%02X\n' $[RANDOM%16] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256])
@@ -298,7 +297,11 @@ case $CMD in
 			echo "ERROR: Invalid MAC address specified!"
 			exit 1
 		fi
-		dtc -q -O dts /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb > /tmp/dts
+
+		# Decompile DTB, then add new MAC address (if not already there), then recompile:
+		FILE=/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
+		[[ ! -f ${FILE}.old ]] && cp ${FILE} ${FILE}.old
+		dtc -q -O dts ${FILE} > /tmp/dts
 		MAC=${MAC,,}
 		LINE="$(grep "mac-address \= \[" /tmp/dts)"
 		OLD=$(echo ${LINE// /:} | cut -d: -f 4-9)
@@ -313,17 +316,19 @@ case $CMD in
 		fi
 		RO=$(mount | grep "/boot" | grep "(ro,")
 		[[ ! -z "$RO" ]] && mount -o remount,rw /boot
-		echo $MAC > /boot/eth0.conf
-		dtc -q -O dtb /tmp/dts > /boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
+		echo "MAC=${MAC}" > /boot/eth0.conf
+		dtc -q -O dtb /tmp/dts > ${FILE}
 		[[ ! -z "$RO" ]] && mount -o remount,ro /boot
 		
 		# We need to change the MAC address on our ethernet interfaces:
-		EXCLUDE=($(iw dev | grep Interface | awk '{print $NF}'))
-		IFACES=$(for dev in $(netstat -i | awk '{print $1}' | grep -v docker); do [[ ! "${EXCLUDE[@]}" =~ "$dev" && -f /etc/network/interfaces.d/$dev ]] && echo $dev; done)
-		for dev in $IFACES; do
-			ifconfig $dev down
-			ifconfig $dev hw ether $MAC
-			ifconfig $dev up
+		[[ "$1" == "current" ]] && echo "OK" && exit
+		WIFI=($(iw dev | grep Interface | awk '{print $NF}'))
+		for IFACE in $(netstat -i | awk '{print $1}'); do
+			if [[ ! "${WIFI[@]}" =~ "${IFACE}" && -f /etc/network/interfaces.d/${IFACE} ]]; then
+				ifconfig ${IFACE} down
+				ifconfig ${IFACE} hw ether $MAC
+				ifconfig ${IFACE} up
+			fi
 		done
 		echo "OK"
 		;;

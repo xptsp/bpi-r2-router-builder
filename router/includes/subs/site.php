@@ -41,9 +41,10 @@ if (isset($_SESSION['webui_version']) && isset($_SESSION['webui_version_last']) 
 if (!isset($_SESSION['webui_version']))
 {
 	$_SESSION['webui_version'] = date('Y.md.Hi', (int) trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current')));
-	$_SESSION['regdb_version'] = date('Y.md.Hi', (int) trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current wireless-regdb')));
 	$_SESSION['webui_version_last'] = time() + 600;
 }
+if (!isset($_SESSION['regdb_version']))
+	$_SESSION['regdb_version'] = date('Y.md.Hi', (int) trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current wireless-regdb')));
 $webui_version = $_SESSION['webui_version'];
 
 # Get whether the router is operating on a temporary overlay in RAM:
