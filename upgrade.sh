@@ -17,6 +17,7 @@ SKIP_COPY=false
 # Files to copy only:
 #####################################################################################
 COPY_ONLY=(
+	/etc/hosts.adblock
 	/etc/network/interfaces.d/
 	/etc/dnsmasq.d/
 	/etc/hostapd/

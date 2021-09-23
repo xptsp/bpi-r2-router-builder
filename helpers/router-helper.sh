@@ -33,10 +33,6 @@ function check_ro()
 # Remount readonly lower filesystem as writable:
 function remount_rw()
 {
-	if mount | grep -e "^$RO_DEV" | grep "rw" >& /dev/null; then
-		echo "ERROR: Root filesystem already mounted read-write!"
-		exit 1
-	fi
 	if ! mount -o remount,rw $RO_DEV /ro; then
 		echo "ERROR: Unable to remount root filesystem!"
 		exit 1
@@ -133,11 +129,11 @@ case $CMD in
 	###########################################################################
 	reformat)
 		check_ro
-		if [[ ! -z "$2" && ! "$2" =~ -(y|-yes) ]]; then
+		if [[ ! -z "$1" && ! "$1" =~ -(y|-yes) ]]; then
 			echo "SYNTAX: $(basename $0) reformat [-y|--yes]"
 			exit 1
 		fi
-		if [[ ! "$2" =~ -(y|-yes) ]]; then
+		if [[ ! "$1" =~ -(y|-yes) ]]; then
 			echo "WARNING: The router will reboot and persistent storage will be formatted.  This action cannot be undone!"
 			askYesNo "Are you SURE you want to do this?" || exit 0
 		fi
