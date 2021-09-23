@@ -9,27 +9,20 @@ BLUE='\033[1;34m'
 NC='\033[0m'
 
 los() {
-	img="$1"
+	img=$1
 	dev="$(sudo losetup --show -f -P "$img")"
-	echo "$dev"
-	for part in "$dev"?*; do
-		[ "$part" = "${dev}p*" ] && part="${dev}"
-		dst="/mnt/$(basename "$part")"
-		echo "$dst"
-		sudo mkdir -p "$dst"
-		sudo mount "$part" "$dst"
-	done
+	dir=${dev/dev/mnt}
+	mkdir -p $dir
+	mount ${dev}p2 $dir
+	mount ${dev}p1 $dir/boot
+	echo $dir
 }
 losd() {
-	for part in "${1}"?*; do
-		if [ "${part}" = "${1}p*" ]; then
-			part="${1}"
-		fi
-		dst="/mnt/$(basename "$part")"
-		sudo umount "$dst"
-		sudo rmdir "$dst"
-	done
-	sudo losetup -d "$1"
+	dir=$1
+	dev=${dir/mnt/dev}
+	umount ${dev}*
+	rmdir ${dir}
+	losetup -d $dev
 }
 
 ####################################################################################################
@@ -54,34 +47,33 @@ echo -e "${GREEN}NOTE:${NC} Cleaning up ${BLUE}${FILE}${NC}...."
 ####################################################################################################
 echo -e "${GREEN}================================================================${NC}"
 echo -e "${GREEN}NOTE:${NC} Mounting partitions within the image..."
-DEV=($(los ${FILE}))
+DEV=$(los ${FILE})
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Extracting empty BPIWRT disk image..."
 [[ "$(df /tmp | grep -v Filesystem | head -1 | awk '{print $4}')" -lt 2129921 ]] && DEST=./ || DEST=/tmp
 cp $(dirname $(ls -l $0 | awk '{print $NF}'))/bpiwrt_empty.img.gz ${DEST}
 gunzip -f ${DEST}/bpiwrt_empty.img.gz
+OUT=$(los ${DEST}/bpiwrt_empty.img)
 
 ####################################################################################################
-echo -e "${GREEN}NOTE:${NC} Copy kernel files from partition 1..."
-OUT=($(los ${DEST}/bpiwrt_empty.img))
-rm ${DEV[1]}/bananapi/bpi-r2/linux/uImage >& /dev/null
-rm ${DEV[1]}/*.conf >& /dev/null
-DTB=${DEV[1]}/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
+echo -e "${GREEN}NOTE:${NC} Cleaning up boot partition..."
+rm ${DEV}/boot/bananapi/bpi-r2/linux/uImage >& /dev/null
+rm ${DEV}/boot/*.conf >& /dev/null
+DTB=${DEV}/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
 [[ -f ${DTB}.old ]] && mv ${DTB}.old ${DTB}
-cp -aR ${DEV[1]}/* ${OUT[1]}/
 
 ####################################################################################################
-chroot ${DEV[2]} $(dirname $0)/remove_files
+chroot ${DEV} $(dirname $0)/remove_files
 
 ####################################################################################################
-echo -e "${GREEN}NOTE:${NC} Copy system files from partition 2..."
-cp -aR ${DEV[2]}/* ${OUT[2]}/
+echo -e "${GREEN}NOTE:${NC} Copy system files to empty image..."
+cp -aR ${DEV}/* ${OUT}/
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Unmount partitions from system..."
-losd ${DEV[0]}
-losd ${OUT[0]}
+losd ${DEV}
+losd ${OUT}
 mv ${DEST}/bpiwrt_empty.img ${FILE}
 
 ####################################################################################################
