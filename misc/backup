@@ -54,8 +54,8 @@ echo -e "${GREEN}NOTE:${NC} Backing up ${BLUE}${DEV}${NC} to ${BLUE}${FILE}${NC}
 echo -e "${GREEN}INFO:${NC} $(printf "%'.0f\n" ${END}) blocks = $(printf "%'.0f\n" $(( ${MB} * 4 ))) MB ($(printf "%'.0f\n" ${SZ}))"
 echo -e "${GREEN}================================================================${NC}"
 dd if=${DEV} of=${FILE} bs=4M count=${MB} status=progress
-echo -e "${GREEN}================================================================${NC}"
 if [[ ! "${DEV}" =~ "/dev/mmcblk" ]]; then
+	echo -e "${GREEN}================================================================${NC}"
 	eject ${DEV}
 	echo -e "${GREEN}INFO:${NC} ${BLUE}${DEV}${NC} has been ejected!"
 fi
