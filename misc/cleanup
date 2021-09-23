@@ -67,14 +67,12 @@ echo -e "${GREEN}NOTE:${NC} Copy kernel files from partition 1..."
 OUT=($(los ${DEST}/bpiwrt_empty.img))
 rm ${DEV[1]}/bananapi/bpi-r2/linux/uImage >& /dev/null
 rm ${DEV[1]}/*.conf >& /dev/null
-FILE=${DEV[1]}/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
-[[ -f ${FILE}.old ]] && mv ${FILE}.old ${FILE}
+DTB=${DEV[1]}/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
+[[ -f ${DTB}.old ]] && mv ${DTB}.old ${DTB}
 cp -aR ${DEV[1]}/* ${OUT[1]}/
 
 ####################################################################################################
-echo -e "${GREEN}NOTE:${NC} Clearing the local repository of retrieved package files..."
-A=${DEV[2]}
-chroot ${A} $(dirname $0)/remove_files
+chroot ${DEV[2]} $(dirname $0)/remove_files
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Copy system files from partition 2..."
