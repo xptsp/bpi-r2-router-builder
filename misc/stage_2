@@ -101,13 +101,7 @@ ln -s /var/run/motd /etc/motd
 ##################################################################################
 # Install some new utilities
 ##################################################################################
-apt install -y pciutils usbutils sudo iw wireless-tools net-tools curl unzip debconf-utils tree rng-tools screen parted device-tree-compiler
-echo 'HRNGDEVICE=/dev/urandom' >> /etc/default/rng-tools
-
-##################################################################################
-# Q: Maybe install these packages?
-##################################################################################
-#apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance 
+apt install -y pciutils usbutils sudo iw wireless-tools net-tools curl unzip debconf-utils tree screen parted device-tree-compiler
 
 ##################################################################################
 # Install avahi utilities
@@ -242,3 +236,9 @@ systemctl enable stats
 mkdir /var/lib/stats
 chown pi:pi /var/lib/stats
 sudo -u pi -s /opt/bpi-r2-router-builder/misc/build_stats.sh
+
+##################################################################################
+# Q: Maybe install these packages?
+##################################################################################
+#apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance 
+
