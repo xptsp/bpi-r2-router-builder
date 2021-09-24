@@ -156,7 +156,7 @@ for file in $(find root/.[a-z]* -type f); do
 	replace $file home/pi/${file/root\//}
 	replace $file home/vpn/${file/root\//}
 done
-chmod +x /home/{pi,vpn}/{.bash*,.profile} /etc/skel/{.bash*,.profile}
+chmod +x /home/{pi,vpn}/.bash* /etc/skel/{.bash*,.profile}
 
 #####################################################################################
 # Move new linked file list to log directory and remove unnecessary linked files:
@@ -164,7 +164,7 @@ chmod +x /home/{pi,vpn}/{.bash*,.profile} /etc/skel/{.bash*,.profile}
 mkdir -p $(dirname ${LORG})
 mv ${LNEW} ${LORG}
 for file in $(cat ${LOLD}); do 
-	test -f ${file} && rm ${file}
+	unlink ${file} 2> /dev/null
 done
 rm ${LOLD}
 
@@ -174,7 +174,7 @@ rm ${LOLD}
 RW=($(mount | grep " /ro "))
 if [[ ! -z "${RW[5]}" ]]; then
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /ro
-	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh
+	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /ro
 fi
 
