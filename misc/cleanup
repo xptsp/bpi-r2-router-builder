@@ -12,9 +12,10 @@ los() {
 	img=$1
 	dev="$(sudo losetup --show -f -P "$img")"
 	dir=${dev/dev/mnt}
-	mkdir -p $dir
-	mount ${dev}p2 $dir
-	mount ${dev}p1 $dir/boot
+	mkdir -p ${dir}
+	mount ${dev}p2 ${dir}
+	mkdir -p ${dir}/boot
+	mount ${dev}p1 ${dir}/boot
 	echo $dir
 }
 losd() {
