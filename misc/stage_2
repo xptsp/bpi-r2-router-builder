@@ -178,10 +178,10 @@ sed -i "s|PATH=\"|PATH=\"/var/lib/docker/bin:|g" /etc/profile
 ##################################################################################
 # Download docker-compose into the /usr/local/bin directory
 ##################################################################################
-wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.3.tgz -O /tmp/docker.tgz
+wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
 pushd /tmp
 tar xvzf /tmp/docker.tgz
-mv docker-compose-linux-armhf-1.27.3 /usr/local/bin/
+mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
 ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.3 /usr/local/bin/docker-compose
 popd
 
