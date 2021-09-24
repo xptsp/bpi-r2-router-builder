@@ -1,3 +1,2 @@
-@reboot   /usr/local/bin/update_adblock_list -s 60
 0 0 * * * /usr/local/bin/update_adblock_list
 
