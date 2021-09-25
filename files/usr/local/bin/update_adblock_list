@@ -1,9 +1,0 @@
-#!/bin/bash
-mount -o remount,rw /ro
-wget -q https://github.com/notracking/hosts-blocklists/raw/master/domains.txt -O /etc/dnsmasq.d/30-domains.conf
-cp /etc/dnsmasq.d/30-domains.conf /ro/etc/dnsmasq.d/30-domains.conf
-wget -q https://github.com/notracking/hosts-blocklists/raw/master/hostnames.txt -O /etc/hosts.adblock
-cp /etc/hosts.adblock /ro/etc/hosts.adblock
-mount -o remount,ro /ro
-systemctl restart dnsmasq
-

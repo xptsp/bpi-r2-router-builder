@@ -21,7 +21,8 @@ los() {
 losd() {
 	dir=$1
 	dev=${dir/mnt/dev}
-	umount ${dev}*
+	umount ${dev}p2
+	umount ${dev}p1
 	rmdir ${dir}
 	losetup -d $dev
 }
