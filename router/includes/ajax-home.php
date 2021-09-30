@@ -33,12 +33,22 @@ $arr = array(
 ##########################################################################################
 # Get the number of domains blocked by our adblock script:
 ##########################################################################################
-if (!isset($_SESSION['domains_blocked']) || !isset($_SESSION['domains_filemtime']) || $_SESSION['domains_filemtime'] != @filemtime("/etc/hosts.adblock"))
-{
-	$_SESSION['domains_blocked'] = number_format((int) @shell_exec("wc -l /etc/hosts.adblock | awk '{print $1}'"));
-	$_SESSION['domains_filemtime'] = @filemtime("/etc/hosts.adblock");
-}
-$arr['domains_blocked'] = $_SESSION['domains_blocked'];
+if (!isset($_SESSION['pihole_json']))
+	$_SESSION['pihole_json'] = $pihole = @json_decode( @file_get_contents( "http://pi.hole/admin/api.php?summary" ) );
+
+##########################################################################################
+# Insert Pi-Hole statistics information into array:
+##########################################################################################
+if (isset($pihole->unique_clients))
+	$arr['unique_clients'] = $pihole->unique_clients;
+if (isset($pihole->dns_queries_today))
+	$arr['dns_queries_today'] = $pihole->dns_queries_today;
+if (isset($pihole->ads_blocked_today))
+	$arr['ads_blocked_today'] = $pihole->ads_blocked_today;
+if (isset($pihole->ads_percentage_today))
+	$arr['ads_percentage_today'] = $pihole->ads_percentage_today;
+if (isset($pihole->domains_being_blocked))
+	$arr['domains_being_blocked'] = $pihole->domains_being_blocked;
 
 ##########################################################################################
 # Return WAN status:

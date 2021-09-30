@@ -65,7 +65,7 @@ function Home_Data()
 		$("#server_time").html(results.server_time);
 	
 		// Update number of domains blocked:
-		$("#domains-blocked").html(results.domains_blocked);
+		$("#domains-blocked").html(results.domains_being_blocked);
 	});
 }
 
