@@ -16,6 +16,12 @@ echo -e "${GREEN}NOTE:${NC} Purge unnecessary packages..."
 apt-get -y purge --autoremove
 
 ####################################################################################################
+if [[ -f /usr/local/bin/pihole ]]; then
+	echo -e "${GREEN}NOTE:${NC} Clearing Pi-Hole history..."
+	pihole -f
+fi
+
+####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Removing unnecessary files from partition 2..."
 rm -rf /tmp/* >& /dev/null
 rm -rf /root/.config >& /dev/null

@@ -9,7 +9,7 @@ BLUE='\033[1;34m'
 NC='\033[0m'
 
 ####################################################################################################
-source $(dirname $(dirname $0))/files/root/.bash_aliases
+source /opt/bpi-r2-router-builder/files/root/.bash_aliases
 
 ####################################################################################################
 FILE="${1}"
@@ -38,9 +38,10 @@ DEV=$(los ${FILE})
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Extracting empty BPIWRT disk image..."
 [[ "$(df /tmp | grep -v Filesystem | head -1 | awk '{print $4}')" -lt 2129921 ]] && DEST=./ || DEST=/tmp
-cp $(dirname $(ls -l $0 | awk '{print $NF}'))/bpiwrt_empty.img.gz ${DEST}
-gunzip -f ${DEST}/bpiwrt_empty.img.gz
-OUT=$(los ${DEST}/bpiwrt_empty.img)
+DEST=${DEST}/bpiwrt_empty.img
+cp $(dirname $(ls -l $0 | awk '{print $NF}'))/bpiwrt_empty.img.gz ${DEST}.gz
+gunzip -f ${DEST}.gz
+OUT=$(los ${DEST})
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Cleaning up boot partition..."
@@ -60,7 +61,8 @@ cp -aR ${DEV}/* ${OUT}/
 echo -e "${GREEN}NOTE:${NC} Unmount partitions from system..."
 losd ${DEV}
 losd ${OUT}
-mv ${DEST}/bpiwrt_empty.img ${FILE}
+chown $(ls -l bpiwrt_v2021.0930.1222.img | awk '{print $3":"$4}') ${DEST}
+mv ${DEST} ${FILE}
 
 ####################################################################################################
 if [[ ! "$@" =~ "mmcblk" ]]; then

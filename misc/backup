@@ -9,7 +9,7 @@ BLUE='\033[1;34m'
 NC='\033[0m'
 
 ############################################################################################################
-source $(dirname $(dirname $0))/files/root/.bash_aliases
+source /opt/bpi-r2-router-builder/files/root/.bash_aliases
 
 ############################################################################################################
 DEV=$(sudo blkid | grep "BPI-BOOT" | grep -v "/dev/loop" | cut -d":" -f 1 | head -1)
