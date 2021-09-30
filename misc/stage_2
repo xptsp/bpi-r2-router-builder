@@ -264,6 +264,9 @@ pihole -a -p bananapi
 sed -i "/PIHOLE_DNS_.*/d" /etc/pihole/setupVars.conf
 echo "PIHOLE_DNS_1=127.0.0.1#5051" >> /etc/pihole/setupVars.conf
 pihole restartdns
+# NOTE: Add site configuration for "pi.hole":
+ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
+systemctl restart nginx
 
 ##################################################################################
 # Q: Maybe install these packages?
