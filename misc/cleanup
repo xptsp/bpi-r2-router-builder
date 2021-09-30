@@ -32,16 +32,16 @@ echo -e "${GREEN}NOTE:${NC} Cleaning up ${BLUE}${FILE}${NC}...."
 
 ####################################################################################################
 echo -e "${GREEN}================================================================${NC}"
-echo -e "${GREEN}NOTE:${NC} Mounting partitions within the image..."
-DEV=$(los ${FILE})
-
-####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Extracting empty BPIWRT disk image..."
 [[ "$(df /tmp | grep -v Filesystem | head -1 | awk '{print $4}')" -lt 2129921 ]] && DEST=./ || DEST=/tmp
 DEST=${DEST}/bpiwrt_empty.img
 cp $(dirname $(ls -l $0 | awk '{print $NF}'))/bpiwrt_empty.img.gz ${DEST}.gz
 gunzip -f ${DEST}.gz
 OUT=$(los ${DEST})
+
+####################################################################################################
+echo -e "${GREEN}NOTE:${NC} Mounting partitions within the image..."
+DEV=$(los ${FILE})
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Cleaning up boot partition..."
@@ -61,7 +61,7 @@ cp -aR ${DEV}/* ${OUT}/
 echo -e "${GREEN}NOTE:${NC} Unmount partitions from system..."
 losd ${DEV}
 losd ${OUT}
-chown $(ls -l bpiwrt_v2021.0930.1222.img | awk '{print $3":"$4}') ${DEST}
+chown $(ls -l ${FILE} | awk '{print $3":"$4}') ${DEST}
 mv ${DEST} ${FILE}
 
 ####################################################################################################
