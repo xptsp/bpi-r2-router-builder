@@ -66,7 +66,7 @@ DTB=${DEV}/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
 [[ -f ${DTB}.old ]] && mv ${DTB}.old ${DTB}
 
 ####################################################################################################
-chroot ${DEV} /opt/bpi-r2-router-builder/remove_files
+chroot ${DEV} /opt/bpi-r2-router-builder/misc/remove_files
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Copy system files to empty image..."
