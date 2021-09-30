@@ -8,24 +8,8 @@ GREEN='\033[1;32m'
 BLUE='\033[1;34m'
 NC='\033[0m'
 
-los() {
-	img=$1
-	dev="$(sudo losetup --show -f -P "$img")"
-	dir=${dev/dev/mnt}
-	mkdir -p ${dir}
-	mount ${dev}p2 ${dir}
-	mkdir -p ${dir}/boot
-	mount ${dev}p1 ${dir}/boot
-	echo $dir
-}
-losd() {
-	dir=$1
-	dev=${dir/mnt/dev}
-	umount ${dev}p2
-	umount ${dev}p1
-	rmdir ${dir}
-	losetup -d $dev
-}
+####################################################################################################
+source $(dirname $0)/files/root/.bash_aliases
 
 ####################################################################################################
 FILE="${1}"
@@ -34,7 +18,7 @@ if [[ -z "${FILE}" || ! -e "${FILE}" ]]; then
 	count=0
 	while read -r file
 	do
-		 options+=($((++count)) "$file")
+		[[ ! "$file" =~ "bpiwrt_empty.img" ]] && options+=($((++count)) "$file")
 	done <<< $(ls -r *.img*)
 
 	# Display the dialog box:
