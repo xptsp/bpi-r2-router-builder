@@ -59,4 +59,4 @@ if [[ ! "${DEV}" =~ "/dev/mmcblk" ]]; then
 	eject ${DEV}
 	echo -e "${GREEN}INFO:${NC} ${BLUE}${DEV}${NC} has been ejected!"
 fi
-$(dirname $0)/cleanup ${FILE}
+$(dirname $0)/cleanup ${FILE} --origin=${DEV}

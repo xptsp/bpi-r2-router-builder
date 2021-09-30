@@ -79,8 +79,10 @@ losd ${OUT}
 mv ${DEST}/bpiwrt_empty.img ${FILE}
 
 ####################################################################################################
-echo -e "${GREEN}================================================================${NC}"
-echo -e "${GREEN}NOTE:${NC} Compressing image..."
-gzip -fkv ${FILE}
+if [[ ! "$@" =~ "mmcblk" ]]; then
+	echo -e "${GREEN}================================================================${NC}"
+	echo -e "${GREEN}NOTE:${NC} Compressing image..."
+	gzip -fkv ${FILE}
+fi
 echo -e "${GREEN}================================================================${NC}"
 echo -e "${GREEN}SUCCESS!${NC}  Image backup completed and prepped successfully!"

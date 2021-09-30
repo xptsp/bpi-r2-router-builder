@@ -23,7 +23,7 @@ $sidebar_menu = array(
 		'backup'   => menu_link('/admin/backup', 'Backup &amp; Restore', 'fas fa-file-export'),
 		'creds'    => menu_link('/admin/creds', 'Credentials', 'fas fa-user-edit'),
 		'kernel'   => menu_link('/admin/kernel', 'Kernel Logs', 'far fa-list-alt'),
-		'system'   => menu_link('/admin/system', 'System Logs', 'far fa-list-alt'),
+		'journal'  => menu_link('/admin/journal', 'Journal Logs', 'far fa-list-alt'),
 		'update'   => menu_link('/admin/update', 'Router Update', 'fab fa-linux'),
 	)),
 	'plugins' => array('Plug-Ins', 'fas fa-puzzle-piece', array(

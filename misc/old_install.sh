@@ -250,10 +250,6 @@ ln -sf /opt/wireless-regdb/regulatory.db.p7s /lib/firmware/
 # Install PiHole
 ##################################################################################
 curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
-# NOTE: Mask "dhcpcd" package so we don't conflict with it!
-systemctl stop dhcpcd
-systemctl disable dhcpcd
-systemctl mask dhcpcd
 # NOTE: Mask "dnsmasq" package so we don't conflict with it!
 systemctl stop dnsmasq
 systemctl disable dnsmasq
@@ -264,6 +260,8 @@ chown pihole:pihole -R /var/lib/misc/*
 chown www-data:www-data -R /var/www/html
 chown www-data:www-data -R /var/www/html/*
 rm /var/www/html/index.nginx-debian.html
+# NOTE: Add pihole group to www-data
+usermod -aG pihole www-data
 # NOTE: Set default password as "bananapi"
 pihole -a -p bananapi
 # NOTE: Set default DNS to cloudflare port 5051

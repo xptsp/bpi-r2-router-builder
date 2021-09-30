@@ -17,7 +17,7 @@ if [[ ! -f /usr/bin/qemu-arm-static ]]; then
 	echo -e "${GREEN}INFO:${NC} Installing necessary tools on this computer..."
 	apt-get install -y qemu-user-static debootstrap binfmt-support
 fi
-distro=bullseye
+distro=buster
 arch=armhf
 cd $(dirname $0)
 parent=$(dirname $PWD)
@@ -72,7 +72,7 @@ while :; do
 			mount --bind /proc ${target}/proc
 			mount --bind /sys ${target}/sys
 			mount --bind /tmp ${target}/tmp
-			chroot ${target} /opt/bpi-r2-router-builder/misc/stage_2
+			chroot ${target} #/opt/bpi-r2-router-builder/misc/stage_2
 			umount ${target}/tmp >& /dev/null
 			umount ${target}/sys >& /dev/null
 			umount ${target}/proc >& /dev/null

@@ -182,7 +182,7 @@ wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv
 pushd /tmp
 tar xvzf /tmp/docker.tgz
 mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
-ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.3 /usr/local/bin/docker-compose
+ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
 popd
 
 ##################################################################################
@@ -238,7 +238,29 @@ chown pi:pi /var/lib/stats
 sudo -u pi -s /opt/bpi-r2-router-builder/misc/build_stats.sh
 
 ##################################################################################
+# Install PiHole
+##################################################################################
+curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
+# NOTE: Mask "dnsmasq" package so we don't conflict with it!
+systemctl stop dnsmasq
+systemctl disable dnsmasq
+systemctl mask dnsmasq
+# NOTE: Configure some things correctly
+chown pihole:pihole /var/lib/misc
+chown pihole:pihole -R /var/lib/misc/*
+chown www-data:www-data -R /var/www/html
+chown www-data:www-data -R /var/www/html/*
+rm /var/www/html/index.nginx-debian.html
+# NOTE: Add pihole group to www-data
+usermod -aG pihole www-data
+# NOTE: Set default password as "bananapi"
+pihole -a -p bananapi
+# NOTE: Set default DNS to cloudflare port 5051
+sed -i "/PIHOLE_DNS_.*/d" /etc/pihole/setupVars.conf
+echo "PIHOLE_DNS_1=127.0.0.1#5051" >> /etc/pihole/setupVars.conf
+pihole restartdns
+
+##################################################################################
 # Q: Maybe install these packages?
 ##################################################################################
 #apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance 
-
