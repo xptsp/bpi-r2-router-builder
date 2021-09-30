@@ -54,9 +54,10 @@ while :; do
 			cp misc/bpiwrt_empty.img.gz ${img}.gz
 			gunzip -f ${img}.gz
 
+			echo -e "${GREEN}INFO:${NC} Mounting ${BLUE}${dev}p2${NC} on ${BLUE}${img}${NC}..."
 			dev="$(sudo losetup --show -f -P "${img}")"
-			echo -e "${GREEN}INFO:${NC} Mounting ${BLUE}${dev}${NC} on ${BLUE}${img}${NC}..."
 			mount ${dev}p2 ${target}
+			echo -e "${GREEN}INFO:${NC} Mounting ${BLUE}${dev}p1${NC} on ${BLUE}${img}/boot${NC}..."
 			mkdir ${target}/boot
 			mount ${dev}p1 ${target}/boot
 
@@ -72,7 +73,7 @@ while :; do
 			mount --bind /proc ${target}/proc
 			mount --bind /sys ${target}/sys
 			mount --bind /tmp ${target}/tmp
-			chroot ${target} #/opt/bpi-r2-router-builder/misc/stage_2
+			chroot ${target} /opt/bpi-r2-router-builder/misc/stage_2
 			umount ${target}/tmp >& /dev/null
 			umount ${target}/sys >& /dev/null
 			umount ${target}/proc >& /dev/null
@@ -97,6 +98,7 @@ while :; do
 		##############################################################################################
 		2)
 			# Assemble the list of imgs to display:
+			options=()
 			count=0
 			while read -r img
 			do

@@ -8,6 +8,11 @@ export LANG=C
 [[ -f /debootstrap/debootstrap ]] && /debootstrap/debootstrap --second-stage
 
 ##############################################################################################
+# Install some packages that Frank-W had in his image:
+##############################################################################################
+apt install -y apt-transport-https bridge-utils dnsmasq hostapd ca-certificates openssh-server ppp pppoeconf
+
+##############################################################################################
 # Fix the hung SSH session issue with Debian Buster:
 ##############################################################################################
 ln -sf /usr/share/doc/openssh-client/examples/ssh-session-cleanup.service /etc/systemd/system/

@@ -1,7 +1,4 @@
-cls()
-{
-	clear
-}
+alias losl='losetup -l'
 los()
 {
 	img="$1"
@@ -9,19 +6,21 @@ los()
 		echo "Syntax: los [filename]"
 	else
 		dev="$(sudo losetup --show -f -P "$img")"
-		echo "$dev"
-		for part in "$dev"?*; do
-			if [ "$part" = "${dev}p*" ]; then
-				part="${dev}"
-			fi
-			dst="/mnt/$(basename "$part")"
-			echo "$dst"
-			sudo mkdir -p "$dst"
-			sudo mount "$part" "$dst"
-		done
+		dest=${dev/dev/mnt}
+		echo $dest
+		if [[ ! "$(basename $1)" =~ "bpiwrt_v" ]]; then
+			for part in ${dev}p*; do
+				sudo mkdir -p ${dest} && sudo mount ${part} ${dest} || return
+			done
+		else
+			sudo mkdir -p ${dest}
+			sudo mount ${dev}p2 ${dest} || return
+			sudo mkdir ${dest}/boot 2> /dev/null
+			sudo mount ${dev}p1 ${dest}/boot || return
+		fi
 	fi
 }
-losd() 
+losd()
 {
 	if [[ -z "$1" ]]; then
 		echo "Syntax: losd [loop device number]"
@@ -32,17 +31,12 @@ losd()
 		dev=$(losetup -l | grep "$1" | cut -d" " -f 1)
 	fi
 	if ! losetup -l | grep "${dev}" >& /dev/null; then
-		echo "ERROR: No image mounted on ${dev}.  Aborting..."
-		return 0
+		echo "ERROR: No image mounted for \"${1}\".  Aborting..."
+	else
+		for part in $(mount | grep ${dev}p | awk '{print $3}' | sort -r); do 
+			sudo umount $part || return
+			sudo rmdir $part
+		done
+		sudo losetup -d "$dev"
 	fi
-	for part in "${dev}"?*; do
-		[ "${part}" = "${dev}p*" ] && part="${dev}"
-		dst="/mnt/$(basename "$part")"
-		sudo umount "$dst" && sudo rmdir "$dst"
-	done
-	sudo losetup -d "$dev"
-}
-losl() 
-{
-	sudo losetup -l
 }
