@@ -8,44 +8,25 @@ GREEN='\033[1;32m'
 BLUE='\033[1;34m'
 NC='\033[0m'
 
-los() {
-	img="$1"
-	dev="$(sudo losetup --show -f -P "$img")"
-	echo "$dev"
-	for part in "$dev"?*; do
-		[ "$part" = "${dev}p*" ] && part="${dev}"
-		dst="/mnt/$(basename "$part")"
-		echo "$dst"
-		sudo mkdir -p "$dst"
-		sudo mount "$part" "$dst"
-	done
-}
-losd() {
-	for part in "${1}"?*; do
-		if [ "${part}" = "${1}p*" ]; then
-			part="${1}"
-		fi
-		dst="/mnt/$(basename "$part")"
-		sudo umount "$dst"
-		sudo rmdir "$dst"
-	done
-	sudo losetup -d "$1"
-}
+############################################################################################################
+source $(dirname $(dirname $0))/files/root/.bash_aliases
 
+############################################################################################################
 DEV=$(sudo blkid | grep "BPI-BOOT" | grep -v "/dev/loop" | cut -d":" -f 1 | head -1)
 if [[ -z "${DEV}" ]]; then
 	echo -e "${RED}ERROR:${NC} SD Card not detected with partition 1 label of ${BLUE}BPI-BOOT${NC}!"
 	exit 1
-elif [[ "${DEV}" =~ /dev/mmcblk* ]]; then 
-	DEV=${DEV:0:12}
-	SRCH=${DEV}p2
-else 
+elif [[ ! "${DEV}" =~ /dev/mmcblk* ]]; then 
 	DEV=${DEV:0:8}
 	SRCH=${DEV}2
+	umount ${DEV}* >& /dev/null
+else
+	SRCH=${DEV/p1/p2}
+	DEV=${DEV/p1/}
 fi
-umount ${DEV}* >& /dev/null
 END=$(( $(sudo fdisk --list ${DEV} | grep "${SRCH}" | awk '{print $3}') + 1 ))
 
+############################################################################################################
 FILE=${1:-"bpiwrt_v$(date +"%Y.%m%d.%H%M").img"}
 MB=$(( ${END} / 2 / 1024 / 4))
 SZ=$(( ${END} * 512 ))
