@@ -33,8 +33,9 @@ $arr = array(
 ##########################################################################################
 # Get the number of domains blocked by our adblock script:
 ##########################################################################################
-if (!isset($_SESSION['pihole_json']))
-	$_SESSION['pihole_json'] = $pihole = @json_decode( @file_get_contents( "http://pi.hole/admin/api.php?summary" ) );
+if (empty($_SESSION['pihole_json']))
+	$_SESSION['pihole_json'] = @json_decode( @file_get_contents( "http://pi.hole/admin/api.php?summary" ) );
+$pihole = $_SESSION['pihole_json'];
 
 ##########################################################################################
 # Insert Pi-Hole statistics information into array:

@@ -115,9 +115,11 @@ echo '
 							<h3 id="domains-blocked">&nbsp;</span></h3>
 						</div>
 						<div class="icon">
-							<i class="fas fa-lock"></i>
+							<i class="fab fa-raspberry-pi"></i>
 						</div>
-						<a href="#" class="small-box-footer">&nbsp;</a>
+						<a href="http://pi.hole/admin/" class="small-box-footer">
+							Pi-Hole Settings <i class="fas fa-arrow-circle-right"></i>
+						</a>
 					</div>
 				</div>
 			</div>';
