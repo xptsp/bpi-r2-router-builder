@@ -8,7 +8,7 @@ los()
 		dev="$(sudo losetup --show -f -P "$img")"
 		dest=${dev/dev/mnt}
 		echo $dest
-		if [[ ! "$(basename $1)" =~ "bpiwrt_v" ]]; then
+		if [[ ! "$(basename $1)" =~ "bpiwrt_" ]]; then
 			for part in ${dev}p*; do
 				sudo mkdir -p ${dest} && sudo mount ${part} ${dest}
 			done
