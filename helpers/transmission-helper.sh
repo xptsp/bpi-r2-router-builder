@@ -1,8 +1,15 @@
 #!/bin/bash
+#############################################################################
+# This helper script takes care of any tasks that should occur before the 
+# transmission service officially starts.  Tasks that occur here should not
+# take very long to execute and should not rely on other services being up
+# and running.
+#############################################################################
 if [[ "${UID}" -ne 0 ]]; then
 	sudo $0 $@
 	exit $?
 fi
+
 FILE=/var/run/transmission-daemon.rule
 JSON=/etc/transmission-daemon/settings.json
 if [[ "$1" == "start" ]]; then

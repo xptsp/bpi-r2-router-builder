@@ -1,4 +1,13 @@
 #!/bin/bash
+#############################################################################
+# This helper script takes care of any tasks that should occur before the 
+# samba (smbd) service officially starts.  Tasks that occur here should not
+# take very long to execute and should not rely on other services being up
+# and running.
+#
+# This script also provides support for automounting USB storage devices.
+#############################################################################
+
 if [[ "${UID}" -ne 0 ]]; then
 	sudo $0 $@
 	exit $?

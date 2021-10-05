@@ -1,4 +1,10 @@
 #!/bin/bash
+#############################################################################
+# This helper script runs any tasks that the web server user "www-data"
+# needs to perform as "root" user.  Adding "www-data" user to /etc/sudoers.d/
+# presents opportunities for malicious scripts to run, so this script is the
+# "official" way to run any tasks requiring "root" access.
+#############################################################################
 if [[ "${UID}" -ne 0 ]]; then
 	sudo $0 $@
 	exit $?
@@ -272,6 +278,19 @@ case $CMD in
 	###########################################################################
 	rem_config)
 		rm /etc/network/interfaces.d/${1}.conf
+		;;
+
+	###########################################################################
+	dns_config)
+		if ! ifconfig ${1} >& /dev/null; then echo "ERROR: Invalid adapter specified"; exit; fi
+		if ! test -f /tmp/${1}; then echo "ERROR: Missing Configuration File"; exit; fi
+		mv /tmp/${1} /etc/dnsmasq.d/${1}.conf
+		chroot root:root /etc/dnsmasq.d/${1}.conf	
+		;;
+
+	###########################################################################
+	rem_dns)
+		rm /etc/dnsmasq.d/${1}.conf
 		;;
 
 	###########################################################################

@@ -1,4 +1,10 @@
 #!/bin/bash
+#############################################################################
+# This helper script attempts to renames the MediaTek WiFi devices to have a
+# consistent naming scheme, such as "mt7615_24g" and "mt7615_5g".  Also 
+# brings up the WiFi network interfaces with the proper IP address and 
+# starts hostapd on that interface if a configuration file is available.
+#############################################################################
 
 # Determine new default WiFi password:
 [[ -f /boot/wifi.conf ]] && source /boot/wifi.conf

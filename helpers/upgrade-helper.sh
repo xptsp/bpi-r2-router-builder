@@ -1,8 +1,16 @@
 #!/bin/bash
+#############################################################################
+# This helper script takes care of copying and linking any files that are
+# in the bpiwrt-builder repo to their respective locations.
+#
+# TODO:
+# * Old files that have disappeared from the repo need to be removed
+#############################################################################
 if [[ "$UID" -ne 0 ]]; then
 	sudo $0 $@
 	exit $?
 fi
+
 RED='\033[1;31m'
 GREEN='\033[1;32m'
 BLUE='\033[1;34m'

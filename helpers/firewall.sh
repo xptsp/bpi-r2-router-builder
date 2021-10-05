@@ -1,4 +1,8 @@
 #!/usr/bin/php
+#############################################################################
+# This helper script takes care of firewall rule creation.
+#############################################################################
+
 <?php
 #####################################################################################
 echo "Creating iptables rules file which removes all non-docker rules...\n";

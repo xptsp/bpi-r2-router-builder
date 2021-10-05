@@ -1,4 +1,11 @@
 #!/bin/bash
+#############################################################################
+# This helper script takes care of any tasks that should occur before the 
+# SSH service officially starts.  Tasks that occur here should not
+# take very long to execute and should not rely on other services being up
+# and running.
+#############################################################################
+
 # Regenerate the missing SSH keys if missing:
 if ! test -e /etc/ssh/ssh_host_rsa_key; then
 	ssh-keygen -N "" -t rsa -f /etc/ssh/ssh_host_rsa_key

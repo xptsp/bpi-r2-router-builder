@@ -63,12 +63,16 @@ $old_addr = trim(@shell_exec('cat /etc/network/interfaces.d/' . $_POST['iface'] 
 $bridged = explode(" ", trim($_POST['bridge']));
 if (empty($bridged))
 	die("[BRIDGE] ERROR: No interfaces specified in bridge configuration!");
+$text = 
+'allow-hotplug {iface}
+auto {iface}
+iface {iface} inet manual';
 if (count($bridged) > 1)
 {
 	foreach ($bridged as $IFACE)
 	{
 		$handle = fopen("/tmp/" . $IFACE, "w");
-		fwrite($handle, "allow-hotplug " . $IFACE . "\nauto " . $IFACE . "\niface " . $IFACE . " inet manual");
+		fwrite($handle, str_replace('{iface}', $IFACE, $text));
 		fclose($handle);
 		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh net_config " . $IFACE);
 	}
@@ -98,8 +102,31 @@ fclose($handle);
 @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh net_config " . $_POST['iface']);
 
 #################################################################################################
+# Output the DNSMASQ configuration file related to the network adapter:
+#################################################################################################
+if (!empty($_POST['use_dhcp']))
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh rem_dns " . $IFACE);
+else
+{
+	# Start the DNSMASQ configuration file with the IP range:
+	$text =
+'interface ' . $IFACE . '
+dhcp-range=' . $IFACE . ',' . $_POST['dhcp_start'] . ',' . $_POST['dhcp_end'] . (!empty($_POST['dhcp_reserved']) ? ',' . $_POST['dhcp_reserved'] : '');
+
+	# Add any reservations to the DNSMASQ configuration:
+	# <<TODO>>
+
+	# Move the file into the proper directory:	
+	#echo '<pre>'; echo $text; exit;
+	$handle = fopen("/tmp/" . $_POST['iface'], "w");
+	fwrite($handle, $text);
+	fclose($handle);
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns_config " . $_POST['iface']);	
+}
+
+#################################################################################################
 # Restarting networking service:
 #################################################################################################
 @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart networking");
+@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart dnsmasq");
 echo "OK";
-
