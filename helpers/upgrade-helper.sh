@@ -17,6 +17,9 @@ BLUE='\033[1;34m'
 NC='\033[0m'
 FORCE_COPY=false
 SKIP_COPY=false
+QUIET=false
+PFL=/var/local/bpiwrt-builder.filelist
+TFL=/tmp/bpiwrt-builder.filelist
 
 #####################################################################################
 # Files to copy only:
@@ -56,11 +59,11 @@ function replace()
 		if [[ "${SKIP_COPY}" == "false" ]]; then
 			[[ "${FORCE_COPY}" == "true" ]] && rm "${DEST}" 2> /dev/null
 			if ! test -f ${DEST}; then
-				echo -e -n "Copying ${BLUE}${DEST}${NC}... "
+				[[ "${QUIET}" == "false" ]] && echo -e -n "Copying ${BLUE}${DEST}${NC}... "
 				if ! cp ${SRC} ${DEST}; then
-					echo -e "${RED}FAIL!${NC}"
+					[[ "${QUIET}" == "false" ]] && echo -e "${RED}FAIL!${NC}"
 				else
-					echo -e "${GREEN}Success!${NC}"
+					[[ "${QUIET}" == "false" ]] && echo -e "${GREEN}Success!${NC}"
 				fi
 			fi
 		fi
@@ -70,14 +73,16 @@ function replace()
 		INFO=$(ls -l ${DEST} 2> /dev/null | awk '{print $NF}')
 		if [[ ! "${INFO}" == "${SRC}" ]]; then
 			rm ${DEST} >& /dev/null
-			echo -e -n "Linking ${BLUE}${DEST}${NC}... "
+			[[ "${QUIET}" == "false" ]] && echo -e -n "Linking ${BLUE}${DEST}${NC}... "
 			if ! ln -sf ${SRC} ${DEST}; then
-				echo -e "${RED}FAIL!${NC}"
+				[[ "${QUIET}" == "false" ]] && echo -e "${RED}FAIL!${NC}"
 			else
-				echo -e "${GREEN}Success!${NC}"
+				[[ "${QUIET}" == "false" ]] && echo -e "${GREEN}Success!${NC}"
 			fi
 		fi
 	fi
+	echo $DEST > $PFL
+	sed -i "/^${DEST}$/d" $TFL
 }
 
 #####################################################################################
@@ -92,6 +97,10 @@ for i in "$@"; do
 		-s|--skip-copy)
 			SKIP_COPY=true
 			;;
+		
+		-q|--quiet)
+			QUIET=true
+			;;
 	esac
 done
 
@@ -102,6 +111,8 @@ if ! cd files; then
 	echo "ERROR: Something went really wrong!  Aborting!!"
 	exit
 fi
+test -f ${PFL} || touch $PFL
+cp ${PFL} ${TFL}
 for dir in $(find ./ -maxdepth 1 -type d | grep -v "./root"); do 
 	DIR=${dir/.\//};
 	if [[ ! -z "${DIR}" ]]; then
@@ -134,4 +145,3 @@ if [[ ! -z "${RW[5]}" ]]; then
 	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /ro
 fi
-
