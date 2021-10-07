@@ -54,16 +54,20 @@ function replace()
 	mkdir -p $(dirname ${DEST})
 	if [[ "${COPY}" == "true" ]]; then
 		if [[ "${SKIP_COPY}" == "false" ]]; then
-			echo -e -n "Copying ${BLUE}${DEST}${NC}... "
-			[[ "${FORCE_COPY}" == "true" ]] && rm "${DEST}" >& /dev/null
-			if ! test -f "${DEST}"; then
-				if ! cp -u ${SRC} ${DEST}; then
-					echo -e "${RED}FAIL!${NC}"
+			CUR=$([[ -e "${DEST}" ]] || echo 0 && date -r ${DEST} "+%s")
+			NEW=$(date -r ${SRC} "+%s")
+			if [[ ${NEW} -gt ${CUR} ]]; then
+				echo -e -n "Copying ${BLUE}${DEST}${NC}... "
+				[[ "${FORCE_COPY}" == "true" ]] && rm "${DEST}" >& /dev/null
+				if ! test -f "${DEST}"; then
+					if ! cp -u ${SRC} ${DEST}; then
+						echo -e "${RED}FAIL!${NC}"
+					else
+						echo -e "${GREEN}Success!${NC}"
+					fi
 				else
-					echo -e "${GREEN}Success!${NC}"
+					echo -e "${GREEN}Skipped${NC}"
 				fi
-			else
-				echo -e "${GREEN}Skipped${NC}"
 			fi
 		fi
 	else
