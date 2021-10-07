@@ -81,8 +81,8 @@ function replace()
 			fi
 		fi
 	fi
-	echo $DEST > $PFL
-	sed -i "/^${DEST}$/d" $TFL
+	echo $DEST >> ${PFL}
+	cat ${TFL} | grep -ve "^${DEST}$" | tee ${TFL} >& /dev/null
 }
 
 #####################################################################################
@@ -112,7 +112,7 @@ if ! cd files; then
 	exit
 fi
 test -f ${PFL} || touch $PFL
-cp ${PFL} ${TFL}
+mv ${PFL} ${TFL}
 for dir in $(find ./ -maxdepth 1 -type d | grep -v "./root"); do 
 	DIR=${dir/.\//};
 	if [[ ! -z "${DIR}" ]]; then
