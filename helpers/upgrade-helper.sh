@@ -55,16 +55,15 @@ function replace()
 	if [[ "${COPY}" == "true" ]]; then
 		if [[ "${SKIP_COPY}" == "false" ]]; then
 			[[ "${FORCE_COPY}" == "true" ]] && rm "${DEST}" >& /dev/null
-			if ! test -f "${DEST}"; then
-				CUR=$(date -r ${DEST} "+%s" 2> /dev/null || echo 0)
-				NEW=$(date -r ${SRC} "+%s")
-				if [[ ${NEW} -gt ${CUR} ]]; then
-					echo -e -n "Copying ${BLUE}${DEST}${NC}... "
-					if ! cp ${SRC} ${DEST}; then
-						echo -e "${RED}FAIL!${NC}"
-					else
-						echo -e "${GREEN}Success!${NC}"
-					fi
+			COPY=false
+			NEW=$(date -r ${SRC} "+%s")
+			test -f ${DEST} && CUR=$(date -r ${DEST} "+%s" 2> /dev/null) || unset CUR
+			if [[ -z "${CUR}" || ${NEW} -gt ${CUR} ]]; then
+				echo -e -n "Copying ${BLUE}${DEST}${NC}... "
+				if ! cp ${SRC} ${DEST}; then
+					echo -e "${RED}FAIL!${NC}"
+				else
+					echo -e "${GREEN}Success!${NC}"
 				fi
 			fi
 		fi
