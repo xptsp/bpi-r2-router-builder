@@ -54,7 +54,7 @@ function replace()
 	mkdir -p $(dirname ${DEST})
 	if [[ "${COPY}" == "true" ]]; then
 		if [[ "${SKIP_COPY}" == "false" ]]; then
-			[[ "${FORCE_COPY}" == "true" ]] && rm "${DEST}" >& /dev/null
+			[[ "${FORCE_COPY}" == "true" ]] && rm "${DEST}" 2> /dev/null
 			if ! test -f ${DEST}; then
 				echo -e -n "Copying ${BLUE}${DEST}${NC}... "
 				if ! cp ${SRC} ${DEST}; then
