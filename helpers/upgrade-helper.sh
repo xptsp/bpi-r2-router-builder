@@ -55,9 +55,9 @@ function replace()
 	if [[ "${COPY}" == "true" ]]; then
 		if [[ "${SKIP_COPY}" == "false" ]]; then
 			[[ "${FORCE_COPY}" == "true" ]] && rm "${DEST}" >& /dev/null
-			COPY=false
 			NEW=$(date -r ${SRC} "+%s")
 			CUR=$(test -f ${DEST} && date -r ${DEST} "+%s" 2> /dev/null)
+			#echo "FILE=$(basename $DEST), NEW=$NEW, CUR=$CUR"
 			if [[ -z "${CUR}" || ${NEW} -gt ${CUR} ]]; then
 				echo -e -n "Copying ${BLUE}${DEST}${NC}... "
 				if ! cp ${SRC} ${DEST}; then
@@ -67,6 +67,7 @@ function replace()
 				fi
 			fi
 		fi
+	fi
 	else
 		echo "${DEST}" >> ${LNEW}
 		cat ${LOLD} | grep -v "^${DEST}$" | tee ${LOLD} >& /dev/null
