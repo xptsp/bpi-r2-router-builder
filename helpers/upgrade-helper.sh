@@ -64,7 +64,6 @@ function replace()
 				fi
 			fi
 		fi
-	fi
 	else
 		echo "${DEST}" >> ${LNEW}
 		cat ${LOLD} | grep -v "^${DEST}$" | tee ${LOLD} >& /dev/null
