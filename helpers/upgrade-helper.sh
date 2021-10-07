@@ -57,7 +57,7 @@ function replace()
 			[[ "${FORCE_COPY}" == "true" ]] && rm "${DEST}" >& /dev/null
 			COPY=false
 			NEW=$(date -r ${SRC} "+%s")
-			test -f ${DEST} && CUR=$(date -r ${DEST} "+%s" 2> /dev/null) || unset CUR
+			CUR=$(test -f ${DEST} && date -r ${DEST} "+%s" 2> /dev/null)
 			if [[ -z "${CUR}" || ${NEW} -gt ${CUR} ]]; then
 				echo -e -n "Copying ${BLUE}${DEST}${NC}... "
 				if ! cp ${SRC} ${DEST}; then
