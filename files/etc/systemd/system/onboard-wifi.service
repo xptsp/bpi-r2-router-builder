@@ -1,10 +1,10 @@
 [Unit]
-Description=Firewall Service
+Description=Onboard Wifi
 Before=networking.target
 
 [Service]
 Type=oneshot
-ExecStart=/opt/bpi-r2-router-builder/helpers/firewall.sh
+ExecStart=/usr/local/sbin/wifi.sh
 
 [Install]
 WantedBy=multi-user.target

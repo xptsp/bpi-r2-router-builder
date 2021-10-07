@@ -21,7 +21,7 @@ distro=buster
 arch=armhf
 cd $(dirname $0)
 parent=$(dirname $PWD)
-target=${parent}/debian_${distro}_${arch}
+target=/tmp/debian_${distro}_${arch}
 
 ##############################################################################################
 # Loop through our menu until "Cancel" is chosen:
@@ -91,6 +91,7 @@ while :; do
 			umount ${target}/boot
 			umount ${target}
 			losetup -d ${dev}
+			rmdir ${target}
 			;;
 			
 		##############################################################################################
@@ -130,6 +131,7 @@ while :; do
 			umount ${target}/boot
 			umount ${target}
 			losetup -d ${dev}
+			rmdir ${target}
 			;;
 	esac
 done

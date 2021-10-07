@@ -22,7 +22,7 @@ if [[ -f /usr/local/bin/pihole ]]; then
 fi
 
 ####################################################################################################
-echo -e "${GREEN}NOTE:${NC} Removing unnecessary files from partition 2..."
+echo -e "${GREEN}NOTE:${NC} Removing unnecessary files from root partition..."
 rm -rf /tmp/* >& /dev/null
 rm -rf /root/.config >& /dev/null
 rm -rf /root/.local >& /dev/null
