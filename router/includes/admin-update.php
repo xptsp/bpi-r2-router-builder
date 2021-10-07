@@ -70,7 +70,7 @@ echo '
 								<table class="table">
 									<tr>
 										<td width="50%"><strong>Current Version</strong></td>
-										<td>v<span id="webui_current">', $_SESSION['regdb_version'], '</span></td>
+										<td>v<span id="regdb_current">', $_SESSION['regdb_version'], '</span></td>
 									</tr>
 									<tr>
 										<td><strong>Latest Version</strong></td>

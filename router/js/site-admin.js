@@ -241,7 +241,7 @@ function Updates_WebUI_Pull()
 	$.get("/ajax/admin/webui/pull?sid=" + SID, function(data) {
 		document.location.reload(true);
 	}).fail( function() {
-		Updates_Del_Overlay("regdb-div");
+		Updates_Del_Overlay("webui-div");
 		$('#regdb_latest').html("AJAX Call Failed");
 	});
 }
@@ -265,7 +265,7 @@ function Updates_RegDB_Check()
 
 function Updates_RegDB_Pull()
 {
-	Updates_Add_Overlay("webui-div");
+	Updates_Add_Overlay("regdb-div");
 	$.get("/ajax/admin/regdb/pull?sid=" + SID, function(data) {
 		document.location.reload(true);
 	}).fail( function() {
