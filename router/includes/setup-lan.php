@@ -157,6 +157,8 @@ echo '
 ###################################################################################################
 # DHCP Settings and IP Range Section
 ###################################################################################################
+$lease_time = isset($dhcp[4]) ? $dhcp[4] : '';
+$lease_units = substr($lease_time, strlen($lease_time) - 1, 1);
 echo '
 		<div class="icheck-primary">
 			<input type="checkbox" id="use_dhcp"', $use_dhcp ? ' checked="checked"' : '', '>
@@ -182,6 +184,27 @@ echo '
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
 						<input id="dhcp_end" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[2]) ? $dhcp[2] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td width="50%"><label for="dhcp_lease">Client Lease Time:</label></td>
+				<td>
+					<div class="input-group col-6 p-0">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="far fa-clock"></i></span>
+						</div>
+						<input id="dhcp_lease" type="text" class="dhcp form-control" value="', (int) $lease_time, '"', !$use_dhcp || $lease_time == 'infinite' ? ' disabled="disabled"' : '', '>
+						<div class="input-group-append">
+							<select class="custom-select form-control" id="dhcp_units">
+								<option value="">Seconds</option>
+								<option value="m"', ($lease_units == "m" ? ' selected="selected"' : ''), '>Minutes</option>
+								<option value="h"', ($lease_units == "h" ? ' selected="selected"' : ''), '>Hours</option>
+								<option value="d"', ($lease_units == "d" ? ' selected="selected"' : ''), '>Days</option>
+								<option value="w"', ($lease_units == "w" ? ' selected="selected"' : ''), '>Weeks</option>
+								<option value="infinite"', ($lease_time == "infinite" ? ' selected="selected"' : ''), '>Infinite</option>
+							</select>
+						</div>
 					</div>
 				</td>
 			</tr>

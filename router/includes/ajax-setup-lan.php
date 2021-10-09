@@ -48,6 +48,23 @@ if (!empty($_POST['use_dhcp']))
 
 	if ($ip_addr != implode('.', explode(".", substr($_POST['dhcp_end'], 0, strrpos($_POST['dhcp_end'], '.')))))
 		die('[DHCP_END] ERROR: Starting IP Address needs to start with "' . $ip_addr . '"!');
+
+	#################################################################################################
+	# Make sure the client lease time is valid:
+	#################################################################################################
+	$_POST['dhcp_lease'] = isset($_POST['dhcp_lease']) ? $_POST['dhcp_lease'] : '';
+	if ($_POST['dhcp_lease'] != "infinite")
+	{
+		if (!preg_match("/(\d+)(m|h|d|w|)/", $_POST['dhcp_lease'], $parts))
+			die('[DHCP_LEASE] ERROR: Invalid client lease time "' . $_POST['dhcp_lease'] . '"!');
+		if ($parts[2] == '' && (int) $parts[1] < 120)
+			die('[DHCP_LEASE] ERROR: Minimum client lease time is 120 seconds!!');
+		else if ($parts[2] == 'm' && (int) $parts[1] < 2)
+			die('[DHCP_LEASE] ERROR: Minimum client lease time is 2 minutes!!');
+		else if ((int) $parts[1] < 1)
+			die('[DHCP_LEASE] ERROR: Minimum client lease time is 1 ' . ($parts[1] == 'h' ? 'hours' : $parts[1] == 'd' ? 'days' : 'weeks') . '!!');
+		#echo '<pre>'; print_r($parts); exit;
+	}
 }
 
 #################################################################################################
@@ -99,7 +116,7 @@ iface ' . $_POST['iface'] . ' inet static
 $handle = fopen("/tmp/" . $_POST['iface'], "w");
 fwrite($handle, $text);
 fclose($handle);
-@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh net_config " . $_POST['iface']);
+@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns_config " . $_POST['iface']);
 
 #################################################################################################
 # Output the DNSMASQ configuration file related to the network adapter:
@@ -111,7 +128,7 @@ else
 	# Start the DNSMASQ configuration file with the IP range:
 	$text =
 'interface ' . $IFACE . '
-dhcp-range=' . $IFACE . ',' . $_POST['dhcp_start'] . ',' . $_POST['dhcp_end'] . (!empty($_POST['dhcp_reserved']) ? ',' . $_POST['dhcp_reserved'] : '');
+dhcp-range=' . $IFACE . ',' . $_POST['dhcp_start'] . ',' . $_POST['dhcp_end'] . (!empty($_POST['dhcp_lease']) ? ',' . $_POST['dhcp_lease'] : '');
 
 	# Add any reservations to the DNSMASQ configuration:
 	# <<TODO>>

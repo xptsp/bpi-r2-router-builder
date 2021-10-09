@@ -102,6 +102,13 @@ function Init_LAN()
 		$("#dhcp_start").val( parts + $("#dhcp_start").val().substring( $("#dhcp_start").val().lastIndexOf('.')) );
 		$("#dhcp_end").val( parts + $("#dhcp_end").val().substring( $("#dhcp_end").val().lastIndexOf('.')) );
 	});
+	$("#dhcp_lease").inputmask("integer");
+	$("#dhcp_units").change(function() {
+		if ($(this).val() == "infinite")
+			$("#dhcp_lease").attr("disabled", "disabled");			
+		else
+			$("#dhcp_lease").removeAttr("disabled");
+	});
 	$("#apply_changes").click(LAN_Submit);
 }
 
@@ -117,8 +124,11 @@ function LAN_Submit()
 		'use_dhcp':   $("#use_dhcp").is(":checked") ? 1 : 0,
 		'dhcp_start': $("#dhcp_start").val(),
 		'dhcp_end':   $("#dhcp_end").val(),
+		'dhcp_lease': $("#dhcp_lease").val() + $("#dhcp_units").val(),
 		'bridge':     '',
 	};
+	if ($("#dhcp_units").val() == "infinite")
+		postdata.dhcp_lease = 'infinite';
 	$(".bridge").each(function() {
 		if ($(this).hasClass("active"))
 			postdata.bridge += " " + $(this).text().trim();

@@ -139,7 +139,10 @@ chmod +x /home/{pi,vpn}/.bash* /etc/skel/{.bash*,.profile}
 #####################################################################################
 # Remove any files listed within the old file list:
 #####################################################################################
-for file in $(cat $TFL); do rm $file; done
+for DEST in $(cat $TFL); do 
+	[[ "${QUIET}" == "false" ]] && echo -e "Removing ${BLUE}${DEST}${NC}... "
+	rm ${DEST}
+done
 
 #####################################################################################
 # Perform same operations in the read-only partition:
