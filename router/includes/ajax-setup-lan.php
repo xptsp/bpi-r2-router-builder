@@ -116,7 +116,7 @@ iface ' . $_POST['iface'] . ' inet static
 $handle = fopen("/tmp/" . $_POST['iface'], "w");
 fwrite($handle, $text);
 fclose($handle);
-@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns_config " . $_POST['iface']);
+@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh net_config " . $_POST['iface']);
 
 #################################################################################################
 # Output the DNSMASQ configuration file related to the network adapter:
@@ -124,22 +124,7 @@ fclose($handle);
 if (!empty($_POST['use_dhcp']))
 	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh rem_dns " . $IFACE);
 else
-{
-	# Start the DNSMASQ configuration file with the IP range:
-	$text =
-'interface ' . $IFACE . '
-dhcp-range=' . $IFACE . ',' . $_POST['dhcp_start'] . ',' . $_POST['dhcp_end'] . (!empty($_POST['dhcp_lease']) ? ',' . $_POST['dhcp_lease'] : '');
-
-	# Add any reservations to the DNSMASQ configuration:
-	# <<TODO>>
-
-	# Move the file into the proper directory:	
-	#echo '<pre>'; echo $text; exit;
-	$handle = fopen("/tmp/" . $_POST['iface'], "w");
-	fwrite($handle, $text);
-	fclose($handle);
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns_config " . $_POST['iface']);	
-}
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp_set " . $IFACE . " " . $_POST['ip_addr'] . " " . $_POST['dhcp_start'] . " " . $_POST['dhcp_end'] . (!empty($_POST['dhcp_lease']) ? " " . $_POST['dhcp_lease'] : '');
 
 #################################################################################################
 # Restarting networking service:

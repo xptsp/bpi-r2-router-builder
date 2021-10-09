@@ -157,7 +157,7 @@ echo '
 ###################################################################################################
 # DHCP Settings and IP Range Section
 ###################################################################################################
-$lease_time = isset($dhcp[4]) ? $dhcp[4] : '';
+$lease_time = isset($dhcp[4]) ? $dhcp[4] : '1h';
 $lease_units = substr($lease_time, strlen($lease_time) - 1, 1);
 echo '
 		<div class="icheck-primary">

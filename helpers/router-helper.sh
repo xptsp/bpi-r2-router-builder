@@ -277,19 +277,24 @@ case $CMD in
 
 	###########################################################################
 	rem_config)
-		rm /etc/network/interfaces.d/${1}.conf
+		rm /etc/network/interfaces.d/${1}.conf 2> /dev/null
 		;;
 
 	###########################################################################
-	dns_config)
-		if ! ifconfig ${1} >& /dev/null; then echo "ERROR: Invalid adapter specified"; exit; fi
-		if ! test -f /tmp/${1}; then echo "ERROR: Missing Configuration File"; exit; fi
-		mv /tmp/${1} /etc/dnsmasq.d/${1}.conf
-		chroot root:root /etc/dnsmasq.d/${1}.conf	
+	dhcp_set)
+		FILE=/etc/dnsmasq.d/${1}.conf
+		if ! test -f ${FILE}; then
+			echo "interface=$1" > ${FILE}
+			echo "dhcp-range=${1},${3},${4},${5}" >> ${FILE}
+			echo "dhcp-option=$1,3,${2}" >> ${FILE}
+		else
+			sed -i "s|dhcp-range=*.|dhcp-range=${1},${3},${4},${5}|g" ${FILE}
+			sed -i "s|dhcp-option=*.|dhcp-option=${1},3,${2}|g" >> ${FILE}
+		fi
 		;;
 
 	###########################################################################
-	rem_dns)
+	dhcp_del)
 		rm /etc/dnsmasq.d/${1}.conf
 		;;
 
