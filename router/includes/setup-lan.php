@@ -18,14 +18,6 @@ $invalid = get_invalid_adapters($iface);
 #echo '<pre>'; print_r($invalid); exit();
 
 ###################################################################################################
-# Get leases for entire system:
-###################################################################################################
-$leases = explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")));
-foreach ($leases as $id => $lease)
-	$leases[$id] = explode(' ', $lease);
-#echo '<pre>'; print_r($leases); exit();
-
-###################################################################################################
 # Assemble some information about the adapter:
 ###################################################################################################
 $ifcfg = parse_ifconfig($iface);
@@ -34,22 +26,6 @@ $dhcp = explode(",", explode("=", trim(@shell_exec("cat /etc/dnsmasq.d/" . $ifac
 #echo '<pre>'; print_r($dhcp); exit();
 $use_dhcp = isset($dhcp[1]);
 #echo (int) $use_dhcp; exit;
-
-###################################################################################################
-# Assemble DHCP hostname and IP address reservations:
-###################################################################################################
-$reserve = array();
-foreach (explode("\n", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep dhcp-host="))) as $line)
-	$reserve[] = explode(',', explode('=', $line . '=')[1]);
-#echo '<pre>'; print_r($reserve); exit();
-
-$hostname = array();
-foreach (explode("\n", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep host-record="))) as $line)
-{
-	$parts = explode(",", explode("=", $line . '=,')[1]);
-	$hostname[$parts[1]] = $parts[0];
-}
-#echo '<pre>'; print_r($hostname); exit();
 
 ###################################################################################################
 # Device Name
@@ -68,13 +44,13 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop-code"></i></span>
 						</div>
-						<input id="hostname" type="text" class="form-control" value="', @file_get_contents('/etc/hostname'), '" data-inputmask-regex="([0-9a-zA-Z]|[0-9a-zA-Z][0-9a-zA-Z0-9\-]+)">
+						<input id="hostname" type="text" class="hostname form-control" value="', @file_get_contents('/etc/hostname'), '" data-inputmask-regex="([0-9a-zA-Z]|[0-9a-zA-Z][0-9a-zA-Z0-9\-]+)">
 					</div>
 				</td>
 			</tr>
 		</table>
 	</div>';
-	
+
 ###################################################################################################
 # Tabbed interface with list of wired adapters:
 ###################################################################################################
@@ -89,7 +65,7 @@ foreach ($ifaces as $tface => $details)
 	{
 		echo '
 			<li class="nav-item">
-				<a class="nav-link', $iface == $tface ? ' active' : '', '" href="', $URL, $tface == "br0" ? '' : '?iface=' . $tface, '">', $tface, '</a>
+				<a class="ifaces nav-link', $iface == $tface ? ' active' : '', '" href="', $URL, $tface == "br0" ? '' : '?iface=' . $tface, '">', $tface, '</a>
 			</li>';
 	}
 }
@@ -157,6 +133,11 @@ echo '
 ###################################################################################################
 # DHCP Settings and IP Range Section
 ###################################################################################################
+$leases = explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")));
+foreach ($leases as $id => $lease)
+	$leases[$id] = explode(' ', $lease);
+#echo '<pre>'; print_r($leases); exit();
+
 $lease_time = isset($dhcp[4]) ? $dhcp[4] : '1h';
 $lease_units = substr($lease_time, strlen($lease_time) - 1, 1);
 echo '
@@ -215,49 +196,29 @@ echo '
 # IP Address Reservation section
 ###################################################################################################
 echo '
-		<h5 class="dhcp_div">Address Reservations</h5>
+		<h5 class="dhcp_div">
+			<button type="button" id="reservations-refresh" class="btn btn-sm btn-primary float-right">Refresh</button>
+			Address Reservations
+		</h5>
 		<div class="table-responsive p-0 centered dhcp_div">
 			<table class="table table-hover text-nowrap table-sm table-striped">
 				<thead class="bg-primary">
-					<td>IP Address</td>
-					<td>Device Name</td>
-					<td>MAC Address</td>
-					<td width="10px">&nbsp;</td>
-					<td width="10px">&nbsp;</td>
+					<td width="30%">Device Name</td>
+					<td width="30%">IP Address</td>
+					<td width="30%">MAC Address</td>
+					<td width="3%">&nbsp;</td>
+					<td width="3%">&nbsp;</td>
 				</thead>
-				<tbody>';
-$count = 0;
-foreach ($reserve as $count => $parts)
-{
-	if (isset($parts[1]))
-	{
-		echo '
-					<tr>
-						<td>', $parts[2], '</td>
-						<td>', isset($hostname[$parts[2]]) ? $hostname[$parts[2]] : device_name(strtoupper($parts[1])), '</td>
-						<td>', strtoupper($parts[1]), '</td>
-						<td><a href="#"><i class="fas fa-pen"></i></a>&nbsp;</td>
-						<td><a href="#"><i class="fas fa-trash-alt"></i></a></td>
-					</tr>';
-		$count++;
-	}
-}
-if ($count == 0)
-	echo '
-					<tr>
-						<td colspan="5">No IP Address Reservations</td>
-					</tr>';
-echo '
-				</tbody>
+				<tbody id="reservations-table"></tbody>
 			</table>
 		</div>
 	</div>
 	<div class="card-footer">
 		<button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button>
-		<button type="button" id="add_ip_address" class="dhcp_div btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button>
+		<button type="button" id="add_reservation" class="dhcp_div btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button>
 	</div>
 </div>';
- 
+
 ###################################################################################################
 # Apply Changes modal:
 ###################################################################################################
@@ -265,7 +226,7 @@ echo '
 <div class="modal fade" id="apply-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
-			<div class="modal-header bg-info">
+			<div class="modal-header bg-primary">
 				<h4 class="modal-title">Applying Changes</h4>
 				<button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
@@ -282,6 +243,62 @@ echo '
 </div>';
 
 ###################################################################################################
+# DHCP Reservations modal:
+###################################################################################################
+echo '
+<div class="modal fade" id="reservation-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">DHCP Reservations</h4>
+				<button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body table-responsive" style="max-height: 300px;">
+				<button type="button" id="leases_refresh" class="btn btn-sm btn-primary float-right">Refresh</button>
+				<h5><center>Select Client from DHCP Tables</center></h5>
+                <table class="table table-sm table-head-fixed text-nowrap table-striped">
+					<thead>
+						<tr>
+							<th width="30%">Client Name</th>
+							<th width="30%">IP Address</th>
+							<th width="30%">MAC Address</th>
+							<th width="10%"></th>
+						</tr>
+					</thead>
+					<tbody id="clients-table"></tbody>
+				</table>
+			</div>
+			<div class="modal-body table-responsive">
+                <table class="table table-sm table-head-fixed text-nowrap table-striped">
+					<thead>
+						<tr>
+							<th width="30%">Enter Client Name</th>
+							<th width="30%">Assign IP Address</th>
+							<th width="30%">To This MAC Address</th>
+							<th width="10%">&nbsp;</th>
+						</tr>
+					</thead>
+					<tbody id="reservation-table">
+						<tr>
+							<td><input type="text" class="form-control hostname" id="dhcp_client_name" placeholder="Client Name"></td>
+							<td><input type="text" class="form-control ip_address" id="dhcp_ip_addr" placeholder="IP Address"></td>
+							<td><input type="text" class="form-control" id="dhcp_mac_addr" placeholder="MAC Address"></td>
+							<td><button type="button" id="reservation_remove" class="btn btn-sm btn-primary center">Clear</button></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-footer justify-content-between alert_control">
+				<button type="button" class="btn btn-primary float-right" data-dismiss="modal">Cancel</button>
+				<button type="button" id="dhcp_add" class="btn btn-success">Add Reservation</button>
+			</div>
+		</div>
+	</div>
+</div>';
+
+###################################################################################################
 # Close page
 ###################################################################################################
-site_footer('Init_LAN();');
+site_footer('Init_LAN("' . $iface . '");');

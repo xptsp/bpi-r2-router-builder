@@ -1,3 +1,5 @@
+var iface_used;
+
 //======================================================================================================
 // Javascript functions for "Setup / WAN Settings"
 //======================================================================================================
@@ -73,8 +75,11 @@ function WAN_Submit()
 //======================================================================================================
 // Javascript functions for "Setup / LAN Setup"
 //======================================================================================================
-function Init_LAN()
+function Init_LAN(iface)
 {
+	iface_used = iface;
+
+	// Main screen setup and handlers:
 	$('.ip_address').inputmask("ip");
 	$("#dynamic_ip").click(function() {
 		$(".ip_address").attr("disabled", "disabled");
@@ -96,11 +101,12 @@ function Init_LAN()
 	$(".bridge").click( function() {
 		$(this).toggleClass("active");
 	});
-	$("#hostname").inputmask();
+	$(".hostname").inputmask();
 	$(".ip_address").change(function() {
 		parts = $("#ip_addr").val().substring(0, $("#ip_addr").val().lastIndexOf('.'));
 		$("#dhcp_start").val( parts + $("#dhcp_start").val().substring( $("#dhcp_start").val().lastIndexOf('.')) );
 		$("#dhcp_end").val( parts + $("#dhcp_end").val().substring( $("#dhcp_end").val().lastIndexOf('.')) );
+		$("#dhcp_ip_addr").val( parts + $("#dhcp_ip_addr").val().substring( $("#dhcp_ip_addr").val().lastIndexOf('.')) );
 	});
 	$("#dhcp_lease").inputmask("integer");
 	$("#dhcp_units").change(function() {
@@ -110,6 +116,22 @@ function Init_LAN()
 			$("#dhcp_lease").removeAttr("disabled");
 	});
 	$("#apply_changes").click(LAN_Submit);
+	$("#reservations-refresh").click(LAN_Refresh_Reservations).click();
+
+	//=========================================================================
+	// IP Reservation setup and handlers:
+	$("#dhcp_mac_addr").inputmask("mac");
+	$("#reservation_remove").click(function() {
+		$("#dhcp_client_name").val("");
+		$("#dhcp_ip_addr").val("");
+		$("#dhcp_mac_addr").val("");
+	});
+	$("#add_reservation").click(function() {
+		$("#reservation-modal").modal("show");
+		$("#reservation_remove").click();
+		LAN_Refresh_Leases();
+	}).click();
+	$("#leases_refresh").click(LAN_Refresh_Leases);
 }
 
 function LAN_Submit()
@@ -117,6 +139,7 @@ function LAN_Submit()
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':        SID,
+		'iface':      iface_used,
 		'hostname':   $("#hostname").val(),
 		'iface':      $("#iface").val(),
 		'ip_addr':    $("#ip_addr").val(),
@@ -150,5 +173,49 @@ function LAN_Submit()
 	}).fail(function() {
 		$("#apply_msg").html("AJAX call failed!");
 		$(".alert_control").removeClass("hidden");
+	});
+}
+
+function LAN_Refresh_Leases()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':    SID,
+		'iface':  iface_used,
+		'action': 'clients',
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to refresh the LAN leases:
+	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
+		$("#clients-table").html(data);
+		$(".reservation-option").click(function() {
+			line = $(this).parent().parent().parent();
+			$("#dhcp_client_name").val( line.find(".dhcp_host").html() );
+			$("#dhcp_ip_addr").val( line.find(".dhcp_ip_addr").html() );
+			$("#dhcp_mac_addr").val( line.find(".dhcp_mac_addr").html() );
+		});
+	});
+}
+
+function LAN_Refresh_Reservations()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':    SID,
+		'iface':  iface_used,
+		'action': 'reservations',
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
+		$("#reservations-table").html(data);
+		$(".dhcp_edit").click(function() {
+			$("#add_reservation").click();
+			line = $(this).parent().parent().parent();
+			$("#dhcp_client_name").val( line.find(".dhcp_host").html() );
+			$("#dhcp_ip_addr").val( line.find(".dhcp_ip_addr").html() );
+			$("#dhcp_mac_addr").val( line.find(".dhcp_mac_addr").html() );
+		});
 	});
 }
