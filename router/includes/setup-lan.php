@@ -200,7 +200,7 @@ echo '
 			<button type="button" id="reservations-refresh" class="btn btn-sm btn-primary float-right">Refresh</button>
 			Address Reservations
 		</h5>
-		<div class="table-responsive p-0 centered dhcp_div">
+		<div class="table-responsive p-0 dhcp_div">
 			<table class="table table-hover text-nowrap table-sm table-striped">
 				<thead class="bg-primary">
 					<td width="30%">Device Name</td>

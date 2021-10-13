@@ -130,7 +130,7 @@ function Init_LAN(iface)
 		$("#reservation-modal").modal("show");
 		$("#reservation_remove").click();
 		LAN_Refresh_Leases();
-	}).click();
+	});
 	$("#leases_refresh").click(LAN_Refresh_Leases);
 }
 
@@ -190,7 +190,7 @@ function LAN_Refresh_Leases()
 	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
 		$("#clients-table").html(data);
 		$(".reservation-option").click(function() {
-			line = $(this).parent().parent().parent();
+			line = $(this).parent();
 			$("#dhcp_client_name").val( line.find(".dhcp_host").html() );
 			$("#dhcp_ip_addr").val( line.find(".dhcp_ip_addr").html() );
 			$("#dhcp_mac_addr").val( line.find(".dhcp_mac_addr").html() );
@@ -212,10 +212,31 @@ function LAN_Refresh_Reservations()
 		$("#reservations-table").html(data);
 		$(".dhcp_edit").click(function() {
 			$("#add_reservation").click();
-			line = $(this).parent().parent().parent();
+			line = $(this).parent();
 			$("#dhcp_client_name").val( line.find(".dhcp_host").html() );
 			$("#dhcp_ip_addr").val( line.find(".dhcp_ip_addr").html() );
 			$("#dhcp_mac_addr").val( line.find(".dhcp_mac_addr").html() );
 		});
+		$(".dhcp_delete").click(LAN_Reservation_Remove)
+	});
+}
+
+function LAN_Reservation_Remove()
+{
+	// Assemble the post data for the AJAX call:
+	line = $(this).parent();
+	postdata = {
+		'sid':      SID,
+		'action':   'remove',
+		'iface':    iface_used,
+		'hostname': line.find(".dhcp_host").html(),
+		'ip_addr':  line.find(".dhcp_ip_addr").html(),
+		'mac_addr': line.find(".dhcp_mac_addr").html(),
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
+		alert(data);
+		LAN_Refresh_Reservations();
 	});
 }

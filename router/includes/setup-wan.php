@@ -135,9 +135,8 @@ echo '
 # Router MAC Address settings:
 ###################################################################################################
 $mac = trim($wan['ether']);
-$def = trim(@file_get_contents("/boot/eth0.conf"));
-$def = empty($def) ? $mac : $def;
-$leases = explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")));
+$parts = explode("=", trim(@file_get_contents("/boot/eth0.conf")));
+$def = isset($parts[1]) ? $parts[1] : $mac;
 $mac_com = trim(@shell_exec("arp -n | grep " . $_SERVER['REMOTE_ADDR'] . " | awk '{print $3}'"));
 $mac_chk = ($mac == $def || $mac == $mac_com);
 echo '

@@ -283,6 +283,10 @@ case $CMD in
 	###########################################################################
 	dhcp_set)
 		FILE=/etc/dnsmasq.d/${1}.conf
+		if ! valid_ip $2; then echo "ERROR: Invalid IP Address specified as 2nd param!"; exit; fi
+		if ! valid_ip $3; then echo "ERROR: Invalid IP Address specified as 3rd param!"; exit; fi
+		if ! valid_ip $4; then echo "ERROR: Invalid IP Address specified as 4th param!"; exit; fi
+		if [[ ! "$5" =~ [0-9]+[m|h|d|w|] ]]; then echo "ERROR: Invalid time period specified as 5th param!"; exit; fi
 		if ! test -f ${FILE}; then
 			echo "interface=$1" > ${FILE}
 			echo "dhcp-range=${1},${3},${4},${5}" >> ${FILE}
@@ -291,6 +295,23 @@ case $CMD in
 			sed -i "s|dhcp-range=*.|dhcp-range=${1},${3},${4},${5}|g" ${FILE}
 			sed -i "s|dhcp-option=*.|dhcp-option=${1},3,${2}|g" >> ${FILE}
 		fi
+		;;
+
+	###########################################################################
+	dhcp_del)
+		FILE=/etc/dnsmasq.d/${1}.conf
+		if ! test -f ${FILE}; then echo "ERROR: No DNSMASQ configuration found for adapter!"; exit; fi
+		if [[ ! "$2" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then echo "ERROR: Invalid MAC address specified as 2nd param!"; exit 1; fi
+		if ! valid_ip $3; then echo "ERROR: Invalid IP address specified as 3rd param!"; exit 1; fi
+		sed -i "/^dhcp-host=.*,${2},/d" ${FILE}
+		sed -i "/^dhcp-host=.*,${3},/d" ${FILE}
+		echo "OK"
+		;;
+
+	###########################################################################
+	dhcp_add)
+		$0 dhcp_del $1 $2 $3 || exit
+		echo "dhcp-host=$1,$2,$3,$4" >> /etc/dnsmasq.d/${1}.conf
 		;;
 
 	###########################################################################

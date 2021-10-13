@@ -44,7 +44,7 @@ if ($_POST['action'] == 'reservations')
 		if (isset($parts[2]))
 		{
 			$parts[1] = strtoupper($parts[1]);
-			echo 
+			echo
 				'<tr>' .
 					'<td class="dhcp_host">' . (isset($parts[3]) ? $parts[3] : (isset($hostname[$parts[1]]) ? $hostname[$parts[1]] : 'Unknown')) . '</td>' .
 					'<td class="dhcp_ip_addr">' . $parts[2] . '</td>' .
@@ -55,7 +55,7 @@ if ($_POST['action'] == 'reservations')
 		}
 	}
 	if (empty($reserve))
-		echo '<tr><td colspan="5">No IP Address Reservations</td></tr>';
+		echo '<tr><td colspan="5"><center>No IP Address Reservations</center></td></tr>';
 }
 ###################################################################################################
 # ACTION: CLIENTS ==> Output list of DHCP clients for the specified adapter:
@@ -65,7 +65,7 @@ else if ($_POST['action'] == 'clients')
 	foreach ($leases as $parts)
 	{
 		$parts[1] = strtoupper($parts[1]);
-		echo 
+		echo
 			'<tr class="reservation-option">' .
 				'<td class="dhcp_host">' . (!empty($parts[3]) ? $parts[3] : (isset($hostname[$parts[1]]) ? $hostname[$parts[1]] : 'Unknown')) . '</td>' .
 				'<td class="dhcp_ip_addr">' . $parts[2] . '</td>' .
@@ -74,13 +74,28 @@ else if ($_POST['action'] == 'clients')
 			'</tr>';
 	}
 	if (empty($leases))
-		echo '<tr><td colspan="5">ERROR: No Leases Found</td></tr>';
+		echo '<tr><td colspan="5"><center>ERROR: No Leases Found</center></td></tr>';
 }
 ###################################################################################################
-# ACTION: Unrecognized ==> Let's just tell the user we don't exist....
+# ACTION: REMOVE ==> Remove the specific DHCP reservation from the specified adapter:
+# ACTION: ADD ==> Add the specified DHCP reservation to the specified adapter:
+###################################################################################################
+else if ($_POST['action'] == 'remove' || $_POST['action'] == 'add')
+{
+	$_POST['ip_addr'] = isset($_POST['ip_addr']) ? $_POST['ip_addr'] : '';
+	if (!filter_var($_POST['ip_addr'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
+		die('[IP_ADDR] ERROR: "' . $_POST['ip_addr'] . '" is an invalid IPv4 address!');
+
+	$_POST['mac_addr'] = isset($_POST['mac_addr']) ? $_POST['mac_addr'] : '';
+	if (!filter_var($_POST['mac_addr'], FILTER_VALIDATE_MAC))
+		die('[MAC_ADDR] ERROR: "' . $_POST['mac_addr'] . '" is an invalid MAC address!');
+
+	$action = $_POST['action'] == 'remove' ? 'dhcp_del' : 'dhcp_add';
+	$action .=  ' ' . $_POST['iface'] . ' ' . $_POST['mac_addr'] . ' ' . $_POST['ip_addr'] . ' ' . $_POST['hostname'];
+	echo @trim('/opt/bpi-r2-router-builder/helpers/router-helper.sh ' . $action);
+}
+###################################################################################################
+# ACTION: Everything else ==> Let's just tell the user this page doesn't exist....
 ###################################################################################################
 else
-{
-	require_once("404.php");
-	exit();
-}
+	echo "INFO: Unrecognized Action";
