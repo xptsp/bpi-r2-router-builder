@@ -248,7 +248,7 @@ function LAN_Reservation_Remove()
 
 	// Perform our AJAX request to remove the IP reservation:
 	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
-		if (data == "OK")
+		if (data.trim() == "OK")
 		{
 			LAN_Refresh_Reservations();
 			reboot_suggested = true;
@@ -284,7 +284,7 @@ function LAN_Reservation_Add()
 
 	// Perform our AJAX request to add the IP reservation:
 	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
-		if (data == "OK")
+		if (data.trim() == "OK")
 		{
 			LAN_Refresh_Reservations();
 			reboot_suggested = true;
