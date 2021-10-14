@@ -10,12 +10,12 @@ $sidebar_menu = array(
 	'home'   => menu_link('/', 'Home', 'fas fa-home'),
 	'setup'  => array('Setup', 'fas fa-cog', array(
 		'device'   => menu_link('/setup/wan', 'Internet Settings', 'fas fa-globe'),
-		'firewall' => menu_link('/setup/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
+#		'firewall' => menu_link('/setup/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
 		'wired'    => menu_link('/setup/lan', 'Network Setup', 'fas fa-ethernet'),
-		'wireless' => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
+#		'wireless' => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
 	)),
 	'storage'    => array('Storage', 'fas fa-hdd', array(
-		'basic'    => menu_link('/storage/usb-basic', 'Basic Settings', 'fab fa-usb'),
+#		'basic'    => menu_link('/storage/usb-basic', 'Basic Settings', 'fab fa-usb'),
 	)),
 	'admin'  => array('Administration', 'fas fa-cog', array(
 		'status'   => menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),
@@ -23,7 +23,7 @@ $sidebar_menu = array(
 		'backup'   => menu_link('/admin/backup', 'Backup &amp; Restore', 'fas fa-file-export'),
 		'creds'    => menu_link('/admin/creds', 'Credentials', 'fas fa-user-edit'),
 		'kernel'   => menu_link('/admin/kernel', 'Kernel Logs', 'far fa-list-alt'),
-		'journal'  => menu_link('/admin/journal', 'Journal Logs', 'far fa-list-alt'),
+#		'journal'  => menu_link('/admin/journal', 'Journal Logs', 'far fa-list-alt'),
 		'update'   => menu_link('/admin/update', 'Router Update', 'fab fa-linux'),
 	)),
 	'plugins' => array('Plug-Ins', 'fas fa-puzzle-piece', array(

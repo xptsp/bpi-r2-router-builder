@@ -1,4 +1,5 @@
 var iface_used;
+var reboot_suggested = false;
 
 //======================================================================================================
 // Javascript functions for "Setup / WAN Settings"
@@ -127,11 +128,16 @@ function Init_LAN(iface)
 		$("#dhcp_mac_addr").val("");
 	});
 	$("#add_reservation").click(function() {
+		$("#dhcp_error_box").addClass("hidden");
 		$("#reservation-modal").modal("show");
 		$("#reservation_remove").click();
 		LAN_Refresh_Leases();
 	});
 	$("#leases_refresh").click(LAN_Refresh_Leases);
+	$("#dhcp_add").click(LAN_Reservation_Add);
+	$("#dhcp_error_close").click(function() {
+		$("#dhcp_error_box").addClass("hidden");
+	});
 }
 
 function LAN_Submit()
@@ -148,7 +154,7 @@ function LAN_Submit()
 		'dhcp_start': $("#dhcp_start").val(),
 		'dhcp_end':   $("#dhcp_end").val(),
 		'dhcp_lease': $("#dhcp_lease").val() + $("#dhcp_units").val(),
-		'bridge':     '',
+		'reboot':     reboot_suggested,
 	};
 	if ($("#dhcp_units").val() == "infinite")
 		postdata.dhcp_lease = 'infinite';
@@ -187,6 +193,7 @@ function LAN_Refresh_Leases()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to refresh the LAN leases:
+	$("#clients-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
 	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
 		$("#clients-table").html(data);
 		$(".reservation-option").click(function() {
@@ -195,6 +202,8 @@ function LAN_Refresh_Leases()
 			$("#dhcp_ip_addr").val( line.find(".dhcp_ip_addr").html() );
 			$("#dhcp_mac_addr").val( line.find(".dhcp_mac_addr").html() );
 		});
+	}).fail(function() {
+		LAN_Error("AJAX call failed!");
 	});
 }
 
@@ -208,7 +217,9 @@ function LAN_Refresh_Reservations()
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
+	$("#reservations-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
 	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
+		$("#reservation-modal").modal("hide");
 		$("#reservations-table").html(data);
 		$(".dhcp_edit").click(function() {
 			$("#add_reservation").click();
@@ -217,7 +228,7 @@ function LAN_Refresh_Reservations()
 			$("#dhcp_ip_addr").val( line.find(".dhcp_ip_addr").html() );
 			$("#dhcp_mac_addr").val( line.find(".dhcp_mac_addr").html() );
 		});
-		$(".dhcp_delete").click(LAN_Reservation_Remove)
+		$(".dhcp_delete").click(LAN_Reservation_Remove);
 	});
 }
 
@@ -235,8 +246,58 @@ function LAN_Reservation_Remove()
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
+	// Perform our AJAX request to remove the IP reservation:
 	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
-		alert(data);
-		LAN_Refresh_Reservations();
+		if (data == "OK")
+		{
+			LAN_Refresh_Reservations();
+			reboot_suggested = true;
+		}
+		else
+			LAN_Error(data);
+	}).fail(function() {
+		LAN_Error("AJAX call failed!");
 	});
+}
+
+function LAN_Reservation_Add()
+{
+	// Assemble the post data for the AJAX call:
+	line = $(this).parent();
+	postdata = {
+		'sid':      SID,
+		'action':   'add',
+		'iface':    iface_used,
+		'hostname': $("#dhcp_client_name").val(),
+		'ip_addr':  $("#dhcp_ip_addr").val(),
+		'mac_addr': $("#dhcp_mac_addr").val(),
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Check to make sure we actually have something to pass to the AJAX call:
+	if (postdata.hostname == "")
+		return LAN_Error("No hostname specified!");
+	else if (postdata.ip_addr == "")
+		return LAN_Error("No IP address specified!");
+	else if (postdata.mac_addr == "")
+		return LAN_Error("No MAC address specified!");
+
+	// Perform our AJAX request to add the IP reservation:
+	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
+		if (data == "OK")
+		{
+			LAN_Refresh_Reservations();
+			reboot_suggested = true;
+		}
+		else
+			LAN_Error(data);
+	}).fail(function() {
+		LAN_Error("AJAX call failed!");
+	});
+}
+
+function LAN_Error(msg)
+{
+	$("#dhcp_error_msg").html(msg);
+	$("#dhcp_error_box").removeClass("hidden");
 }

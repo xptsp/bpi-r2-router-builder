@@ -209,7 +209,9 @@ echo '
 					<td width="3%">&nbsp;</td>
 					<td width="3%">&nbsp;</td>
 				</thead>
-				<tbody id="reservations-table"></tbody>
+				<tbody id="reservations-table">
+					<tr><td colspan="5"><center>Loading...</center></td></tr>
+				</tbody>
 			</table>
 		</div>
 	</div>
@@ -267,10 +269,15 @@ echo '
 							<th width="10%"></th>
 						</tr>
 					</thead>
-					<tbody id="clients-table"></tbody>
+					<tbody id="clients-table">
+						<tr><td colspan="5"><center>Loading...</center></td></tr>
+					</tbody>
 				</table>
 			</div>
 			<div class="modal-body table-responsive">
+				<div class="alert alert-danger hidden" id="dhcp_error_box">
+					<button type="button" class="close" id="dhcp_error_close">×</button>
+					<i class="fas fa-ban"></i>&nbsp;<span id="dhcp_error_msg" /></div>
                 <table class="table table-sm table-head-fixed text-nowrap table-striped">
 					<thead>
 						<tr>

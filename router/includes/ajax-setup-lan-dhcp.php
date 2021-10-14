@@ -92,7 +92,7 @@ else if ($_POST['action'] == 'remove' || $_POST['action'] == 'add')
 
 	$action = $_POST['action'] == 'remove' ? 'dhcp_del' : 'dhcp_add';
 	$action .=  ' ' . $_POST['iface'] . ' ' . $_POST['mac_addr'] . ' ' . $_POST['ip_addr'] . ' ' . $_POST['hostname'];
-	echo @trim('/opt/bpi-r2-router-builder/helpers/router-helper.sh ' . $action);
+	echo @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh ' . $action);
 }
 ###################################################################################################
 # ACTION: Everything else ==> Let's just tell the user this page doesn't exist....
