@@ -49,4 +49,3 @@ fi
 # Call rest of upgrade script from "misc" folder:
 #####################################################################################
 source helpers/upgrade-helper.sh
-systemctl daemon-reload
