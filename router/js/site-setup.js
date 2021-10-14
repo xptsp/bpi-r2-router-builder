@@ -112,7 +112,7 @@ function Init_LAN(iface)
 	$("#dhcp_lease").inputmask("integer");
 	$("#dhcp_units").change(function() {
 		if ($(this).val() == "infinite")
-			$("#dhcp_lease").attr("disabled", "disabled");			
+			$("#dhcp_lease").attr("disabled", "disabled");
 		else
 			$("#dhcp_lease").removeAttr("disabled");
 	});
@@ -266,7 +266,7 @@ function LAN_Reservation_Add()
 	line = $(this).parent();
 	postdata = {
 		'sid':      SID,
-		'action':   'add',
+		'action':   'check',
 		'iface':    iface_used,
 		'hostname': $("#dhcp_client_name").val(),
 		'ip_addr':  $("#dhcp_ip_addr").val(),
@@ -284,13 +284,17 @@ function LAN_Reservation_Add()
 
 	// Perform our AJAX request to add the IP reservation:
 	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
-		if (data.trim() == "OK")
-		{
+		// If IP check reveals that the IP address is already assigned, ask if we should replace it.
+		if (data.trim() == "Taken" && !confirm("This IP address has already been assigned.  Replace?"))
+			return LAN_Error("User Cancelled: IP address already assigned to a different MAC address.");
+
+		// Perform our AJAX request to add the IP reservation:
+		postdata.action = 'add';
+		$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
 			LAN_Refresh_Reservations();
-			reboot_suggested = true;
-		}
-		else
-			LAN_Error(data);
+		}).fail(function() {
+			LAN_Error("AJAX call failed!");
+		});
 	}).fail(function() {
 		LAN_Error("AJAX call failed!");
 	});

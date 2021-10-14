@@ -17,7 +17,7 @@ foreach (explode("\n", @file_get_contents("/etc/dnsmasq.d/" . $iface . ".conf"))
 	$parts = explode("=", trim($line));
 	$sub_parts = explode(",", !empty($parts[1]) ? $parts[1] : '');
 	if ($parts[0] == 'dhcp-host')
-		$reserve[] = explode(',', $parts[1]);
+		$reserve[$sub_parts[2]] = explode(',', $parts[1]);
 	else if ($parts[0] == 'host-record')
 		$hostname[!empty($sub_parts[1]) ? strtoupper($sub_parts[1]) : ''] = $sub_parts[0];
 	else if ($parts[0] == 'dhcp-range')
@@ -93,6 +93,21 @@ else if ($_POST['action'] == 'remove' || $_POST['action'] == 'add')
 	$action = $_POST['action'] == 'remove' ? 'dhcp_del' : 'dhcp_add';
 	$action .=  ' ' . $_POST['iface'] . ' ' . $_POST['mac_addr'] . ' ' . $_POST['ip_addr'] . ' ' . $_POST['hostname'];
 	echo @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh ' . $action);
+}
+###################################################################################################
+# ACTION: CLIENTS ==> Output list of DHCP clients for the specified adapter:
+###################################################################################################
+else if ($_POST['action'] == 'check')
+{
+	$_POST['ip_addr'] = isset($_POST['ip_addr']) ? $_POST['ip_addr'] : '';
+	if (!filter_var($_POST['ip_addr'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
+		die('[IP_ADDR] ERROR: "' . $_POST['ip_addr'] . '" is an invalid IPv4 address!');
+
+	$_POST['mac_addr'] = isset($_POST['mac_addr']) ? $_POST['mac_addr'] : '';
+	if (!filter_var($_POST['mac_addr'], FILTER_VALIDATE_MAC))
+		die('[MAC_ADDR] ERROR: "' . $_POST['mac_addr'] . '" is an invalid MAC address!');
+
+	echo empty($reserve[$_POST['ip_addr']]) || $reserve[$_POST['ip_addr']][1] == $_POST['mac_addr'] ? 'OK' : 'Taken';
 }
 ###################################################################################################
 # ACTION: Everything else ==> Let's just tell the user this page doesn't exist....
