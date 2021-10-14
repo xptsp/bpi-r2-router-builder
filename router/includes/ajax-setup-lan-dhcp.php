@@ -107,7 +107,13 @@ else if ($_POST['action'] == 'check')
 	if (!filter_var($_POST['mac_addr'], FILTER_VALIDATE_MAC))
 		die('[MAC_ADDR] ERROR: "' . $_POST['mac_addr'] . '" is an invalid MAC address!');
 
-	echo empty($reserve[$_POST['ip_addr']]) || $reserve[$_POST['ip_addr']][1] == $_POST['mac_addr'] ? 'OK' : 'Taken';
+	if (empty($reserve[$_POST['ip_addr']]) || $reserve[$_POST['ip_addr']][1] == $_POST['mac_addr'] )
+		echo 'OK';
+	else
+	{
+		$res = &$reserve[$_POST['ip_addr']];
+		echo !empty($res[3]) ? ('&quot;' . $res[3] . '&quot; with MAC address ' . $res[1] . ')') : "MAC Address " . $res[1];
+	}
 }
 ###################################################################################################
 # ACTION: Everything else ==> Let's just tell the user this page doesn't exist....

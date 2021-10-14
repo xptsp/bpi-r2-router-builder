@@ -245,6 +245,31 @@ echo '
 </div>';
 
 ###################################################################################################
+# IP Reservation Confirmation modal:
+###################################################################################################
+echo '
+<div class="modal fade" id="confirm-modal" data-backdrop="static" style="display: none; z-index: 9000;" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content bg-danger">
+			<div class="modal-header">
+				<h4 class="modal-title">Confirm IP Reservation</h4>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">×</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<p>This IP address has already been assigned to <span id="confirm-mac" />.</p>
+				<p>Proceed with replacement?</p>
+			</div>
+			<div class="modal-footer justify-content-between">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button id="confirm-proceed" type="button" class="btn btn-primary">Proceed</button>
+			</div>
+		</div>
+	</div>
+</div>';
+
+###################################################################################################
 # DHCP Reservations modal:
 ###################################################################################################
 echo '
