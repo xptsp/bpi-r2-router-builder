@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Call original "pihole" script:
+/usr/local/bin/pihole $@
+
+# Make sure DHCP tab in Pihole settings is diabled!
+ sed -i 's|piholedhcp"){ ?> class="active"<?php } ?>>|piholedhcp"){ ?> class="active"<?php } ?> class="hidden">|g' /var/www/html/admin/settings.php

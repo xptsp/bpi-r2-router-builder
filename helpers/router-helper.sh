@@ -292,8 +292,18 @@ case $CMD in
 			echo "dhcp-range=${1},${3},${4},${5}" >> ${FILE}
 			echo "dhcp-option=$1,3,${2}" >> ${FILE}
 		else
-			sed -i "s|dhcp-range=*.|dhcp-range=${1},${3},${4},${5}|g" ${FILE}
-			sed -i "s|dhcp-option=*.|dhcp-option=${1},3,${2}|g" >> ${FILE}
+			# Replace any hostnames with the old IP address with the correct IP address:
+			OLD_IP=$(cat ${FILE} | grep dhcp-option | cut -d"," -f 3)
+			sed -i "s|${OLD_SUB}|${NEW_SUB}|g" /etc/hosts
+
+			# Fix any IP addresses on any dhcp host lines in the configuration file:
+			OLD_SUB=$(echo ${OLD_IP} | cut -d"." -f 1-3).
+			NEW_SUB=$(echo $2 | cut -d"." -f 1-3).
+			sed -i "s|${OLD_IP}|${2}|g" ${FILE}
+
+			# Replace the DHCP range and option lines with our new configuration:
+			sed -i "s|^dhcp-range=*.|dhcp-range=${1},${3},${4},${5}|g" ${FILE}
+			sed -i "s|^dhcp-option=*.|dhcp-option=${1},3,${2}|g" >> ${FILE}
 		fi
 		;;
 
