@@ -342,3 +342,33 @@ function site_footer($init_str = '')
 </body>
 </html>';
 }
+
+#######################################################################################################
+# Function showing Reboot Router confirmation modal:
+#######################################################################################################
+function site_reboot_modal()
+{
+echo '
+<div class="modal fade" id="reboot-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Confirm <span id="title_msg">Reboot</span> Router</h4>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" id="reboot_close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<p id="reboot_msg"><span id="body_msg">Rebooting</span> the router will disrupt active traffic on the network.</p>
+				<p id="reboot_timer">Are you sure you want to do this?</p>
+			</div>
+			<div class="modal-footer justify-content-between" id="reboot_control">
+				<button type="button" class="btn btn-default" id="reboot_nah" data-dismiss="modal">Not Now</button>
+				<button type="button" class="btn btn-primary" id="reboot_yes">Reboot Router</button>
+			</div>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>';
+}

@@ -9,7 +9,6 @@ var max_timer;
 function Init_Stats()
 {
 	Stats_Update();
-	$("#reboot_yes").click(Stats_Confirm_Reboot);
 	$("#stats_button").click(Stats_Network_Show);
 	$("#stats_close").click(Stats_Network_Close);
 	$("#reboot_button").click(Stats_Reboot_Button);
@@ -49,39 +48,6 @@ function Stats_Power_Button()
 	$("#title_msg").html("Power Off");
 	$("#body_msg").html("Powering off");
 	$("#reboot_yes").html("Power Off Router");
-}
-
-function Stats_Reboot_Msg()
-{
-	txt = timer.toString();
-	per = parseInt(100 * timer / max_timer);
-	$("#reboot_timer").html('<h1 class="centered">' + txt + '</h1><div class="progress mb-3">' +
-		'<div class="progress-bar bg-info" role="progressbar" aria-valuenow="' + txt + '" aria-valuemin="0" aria-valuemax="' + max_timer + '" style="width: ' + per.toString() + '%"></div></div>');
-	--timer;
-	if (timer == 0) {
-		clearInterval(MyTimer);
-		document.location.reload(true);
-	}
-}
-
-function Stats_Confirm_Reboot()
-{
-	mode = "";
-	if (restore_type == "power")
-		mode = ";poweroff"
-	$.get("/ajax/admin/reboot?sid=" + SID + mode);
-	if (restore_type == "power")
-		$("#reboot-modal").modal("hide");
-	else
-	{
-		$("#reboot_control").addClass("hidden");
-		$("#reboot_close").addClass("hidden");
-		max_timer = 60;
-		timer = max_timer;
-		$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately " + max_timer + " seconds.");
-		Stats_Reboot_Msg();
-		myTimer = setInterval(Stats_Reboot_Msg, 1000);
-	}
 }
 
 function Stats_Network_Get()

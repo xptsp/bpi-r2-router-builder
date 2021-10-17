@@ -120,7 +120,7 @@ function Init_LAN(iface)
 	$("#reservations-refresh").click(LAN_Refresh_Reservations).click();
 
 	//=========================================================================
-	// IP Reservation setup and handlers:
+	// IP Reservation modals and handlers:
 	$("#dhcp_mac_addr").inputmask("mac");
 	$("#reservation_remove").click(function() {
 		$("#dhcp_client_name").val("");
@@ -317,7 +317,15 @@ function LAN_Reservation_Confirmed()
 	// Perform our AJAX request to add the IP reservation:
 	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
 		if (data.trim() == "OK")
-			LAN_Refresh_Reservations()
+		{
+			LAN_Refresh_Reservations();
+			$("#alert-div").slideDown(400, function() {
+				timer = setInterval(function() {
+					$("#alert-div").slideUp();
+					clearInterval(timer);
+				}, 5000);
+			});
+		}
 		else
 			LAN_Error(data);
 	}).fail(function() {

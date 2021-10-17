@@ -31,6 +31,12 @@ $use_dhcp = isset($dhcp[1]);
 # Device Name
 ###################################################################################################
 echo '
+<div id="alert-div" style="display:none">
+	<div class="alert alert-warning">
+		<h5><i class="icon fas fa-info"></i> Alert!</h5>
+		Router must be restarted for the DHCP reservation changes to take effect.
+	</div>
+</div>
 <div class="card card-primary">
 	<div class="card-header">
 		<h3 class="card-title">Wired Network Setup</h3>
@@ -258,7 +264,7 @@ echo '
 				</button>
 			</div>
 			<div class="modal-body">
-				<p>This IP address has already been assigned to <span id="confirm-mac" />.</p>
+				<p id="confirm-mac"></p>
 				<p>Proceed with replacement?</p>
 			</div>
 			<div class="modal-footer justify-content-between">

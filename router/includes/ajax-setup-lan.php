@@ -26,6 +26,10 @@ $_POST['ip_mask'] = isset($_POST['ip_mask']) ? $_POST['ip_mask'] : '';
 if (!filter_var($_POST['ip_mask'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
 	die('[IP_MASK] ERROR: "' . $_POST['ip_mask'] . '" is an invalid IPv4 address!');
 
+$_POST['reboot'] = isset($_POST['reboot']) ? $_POST['reboot'] : '';
+if (!preg_match("/^(true|false)$/", $_POST['reboot']))
+	die("[REBOOT] ERROR: " . $_POST['hostname'] . " is not a valid boolean");
+
 #################################################################################################
 # If using DHCP on this interface, make sure addresses are valid:
 #################################################################################################
@@ -62,16 +66,10 @@ if (!empty($_POST['use_dhcp']))
 		else if ($parts[2] == 'm' && (int) $parts[1] < 2)
 			die('[DHCP_LEASE] ERROR: Minimum client lease time is 2 minutes!!');
 		else if ((int) $parts[1] < 1)
-			die('[DHCP_LEASE] ERROR: Minimum client lease time is 1 ' . ($parts[1] == 'h' ? 'hours' : $parts[1] == 'd' ? 'days' : 'weeks') . '!!');
+			die('[DHCP_LEASE] ERROR: Minimum client lease time is 1 ' . ($parts[1] == 'h' ? 'hour' : $parts[1] == 'd' ? 'day' : 'week') . '!!');
 		#echo '<pre>'; print_r($parts); exit;
 	}
 }
-
-#################################################################################################
-# Get old IP address for the adapter in question:
-#################################################################################################
-$old_addr = trim(@shell_exec('cat /etc/network/interfaces.d/' . $_POST['iface'] . ' | grep " address" | awk \'{print $2}\''));
-//echo $old_addr; exit;
 
 #################################################################################################
 # Create the network configuration for each of the bound network adapters:
@@ -124,11 +122,16 @@ fclose($handle);
 if (!empty($_POST['use_dhcp']))
 	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh rem_dns " . $IFACE);
 else
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp_set " . $IFACE . " " . $_POST['ip_addr'] . " " . $_POST['dhcp_start'] . " " . $_POST['dhcp_end'] . (!empty($_POST['dhcp_lease']) ? " " . $_POST['dhcp_lease'] : '');
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp_set " . $IFACE . " " . $_POST['ip_addr'] . " " . $_POST['dhcp_start'] . " " . $_POST['dhcp_end'] . (!empty($_POST['dhcp_lease']) ? " " . $_POST['dhcp_lease'] : ''));
 
 #################################################################################################
 # Restarting networking service:
 #################################################################################################
-@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart networking");
-@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart dnsmasq");
-echo "OK";
+if ($_POST['reboot'] == "false")
+{
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart networking");
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart dnsmasq");
+	echo "OK";
+}
+else
+	echo "REBOOT";
