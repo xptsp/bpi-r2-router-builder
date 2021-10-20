@@ -139,6 +139,7 @@ function Init_LAN(iface)
 		$("#dhcp_error_box").addClass("hidden");
 	});
 	$("#confirm-proceed").click(LAN_Reservation_Confirmed);
+	$("#reboot_yes").click(Reboot_Confirmed);
 }
 
 function LAN_Submit()
@@ -165,13 +166,20 @@ function LAN_Submit()
 	});
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
-	// Perform our AJAX request to change the WAN settings:
+	// Notify the user what we are doing:
 	$("#apply_msg").html("Please wait while the networking service is restarted...");
 	$(".alert_control").addClass("hidden");
-	$("#apply-modal").modal("show");
+	if (reboot_suggested)
+		$("#reboot-modal").modal("show");
+	else
+		$("#apply-modal").modal("show");
+
+	// Perform our AJAX request to change the WAN settings:
 	$.post("/ajax/setup-lan", postdata, function(data) {
 		if (data == "OK")
 			document.location.reload(true);
+		else if (data == "REBOOT")
+			Reboot_Confirmed();
 		else
 		{
 			$("#apply_msg").html(data);
@@ -285,8 +293,12 @@ function LAN_Reservation_Add()
 
 	// Perform our AJAX request to add the IP reservation:
 	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
-		if (data.trim() == "OK")
-			LAN_Reservation_Confirmed()
+		if (data.trim() == "SAME")
+			LAN_Refresh_Reservations();
+		else if (data.trim() == "OK")
+			LAN_Reservation_Show_Msg();
+		else if (data.trim() == "ADD")
+			LAN_Reservation_Confirmed();
 		else
 		{
 			$("#confirm-mac").html(data);
@@ -295,6 +307,19 @@ function LAN_Reservation_Add()
 	}).fail(function() {
 		LAN_Error("AJAX call failed!");
 	});
+}
+
+function LAN_Reservation_Show_Msg()
+{
+	$("#apply_changes").addClass("hidden");
+	$("#apply_reboot").removeClass("hidden");
+	$("#alert-div").slideDown(400, function() {
+		timer = setInterval(function() {
+			$("#alert-div").slideUp();
+			clearInterval(timer);
+		}, 5000);
+	});
+	LAN_Reservation_Confirmed();
 }
 
 function LAN_Reservation_Confirmed()
@@ -317,15 +342,7 @@ function LAN_Reservation_Confirmed()
 	// Perform our AJAX request to add the IP reservation:
 	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
 		if (data.trim() == "OK")
-		{
 			LAN_Refresh_Reservations();
-			$("#alert-div").slideDown(400, function() {
-				timer = setInterval(function() {
-					$("#alert-div").slideUp();
-					clearInterval(timer);
-				}, 5000);
-			});
-		}
 		else
 			LAN_Error(data);
 	}).fail(function() {

@@ -1,8 +1,3 @@
-var timer;
-var MyTimer;
-var restore_type;
-var max_timer;
-
 //======================================================================================================
 // Javascript functions for "Admin / Router Status"
 //======================================================================================================
@@ -13,6 +8,7 @@ function Init_Stats()
 	$("#stats_close").click(Stats_Network_Close);
 	$("#reboot_button").click(Stats_Reboot_Button);
 	$("#power_button").click(Stats_Power_Button);
+	$("#reboot_yes").click(Reboot_Confirmed);
 }
 
 function Stats_Update()

@@ -46,7 +46,10 @@ foreach (explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")))
 {
 	$sub_parts = explode(' ', $lease);
 	if (strpos($sub_parts[2], $subnet) != -1)
-		$leases[] = $sub_parts;
+	{
+		$leases[$sub_parts[1]] = $leases[strtoupper($sub_parts[2])] = $sub_parts;
+		$leases[$sub_parts[1]]['hide'] = true;
+	}
 }
 #echo '<pre>$leases >> '; print_r($leases); exit();
 
@@ -80,7 +83,8 @@ else if ($_POST['action'] == 'clients')
 	foreach ($leases as $parts)
 	{
 		$parts[1] = strtoupper($parts[1]);
-		echo
+		if (empty($parts['hide']))
+			echo
 			'<tr class="reservation-option">' .
 				'<td class="dhcp_host">' . (!empty($parts[3]) ? $parts[3] : (isset($hostname[$parts[1]]) ? $hostname[$parts[1]] : 'Unknown')) . '</td>' .
 				'<td class="dhcp_ip_addr">' . $parts[2] . '</td>' .
@@ -122,8 +126,8 @@ else if ($_POST['action'] == 'check')
 	if (!filter_var($_POST['mac_addr'], FILTER_VALIDATE_MAC))
 		die('[MAC_ADDR] ERROR: "' . $_POST['mac_addr'] . '" is an invalid MAC address!');
 
-	if (isset($reserve[$_POST['mac_addr']]) && $reserve[$_POST['mac_addr']]['ip'] != $_POST['ip_addr'])
-		echo 'This MAC address has already been assigned to ' . $reserve[$_POST['mac_addr']]['ip'] . '.';
+	if (isset($reserve[$_POST['mac_addr']]))
+		echo $reserve[$_POST['mac_addr']]['ip'] == $_POST['ip_addr'] ? 'SAME' : 'This MAC address has already been assigned to ' . $reserve[$_POST['mac_addr']]['ip'] . '.';
 	else if (isset($reserve[$_POST['ip_addr']]) && $reserve[$_POST['ip_addr']]['mac'] != $_POST['mac_addr'])
 	{
 		$res = &$reserve[$_POST['ip_addr']];
@@ -131,7 +135,7 @@ else if ($_POST['action'] == 'check')
 		echo 'This IP address has already been assigned to ' . $s . '.';
 	}
 	else
-		echo 'OK';
+		echo $_POST['ip_addr'] == trim(@shell_exec("arp | grep " . $iface . " | grep -i " . $_POST['mac_addr'] . " | awk '{print $1}'")) ? 'ADD' : 'OK';
 }
 ###################################################################################################
 # ACTION: Everything else ==> Let's just tell the user this page doesn't exist....

@@ -1,13 +1,15 @@
 var SID;
 var LoginTimer;
 var RefreshTimer;
+var timer;
+var MyTimer;
+var max_timer;
 
 function Init_Site(sid)
 {
 	SID=sid;
 	$("#login_close").click(Login_Close);
 	$("#login_submit").click(Login_Submit);
-	$("#reboot_yes").click(Reboot_Confirmed);
 }
 
 function Init_Home()
@@ -116,7 +118,7 @@ function Reboot_Message()
 	$("#reboot_timer").html('<h1 class="centered">' + txt + '</h1><div class="progress mb-3">' +
 		'<div class="progress-bar bg-info" role="progressbar" aria-valuenow="' + txt + '" aria-valuemin="0" aria-valuemax="' + max_timer + '" style="width: ' + per.toString() + '%"></div></div>');
 	--timer;
-	if (timer == 0) {
+	if (timer <= 0) {
 		clearInterval(MyTimer);
 		document.location.reload(true);
 	}
@@ -125,19 +127,12 @@ function Reboot_Message()
 function Reboot_Confirmed()
 {
 	mode = "";
-	if (restore_type == "power")
-		mode = ";poweroff"
 	$.get("/ajax/admin/reboot?sid=" + SID + mode);
-	if (restore_type == "power")
-		$("#reboot-modal").modal("hide");
-	else
-	{
-		$("#reboot_control").addClass("hidden");
-		$("#reboot_close").addClass("hidden");
-		max_timer = 60;
-		timer = max_timer;
-		$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately " + max_timer + " seconds.");
-		Reboot_Message();
-		myTimer = setInterval(Reboot_Message, 1000);
-	}
+	$("#reboot_control").addClass("hidden");
+	$("#reboot_close").addClass("hidden");
+	max_timer = 60;
+	timer = max_timer;
+	$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately " + max_timer + " seconds.");
+	Reboot_Message();
+	myTimer = setInterval(Reboot_Message, 1000);
 }

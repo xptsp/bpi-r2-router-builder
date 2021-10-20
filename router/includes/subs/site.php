@@ -349,7 +349,7 @@ function site_footer($init_str = '')
 function site_reboot_modal()
 {
 echo '
-<div class="modal fade" id="reboot-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
+<div class="modal fade" id="reboot-modal" data-backdrop="static" style="display: none; z-index: 9000;" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header">

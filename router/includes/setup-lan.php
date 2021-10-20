@@ -222,10 +222,10 @@ echo '
 		</div>
 	</div>
 	<div class="card-footer">
+		<button type="button" id="apply_reboot" class="btn btn-success float-right hidden" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Apply and Reboot</button>
 		<button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button>
 		<button type="button" id="add_reservation" class="dhcp_div btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button>
-	</div>
-</div>';
+	</div>';
 
 ###################################################################################################
 # Apply Changes modal:
@@ -339,4 +339,5 @@ echo '
 ###################################################################################################
 # Close page
 ###################################################################################################
+site_reboot_modal();
 site_footer('Init_LAN("' . $iface . '");');
