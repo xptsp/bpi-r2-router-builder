@@ -17,7 +17,8 @@ fi
 
 # Rename wireless interfaces according to their physical index number.
 # Ex: Wireless interface with physical index number 1 would be named "wradio1".
-for DIR in $(ls /sys/class/net | grep -v "^wradio" | grep -v "^ap"); do
+cd /sys/class/net
+for DIR in $(ls | grep -v "^wradio" | grep -v "^ap"); do
 	if [[ -f ${DIR}/phy80211/index ]]; then
 		IFACE=$(basename $DIR)
 		INDEX=$(cat ${DIR}/phy80211/index)
