@@ -162,8 +162,9 @@ case $CMD in
 			[[ ! -z "$RO" ]] && mount -o remount,ro /boot
 			echo "Overlay Root script ${TXT} for next reboot!"
 		elif [[ "$1" == "status" ]]; then
-			STAT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "bootmenu_default=2" >& /dev/null && echo "enabled" || echo "disabled")
-			echo "Overlay Root script is ${STAT}."
+			STAT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "^bootmenu_default=2" >& /dev/null && echo "enabled" || echo "disabled")
+			IN_USE=$(mount | grep " /ro " || echo "not ")
+			echo "Overlay Root script is ${STAT} for next boot, currently${IN_USE} active."
 		else
 			echo "SYNTAX: $(basename $0) overlay [enable|disable|status]"
 		fi

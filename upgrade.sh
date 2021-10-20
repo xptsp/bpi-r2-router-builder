@@ -41,7 +41,11 @@ fi
 RW=($(mount | grep " /boot "))
 if [[ ! -z "${RW[5]}" ]]; then
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /boot
+	BOOTDEFAULT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "bootmenu_default=" | cut -d"=" -f 2)
+	KERNEL=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "kernel=" | cut -d"=" -f 2)
 	cp uEnv.txt /boot/bananapi/bpi-r2/linux/
+	sed -i "s|bootmenu_default=.*|bootmenu_default=${BOOTDEFAULT}|g" /boot/bananapi/bpi-r2/linux/uEnv.txt
+	sed -i "s|kernel=.*|kernel=${KERNEL}|g" /boot/bananapi/bpi-r2/linux/uEnv.txt
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /boot
 fi
 
