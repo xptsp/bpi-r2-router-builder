@@ -51,7 +51,7 @@ else
 					</div>
 				</div>
 			</label>
-			<div class="col-sm-6"><button type="button" class="btn btn-block btn-outline-danger" id="restore_settings">Restore Settings</button></div>
+			<div class="col-sm-6"><a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-danger" id="restore_settings">Restore Settings</button></a></div>
 		</div>';
 
 	if (strpos(@file_get_contents("/boot/bananapi/bpi-r2/linux/uEnv.txt"), "bootmenu_default=2") == -1)
@@ -85,8 +85,8 @@ echo '
 				<p id="reboot_timer">Are you sure you want to do this?</p>
 			</div>
 			<div class="modal-footer justify-content-between" id="reboot_control">
-				<button type="button" class="btn btn-default" id="reboot_nah" data-dismiss="modal">Not Now</button>
-				<button type="button" class="btn btn-primary" id="reboot_yes">Restore Settings</button>
+				<a href="javascript:void(0);"><button type="button" class="btn btn-default" id="reboot_nah" data-dismiss="modal">Not Now</button></a>
+				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" id="reboot_yes">Restore Settings</button></a>
 			</div>
 		</div>
 		<!-- /.modal-content -->
@@ -105,7 +105,7 @@ echo '
 				<h5 id="error_msg"></h5>
 			</div>
 			<div class="modal-footer justify-content-between">
-				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>
 			</div>
 		</div>
 		<!-- /.modal-content -->

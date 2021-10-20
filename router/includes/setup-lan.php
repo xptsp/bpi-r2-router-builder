@@ -203,7 +203,7 @@ echo '
 ###################################################################################################
 echo '
 		<h5 class="dhcp_div">
-			<button type="button" id="reservations-refresh" class="btn btn-sm btn-primary float-right">Refresh</button>
+			<a href="javascript:void(0);"><button type="button" id="reservations-refresh" class="btn btn-sm btn-primary float-right">Refresh</button></a>
 			Address Reservations
 		</h5>
 		<div class="table-responsive p-0 dhcp_div">
@@ -222,9 +222,9 @@ echo '
 		</div>
 	</div>
 	<div class="card-footer">
-		<button type="button" id="apply_reboot" class="btn btn-success float-right hidden" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Apply and Reboot</button>
-		<button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button>
-		<button type="button" id="add_reservation" class="dhcp_div btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button>
+		<a href="javascript:void(0);"><button type="button" id="apply_reboot" class="btn btn-success float-right hidden" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Apply and Reboot</button></a>
+		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button></a>
+		<a href="javascript:void(0);"><button type="button" id="add_reservation" class="dhcp_div btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button></a>
 	</div>';
 
 ###################################################################################################
@@ -236,15 +236,15 @@ echo '
 		<div class="modal-content">
 			<div class="modal-header bg-primary">
 				<h4 class="modal-title">Applying Changes</h4>
-				<button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
+				<a href="javascript:void(0);"><button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
-				</button>
+				</button></a>
 			</div>
 			<div class="modal-body">
 				<p id="apply_msg">Please wait while the networking service is restarted....</p>
 			</div>
 			<div class="modal-footer justify-content-between hidden alert_control">
-				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>
 			</div>
 		</div>
 	</div>
@@ -259,17 +259,14 @@ echo '
 		<div class="modal-content bg-danger">
 			<div class="modal-header">
 				<h4 class="modal-title">Confirm IP Reservation</h4>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">×</span>
-				</button>
+				<a href="javascript:void(0);"><button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button></a>
 			</div>
-			<div class="modal-body">
-				<p id="confirm-mac"></p>
-				<p>Proceed with replacement?</p>
-			</div>
+			<div class="modal-body" id="confirm-mac"></div>
 			<div class="modal-footer justify-content-between">
-				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-				<button id="confirm-proceed" type="button" class="btn btn-primary">Proceed</button>
+				<a href="javascript:void(0);"><button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button></a>
+				<a href="javascript:void(0);"><button id="confirm-proceed" type="button" class="btn btn-primary">Proceed</button></a>
 			</div>
 		</div>
 	</div>
@@ -284,12 +281,12 @@ echo '
 		<div class="modal-content">
 			<div class="modal-header">
 				<h4 class="modal-title">DHCP Reservations</h4>
-				<button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
+				<a href="javascript:void(0);"><button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
-				</button>
+				</button></a>
 			</div>
 			<div class="modal-body table-responsive" style="max-height: 300px;">
-				<button type="button" id="leases_refresh" class="btn btn-sm btn-primary float-right">Refresh</button>
+				<a href="javascript:void(0);"><button type="button" id="leases_refresh" class="btn btn-sm btn-primary float-right">Refresh</button></a>
 				<h5><center>Select Client from DHCP Tables</center></h5>
                 <table class="table table-sm table-head-fixed text-nowrap table-striped">
 					<thead>
@@ -307,7 +304,7 @@ echo '
 			</div>
 			<div class="modal-body table-responsive">
 				<div class="alert alert-danger hidden" id="dhcp_error_box">
-					<button type="button" class="close" id="dhcp_error_close">×</button>
+					<a href="javascript:void(0);"><button type="button" class="close" id="dhcp_error_close">&times;</button></a>
 					<i class="fas fa-ban"></i>&nbsp;<span id="dhcp_error_msg" /></div>
                 <table class="table table-sm table-head-fixed text-nowrap table-striped">
 					<thead>
@@ -323,14 +320,14 @@ echo '
 							<td><input type="text" class="form-control hostname" id="dhcp_client_name" placeholder="Client Name"></td>
 							<td><input type="text" class="form-control ip_address" id="dhcp_ip_addr" placeholder="IP Address"></td>
 							<td><input type="text" class="form-control" id="dhcp_mac_addr" placeholder="MAC Address"></td>
-							<td><button type="button" id="reservation_remove" class="btn btn-sm btn-primary center">Clear</button></td>
+							<td><a href="javascript:void(0);"><button type="button" id="reservation_remove" class="btn btn-sm btn-primary center">Clear</button></a></td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
 			<div class="modal-footer justify-content-between alert_control">
-				<button type="button" class="btn btn-primary float-right" data-dismiss="modal">Cancel</button>
-				<button type="button" id="dhcp_add" class="btn btn-success">Add Reservation</button>
+				<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right" data-dismiss="modal">Cancel</button></a>
+				<a href="javascript:void(0);"><button type="button" id="dhcp_add" class="btn btn-success">Add Reservation</button></a>
 			</div>
 		</div>
 	</div>

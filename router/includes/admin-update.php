@@ -40,12 +40,12 @@ echo '
 									</tr>
 									<tr id="webui_check_div">
 										<td colspan="2">
-											<button type="button" class="btn btn-block btn-outline-info center_50" id="webui_check">Check for Update</button>
+											<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-info center_50" id="webui_check">Check for Update</button></a>
 										</td>
 									</tr>
 									<tr class="hidden" id="webui_pull_div">
 										<td colspan="2">
-											<button type="button" class="btn btn-block btn-outline-primary center_50" id="webui_pull">Update Web UI</button>
+											<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-primary center_50" id="webui_pull">Update Web UI</button></a>
 										</td>
 									</tr>
 								</table>
@@ -78,12 +78,12 @@ echo '
 									</tr>
 									<tr id="regdb_check_div">
 										<td colspan="2">
-											<button type="button" class="btn btn-block btn-outline-info center_50" id="regdb_check">Check for Update</button>
+											<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-info center_50" id="regdb_check">Check for Update</button></a>
 										</td>
 									</tr>
 									<tr class="hidden" id="regdb_pull_div">
 										<td colspan="2">
-											<button type="button" class="btn btn-block btn-outline-primary center_50" id="regdb_pull">Update Database</button>
+											<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-primary center_50" id="regdb_pull">Update Database</button></a>
 										</td>
 									</tr>
 								</table>
@@ -116,12 +116,12 @@ echo '
 									</tr>
 									<tr id="apt_check_div">
 										<td colspan="2">
-											<button type="button" class="btn btn-block btn-outline-info center_50" id="apt_check">Check for Updates</button>
+											<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-info center_50" id="apt_check">Check for Updates</button></a>
 										</td>
 									</tr>
 									<tr class="hidden" id="apt_pull_div">
 										<td colspan="2">
-											<button type="button" class="btn btn-block btn-outline-primary center_50" id="apt_pull">Update Packages</button>
+											<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-primary center_50" id="apt_pull">Update Packages</button></a>
 										</td>
 									</tr>
 								</table>

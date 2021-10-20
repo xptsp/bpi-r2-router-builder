@@ -296,12 +296,12 @@ function LAN_Reservation_Add()
 		if (data.trim() == "SAME")
 			LAN_Refresh_Reservations();
 		else if (data.trim() == "OK")
-			LAN_Reservation_Show_Msg();
+			LAN_Reservation_Add_Msg();
 		else if (data.trim() == "ADD")
 			LAN_Reservation_Confirmed();
 		else
 		{
-			$("#confirm-mac").html(data);
+			$("#confirm-mac").html('<p>' + data + '</p><p>Proceed with replacement?</p>');
 			$("#confirm-modal").modal("show");
 		}
 	}).fail(function() {
@@ -309,7 +309,7 @@ function LAN_Reservation_Add()
 	});
 }
 
-function LAN_Reservation_Show_Msg()
+function LAN_Reservation_Add_Msg()
 {
 	$("#apply_changes").addClass("hidden");
 	$("#apply_reboot").removeClass("hidden");

@@ -67,8 +67,8 @@ if ($_POST['action'] == 'reservations')
 					'<td class="dhcp_host">' . (isset($parts['host']) ? $parts['host'] : (isset($hostname[$parts['mac']]) ? $hostname[$parts['mac']] : 'Unknown')) . '</td>' .
 					'<td class="dhcp_ip_addr">' . $parts['ip'] . '</td>' .
 					'<td class="dhcp_mac_addr">' . $parts['mac'] . '</td>' .
-					'<td class="dhcp_edit"><i class="fas fa-pen"></i></td>' .
-					'<td class="dhcp_delete"><i class="fas fa-trash-alt"></i></td>' .
+					'<td class="dhcp_edit"><a href="javascript:void(0);"><i class="fas fa-pen"></i></a></td>' .
+					'<td class="dhcp_delete"><a href="javascript:void(0);"><i class="fas fa-trash-alt"></i></a></td>' .
 				'</tr>';
 		}
 	}
@@ -89,7 +89,7 @@ else if ($_POST['action'] == 'clients')
 				'<td class="dhcp_host">' . (!empty($parts[3]) ? $parts[3] : (isset($hostname[$parts[1]]) ? $hostname[$parts[1]] : 'Unknown')) . '</td>' .
 				'<td class="dhcp_ip_addr">' . $parts[2] . '</td>' .
 				'<td class="dhcp_mac_addr">' . $parts[1] . '</td>' .
-				'<td><center><i class="far fa-plus-square"></i></center></td>' .
+				'<td><center><a href="javascript:void(0);"><i class="far fa-plus-square"></i></a></center></td>' .
 			'</tr>';
 	}
 	if (empty($leases))

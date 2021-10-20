@@ -39,7 +39,7 @@ echo '
 		</div>
 	</div>
 	<div class="card-footer">
-		<button type="button" class="btn btn-block btn-outline-danger center_50" id="submit">Set Password</button>
+		<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-danger center_50" id="submit">Set Password</button></a>
 	</div>
 	<!-- /.card-body -->
 </div>';

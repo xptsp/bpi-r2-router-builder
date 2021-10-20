@@ -173,7 +173,7 @@ echo '
 ###################################################################################################
 echo '
 	<div class="card-footer">
-		<button type="button" class="btn btn-block btn-success center_50" id="submit">Apply Changes</button>
+		<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-success center_50" id="submit">Apply Changes</button></a>
 	</div>
 </div>';
 
@@ -186,15 +186,15 @@ echo '
 		<div class="modal-content">
 			<div class="modal-header bg-info">
 				<h4 class="modal-title">Applying Changes</h4>
-				<button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
+				<a href="javascript:void(0);"><button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
-				</button>
+				</button></a>
 			</div>
 			<div class="modal-body">
 				<p id="apply_msg">Please wait while the networking service is restarted....</p>
 			</div>
 			<div class="modal-footer justify-content-between hidden alert_control">
-				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>
 			</div>
 		</div>
 	</div>

@@ -65,7 +65,7 @@ echo '
 				</div>
 				<!-- /.card-body -->
 				<div class="card-footer">
-					<button type="button" class="btn btn-block btn-outline-danger center_50" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Reboot Router</button>
+					<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-danger center_50" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Reboot Router</button></a>
 				</div>
 				<!-- /.card-body -->
 			</div>
@@ -124,7 +124,7 @@ echo '
 				</div>
 				<!-- /.card-body -->
 				<div class="card-footer centered">
-					<button type="button" class="btn btn-block btn-outline-primary center_50" data-toggle="modal" data-target="#stats-modal" id="stats_button">Network Statistics</button>
+					<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-primary center_50" data-toggle="modal" data-target="#stats-modal" id="stats_button">Network Statistics</button></a>
 				</div>
 			</div>
 			<!-- /.card -->
@@ -315,7 +315,7 @@ echo '
 				<p id="stats_body"></p>
 			</div>
 			<div class="modal-footer justify-content-between">
-				<button type="button" class="btn btn-default bg-primary" id="stats_close" data-dismiss="modal">Close</button>
+				<a href="javascript:void(0);"><button type="button" class="btn btn-default bg-primary" id="stats_close" data-dismiss="modal">Close</button></a>
 			</div>
 		</div>
 		<!-- /.modal-content -->
