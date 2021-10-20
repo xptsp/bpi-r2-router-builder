@@ -134,8 +134,6 @@ function get_network_adapters()
 					$arr[$name] += $ifaces = explode(" ", $regex[1]);
 					$bridged += $ifaces;
 				}
-				if (preg_match('/Nickname\s+(.*)/', $line, $regex))
-					$arr[$name]['nickname'] = $regex[1];
 			}
 		}
 	}
