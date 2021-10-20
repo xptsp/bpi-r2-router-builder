@@ -8,5 +8,8 @@ boot1=run selectmmc; run loadbootenv; run importenv; setenv bootopts "$bootopts 
 bootmenu_3=4. Boot from SD/EMMC without overlay.=run boot2
 boot2=boot1=run selectmmc; run loadbootenv; run importenv; run newboot2;
 
-#bootmenu_4=5. Copy SD card to EMMC.=run boot3
-#boot3=(needs implementation)
+bootmenu_4=5. Boot using original kernel from SD/EMMC with overlay.=run boot3
+boot3=run selectmmc; run loadbootenv; run importenv; setenv kernel uImage_nodt; setenv bootopts "$bootopts init=/sbin/overlayRoot.sh"; run newboot2;
+
+bootmenu_5=6. Boot  using original kernel from SD/EMMC without overlay.=run boot4
+boot4=boot1=run selectmmc; run loadbootenv; run importenv; setenv kernel uImage_nodt; run newboot2;
