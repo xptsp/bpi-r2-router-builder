@@ -15,17 +15,31 @@ if [[ ! -f /boot/wifi.conf ]]; then
 	mount -o remount,ro /boot
 fi
 
-# Start renaming interfaces and launching hostapd APs:
-MT=($(lspci | grep MEDIATEK | grep -v bridge))
-PCI=${MT[0]}
-MDL=${MT[-1]}
-if [[ ! -z "${PCI}" ]]; then
-	cd /sys/class/net
-	IFACES=($(ls -l | grep "${PCI}" | awk '{print $9}' | grep -v "^mt${MDL}_"))
-	for IFACE in ${IFACES[@]}; do
-		# Is this the interface with the DBDC setting?  YES -> "mt7615_24g".  NO -> "mt7615_5g".
-		NEW=mt${MDL}_24g
-		[[ ! -f /sys/kernel/debug/ieee80211/$(basename $(ls -l ${IFACE}/phy80211 | awk '{print $NF}'))/mt76/dbdc ]] && NEW=mt${MDL}_5g
+# Rename wireless interfaces according to their physical index number.
+# Ex: Wireless interface with physical index number 1 would be named "wradio1".
+for DIR in $(ls /sys/class/net | grep -v "^wradio" | grep -v "^ap"); do
+	if [[ -f ${DIR}/phy80211/index ]]; then
+		IFACE=$(basename $DIR)
+		INDEX=$(cat ${DIR}/phy80211/index)
+		NEW=wradio${INDEX}
+
+		# If DNSMASQ configuration exists for this interface, get the IP address assigned.
+		# Otherwise, create a default DNSMASQ configuration for the interface:
+		FILE=/etc/dnsmasq.d/${NEW}.conf
+		if [[ ! -f ${FILE} ]]; then
+			IP_ADDR=192.168.$((10 + ${INDEX} ))
+			echo "interface=${NEW}" > ${FILE}
+			echo "dhcp-range=${NEW},${IP_ADDR}.100,${IP_ADDR}.150,255.255.255.0,48h" >> ${FILE}
+			echo "dhcp-option=${NEW},3,${IP_ADDR}.1" >> ${FILE}
+		else
+			IP_ADDR=$(cat ${FILE} | grep dhcp-option | cut -d, -f 3)
+		fi
+
+		# Rename the interface and bring the interface up:
+		ip link set ${IFACE} down
+		ip link set ${IFACE} name ${NEW}
+		ip link set ${NEW} up
+		ip addr add ${IP_ADDR}.1/24 dev ${NEW}
 
 		# Change interface's password if it is "bananapi", and launch hostapd AP on that interface:
 		if [[ -f /etc/hostapd/${NEW}.conf ]]; then
@@ -33,11 +47,6 @@ if [[ ! -z "${PCI}" ]]; then
 				sed -i "s|wpa_passphrase=.*|wpa_passphrase=${WIFI_PASS}|g" /etc/hostapd/${NEW}.conf
 			fi
 		fi
-
-		# Rename the interface and bring the interface up:
-		ip link set ${IFACE} down
-		ip link set ${IFACE} name ${NEW}
-		ip link set ${NEW} up
-	done
-fi
+	fi
+done
 exit 0
