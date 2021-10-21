@@ -13,6 +13,7 @@ $sidebar_menu = array(
 #		'firewall' => menu_link('/setup/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
 		'wired'    => menu_link('/setup/lan', 'Network Setup', 'fas fa-ethernet'),
 #		'wireless' => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
+		'routing'  => menu_link('/setup/routing', 'Advanced Routing', 'fas fa-route'),
 	)),
 	'storage'    => array('Storage', 'fas fa-hdd', array(
 #		'basic'    => menu_link('/storage/usb-basic', 'Basic Settings', 'fab fa-usb'),

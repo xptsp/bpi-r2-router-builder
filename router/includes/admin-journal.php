@@ -34,7 +34,7 @@ echo '
 <div class="col-12 col-sm-12">
 	<div class="card card-tabs card-primary">
 		<div class="card-header">
-			<h3 class="card-title">Kernel Logs</h3>
+			<h3 class="card-title">Journal Logs</h3>
         </div>
         <div class="card p-0 pt-1">
 			<div class="card-header">

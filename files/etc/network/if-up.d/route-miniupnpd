@@ -1,0 +1,4 @@
+#!/bin/sh
+if [ "$IFACE" = "br0" ]; then
+	ip route add 239.0.0.0/8 dev br0
+fi

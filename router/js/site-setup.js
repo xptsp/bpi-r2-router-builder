@@ -355,3 +355,27 @@ function LAN_Error(msg)
 	$("#dhcp_error_msg").html(msg);
 	$("#dhcp_error_box").removeClass("hidden");
 }
+
+//======================================================================================================
+// Javascript functions for "Setup / Advanced Routing"
+//======================================================================================================
+function Init_Routing()
+{
+	$('.ip_address').inputmask("ip");
+	$("#routing-refresh").click(Routing_Refresh);
+	Routing_Refresh();
+}
+
+function Routing_Refresh()
+{
+	postdata = {
+		'sid':      SID,
+		'action':   'show'
+	};
+	$("#routing-table").html('<tr><td colspan="9"><center>Loading...</center></td></tr>');
+	$.post("/ajax/setup/routing?sid=" + SID, postdata, function(data) {
+		$("#routing-table").html(data);
+	}).fail(function() {
+		$("#routing-table").html('<td colspan="9"><center>AJAX call failed!</center></td>');
+	});
+}
