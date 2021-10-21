@@ -290,10 +290,23 @@ function Updates_Debian_Pull()
 function Init_Logs(pages)
 {
 	MaxPages=pages;
+	$("#pages .pagelink").on("click", function() {
+		Logs_Page( $(this).text() );
+	});
+	$("#pages .page_prev").on("click", function() {
+		Logs_Page( Math.max(1, parseInt($("#pages .active").text()) - 1) );
+	});
+	$("#pages .page_next").on("click", function() {
+		Logs_Page( Math.min(parseInt($("#pages .active").text()) + 1, MaxPages) );
+	});
+	$("#pages .page_first").on("click", function() {
+		Logs_Page( 1 );
+	});
+	$("#pages .page_last").on("click", function() {
+		Logs_Page( MaxPages );
+	});
 	$("#search").on("propertychange input", Logs_Filter);
-	$("#pages").on("click", ".pagelink", Logs_Page);
-	$("#pages").on("click", ".pageprev", Logs_Prev);
-	$("#pages").on("click", ".pagenext", Logs_Next);
+	Logs_Page(1);
 }
 
 function Logs_Filter()
@@ -312,31 +325,21 @@ function Logs_Filter()
 	}
 }
 
-function Logs_Page()
+function Logs_Page(page)
 {
-	page = $(this).text();
+	// Show only the page that we have selected:
 	$(".everything").addClass("hidden");
 	$("#lines .page_" + page).removeClass("hidden");
 	$("#pages .active").removeClass("active");
 	$("#pages .pagelink_" + page).addClass("active");
-}
 
-function Logs_Prev()
-{
-	page = Math.max(1, parseInt($("#pages .active").text()) - 1);
-	$(".everything").addClass("hidden");
-	$("#lines .page_" + page).removeClass("hidden");
-	$("#pages .active").removeClass("active");
-	$("#pages .pagelink_" + page).addClass("active");
-}
-
-function Logs_Next()
-{
-	page = Math.min(parseInt($("#pages .active").text()) + 1, MaxPages);
-	$(".everything").addClass("hidden");
-	$("#lines .page_" + page).removeClass("hidden");
-	$("#pages .active").removeClass("active");
-	$("#pages .pagelink_" + page).addClass("active");
+	// Show only 10 pages in the pagination element:
+	min = Math.max( 1, page - 5);
+	max = Math.min( MaxPages, min + 9 );
+	min = Math.min( min, max - 9 );
+	$("#pages .pagelink").addClass("hidden");
+	for (let i = min; i <= max; i++)
+		$("#pages .pagelink_" + i).removeClass("hidden");
 }
 
 //======================================================================================================

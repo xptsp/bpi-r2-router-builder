@@ -3,7 +3,7 @@
 # Divide the program output into pages of specified number of lines:
 $lines = "";
 $per_page = 50;
-foreach (explode("\n", trim(@shell_exec('dmesg'))) as $num => $line)
+foreach (explode("\n", trim(@shell_exec('journalctl'))) as $num => $line)
 {
 	$pages = floor(($num + $per_page) / $per_page);
 	$lines .= '<div class="everything page_' . $pages . ($pages > 1 ? ' hidden' : '') . '" id="dmesg-' . $num . '">' . htmlspecialchars($line) . "\n" . '</div>';
