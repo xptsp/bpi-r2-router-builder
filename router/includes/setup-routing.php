@@ -23,6 +23,10 @@ echo '
 		<h3 class="card-title">Advanced Routing</h3>
 	</div>
 	<div class="card-body">
+		<div class="alert alert-danger hidden" id="dhcp_error_box">
+			<a href="javascript:void(0);"><button type="button" class="close" id="dhcp_error_close">&times;</button></a>
+			<i class="fas fa-ban"></i>&nbsp;<span id="dhcp_error_msg" />
+		</div>
 		<h5 class="dhcp_div">
 			<a href="javascript:void(0);"><button type="button" id="routing-refresh" class="btn btn-sm btn-primary float-right">Refresh</button></a>
 			Routing Table
@@ -30,7 +34,7 @@ echo '
 		<div class="table-responsive p-0 dhcp_div">
 			<table class="table table-hover text-nowrap table-sm table-striped">' . thead() . '
 				<tbody id="routing-table">
-					<tr><td colspan="9"><center>Loading...</center></td></tr>
+					<tr><td colspan="6"><center>Loading...</center></td></tr>
 				</tbody>
 			</table>
 		</div>
@@ -45,7 +49,7 @@ echo '
 						<td><input id="gate_addr" type="text" class="ip_address form-control" value="0.0.0.0" /></td>
 						<td><input id="metric" class="form-control" value="0" /></td>
 						<td colspan="2">
-							<select class="custom-select" id="dhcp_units">';
+							<select class="custom-select" id="iface">';
 foreach (get_network_adapters() as $iface => $ignore)
 {
 	if ($iface != "eth0" && $iface != "lo" && $iface != "sit0")

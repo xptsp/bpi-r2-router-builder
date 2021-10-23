@@ -272,7 +272,6 @@ function LAN_Reservation_Remove()
 function LAN_Reservation_Add()
 {
 	// Assemble the post data for the AJAX call:
-	line = $(this).parent();
 	postdata = {
 		'sid':      SID,
 		'action':   'check',
@@ -328,7 +327,6 @@ function LAN_Reservation_Confirmed()
 	$("#confirm-modal").modal("hide");
 
 	// Assemble the post data for the AJAX call:
-	line = $(this).parent();
 	postdata = {
 		'sid':      SID,
 		'action':   'add',
@@ -362,8 +360,9 @@ function LAN_Error(msg)
 function Init_Routing()
 {
 	$('.ip_address').inputmask("ip");
-	$("#routing-refresh").click(Routing_Refresh);
-	Routing_Refresh();
+	$("#dest_addr").focus();
+	$("#routing-refresh").click(Routing_Refresh).click();
+	$("#add_route").click(Routing_Add);
 }
 
 function Routing_Refresh()
@@ -372,10 +371,61 @@ function Routing_Refresh()
 		'sid':      SID,
 		'action':   'show'
 	};
-	$("#routing-table").html('<tr><td colspan="9"><center>Loading...</center></td></tr>');
-	$.post("/ajax/setup/routing?sid=" + SID, postdata, function(data) {
+	$.post("/ajax/setup/routing", postdata, function(data) {
 		$("#routing-table").html(data);
+		$(".fa-trash-alt").click(Routing_Delete);
 	}).fail(function() {
-		$("#routing-table").html('<td colspan="9"><center>AJAX call failed!</center></td>');
+		$("#routing-table").html('<td colspan="6"><center>AJAX call failed!</center></td>');
+	});
+}
+
+function Routing_Delete()
+{
+	// Assemble the post data for the AJAX call:
+	line = $(this).parent().parent().parent().parent().parent();
+	postdata = {
+		'sid':       SID,
+		'action':    'delete',
+		'dest_addr': line.find(".dest_addr").html(),
+		'mask_addr': line.find(".mask_addr").html(),
+		'gate_addr': line.find(".gate_addr").html(),
+		'metric':    line.find(".metric").html(),
+		'iface':     line.find(".iface").html(),
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to add the IP reservation:
+	$.post("/ajax/setup/routing", postdata, function(data) {
+		if (data.trim() == "OK")
+			LAN_Refresh_Reservations();
+		else
+			LAN_Error(data);
+	}).fail(function() {
+		LAN_Error("AJAX call failed!");
+	});
+}
+
+function Routing_Add()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':       SID,
+		'action':    'add',
+		'dest_addr': $("#dest_addr").val(),
+		'mask_addr': $("#mask_addr").val(),
+		'gate_addr': $("#gate_addr").val(),
+		'metric':    $("#metric").val(),
+		'iface':     $("#iface").val(),
+	};
+	alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to add the IP reservation:
+	$.post("/ajax/setup/routing", postdata, function(data) {
+		if (data.trim() == "OK")
+			LAN_Refresh_Reservations();
+		else
+			LAN_Error(data);
+	}).fail(function() {
+		LAN_Error("AJAX call failed!");
 	});
 }

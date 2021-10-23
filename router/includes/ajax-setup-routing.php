@@ -21,17 +21,21 @@ if ($_POST['action'] == 'show')
 {
 	$routes = $out = array();
 	$delete = '<center><a href="javascript:void(0);"><i class="far fa-trash-alt"></i></a></center>';
-	foreach (explode("\n", trim(@shell_exec("route -n | grep -v Kernel | grep -v Destination"))) as $line)
+	foreach (explode("\n", trim(@shell_exec("route | grep -v Kernel | grep -v Destination"))) as $line)
 	{
-		$arr = explode(" ", preg_replace('/\s+/', ' ', $line));
-		if (empty($routes[$arr[7]]))
-			$routes[$arr[7]] = trim(@file_get_contents("/etc/network/if-up.d/" . $arr[7] . "-route"));
-		$found = strpos($routes[$arr[7]], ip_range_cmd($arr[0], $arr[2], $arr[1], $arr[7], $arr[4]));
-		$out[] = array($arr[0], $arr[2], $arr[1], $arr[4], $arr[7], $found ? $delete : '');
+		$a = explode(" ", preg_replace('/\s+/', ' ', $line));
+		if (empty($routes[$a[7]]))
+			$routes[$a[7]] = trim(@file_get_contents("/etc/network/if-up.d/" . $a[7] . "-route"));
+		echo 
+			'<tr>',
+				'<td class="dest_addr">', $a[0], '</td>',
+				'<td class="mask_addr">', $a[2], '</td>',
+				'<td class="gate_addr">', $a[1], '</td>',
+				'<td class="metric">', $a[4], '</td>',
+				'<td class="iface">', $a[7], '</td>',
+				'<td>', strpos($routes[$a[7]], ip_range_cmd($a[0], $a[2], $a[1], $a[7], $a[4])) ? $delete : '', '</td>',
+			'</tr>';
 	}
-
-	foreach ($out as $arr)
-		echo "<tr><td>" . implode("</td><td>", $arr) . "</td></tr>";
 }
 ###################################################################################################
 # ACTION: Anything else ==> Return error message

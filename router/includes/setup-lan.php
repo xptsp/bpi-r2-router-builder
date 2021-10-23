@@ -305,8 +305,9 @@ echo '
 			<div class="modal-body table-responsive">
 				<div class="alert alert-danger hidden" id="dhcp_error_box">
 					<a href="javascript:void(0);"><button type="button" class="close" id="dhcp_error_close">&times;</button></a>
-					<i class="fas fa-ban"></i>&nbsp;<span id="dhcp_error_msg" /></div>
-                <table class="table table-sm table-head-fixed text-nowrap table-striped">
+					<i class="fas fa-ban"></i>&nbsp;<span id="dhcp_error_msg" />
+				</div>
+				<table class="table table-sm table-head-fixed text-nowrap table-striped">
 					<thead>
 						<tr>
 							<th width="30%">Enter Client Name</th>
