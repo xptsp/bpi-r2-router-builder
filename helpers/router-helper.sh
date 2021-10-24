@@ -163,7 +163,7 @@ case $CMD in
 			echo "Overlay Root script ${TXT} for next reboot!"
 		elif [[ "$1" == "status" ]]; then
 			STAT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "^bootmenu_default=2" >& /dev/null && echo "enabled" || echo "disabled")
-			IN_USE=$(mount | grep " /ro " || echo "not ")
+			IN_USE=$(mount | grep " /ro " >& /dev/null || echo " not")
 			echo "Overlay Root script is ${STAT} for next boot, currently${IN_USE} active."
 		else
 			echo "SYNTAX: $(basename $0) overlay [enable|disable|status]"
@@ -383,6 +383,20 @@ case $CMD in
 			fi
 		done
 		echo "OK"
+		;;
+
+	###########################################################################
+	route)
+		if [[ "$1" == "move" ]]; then
+			if ! test -f /tmp/$2; then echo "ERROR: Specified file does not exist!"; exit; fi
+			chown root:root /tmp/$2
+			chmod 755 /tmp/$2
+			mv /tmp/$1 /etc/network/if-up.d/$2
+			echo 'OK'
+		else if [[ "$1" == "add" || "$1" == "del" ]]; then
+			ip route $@
+			echo 'OK'
+		fi
 		;;
 
 	###########################################################################

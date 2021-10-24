@@ -6,12 +6,37 @@ if (empty($_POST['action']) || !isset($_POST['sid']) || $_POST['sid'] != $_SESSI
 }
 
 ###################################################################################################
-# Supporting function:
+# Supporting functions:
 ###################################################################################################
 function ip_range_cmd($dest_addr, $mask_addr, $gate_addr, $dev, $metric)
 {
 	$mask = $mask_addr == "0.0.0.0" ? 0 : 32-log(( ip2long($mask_addr) ^ ip2long('255.255.255.255') ) + 1, 2);
 	return "ip route add " . $dest_addr . "/" . $mask . " via " . $gate_addr . " dev " . $dev . " metric " . $metric;
+}
+
+function validate_params()
+{
+	$_POST['dest_addr'] = isset($_POST['dest_addr']) ? $_POST['dest_addr'] : '';
+	if (!filter_var($_POST['dest_addr'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
+		die('[DEST_ADDR] ERROR: "' . $_POST['dest_addr'] . '" is an invalid IPv4 address!');
+
+	$_POST['mask_addr'] = isset($_POST['mask_addr']) ? $_POST['mask_addr'] : '';
+	if (!filter_var($_POST['dest_addr'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
+		die('[MASK_ADDR] ERROR: "' . $_POST['mask_addr'] . '" is an invalid IPv4 address!');
+
+	$_POST['gate_addr'] = isset($_POST['gate_addr']) ? $_POST['gate_addr'] : '';
+	if (!filter_var($_POST['gate_addr'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
+		die('[GATE_ADDR] ERROR: "' . $_POST['gate_addr'] . '" is an invalid IPv4 address!');
+
+	$_POST['metric'] = isset($_POST['metric']) ? intval($_POST['metric']) : -1;
+	if ($_POST['metric'] < 0 || $_POST['metric'] > 9999)
+		die('[METRIC] ERROR: "' . $_POST['metric'] . '" is outside allowed range (0-9999)!');
+
+	$_POST['iface'] = isset($_POST['iface']) ? $_POST['iface'] : '';
+	if (empty($_POST['iface']) || !file_exists("/sys/class/net/" . $_POST['iface']))
+		die('[IFACE] ERROR: "' . $_POST['iface'] . '" is not a valid network interface!');
+
+	return ip_range_cmd($_POST['dest_addr'], $_POST['mask_addr'], $_POST['gate_addr'], $_POST['iface'], $_POST['metric']);
 }
 
 ###################################################################################################
@@ -36,6 +61,37 @@ if ($_POST['action'] == 'show')
 				'<td>', strpos($routes[$a[7]], ip_range_cmd($a[0], $a[2], $a[1], $a[7], $a[4])) ? $delete : '', '</td>',
 			'</tr>';
 	}
+}
+###################################################################################################
+# ACTION: DELETE ==> Remove specified ip routing from the system configuration:
+###################################################################################################
+else if ($_POST['action'] == 'delete')
+{
+	$out = validate_params();
+	if (!file_exists('/etc/network/if-up.d/' . $_POST['iface'] . '-route'))
+		die('ERROR: Post-up script does not exist for interface "' . $_POST['iface'] . '"!');
+	@shell_exec('cat /etc/network/if-up.d/' . $_POST['iface'] . '-route | grep -v "' . $out . '" > /tmp/' . $_POST['iface'] . '-route');
+	@shell_exec('/opt/bpi-r2-router-builder/router-helper.sh route move ' . $_POST['iface'] . '-route');
+	echo @shell_exec('/opt/bpi-r2-router-builder/router-helper.sh route ' . str_replace("ip route add", "del", $out));
+}
+###################################################################################################
+# ACTION: ADD ==> Add specified ip routing to the system configuration:
+###################################################################################################
+else if ($_POST['action'] == 'add')
+{
+	$out = validate_params();
+	if (!file_exists('/etc/network/if-up.d/' . $_POST['iface'] . '-route'))
+		$text = 'if [[ "${IFACE}" == "' . $_POST['iface'] . '" ]]; then' . "\n\t" . $out . "\nfi";
+	else
+	{
+		$text = @file_get_contents('/etc/network/if-up.d/' . $_POST['iface'] . '-route');
+		$text = str_replace("fi", "\t" . $out . "\nfi", $text);
+	}
+	$handle = fopen("/tmp/" . $_POST['iface'] . "-route", "w");
+	fwrite($handle, $text);
+	fclose($handle);
+	@shell_exec('/opt/bpi-r2-router-builder/router-helper.sh route move ' . $_POST['iface'] . '-route');
+	echo @shell_exec('/opt/bpi-r2-router-builder/router-helper.sh route ' . str_replace("ip route ", "", $out));
 }
 ###################################################################################################
 # ACTION: Anything else ==> Return error message

@@ -5,7 +5,6 @@ After=network-online.target
 
 [Service]
 Type=forking
-ExecStartPre=/sbin/route add -net 239.0.0.0 netmask 255.0.0.0 br0
 ExecStartPre=-/sbin/iptables -t nat -N MINIUPNPD
 ExecStartPre=/sbin/iptables -t nat -F MINIUPNPD
 ExecStartPre=-/sbin/iptables -N MINIUPNPD
@@ -13,7 +12,6 @@ ExecStartPre=/sbin/iptables -F MINIUPNPD
 ExecStartPre=-/sbin/ip6tables -N MINIUPNPD
 ExecStartPre=/sbin/ip6tables -F MINIUPNPD
 ExecStart=/usr/sbin/miniupnpd -f /etc/miniupnpd/miniupnpd.conf
-ExecStopPost=/sbin/route del -net 239.0.0.0 netmask 255.0.0.0 br0
 PrivateTmp=yes
 PIDFile=/run/miniupnpd.pid
 

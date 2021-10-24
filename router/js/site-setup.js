@@ -351,7 +351,12 @@ function LAN_Reservation_Confirmed()
 function LAN_Error(msg)
 {
 	$("#dhcp_error_msg").html(msg);
-	$("#dhcp_error_box").removeClass("hidden");
+	$("#dhcp_error_box").slideDown(400, function() {
+		timer = setInterval(function() {
+			$("#dhcp_error_box").slideUp();
+			clearInterval(timer);
+		}, 5000);
+	});
 }
 
 //======================================================================================================
@@ -382,7 +387,7 @@ function Routing_Refresh()
 function Routing_Delete()
 {
 	// Assemble the post data for the AJAX call:
-	line = $(this).parent().parent().parent().parent().parent();
+	line = $(this).parent().parent().parent().parent();
 	postdata = {
 		'sid':       SID,
 		'action':    'delete',
@@ -417,7 +422,7 @@ function Routing_Add()
 		'metric':    $("#metric").val(),
 		'iface':     $("#iface").val(),
 	};
-	alert(JSON.stringify(postdata, null, 5)); return;
+	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to add the IP reservation:
 	$.post("/ajax/setup/routing", postdata, function(data) {
