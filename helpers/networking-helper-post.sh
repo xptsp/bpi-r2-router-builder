@@ -32,6 +32,7 @@ for DIR in $(ls | grep -v "^wradio" | grep -v "^ap"); do
 			echo "interface=${NEW}" > ${FILE}
 			echo "dhcp-range=${NEW},${IP_ADDR}.100,${IP_ADDR}.150,255.255.255.0,48h" >> ${FILE}
 			echo "dhcp-option=${NEW},3,${IP_ADDR}.1" >> ${FILE}
+			IP_ADDR=${IP_ADDR}.1
 		else
 			IP_ADDR=$(cat ${FILE} | grep dhcp-option | cut -d, -f 3)
 		fi
@@ -40,7 +41,7 @@ for DIR in $(ls | grep -v "^wradio" | grep -v "^ap"); do
 		ip link set ${IFACE} down
 		ip link set ${IFACE} name ${NEW}
 		ip link set ${NEW} up
-		ip addr add ${IP_ADDR}.1/24 dev ${NEW}
+		ip addr add ${IP_ADDR}/24 dev ${NEW}
 
 		# Change interface's password if it is "bananapi", and launch hostapd AP on that interface:
 		if [[ -f /etc/hostapd/${NEW}.conf ]]; then

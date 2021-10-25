@@ -4,7 +4,7 @@ Before=networking.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/wifi.sh
+ExecStart=/opt/bpi-r2-router-builder/helpers/onboard-wifi.sh
 
 [Install]
 WantedBy=multi-user.target
