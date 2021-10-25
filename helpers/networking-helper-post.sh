@@ -28,7 +28,7 @@ for DIR in $(ls | grep -v "^wradio" | grep -v "^ap"); do
 		# Otherwise, create a default DNSMASQ configuration for the interface:
 		FILE=/etc/dnsmasq.d/${NEW}.conf
 		if [[ ! -f ${FILE} ]]; then
-			IP_ADDR=192.168.$((10 + ${INDEX} ))
+			IP_ADDR=192.168.$((20 + ${INDEX} ))
 			echo "interface=${NEW}" > ${FILE}
 			echo "dhcp-range=${NEW},${IP_ADDR}.100,${IP_ADDR}.150,255.255.255.0,48h" >> ${FILE}
 			echo "dhcp-option=${NEW},3,${IP_ADDR}.1" >> ${FILE}
