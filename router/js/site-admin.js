@@ -168,16 +168,14 @@ function Repo_Check()
 	elem = $(this).attr('id').split("_")[0];
 	Add_Overlay(elem + "_div");
 	$.post("/ajax/admin/repo", __postdata("check", elem), function(data) {
-		parts = data.split(":");
-		elem = parts[0];
-		data = parts[1];
-		Del_Overlay(elem + "_div");
-		valid = (data != "Invalid Data");
-		$("#" + elem + "_latest").html( (valid ? 'v' : '') + data );
-		if (valid && data > $("#" + elem + "_current").text())
+		data = JSON.parse(data);
+		Del_Overlay(data.elem + "_div");
+		valid = (data.time != "Invalid Data");
+		$("#" + data.elem + "_latest").html( (valid ? 'v' : '') + data.time );
+		if (valid && data.time > $("#" + data.elem + "_current").text())
 		{
-			$("#" + elem + "_check_div").addClass("hidden");
-			$("#" + elem + "_pull_div").removeClass("hidden");
+			$("#" + data.elem + "_check_div").addClass("hidden");
+			$("#" + data.elem + "_pull_div").removeClass("hidden");
 		}
 	}).fail( function() {
 		Del_Overlay(elem + "_div");

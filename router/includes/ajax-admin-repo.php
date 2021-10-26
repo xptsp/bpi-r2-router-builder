@@ -20,7 +20,10 @@ $misc = isset($match[$_POST['misc']]) ? $match[$_POST['misc']] : $_POST['misc'];
 if ($_POST['action'] == 'check')
 {
 	$time = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git remote ' . $misc));
-	echo $_POST['misc'], ':', ($time ? date('Y.md.Hi', $time) : 'Invalid Data');
+	echo  json_encode(array(
+		'elem' => $_POST['misc'],
+		'time' => $time ? date('Y.md.Hi', $time) : 'Invalid Data',
+	));
 }
 #################################################################################################
 # ACTION: PULL => Updates to the current version of the specified repo:
