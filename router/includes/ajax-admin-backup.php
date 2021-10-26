@@ -1,15 +1,14 @@
 <?php
-$mode = isset($_POST['restore_type']) ? $_POST['restore_type'] : 'fail';
-if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'] || !in_array($mode, array('file', 'factory', 'upload')))
+if (!isset($_POST['action']) || !isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
 {
 	require_once("404.php");
 	exit;
 }
 
 ####################################################################################
-# If this is a settings upload, then verify the contents of the upload:
+# ACTION: UPLOAD ==> Verify the contents of the upload:
 ####################################################################################
-if ($mode == "upload")
+if ($_POST['action'] == "upload")
 {
 	if (!isset($_FILES['file']['name']))
 		echo "ERROR: No file specified!";
@@ -24,15 +23,22 @@ if ($mode == "upload")
 			echo "ERROR: File move failed";
 	}
 }
-
 ####################################################################################
-# If this is a factory restore, signal a reformat is needed and return to caller:
+# ACTION: FACTORY ==> Signal a reformat is needed and return to caller:
 ####################################################################################
-else if ($mode == "factory")
+else if ($_POST['action'] == "factory")
+{
 	echo explode("\n", trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh reformat -y")))[0];
-
+}
 ####################################################################################
-# Otherwise, we process the uploaded file:
+# ACTION: FILE ==> Process the uploaded file:
+####################################################################################
+else if ($_POST['action'] == 'file')
+{
+	echo trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup restore"));
+}
+####################################################################################
+# ACTION: Anything else ==> Return "Unknown action"
 ####################################################################################
 else
-	echo trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup restore"));
+	die("ERROR: Unknown action!");

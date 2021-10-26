@@ -332,7 +332,7 @@ function Restore_File()
 	var postdata = new FormData();
 	postdata.append('sid', SID);
 	postdata.append('file', $('#restore_file')[0].files[0]);
-	postdata.append('restore_type', 'upload');
+	postdata.append('action', 'upload');
 	$.ajax({
 		url: '/ajax/admin/backup',
 		type: 'post',
@@ -362,17 +362,12 @@ function Restore_Alert(msg)
 	$("#reboot-modal").modal("hide");
 	$("#error_msg").html(msg);
 	$("#error-modal").modal("show");
-	return false;
 }
 
 function Restore_Confirm()
 {
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid': SID,
-		'restore_type': restore_type
-	};
-	$.post("/ajax/admin/backup", postdata, function(data) {
+	// Make the AJAX call to confirm restoration:
+	$.post("/ajax/admin/backup", __postdata(restore_type), function(data) {
 		if (data.indexOf("ERROR:") > -1)
 			Restore_Alert(data);
 		else
