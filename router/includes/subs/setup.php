@@ -47,4 +47,4 @@ function get_invalid_adapters($iface)
 	}
 	return $arr;
 }
-	
+

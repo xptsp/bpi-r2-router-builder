@@ -49,7 +49,7 @@ if (!filter_var($_POST['mac'], FILTER_VALIDATE_MAC))
 #################################################################################################
 # Output the network adapter configuration to the "/tmp" directory:
 #################################################################################################
-$text = 
+$text =
 'auto wan
 iface wan inet ' . (empty($_POST['static']) ? 'dhcp' : 'static
     address ' . $_POST['ip_addr'] . '

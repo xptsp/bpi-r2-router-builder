@@ -190,14 +190,11 @@ case $CMD in
 		elif [[ "$1" == "username" ]]; then
 			[[ -z "${2}" ]] && echo "Username not specified" && exit 1
 			usermod -l $2 $(cat /etc/passwd | grep ":1000:" | cut -d: -f1) && echo "Success"
+		elif [[ "$1" == "safety-check" ]]; then
+			[[ "$($0 login check $($0 login webui) bananapi)" == "Match" ]] && echo "Default"
+			[[ "$($0 login check root bananapi)" == "Match" ]] && echo "Root"
+			mount | grep -e "[emergency|tmp]-root-rw on /rw " >& /dev/null && echo "Temp"
 		fi
-		;;
-
-	###########################################################################
-	security-check)
-		[[ "$($0 login check $($0 login webui) bananapi)" == "Match" ]] && echo "Default"
-		[[ "$($0 login check root bananapi)" == "Match" ]] && echo "Root"
-		mount | grep -e "[emergency|tmp]-root-rw on /rw " >& /dev/null && echo "Temp"
 		;;
 
 	###########################################################################
@@ -393,7 +390,7 @@ case $CMD in
 			chmod 755 /tmp/$2
 			mv /tmp/$1 /etc/network/if-up.d/$2
 			echo 'OK'
-		else if [[ "$1" == "add" || "$1" == "del" ]]; then
+		elif [[ "$1" == "add" || "$1" == "del" ]]; then
 			ip route $@
 			echo 'OK'
 		fi

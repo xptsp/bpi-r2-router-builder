@@ -60,7 +60,7 @@ foreach (get_network_adapters() as $iface => $bridged)
 		$nickname = isset($bridged['nickname']) ? $bridged['nickname'] : $iface;
 		$table[$nickname] = $s;
 	}
-}	
+}
 
 #########################################################################################
 # Main code

@@ -51,7 +51,7 @@ if ($_POST['action'] == 'show')
 		$a = explode(" ", preg_replace('/\s+/', ' ', $line));
 		if (empty($routes[$a[7]]))
 			$routes[$a[7]] = trim(@file_get_contents("/etc/network/if-up.d/" . $a[7] . "-route"));
-		echo 
+		echo
 			'<tr>',
 				'<td class="dest_addr">', $a[0], '</td>',
 				'<td class="mask_addr">', $a[2], '</td>',

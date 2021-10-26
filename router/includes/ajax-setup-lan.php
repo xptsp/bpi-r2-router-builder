@@ -78,7 +78,7 @@ if (!empty($_POST['use_dhcp']))
 $bridged = explode(" ", trim($_POST['bridge']));
 if (empty($bridged))
 	die("[BRIDGE] ERROR: No interfaces specified in bridge configuration!");
-$text = 
+$text =
 'allow-hotplug {iface}
 auto {iface}
 iface {iface} inet manual';
@@ -100,7 +100,7 @@ else if (substr($_POST['iface'], 0, 2) == "br")
 #################################################################################################
 # Output the network adapter configuration to the "/tmp" directory:
 #################################################################################################
-$text = 
+$text =
 'auto ' . $_POST['iface'] . '
 iface ' . $_POST['iface'] . ' inet static
     address ' . $_POST['ip_addr'] . '

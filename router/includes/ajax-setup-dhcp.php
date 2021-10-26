@@ -27,7 +27,7 @@ foreach (explode("\n", @file_get_contents("/etc/dnsmasq.d/" . $iface . ".conf"))
 				$arr['mac'] = strtoupper($part);
 			else if ($part != $iface)
 				$arr['host'] = $part;
-		}		
+		}
 		$reserve[$arr['ip']] = $reserve[$arr['mac']] = $arr;
 		$reserve[$arr['mac']]['hide'] = true;
 	}

@@ -203,7 +203,7 @@ function LAN_Refresh_Leases()
 
 	// Perform our AJAX request to refresh the LAN leases:
 	$("#clients-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
-	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
+	$.post("/ajax/setup/dhcp", postdata, function(data) {
 		$("#clients-table").html(data);
 		$(".reservation-option").click(function() {
 			line = $(this).parent();
@@ -227,7 +227,7 @@ function LAN_Refresh_Reservations()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	$("#reservations-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
-	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
+	$.post("/ajax/setup/dhcp", postdata, function(data) {
 		$("#reservation-modal").modal("hide");
 		$("#reservations-table").html(data);
 		$(".dhcp_edit").click(function() {
@@ -256,7 +256,7 @@ function LAN_Reservation_Remove()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to remove the IP reservation:
-	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
+	$.post("/ajax/setup/dhcp", postdata, function(data) {
 		if (data.trim() == "OK")
 		{
 			LAN_Refresh_Reservations();
@@ -291,7 +291,7 @@ function LAN_Reservation_Add()
 		return LAN_Error("No MAC address specified!");
 
 	// Perform our AJAX request to add the IP reservation:
-	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
+	$.post("/ajax/setup/dhcp", postdata, function(data) {
 		if (data.trim() == "SAME")
 			LAN_Refresh_Reservations();
 		else if (data.trim() == "OK")
@@ -338,7 +338,7 @@ function LAN_Reservation_Confirmed()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to add the IP reservation:
-	$.post("/ajax/setup/lan/dhcp", postdata, function(data) {
+	$.post("/ajax/setup/dhcp", postdata, function(data) {
 		if (data.trim() == "OK")
 			LAN_Refresh_Reservations();
 		else

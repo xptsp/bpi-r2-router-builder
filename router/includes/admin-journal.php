@@ -19,7 +19,7 @@ if ($pages > 1)
 	$pagination .= '
 				<li class="page-item page_prev" id="prev"><span class="page-link">&laquo;</span></li>';
 	for ($page = 1; $page <= $pages; $page++)
-		$pagination .= ' 
+		$pagination .= '
 				<li class="page-item pagelink pagelink_' . $page . ($page == 1 ? ' active' : '') . ($page > 10 ? ' hidden' : '') . '"><span class="page-link">' . $page . '</span></li>';
 	$pagination .= '
 				<li class="page-item page_next" id="next"><span class="page-link">&raquo;</span></li>';

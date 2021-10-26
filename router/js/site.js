@@ -136,3 +136,27 @@ function Reboot_Confirmed()
 	Reboot_Message();
 	myTimer = setInterval(Reboot_Message, 1000);
 }
+
+function Add_Overlay(id)
+{
+	$("#" + id).append(
+		'<div class="overlay-wrapper" id="' + id + '_loading">' +
+			'<div class="overlay dark">' +
+				'<i class="fas fa-3x fa-sync-alt fa-spin"></i>' +
+			'</div>' +
+		'</div>');
+}	
+
+function Del_Overlay(id)
+{
+	$("#" + id + "_loading").remove();
+}
+
+function __postdata(action, misc = '')
+{
+	return {
+		'sid':    SID,
+		'action': action,
+		'misc': misc,
+	};
+}

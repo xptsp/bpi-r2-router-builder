@@ -13,7 +13,7 @@ function Init_Stats()
 
 function Stats_Update()
 {
-	$.getJSON("/ajax/admin/status?sid=" + SID, function(data) {
+	$.post("/ajax/admin/status", __postdata("status"), function(data) {
 		if ($("#connection_type").html() == "DHCP")
 		{
 			$("#dhcp_server").html( data.dhcp_server );
@@ -48,7 +48,7 @@ function Stats_Power_Button()
 
 function Stats_Network_Get()
 {
-	$.get("/ajax/admin/network?sid=" + SID, function(data) {
+	$.post("/ajax/admin/status", __postdata("network"), function(data) {
 		$("#stats_body").html(data);
 	}).fail(function() {
 		$("#stats_body").html("AJAX call failed");
@@ -126,7 +126,7 @@ function Creds_Password_Submit()
 		return Creds_Password_Fail("New password does not match Confirm Password!");
 
 	// Perform our AJAX request to change the password:
-	$.post("/ajax/admin/password", postdata, function(data) {
+	$.post("/ajax/admin/creds", postdata, function(data) {
 		if (data == "oldPass")
 			Creds_Password_Fail("Old Password cannot contain characters other than alphanumeric characters!");
 		else if (data == "newPass")
@@ -151,97 +151,64 @@ function Creds_Password_Submit()
 }
 
 //======================================================================================================
-// Javascript functions for "Admin / Router Updates"
+// Javascript functions for "Admin / Repository Updates"
 //======================================================================================================
-function Init_Updates()
+function Init_Repo()
 {
-	Updates_WebUI_Check();
-	Updates_RegDB_Check();
-	$("#webui_check").click(Updates_WebUI_Check);
-	$("#webui_pull").click(Updates_WebUI_Pull);
-	$("#regdb_check").click(Updates_RegDB_Check);
-	$("#regdb_pull").click(Updates_RegDB_Pull);
-	$("#apt_check").click(Updates_Debian_Check);
-	$("#apt_pull").click(Updates_Debian_Pull);
+	$(".check_repo").click(Repo_Check).click();
+	$(".pull_repo").click(Repo_Pull);
 }
 
-function Updates_Add_Overlay(id)
+function Repo_Check()
 {
-	$("#" + id).append(
-		'<div class="overlay-wrapper" id="' + id + '-loading">' +
-			'<div class="overlay dark">' +
-				'<i class="fas fa-3x fa-sync-alt fa-spin"></i>' +
-			'</div>' +
-		'</div>');
-}	
-
-function Updates_Del_Overlay(id)
-{
-	$("#" + id + "-loading").remove();
-}
-
-function Updates_WebUI_Check()
-{
-	Updates_Add_Overlay("webui-div");
-	$.getJSON("/ajax/admin/webui/check?sid=" + SID, function(data) {
-		Updates_Del_Overlay("webui-div");
-		$('#webui_latest').html( 'v' + data.webui_remote );
-		if (data.webui_remote > $("#webui_current").text())
+	elem = $(this).attr('id').split("_")[0];
+	Add_Overlay(elem + "_div");
+	$.post("/ajax/admin/repo", __postdata("check", elem), function(data) {
+		parts = data.split(":");
+		elem = parts[0];
+		data = parts[1];
+		Del_Overlay(elem + "_div");
+		valid = (data != "Invalid Data");
+		$("#" + elem + "_latest").html( (valid ? 'v' : '') + data );
+		if (valid && data > $("#" + elem + "_current").text())
 		{
-			$("#webui_check_div").addClass("hidden");
-			$("#webui_pull_div").removeClass("hidden");
+			$("#" + elem + "_check_div").addClass("hidden");
+			$("#" + elem + "_pull_div").removeClass("hidden");
 		}
 	}).fail( function() {
-		Updates_Del_Overlay("webui-div");
-		$('#webui_latest').html("AJAX Call Failed");
+		Del_Overlay(elem + "_div");
+		$("#" + elem + "_latest").html("AJAX Call Failed");
 	});
 }
 
-function Updates_WebUI_Pull()
+function Repo_Pull()
 {
-	Updates_Add_Overlay("webui-div");
-	$.get("/ajax/admin/webui/pull?sid=" + SID, function(data) {
+	elem = $(this).attr('id').split("_")[0];
+	Add_Overlay(elem + "_div");
+	$.post("/ajax/admin/repo", __postdata("pull", elem), function(data) {
 		document.location.reload(true);
 	}).fail( function() {
-		Updates_Del_Overlay("webui-div");
-		$('#regdb_latest').html("AJAX Call Failed");
+		Del_Overlay(elem + "_div");
+		$("#" + elem + "_latest").html("AJAX Call Failed");
 	});
 }
 
-function Updates_RegDB_Check()
+//======================================================================================================
+// Javascript functions for "Admin / Debian Updates"
+//======================================================================================================
+function Init_Debian()
 {
-	Updates_Add_Overlay("regdb-div");
-	$.getJSON("/ajax/admin/regdb/check?sid=" + SID, function(data) {
-		Updates_Del_Overlay("regdb-div");
-		$('#regdb_latest').html( 'v' + data.regdb_remote );
-		if (data.regdb_remote > $("#regdb_current").text())
-		{
-			$("#regdb_check_div").addClass("hidden");
-			$("#regdb_pull_div").removeClass("hidden");
-		}
-	}).fail( function() {
-		Updates_Del_Overlay("regdb-div");
-		$('#regdb_latest').html("AJAX Call Failed");
-	});
+	$("#apt_check").click(Debian_Check);
+	$("#apt_pull").click(Debian_Pull);
 }
 
-function Updates_RegDB_Pull()
+function Debian_Check()
 {
-	Updates_Add_Overlay("regdb-div");
-	$.get("/ajax/admin/regdb/pull?sid=" + SID, function(data) {
-		document.location.reload(true);
-	}).fail( function() {
-		Updates_Del_Overlay("regdb-div");
-		$('#regdb_latest').html("AJAX Call Failed");
-	});
-}
-
-function Updates_Debian_Check()
-{
-	Updates_Add_Overlay("debian-div");
-	$("#updates_avail").html("<i>Retrieving...</i>");
-	$.getJSON("/ajax/admin/debian/check?sid=" + SID, function(data) {
-		Updates_Del_Overlay("debian-div");
+	Add_Overlay("debian-div");
+	$("#Repo_avail").html("<i>Retrieving...</i>");
+	$.post("/ajax/admin/debian", __postdata('check'), function(data) {
+		alert(data); return;
+		Del_Overlay("debian-div");
 		$("#updates_avail").html( data.updates );
 		if (data.updates > 0)
 		{
@@ -251,12 +218,12 @@ function Updates_Debian_Check()
 			$("#updates_list").removeClass("hidden");
 		}
 	}).fail( function() {
-		Updates_Del_Overlay("debian-div");
+		Del_Overlay("debian-div");
 		$('#updates_avail').html("AJAX Call Failed");
 	});
 }
 
-function Updates_Debian_Pull()
+function Debian_Pull()
 {
 	$("#output_group").removeClass("hidden");
 	element = $("#output_div");
@@ -367,7 +334,7 @@ function Restore_File()
 	postdata.append('file', $('#restore_file')[0].files[0]);
 	postdata.append('restore_type', 'upload');
 	$.ajax({
-		url: '/ajax/admin/restore',
+		url: '/ajax/admin/backup',
 		type: 'post',
 		data: postdata,
 		contentType: false,
@@ -405,7 +372,7 @@ function Restore_Confirm()
 		'sid': SID,
 		'restore_type': restore_type
 	};
-	$.post("/ajax/admin/restore", postdata, function(data) {
+	$.post("/ajax/admin/backup", postdata, function(data) {
 		if (data.indexOf("ERROR:") > -1)
 			Restore_Alert(data);
 		else

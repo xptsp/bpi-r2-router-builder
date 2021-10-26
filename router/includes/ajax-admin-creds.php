@@ -1,10 +1,25 @@
 <?php
-if (!isset($_POST['sid']) || $_POST['sid'] != strrev(session_id()))
+####################################################################################
+# Supporting function:
+####################################################################################
+function word($file)
 {
-	require_once("404.php");
-	exit();
+	global $num;
+	$lines = file('/usr/share/dict/' . $file . '.list');
+	$max = count($lines);
+	$word = explode("'", trim(ucfirst( $lines[ rand(0, $max) ] )))[0];
+	return $word;
 }
 
+####################################################################################
+# If "SID" variable not specified, generate a new password:
+####################################################################################
+if (!isset($_GET['sid']) || $_GET['sid'] != $_SESSION['sid'])
+	die(echo word('adjectives') . word('animals') . strval(rand(0,100)));
+
+####################################################################################
+# Start validating the password parameters sent:
+####################################################################################
 $oldPass = isset($_POST['oldPass']) ? $_POST['oldPass'] : '';
 $newPass = isset($_POST['newPass']) ? $_POST['newPass'] : '';
 $conPass = isset($_POST['conPass']) ? $_POST['conPass'] : '';

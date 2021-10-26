@@ -25,7 +25,8 @@ $sidebar_menu = array(
 		'creds'    => menu_link('/admin/creds', 'Credentials', 'fas fa-user-edit'),
 		'kernel'   => menu_link('/admin/kernel', 'Kernel Logs', 'far fa-list-alt'),
 		'journal'  => menu_link('/admin/journal', 'Journal Logs', 'far fa-list-alt'),
-		'update'   => menu_link('/admin/update', 'Router Update', 'fab fa-linux'),
+		'repo'     => menu_link('/admin/repo', 'Repository Updates', 'fab fa-github'),
+		'debian'   => menu_link('/admin/debian', 'Debian Updates', 'fab fa-linux'),
 	)),
 	'plugins' => array('Plug-Ins', 'fas fa-puzzle-piece', array(
 	)),
@@ -41,11 +42,15 @@ if (isset($_SESSION['webui_version']) && isset($_SESSION['webui_version_last']) 
 }
 if (!isset($_SESSION['webui_version']))
 {
-	$_SESSION['webui_version'] = date('Y.md.Hi', (int) trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current')));
+	$time = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current'));
+	$_SESSION['webui_version'] = ($time == (int) $time ? date('Y.md.Hi', (int) $time) : "Invalid Data");
 	$_SESSION['webui_version_last'] = time() + 600;
 }
 if (!isset($_SESSION['regdb_version']))
-	$_SESSION['regdb_version'] = date('Y.md.Hi', (int) trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current wireless-regdb')));
+{
+	$time = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current wireless-regdb'));
+	$_SESSION['regdb_version'] = ($time == (int) $time ? date('Y.md.Hi', (int) $time) : "Invalid Data");
+}
 $webui_version = $_SESSION['webui_version'];
 
 # Get whether the router is operating on a temporary overlay in RAM:
@@ -99,7 +104,7 @@ function menu_link($url, $text, $icon = "far fa-circle", $login_required = false
 	if ($login_required && !$logged_in)
 		return '';
 	else
-		return 
+		return
 		'<li class="nav-item">' .
 			'<a href="' . $url . '" class="nav-link' . $active . '">' .
 				'<i class="nav-icon ' . $icon . '"></i>' .
@@ -118,7 +123,7 @@ function menu_submenu($text, $icon = "far fa-circle", $items = array(), $login_r
 	if (($login_required && !$logged_in) || empty($items))
 		return '';
 	else
-		return 
+		return
 		'<li class="nav-item' . (strrpos($items, 'class="nav-link active">') > 0 ? ' menu-open' : '') . '">' .
 			'<a href="#" class="nav-link' . (strrpos($items, 'class="nav-link active">') > 0 ? ' active' : '') . '">' .
 				'<i class="nav-icon ' . $icon . '"></i>' .
@@ -143,7 +148,7 @@ function menu_sep($text = '<hr />')
 function menu_log()
 {
 	global $logged_in;
-	return 
+	return
 		'<li class="nav-item">' .
 			'<a href="' . ($logged_in ? '/logout"' : '#" data-toggle="modal" data-target="#login-modal" id="menu_log" ') . ' class="nav-link" >' .
 				'<i class="nav-icon fas fa-sign-' . ($logged_in ? 'out' : 'in') . '-alt"></i>' .
@@ -228,7 +233,7 @@ echo '
 	echo '
 		<!-- Main content -->
 		<section class="content">';
-		
+
 	# Include the login box if we are not logged in yet:
 	if (!$logged_in)
 		echo '
@@ -304,7 +309,7 @@ function site_footer($init_str = '')
 	# Purge the output buffer if we aren't allowed to show anything:
 	if ($output_null)
 		ob_clean();
-		
+
 	# Start output the footer:
 	echo '
 		</section>
