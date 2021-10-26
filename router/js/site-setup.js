@@ -218,16 +218,8 @@ function LAN_Refresh_Leases()
 
 function LAN_Refresh_Reservations()
 {
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid':    SID,
-		'iface':  iface_used,
-		'action': 'reservations',
-	};
-	//alert(JSON.stringify(postdata, null, 5)); return;
-
 	$("#reservations-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
-	$.post("/ajax/setup/dhcp", postdata, function(data) {
+	$.post("/ajax/setup/dhcp", __postdata("reservations", iface_used), function(data) {
 		$("#reservation-modal").modal("hide");
 		$("#reservations-table").html(data);
 		$(".dhcp_edit").click(function() {
@@ -372,11 +364,7 @@ function Init_Routing()
 
 function Routing_Refresh()
 {
-	postdata = {
-		'sid':      SID,
-		'action':   'show'
-	};
-	$.post("/ajax/setup/routing", postdata, function(data) {
+	$.post("/ajax/setup/routing", __postdata("show"), function(data) {
 		$("#routing-table").html(data);
 		$(".fa-trash-alt").click(Routing_Delete);
 	}).fail(function() {

@@ -1,11 +1,11 @@
 <?php
-if (!isset($_POST['iface']) || !isset($_POST['action']) || !isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
+$iface = !isset($_POST['iface']) ? (isset($_POST['misc']) ? $_POST['misc'] : '') : $_POST['iface'];
+if (empty($iface) || !isset($_POST['action']) || !isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
 {
 	require_once("404.php");
 	exit();
 }
 require_once("subs/setup.php");
-$iface = $_POST['iface'];
 $reserve = $hostname = $leases = array();
 
 ###################################################################################################
