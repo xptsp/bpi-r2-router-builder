@@ -127,7 +127,7 @@ function Reboot_Message()
 function Reboot_Confirmed()
 {
 	mode = "";
-	$.get("/ajax/admin/reboot?sid=" + SID + mode);
+	$.get("/ajax/admin/status", __postdata("reboot"));
 	$("#reboot_control").addClass("hidden");
 	$("#reboot_close").addClass("hidden");
 	max_timer = 60;

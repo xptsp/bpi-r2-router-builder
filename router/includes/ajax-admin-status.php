@@ -62,25 +62,25 @@ if ($_POST['action'] == 'network')
 	{
 		if ($name != "eth0" && $name != "sit0" && $name != "lo")
 		{
-			$status = trim(@file_get_contents($SYS, $name, '/speed'));
+			$status = trim(@file_get_contents($SYS . $name . '/speed'));
 			if ($status == '-1' || empty($status))
 				$status = 'Link Down';
 			else
 			{
-				$status,= 'M';
-				$duplex = ucwords(trim(@file_get_contents($SYS, $name, '/duplex')));
+				$status .= 'M';
+				$duplex = ucwords(trim(@file_get_contents($SYS . $name . '/duplex')));
 				if ($duplex != 'Unknown')
-					$status,= '/', $duplex;
+					$status .= '/' . $duplex;
 			}
 			echo
 				'<tr>',
 					'<td>', $name, '</td>',
 					'<td>', $status, '</td>',
-					'<td><span class="float-right">', number_format((int) @file_get_contents($SYS, $name, '/statistics/tx_packets')), '</span></td>',
-					'<td><span class="float-right">', number_format((int) @file_get_contents($SYS, $name, '/statistics/rx_packets')), '</span></td>',
-					'<td><span class="float-right">', number_format((int) @file_get_contents($SYS, $name, '/statistics/collisions')), '</span></td>',
-					'<td><span class="float-right">', number_format((int) @file_get_contents($SYS, $name, '/statistics/tx_bytes') / 1024 / 1024, 2), ' MB</span></td>',
-					'<td><span class="float-right">', number_format((int) @file_get_contents($SYS, $name, '/statistics/rx_bytes') / 1024 / 1024, 2), ' MB</span></td>',
+					'<td><span class="float-right">', number_format((int) @file_get_contents($SYS . $name . '/statistics/tx_packets')), '</span></td>',
+					'<td><span class="float-right">', number_format((int) @file_get_contents($SYS . $name . '/statistics/rx_packets')), '</span></td>',
+					'<td><span class="float-right">', number_format((int) @file_get_contents($SYS . $name . '/statistics/collisions')), '</span></td>',
+					'<td><span class="float-right">', number_format((int) @file_get_contents($SYS . $name . '/statistics/tx_bytes') / 1024 / 1024, 2), ' MB</span></td>',
+					'<td><span class="float-right">', number_format((int) @file_get_contents($SYS . $name . '/statistics/rx_bytes') / 1024 / 1024, 2), ' MB</span></td>',
 				'</tr>';
 		}
 	}
