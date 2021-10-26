@@ -9,13 +9,14 @@ function Init_Stats()
 	$("#reboot_button").click(Stats_Reboot_Button);
 	$("#power_button").click(Stats_Power_Button);
 	$("#reboot_yes").click(Reboot_Confirmed);
+	$("#refresh_switch").bootstrapSwitch();
 }
 
 function Stats_Update()
 {
-	$.post("/ajax/admin/status", __postdata("status"), function(data) {
-		if ($("#connection_type").html() == "DHCP")
-		{
+	if ($("#connection_type").html() == "DHCP")
+	{
+		$.post("/ajax/admin/status", __postdata("status"), function(data) {
 			$("#dhcp_server").html( data.dhcp_server );
 			$("#dhcp_begin").html( data.dhcp_begin );
 			$("#dhcp_expire").html( data.dhcp_expire );
@@ -25,9 +26,12 @@ function Stats_Update()
 					Stats_Update();
 				}
 			}, data.dhcp_refresh + 60);
-		}
-	});
-	$("#refresh_switch").bootstrapSwitch();
+		}).fail(function() {
+			$("#dhcp_server").html('AJAX call failed');
+			$("#dhcp_begin").html('AJAX call failed');
+			$("#dhcp_expire").html('AJAX call failed');
+		});
+	}
 }
 
 function Stats_Reboot_Button()
@@ -207,7 +211,6 @@ function Debian_Check()
 	Add_Overlay("debian-div");
 	$("#Repo_avail").html("<i>Retrieving...</i>");
 	$.post("/ajax/admin/debian", __postdata('check'), function(data) {
-		alert(data); return;
 		Del_Overlay("debian-div");
 		$("#updates_avail").html( data.updates );
 		if (data.updates > 0)
