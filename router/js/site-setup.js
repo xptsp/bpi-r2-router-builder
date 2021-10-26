@@ -193,17 +193,9 @@ function LAN_Submit()
 
 function LAN_Refresh_Leases()
 {
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid':    SID,
-		'iface':  iface_used,
-		'action': 'clients',
-	};
-	//alert(JSON.stringify(postdata, null, 5)); return;
-
 	// Perform our AJAX request to refresh the LAN leases:
 	$("#clients-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
-	$.post("/ajax/setup/dhcp", postdata, function(data) {
+	$.post("/ajax/setup/dhcp", __postdata("clients", iface_used), function(data) {
 		$("#clients-table").html(data);
 		$(".reservation-option").click(function() {
 			line = $(this).parent();
@@ -218,6 +210,7 @@ function LAN_Refresh_Leases()
 
 function LAN_Refresh_Reservations()
 {
+	// Perform our AJAX request to refresh the reservations:
 	$("#reservations-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
 	$.post("/ajax/setup/dhcp", __postdata("reservations", iface_used), function(data) {
 		$("#reservation-modal").modal("hide");
