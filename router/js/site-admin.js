@@ -213,14 +213,13 @@ function Debian_Check()
 		$("#updates_avail").html( data.updates );
 		if (data.updates > 0)
 		{
-			$("#apt_check_div").addClass("hidden");
-			$("#apt_pull_div").removeClass("hidden");
+			$("#apt_check").addClass("hidden");
+			$("#apt_pull").removeClass("hidden");
 			$("#packages_div").html( data.list );
-			$("#updates_list").removeClass("hidden");
 		}
 	}).fail( function() {
 		Del_Overlay("debian-div");
-		$('#updates_avail').html("AJAX Call Failed");
+		$('#updates_avail').html('<tr><td colspan="4"><center>AJAX Call Failed</center></td></tr>');
 	});
 }
 

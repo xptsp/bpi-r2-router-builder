@@ -31,6 +31,7 @@ if ($_POST['action'] == 'check')
 			{
 				$table .=
 					'<tr>' .
+						'<td><input type="checkbox" checked="checked"></td>' .
 						'<td>' . explode("/", $tmp[0])[0] . '</td>' .
 						'<td>' . $tmp[1] . '</td>' .
 						'<td>' . explode(" ", str_replace(']', '', str_replace('[', '', $tmp[3])))[2] . '</td>' .

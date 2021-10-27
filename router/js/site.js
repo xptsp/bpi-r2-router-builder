@@ -76,8 +76,9 @@ function Login_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
-		'sid': SID,
-		'oldPass': $("#password").val(),
+		'sid':      SID,
+		'action':   'check',
+		'oldPass':  $("#password").val(),
 		'username': $("#username").val(),
 	};
 
@@ -92,7 +93,7 @@ function Login_Submit()
 	}
 
 	// Perform our AJAX request to change the password:
-	$.post("/ajax/password", postdata, function(data) {
+	$.post("/ajax/creds", postdata, function(data) {
 		if (data != "Successful" && data != "Match")
 		{
 			$("#login_div").removeClass("hidden").fadeIn("slow");
