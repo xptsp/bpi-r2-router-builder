@@ -82,7 +82,7 @@ else if ($_POST['action'] == 'pull')
 		$buffer = str_repeat(' ', 2048);
 		while ($s = fgets($pipes[1], 4096))
 		{
-			print $s . $buffer;
+			print trim($s) . $buffer;
 			flush();
 		}
 	}
