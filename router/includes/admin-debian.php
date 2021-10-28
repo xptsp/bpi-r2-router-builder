@@ -13,7 +13,7 @@ echo '
 			</div>
 			<!-- /.card-header -->
 			<div class="card-body table-responsive" id="debian-div">
-				<h2 class="card-title"><strong>Available Updates</strong></h2>
+				<h2 class="card-title"><strong>Available Updates</strong><span id="updates-available"></span></h2>
 				<table class="table table-striped table-bordered table-sm">
 					<thead>
 						<tr>
@@ -45,7 +45,7 @@ echo '
 	<div class="modal-dialog modal-xl">
 		<div class="modal-content">
 			<div class="modal-body">
-				<pre id="output_div"></pre>
+				<textarea id="output_div" class="form-control" rows="15" readonly="readonly"></textarea>
 			</div>
 			<div class="modal-footer justify-content-between">
 				<button type="button" id="modal-close" class="btn btn-primary disabled float-right">Close</button>

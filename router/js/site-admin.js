@@ -203,7 +203,8 @@ function Init_Debian()
 	$("#apt_check").click(Debian_Check);
 	$("#apt_pull").click(Debian_Pull);
 	$("#modal-close").click(function() {
-		$("#output-modal").hide();
+		if (!$(this).hasClass("disabled"))
+			$("#output-modal").modal('hide');
 	});
 }
 
@@ -213,6 +214,7 @@ function Debian_Check()
 	$("#Repo_avail").html("<i>Retrieving...</i>");
 	$.post("/ajax/admin/debian", __postdata('check'), function(data) {
 		Del_Overlay("debian-div");
+		$("#updates-available").html(": " + data.updates);
 		if (data.updates == 0)
 			$('#packages_div').html('<tr><td colspan="4"><center><strong>No Updates Available</strong></center></td></tr>');
 		else
@@ -237,9 +239,9 @@ function Debian_Pull()
 		dataType: 'text',
 		type: 'post',
 		contentType: 'application/x-www-form-urlencoded',
-		data: 'sid=' + SID + '&action=check',
+		data: 'sid=' + SID + '&action=pull',
 		success: function( data, textStatus, jQxhr ){
-			$("#modal-close").removeClass("hidden");
+			$("#modal-close").removeClass("disabled");
 		},
 //		error: function( jqXhr, textStatus, errorThrown ){
 //			console.log( errorThrown );
@@ -258,7 +260,7 @@ function Debian_Pull()
 					this_response = response.substring(last_response_len);
 					last_response_len = response.length;
 				}
-				element.append(this_response);
+				element.append(this_response.trim());
 				element.scrollTop = element.scrollHeight;
 			}
 		}

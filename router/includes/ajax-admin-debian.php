@@ -68,7 +68,7 @@ else if ($_POST['action'] == 'pull')
 		2 => array("pipe", "w")    // stderr is a pipe that the child will write to
 	);
 	flush();
-	$process = proc_open("/opt/bpi-r2-router-builder/helpers/router-helper.sh apt o Dpkg::Options::='--force-confold' --force-yes -fuy dist-upgrade", $descriptorspec, $pipes, realpath('./'), array());
+	$process = proc_open('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt upgrade', $descriptorspec, $pipes, realpath('./'), array());
 	if (is_resource($process))
 	{
 		$buffer = str_repeat(' ', 2048);
