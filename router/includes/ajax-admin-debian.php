@@ -4,6 +4,7 @@ if (!isset($_POST['action']) && !isset($_POST['sid']) || $_POST['sid'] != $_SESS
 	require_once("404.php");
 	exit();
 }
+set_time_limit(0);
 
 #################################################################################################
 # ACTION: CHECK => Returns the current version of the specified repo:
