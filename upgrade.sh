@@ -38,7 +38,7 @@ fi
 #####################################################################################
 # Copy files to the boot partition ONLY IF MOUNTED!
 #####################################################################################
-RW=($(mount | grep " /boot "))
+RW=($(mount | grep " /boot " 2> /dev/null))
 if [[ ! -z "${RW[5]}" ]]; then
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /boot
 	BOOTDEFAULT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "bootmenu_default=" | cut -d"=" -f 2)

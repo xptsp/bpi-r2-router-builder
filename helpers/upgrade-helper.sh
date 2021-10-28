@@ -145,9 +145,14 @@ for DEST in $(cat $TFL); do
 done
 
 #####################################################################################
+# Reload the system daemons:
+#####################################################################################
+systemctl daemon-reload
+
+#####################################################################################
 # Perform same operations in the read-only partition:
 #####################################################################################
-RW=($(mount | grep " /ro "))
+RW=($(mount | grep " /ro " 2> /dev/null))
 if [[ ! -z "${RW[5]}" ]]; then
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /ro
 	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f

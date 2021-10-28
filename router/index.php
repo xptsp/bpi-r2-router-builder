@@ -8,6 +8,7 @@ session_start();
 $_GET['action'] = empty($_GET['action']) ? 'home' : ($_GET['action'] != '/' ? $_GET['action'] : 'home');
 $_GET['action'] = ltrim(preg_replace('/[\s\W]+/', '-', $_GET['action']), '-');
 $include_js = $_GET['action']  == 'home' ? '' : 'site-' . explode('-', $_GET['action'])[0];
+$include_js = $include_js == 'site-ajax' ? '' : $include_js;
 
 # Decide whether the user is logged in or not:
 $logged_in = isset($_SESSION['login_valid_until']) && $_SESSION['login_valid_until'] >= time();
