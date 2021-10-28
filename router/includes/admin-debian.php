@@ -13,7 +13,11 @@ echo '
 			</div>
 			<!-- /.card-header -->
 			<div class="card-body table-responsive" id="debian-div">
-				<h2 class="card-title"><strong>Available Updates: </strong><span id="updates-available">0</span></h2>
+				<div class="callout callout-info hidden" id="updates-div">
+					<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right hidden apt_pull" style="margin-right: 10px;" data-toggle="modal" data-target="#output-modal">Update Packages</button></a>
+					<h5><i class="icon fas fa-info-circle"></i> <span id="updates-available">0</span> Updates Available!</h5>
+				</div>
+				<h2 class="card-title"><strong>Available Updates: </strong></h2>
 				<table class="table table-striped table-bordered table-sm">
 					<thead>
 						<tr>
@@ -31,8 +35,8 @@ echo '
 				</table>
 			</div>
 			<div class="card-footer">
-				<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right hidden" id="apt_pull" data-toggle="modal" data-target="#output-modal">Update Packages</button></a>
 				<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right" id="apt_check">Check for Updates</button></a>
+				<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right hidden apt_pull" style="margin-right: 10px;" data-toggle="modal" data-target="#output-modal">Update Packages</button></a>
 			</div>
 		</div>
 	</div>';
@@ -44,6 +48,9 @@ echo '
 <div class="modal fade" id="output-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
 	<div class="modal-dialog modal-xl">
 		<div class="modal-content">
+			<div class="modal-header">
+				<h3 class="modal-title"><i class="fab fa-linux"></i> Package Installation Progress</h3>
+			</div>
 			<div class="modal-body">
 				<textarea id="output_div" class="form-control" rows="15" readonly="readonly"></textarea>
 			</div>

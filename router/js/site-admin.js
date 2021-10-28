@@ -201,7 +201,7 @@ function Repo_Pull()
 function Init_Debian()
 {
 	$("#apt_check").click(Debian_Check);
-	$("#apt_pull").click(Debian_Pull);
+	$(".apt_pull").click(Debian_Pull);
 	$("#modal-close").click(function() {
 		if (!$(this).hasClass("disabled"))
 			$("#output-modal").modal('hide');
@@ -215,12 +215,13 @@ function Debian_Check()
 	$.post("/ajax/admin/debian", __postdata('check'), function(data) {
 		Del_Overlay("debian-div");
 		$("#updates-available").html(data.updates);
+		$("#updates-div").removeClass("hidden");
 		if (data.updates == 0)
 			$('#packages_div').html('<tr><td colspan="4"><center><strong>No Updates Available</strong></center></td></tr>');
 		else
 		{
 			$("#apt_check").addClass("hidden");
-			$("#apt_pull").removeClass("hidden");
+			$(".apt_pull").removeClass("hidden");
 			$("#packages_div").html( data.list );
 		}
 	}).fail( function() {
@@ -233,6 +234,7 @@ function Debian_Pull()
 {
 	element = $("#output_div");
 	element.html("");
+	$("#modal-close").addClass("disabled");
 	last_response_len = false;
 	$.ajax({
 		url: '/ajax/admin/debian',
@@ -260,7 +262,9 @@ function Debian_Pull()
 					this_response = response.substring(last_response_len);
 					last_response_len = response.length;
 				}
-				element.append(this_response.trim());
+				msg = this_response.trim().replace("\n", "") + "\n";
+				if (msg != "\n")
+					element.append(msg);
 				element.scrollTop = element.scrollHeight;
 			}
 		}

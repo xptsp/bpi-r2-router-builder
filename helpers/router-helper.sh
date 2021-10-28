@@ -172,7 +172,7 @@ case $CMD in
 
 	###########################################################################
 	apt)
-		expore DEBIAN_FRONTEND=noninteractive
+		export DEBIAN_FRONTEND=noninteractive
 		if [[ "$1" == "upgrade" || "$1" == "dist-upgrade" || "$1" == "full-upgrade" ]]; then
 			apt -o Dpkg::Options::='--force-confdef' --force-yes -fuy $@
 		else

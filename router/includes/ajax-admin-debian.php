@@ -4,46 +4,53 @@ if (!isset($_POST['action']) && !isset($_POST['sid']) || $_POST['sid'] != $_SESS
 	require_once("404.php");
 	exit();
 }
-header('Content-type: application/json');
 
 #################################################################################################
 # ACTION: CHECK => Returns the current version of the specified repo:
 #################################################################################################
 if ($_POST['action'] == 'check')
 {
-	# Get number of updates available:
-	$result = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt update | grep "packages"'));
-	$updates = 0;
-	if (preg_match("/(\d+) packages/", $result, $regex))
-		$updates = $regex[1];
-
-	# Gather the list of upgradable packages:
-	$table = "";
-	$list = explode("\n", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt list --upgradable')));
-	foreach ($list as $id => $text)
+	header('Content-type: application/json');
+	if (!isset($_SESSION['debian']['refreshed']) || $_SESSION['debian']['refreshed'] >= time() + 600)
+		unset($_SESSION['debian']);
+	if (!isset($_SESSION['debian']))
 	{
-		if ($text == "Listing...")
-			unset($list[$id]);
-		else
+		# Get number of updates available:
+		$result = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt update | grep "packages"'));
+		$updates = 0;
+		if (preg_match("/(\d+) packages/", $result, $regex))
+			$_SESSION['debian']['count'] = $regex[1];
+
+		# Gather the list of upgradable packages:
+		$_SESSION['debian']['list'] = "";
+		$list = explode("\n", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt list --upgradable')));
+		foreach ($list as $id => $text)
 		{
-			$tmp = explode(" ", $list[$id], 4);
-			if (isset($tmp[3]))
+			if ($text == "Listing...")
+				unset($list[$id]);
+			else
 			{
-				$table .=
-					'<tr>' .
-						'<td><input type="checkbox" checked="checked"></td>' .
-						'<td>' . explode("/", $tmp[0])[0] . '</td>' .
-						'<td>' . $tmp[1] . '</td>' .
-						'<td>' . explode(" ", str_replace(']', '', str_replace('[', '', $tmp[3])))[2] . '</td>' .
-					'</tr>';
+				$tmp = explode(" ", $list[$id], 4);
+				if (isset($tmp[3]))
+				{
+					$_SESSION['debian']['list'] .=
+						'<tr>' .
+							'<td><input type="checkbox" checked="checked"></td>' .
+							'<td>' . explode("/", $tmp[0])[0] . '</td>' .
+							'<td>' . $tmp[1] . '</td>' .
+							'<td>' . explode(" ", str_replace(']', '', str_replace('[', '', $tmp[3])))[2] . '</td>' .
+						'</tr>';
+				}
 			}
 		}
+		$_SESSION['debian']['refreshed'] = time();
 	}
 
 	# Output the gathered information as a JSON array:
 	echo json_encode(array(
-		'updates' => $updates,
-		'list' => $table,
+		'updates' => $_SESSION['debian']['count'],
+		'list' => $_SESSION['debian']['list'],
+		'time' => $_SESSION['debian']['refreshed'],
 	));
 }
 #################################################################################################
