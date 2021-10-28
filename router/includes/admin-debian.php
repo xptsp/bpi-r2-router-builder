@@ -13,7 +13,7 @@ echo '
 			</div>
 			<!-- /.card-header -->
 			<div class="card-body table-responsive" id="debian-div">
-				<h2 class="card-title"><strong>Available Updates</strong><span id="updates-available"></span></h2>
+				<h2 class="card-title"><strong>Available Updates: </strong><span id="updates-available">0</span></h2>
 				<table class="table table-striped table-bordered table-sm">
 					<thead>
 						<tr>

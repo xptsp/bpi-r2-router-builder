@@ -214,7 +214,7 @@ function Debian_Check()
 	$("#Repo_avail").html("<i>Retrieving...</i>");
 	$.post("/ajax/admin/debian", __postdata('check'), function(data) {
 		Del_Overlay("debian-div");
-		$("#updates-available").html(": " + data.updates);
+		$("#updates-available").html(data.updates);
 		if (data.updates == 0)
 			$('#packages_div').html('<tr><td colspan="4"><center><strong>No Updates Available</strong></center></td></tr>');
 		else

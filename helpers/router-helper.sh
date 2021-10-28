@@ -177,7 +177,7 @@ case $CMD in
 			apt -o Dpkg::Options::='--force-confdef' --force-yes -fuy $@
 		else
 			/usr/bin/apt $@
-		else
+		fi
 		;;
 
 	###########################################################################
