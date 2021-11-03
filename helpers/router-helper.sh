@@ -150,6 +150,8 @@ case $CMD in
 
 	###########################################################################
 	overlay)
+		#####################################################################
+		# ENABLE/DISABLE => Set overlay status to either ennabled or disabled:
 		if [[ "$1" == "enable" || "$1" == "disable" ]]; then
 			FILE=/boot/bananapi/bpi-r2/linux/uEnv.txt
 			OLD=$(cat ${FILE} | grep bootmenu_default | cut -d= -f 2)
@@ -161,12 +163,12 @@ case $CMD in
 			sed -i "s|bootmenu_default=.*|bootmenu_default=${NEW}|g" ${FILE}
 			[[ ! -z "$RO" ]] && mount -o remount,ro /boot
 			echo "Overlay Root script ${TXT} for next reboot!"
+		#####################################################################
+		# STATUS => Returns status of overlay setting:
 		elif [[ "$1" == "status" ]]; then
 			STAT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "^bootmenu_default=2" >& /dev/null && echo "enabled" || echo "disabled")
 			IN_USE=$(mount | grep " /ro " >& /dev/null || echo " not")
 			echo "Overlay Root script is ${STAT} for next boot, currently${IN_USE} active."
-		else
-			echo "SYNTAX: $(basename $0) overlay [enable|disable|status]"
 		fi
 		;;
 
@@ -182,19 +184,30 @@ case $CMD in
 
 	###########################################################################
 	login)
+		#####################################################################
+		# CHECK => Checks to make sure supplied username/password combo is valid:
 		if [[ "$1" == "check" ]]; then
-			[[ -z "${2}" || -z "${3}" ]] && echo "No match" && exit 1
+			[[ "${2}" != "$($0 login webui)" ]] && echo "No match" && exit 1
+			[[ -z "${3}" ]] && echo "No match" && exit 1
 			pwd=$(getent shadow ${2} | cut -d: -f2)
 			salt=\$$(echo $pwd | cut -d$ -f2)\$$(echo $pwd | cut -d$ -f3)
 			[ "$(python -c 'import crypt; print crypt.crypt("'"${3}"'", "'${salt}'")')" == "${pwd}" ] && echo "Match" || echo "No match"
+		#####################################################################
+		# WEBUI => Returns the username for user 1000:
 		elif [[ "$1" == "webui" ]]; then
 			echo $(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
+		#####################################################################
+		# PASSWD => Changes the password for user 1000:
 		elif [[ "$1" == "passwd" ]]; then
 			[[ -z "${2}" ]] && echo "Password not specified" && exit 1
 			(echo $2; echo $2) | passwd $(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
+		#####################################################################
+		# USERNAME => Returns the username for user 1000:
 		elif [[ "$1" == "username" ]]; then
 			[[ -z "${2}" ]] && echo "Username not specified" && exit 1
 			usermod -l $2 $(cat /etc/passwd | grep ":1000:" | cut -d: -f1) && echo "Success"
+		#####################################################################
+		# SAFETY-CHECK => Returns information about possible security concerns:
 		elif [[ "$1" == "safety-check" ]]; then
 			[[ "$($0 login check $($0 login webui) bananapi)" == "Match" ]] && echo "Default"
 			[[ "$($0 login check root bananapi)" == "Match" ]] && echo "Root"
@@ -221,11 +234,17 @@ case $CMD in
 	###########################################################################
 	git)
 		cd /opt/${2:-"bpi-r2-router-builder"}
+		#####################################################################
+		# CURRENT => Return current repo time as version number (vYYYY.MMDD.HHMM)
 		if [[ "$1" == "current" ]]; then
 			git log -1 --format="%at"
+		#####################################################################
+		# REMOTE => Return remote repo time as version number (vYYYY.MMDD.HHMM)
 		elif [[ "$1" == "remote" ]]; then
 			git remote update >& /dev/null
 			git log -1 --format="%at" origin/master
+		#####################################################################
+		# UPDATE => Return current repo time as version number (vYYYY.MMDD.HHMM)
 		elif [[ "$1" == "update" ]]; then
 			if [[ "$2" == "wireless-regdb" ]]; then
 				/opt/bpi-r2-router-builder/misc/wireless-regdb.sh
@@ -238,6 +257,8 @@ case $CMD in
 	###########################################################################
 	backup)
 		if ! cd /rw/upper; then echo "ERROR: Overlay is disabled."; exit; fi
+		#####################################################################
+		# CREATE => Create settings backup:
 		if [[ "$1" == "create" ]]; then
 			find . | grep -v -E "/var|/opt|/home|/run|/tmp|/root|/rw|/ro" | grep -E ".conf|.json" > /tmp/backup_file.list
 			ftb=($(cat /tmp/backup_file.list))
@@ -245,14 +266,20 @@ case $CMD in
 			md5sum ${ftb[@]} |sed "s|  /|  |g" > md5sum
 			test -f /tmp/bpiwrt.cfg && rm /tmp/bpiwrt.cfg
 			tar -cJf /tmp/bpiwrt.cfg md5sum ${ftb[@]} >& /dev/null
+		#####################################################################
+		# REMOVE => Remove uploaded configuration backup:
 		elif [[ "$1" == "remove" ]]; then
 			rm /tmp/bpiwrt.cfg
+		#####################################################################
+		# UNPACK => Unpack the uploaded configuration backup:
 		elif [[ "$1" == "unpack" ]]; then
 			rm -rf /tmp/bpiwrt
 			mkdir -p /tmp/bpiwrt
 			cd /tmp/bpiwrt
 			if ! tar -xJf /tmp/bpiwrt.cfg; then echo "ERROR: Invalid settings file!"; exit; fi
 			if md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null; then echo "ERROR: Checksum Failure"; exit; fi
+		#####################################################################
+		# RESTORE => Actually move the files from the uploaded configuration backup into place:
 		elif [[ "$1" == "restore" ]]; then
 			if ! test -d /tmp/bpiwrt; then echo "ERROR: Backup has not been unpacked!"; exit; fi
 			cd /tmp/bpiwrt
@@ -263,11 +290,14 @@ case $CMD in
 
 	###########################################################################
 	iface)
+		# MOVE => Move specified configuration file from "/tmp" to "/etc/network/interfaces.d/":
 		if [[ "$1" == "move" ]]; then
 			if ! ifconfig ${1} >& /dev/null; then echo "ERROR: Invalid adapter specified"; exit; fi
 			if ! test -f /tmp/${1}; then echo "ERROR: Missing Configuration File"; exit; fi
 			mv /tmp/${1} /etc/network/interfaces.d/${1}.conf
 			chroot root:root /etc/network/interfaces.d/${1}.conf	
+		#####################################################################
+		# DELETE => Delete specified configuration file from "/etc/network/interfaces.d/":
 		elif [[ "$1" == "delete" ]]; then
 			rm /etc/network/interfaces.d/${1}.conf 2> /dev/null
 		fi
@@ -275,14 +305,16 @@ case $CMD in
 
 	###########################################################################
 	dhcp)
-		# INFO: Get DHCP information from the system logs:
+		#####################################################################
+		# INFO => Get DHCP information from the system logs:
 		if [[ "$1" == "info" ]]; then
 			bound=($(cat /var/log/syslog* | grep dhclient | grep bound | sort | tail -1))
 			from=($(cat /var/log/syslog* | grep dhclient | grep from | sort | tail -1))
 			[[ -z "${from[-1]}" ]] && exit
 			[[ -z "${bound[-2]}" ]] && exit
 			echo ${from[-1]} ${bound[0]} ${bound[1]} ${bound[2]} ${bound[-2]}
-		# SET: Create or modify the DHCP for a specific interface:
+		#####################################################################
+		# SET => Create or modify the DHCP for a specific interface:
 		elif [[ "$1" == "set" ]]; then
 			FILE=/etc/dnsmasq.d/${1}.conf
 			if ! valid_ip $2; then echo "ERROR: Invalid IP Address specified as 2nd param!"; exit; fi
@@ -307,7 +339,8 @@ case $CMD in
 				sed -i "s|^dhcp-range=*.|dhcp-range=${1},${3},${4},${5}|g" ${FILE}
 				sed -i "s|^dhcp-option=*.|dhcp-option=${1},3,${2}|g" >> ${FILE}
 			fi
-		# RM: Remove the specified host from the DHCP configuration file:
+		#####################################################################
+		# RM => Remove the specified host from the DHCP configuration file:
 		elif [[ "$1" == "rm" ]]; then
 			FILE=/etc/dnsmasq.d/${1}.conf
 			if ! test -f ${FILE}; then echo "ERROR: No DNSMASQ configuration found for adapter!"; exit; fi
@@ -316,11 +349,13 @@ case $CMD in
 			sed -i "/^dhcp-host=.*,${2},/d" ${FILE}
 			sed -i "/^dhcp-host=.*,${3},/d" ${FILE}
 			echo "OK"
-		# ADD: Add the specified host to the DHCP configuration file:
+		#####################################################################
+		# ADD => Add the specified host to the DHCP configuration file:
 		elif [[ "$1" == "add" ]]; then
 			$0 dhcp remove $1 $2 $3 || exit
 			echo "dhcp-host=$1,$2,$3,$4" >> /etc/dnsmasq.d/${1}.conf
-		# DEL: Delete the DHCP configuration file:
+		#####################################################################
+		# DEL => Delete the DHCP configuration file:
 		elif [[ "$1" == "del" ]]; then
 			rm /etc/dnsmasq.d/${1}.conf
 		fi
@@ -383,12 +418,16 @@ case $CMD in
 
 	###########################################################################
 	route)
+		#####################################################################
+		# MOVE => Move the specified routing file to "/etc/network/if-up.d/":
 		if [[ "$1" == "move" ]]; then
 			if ! test -f /tmp/$2; then echo "ERROR: Specified file does not exist!"; exit; fi
 			chown root:root /tmp/$2
 			chmod 755 /tmp/$2
 			mv /tmp/$1 /etc/network/if-up.d/$2
 			echo 'OK'
+		#####################################################################
+		# ADD/DEL => Call "ip route" with the specified parameters:
 		elif [[ "$1" == "add" || "$1" == "del" ]]; then
 			ip route $@
 			echo 'OK'
