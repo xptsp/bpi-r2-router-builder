@@ -74,7 +74,7 @@ if (!empty($_POST['use_dhcp']))
 #################################################################################################
 # Create the network configuration for each of the bound network adapters:
 #################################################################################################
-@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh rem_config " . $_POST['iface']);
+@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface delete " . $_POST['iface']);
 $bridged = explode(" ", trim($_POST['bridge']));
 if (empty($bridged))
 	die("[BRIDGE] ERROR: No interfaces specified in bridge configuration!");
@@ -89,7 +89,7 @@ if (count($bridged) > 1)
 		$handle = fopen("/tmp/" . $IFACE, "w");
 		fwrite($handle, str_replace('{iface}', $IFACE, $text));
 		fclose($handle);
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh net_config " . $IFACE);
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface move " . $IFACE);
 	}
 	if (substr($_POST['iface'], 0, 2) != "br")
 		$_POST['iface'] = 'br' . strval( intval(str_replace("/etc/network/interfaces.d/br", "", trim(@shell_exec("ls /etc/network/interfaces.d/br* | sort | tail -1")))) + 1 );
@@ -114,15 +114,15 @@ iface ' . $_POST['iface'] . ' inet static
 $handle = fopen("/tmp/" . $_POST['iface'], "w");
 fwrite($handle, $text);
 fclose($handle);
-@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh net_config " . $_POST['iface']);
+@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface move " . $_POST['iface']);
 
 #################################################################################################
 # Output the DNSMASQ configuration file related to the network adapter:
 #################################################################################################
 if (!empty($_POST['use_dhcp']))
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh rem_dns " . $IFACE);
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp del " . $IFACE);
 else
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp_set " . $IFACE . " " . $_POST['ip_addr'] . " " . $_POST['dhcp_start'] . " " . $_POST['dhcp_end'] . (!empty($_POST['dhcp_lease']) ? " " . $_POST['dhcp_lease'] : ''));
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp set " . $IFACE . " " . $_POST['ip_addr'] . " " . $_POST['dhcp_start'] . " " . $_POST['dhcp_end'] . (!empty($_POST['dhcp_lease']) ? " " . $_POST['dhcp_lease'] : ''));
 
 #################################################################################################
 # Restarting networking service:

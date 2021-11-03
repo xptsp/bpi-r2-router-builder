@@ -109,9 +109,9 @@ else if ($_POST['action'] == 'remove' || $_POST['action'] == 'add')
 	if (!filter_var($_POST['mac_addr'], FILTER_VALIDATE_MAC))
 		die('[MAC_ADDR] ERROR: "' . $_POST['mac_addr'] . '" is an invalid MAC address!');
 
-	$action = $_POST['action'] == 'remove' ? 'dhcp_del' : 'dhcp_add';
+	$action = $_POST['action'] == 'remove' ? 'rm' : 'add';
 	$action .=  ' ' . $_POST['iface'] . ' ' . $_POST['mac_addr'] . ' ' . $_POST['ip_addr'] . ' ' . $_POST['hostname'];
-	echo @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh ' . $action);
+	echo @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp ' . $action);
 }
 ###################################################################################################
 # ACTION: CHECK ==> Check to see if the IP and/or MAC have already been assigned.

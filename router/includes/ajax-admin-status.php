@@ -18,7 +18,7 @@ if ($_POST['action'] == 'reboot')
 else if ($_POST['action'] == 'status')
 {
 	header('Content-type: application/json');
-	$dhcp = explode(' ', trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp-info')) . " 0 0");
+	$dhcp = explode(' ', trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp info')) . " 0 0");
 
 	$year = date("Y");
 	$dhcp_begin = strtotime("$dhcp[1] $dhcp[2] $year $dhcp[3]");
