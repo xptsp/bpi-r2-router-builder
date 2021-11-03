@@ -214,10 +214,10 @@ function Debian_Check()
 	$("#Repo_avail").html("<i>Retrieving...</i>");
 	$.post("/ajax/admin/debian", __postdata('check'), function(data) {
 		Del_Overlay("debian-div");
-		$("#updates-available").html(data.updates);
+		$("#updates-available").html(data.count[1]);
 		$("#updates-div").removeClass("hidden");
-		if (data.updates == 0)
-			$('#packages_div').html('<tr><td colspan="4"><center><strong>No Updates Available</strong></center></td></tr>');
+		if (data.count[1] == 0 && data.count[2] == 0 && data.count[3] == 0 && data.count[4] == 0)
+			$('#packages_div').html('<tr><td colspan="5"><center><strong>No Updates Available</strong></center></td></tr>');
 		else
 		{
 			$("#apt_check").addClass("hidden");
@@ -226,7 +226,7 @@ function Debian_Check()
 		}
 	}).fail( function() {
 		Del_Overlay("debian-div");
-		$('#packages_div').html('<tr><td colspan="4"><center>AJAX Call Failed</center></td></tr>');
+		$('#packages_div').html('<tr><td colspan="5"><center>AJAX Call Failed</center></td></tr>');
 	});
 }
 
@@ -234,6 +234,9 @@ function Debian_Pull()
 {
 	element = $("#output_div");
 	element.html("");
+	myTimer = setInterval(function() {
+		element.scrollTop = element.scrollHeight;
+	}, 100);
 	$("#modal-close").addClass("disabled");
 	last_response_len = false;
 	$.ajax({
@@ -241,8 +244,9 @@ function Debian_Pull()
 		dataType: 'text',
 		type: 'post',
 		contentType: 'application/x-www-form-urlencoded',
-		data: 'sid=' + SID + '&action=pull',
+		data: 'sid=' + SID + '&action=upgrade',
 		success: function( data, textStatus, jQxhr ){
+			clearInterval(MyTimer);
 			$("#modal-close").removeClass("disabled");
 		},
 //		error: function( jqXhr, textStatus, errorThrown ){

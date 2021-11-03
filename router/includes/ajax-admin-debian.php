@@ -1,63 +1,92 @@
 <?php
-if (!isset($_POST['action']) && !isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
-{
-	require_once("404.php");
-	exit();
-}
+#if (!isset($_POST['action']) && !isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
+#{
+	#require_once("404.php");
+	#exit();
+#}
 set_time_limit(0);
 
 #################################################################################################
 # ACTION: CHECK => Returns the current version of the specified repo:
 #################################################################################################
-if ($_POST['action'] == 'check')
+if (!isset($_POST['action']) || $_POST['action'] == 'check')
 {
+	# Define everything we need for the entire operation:
 	header('Content-type: application/json');
-	if (!isset($_SESSION['debian']['refreshed']) || $_SESSION['debian']['refreshed'] >= time() + 600)
-		unset($_SESSION['debian']);
-	if (!isset($_SESSION['debian']))
-	{
-		# Get number of updates available:
-		$result = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt update | grep "packages"'));
-		$updates = 0;
-		if (preg_match("/(\d+) packages/", $result, $regex))
-			$_SESSION['debian']['count'] = $regex[1];
+	$round = 'kept';
+	$start_indent = 0;
+	$packages = array('good' => array(), 'hold' => array(), 'kept' => array());
+	$debian = array('list' => array('good' => '', 'hold' => '', 'kept' => ''));	
+	$button = array(
+		'good' => '<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-xs btn-success pkg-upgrade">Upgrade</button></a>',
+		'hold' => '<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-xs btn-danger pkg-held">Held</button></a>',
+		'kept' => '<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-xs btn-info pkg-kept">Kept Back</button></a>',
+	);
 
-		# Gather the list of upgradable packages:
-		$_SESSION['debian']['list'] = "";
-		$list = explode("\n", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt list --upgradable')));
-		foreach ($list as $id => $text)
+	# Get current list of packages for Debian:
+	#################################################################################
+	@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt update');
+
+	# Get which packages (if any) are marked as hold:
+	#################################################################################
+	foreach (explode("\n", trim(@shell_exec("apt-mark showhold"))) as $package)
+		$packages['hold'][$package] = true;
+
+	# Run a simulated upgrade to get the packages that can actually be installed:
+	#################################################################################
+	foreach (explode("\n", trim(trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh apt upgrade -s")))) as $id => $line)
+	{
+		if (preg_match("/^\s\s(.*)/", $line, $regex))
 		{
-			if ($text == "Listing...")
-				unset($list[$id]);
-			else
+			if ($start_indent > 0 && $start_indent + 1 != $id)
+				$packages[$round = 'good'] = array();
+			$start_indent = $id;
+			foreach (explode(" ", $regex[1]) as $package)
 			{
-				$tmp = explode(" ", $list[$id], 4);
-				if (isset($tmp[3]))
-				{
-					$_SESSION['debian']['list'] .=
-						'<tr>' .
-							'<td><input type="checkbox" checked="checked"></td>' .
-							'<td>' . explode("/", $tmp[0])[0] . '</td>' .
-							'<td>' . $tmp[1] . '</td>' .
-							'<td>' . explode(" ", str_replace(']', '', str_replace('[', '', $tmp[3])))[2] . '</td>' .
-						'</tr>';
-				}
+				if (!isset($packages['hold'][$package]))
+					$packages[$round][$package] = true;
 			}
 		}
-		$_SESSION['debian']['refreshed'] = time();
+		else if (preg_match("/(\d+)\s.*\s(\d+)\s.*\s(\d+)\s.*\s(\d+).*/", $line, $regex))
+			$debian['count'] = $regex;
+	}
+	if (empty($debian['count'][1]) && !empty($packages['good']) && empty($packages['kept']))
+	{
+		$packages['kept'] = $packages['good'];
+		$packages['good'] = array();
 	}
 
+	# Gather a complete list of upgradable packages:
+	#################################################################################
+	foreach (explode("\n", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt list --upgradable'))) as $line)
+	{
+		if (preg_match("/(.*)\/.*\s(.*)\s.*\s\[upgradable from: (.*)\]/", $line, $matches))
+		{
+			$package = $matches[1];
+			$status = isset($packages['hold'][$package]) ? 'hold' : (isset($packages['kept'][$package]) ? 'kept' : 'good');
+			$debian['list'][$status] .=
+				'<tr>' .
+					'<td><input type="checkbox"' . (isset($packages['good'][$package]) ? ' checked="checked"' : '') . '></td>' .
+					'<td>' . $package . '</td>' .
+					'<td>' . $matches[2] . '</td>' .
+					'<td>' . $matches[3] . '</td>' .
+					'<td>' . $button[$status] . '</td>' .
+				'</tr>';
+		}
+	}
+	$_SESSION['debian']['refreshed'] = time();
+	#echo '<pre>'; print_r($_SESSION['debian']); exit;
+
 	# Output the gathered information as a JSON array:
-	echo json_encode(array(
-		'updates' => $_SESSION['debian']['count'],
-		'list' => $_SESSION['debian']['list'],
-		'time' => $_SESSION['debian']['refreshed'],
-	));
+	#################################################################################
+	$debian['list'] = implode("", $debian['list']);
+	echo json_encode($debian);
+	$_SESSION['debian'] = $debian;
 }
 #################################################################################################
 # ACTION: PULL => Updates to the current version of the specified repo:
 #################################################################################################
-else if ($_POST['action'] == 'pull')
+else if ($_POST['action'] == 'upgrade' || ($_POST['action'] == 'install' && isset($_POST['packages'])))
 {
 	# Send headers and turn off buffering and compression:
 	header("Content-type: text/plain");
@@ -76,7 +105,8 @@ else if ($_POST['action'] == 'pull')
 		2 => array("pipe", "w")    // stderr is a pipe that the child will write to
 	);
 	flush();
-	$process = proc_open('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt upgrade', $descriptorspec, $pipes, realpath('./'), array());
+	$cmd = '/opt/bpi-r2-router-builder/helpers/router-helper.sh apt ' . $_POST['action'] . ($_POST['action'] == 'install' ? ' ' . $_POST['packages']  : '');
+	$process = proc_open($cmd, $descriptorspec, $pipes, realpath('./'), array());
 	if (is_resource($process))
 	{
 		$buffer = str_repeat(' ', 2048);

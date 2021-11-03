@@ -144,6 +144,7 @@ ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
 usermod -aG systemd-journal www-data
 systemctl enable php7.3-fpm
 systemctl enable nginx
+apt-mark hold php7.3-fpm
 
 ##################################################################################
 # Install and configure miniupnp install

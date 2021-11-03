@@ -1,6 +1,9 @@
 <?php
 site_menu();
 
+if (isset($_SESSION['debian']['refreshed']) && $_SESSION['debian']['refreshed'] + 600 > time())
+	unset($_SESSION['debian']);
+
 ####################################################################################################
 # Output the Debian Updates page:
 ####################################################################################################
@@ -13,24 +16,31 @@ echo '
 			</div>
 			<!-- /.card-header -->
 			<div class="card-body table-responsive" id="debian-div">
-				<div class="callout callout-info hidden" id="updates-div">
-					<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right hidden apt_pull" style="margin-right: 10px;" data-toggle="modal" data-target="#output-modal">Update Packages</button></a>
-					<h5><i class="icon fas fa-info-circle"></i> <span id="updates-available">0</span> Updates Available!</h5>
+				<div class="callout callout-info', isset($_SESSION['debian']['count']) ? '' : ' hidden', '" id="updates-div">
+					<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right apt_pull" style="margin-right: 10px;" data-toggle="modal" data-target="#output-modal">Update Packages</button></a>
+					<h5><i class="icon fas fa-info-circle"></i> <span id="updates-available">', isset($_SESSION['debian']['count'][1]) ? $_SESSION['debian']['count'][1] : '', '</span> Updates Available!</h5>
+					APT test showed <span id="updates-msg">', isset($_SESSION['debian']['count'][0]) ? $_SESSION['debian']['count'][0] : '', '</span>
 				</div>
 				<h2 class="card-title"><strong>Available Updates: </strong></h2>
 				<table class="table table-striped table-bordered table-sm">
 					<thead>
 						<tr>
 							<th width="2%"><input type="checkbox" checked="checked"></th>
-							<th width="34%">Package Name</th>
-							<th width="32%">New Version</th>
-							<th width="32%">Old Version</th>
+							<th width="30%">Package Name</th>
+							<th width="25%">New Version</th>
+							<th width="25%">Old Version</th>
+							<th width="10%">Status</th>
 						</tr>
 					</thead>
-					<tbody id="packages_div">
+					<tbody id="packages_div">';
+if (isset($_SESSION['debian']['list']))
+	echo $_SESSION['debian']['list'];
+else
+	echo '
 						<tr>
-							<td colspan="4"><center>Press <strong>Check for Updates</strong> to Update</center></td>
-						</tr>
+							<td colspan="5"><center>Press <strong>Check for Updates</strong> to Update</center></td>
+						</tr>';
+echo '
 					</tbody>
 				</table>
 			</div>
