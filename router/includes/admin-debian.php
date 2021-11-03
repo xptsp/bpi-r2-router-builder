@@ -7,6 +7,9 @@ if (isset($_SESSION['debian']['refreshed']) && $_SESSION['debian']['refreshed'] 
 ####################################################################################################
 # Output the Debian Updates page:
 ####################################################################################################
+$installable = isset($_SESSION['debian']['count'][1]) ? $_SESSION['debian']['count'][1] : 0;
+$updates = isset($_SESSION['debian']['count'][1]) ? $_SESSION['debian']['count'][1] + $_SESSION['debian']['count'][2] + $_SESSION['debian']['count'][3] + $_SESSION['debian']['count'][4] : '';
+$hidden = isset($_SESSION['debian']['count']) ? '' : ' hidden';
 echo '
 <div class="row">
 	<div class="col-md-12">
@@ -16,16 +19,16 @@ echo '
 			</div>
 			<!-- /.card-header -->
 			<div class="card-body table-responsive" id="debian-div">
-				<div class="callout callout-info', isset($_SESSION['debian']['count']) ? '' : ' hidden', '" id="updates-div">
+				<div class="callout callout-info', $hidden, '" id="updates-div">
 					<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right apt_pull" style="margin-right: 10px;" data-toggle="modal" data-target="#output-modal">Update Packages</button></a>
-					<h5><i class="icon fas fa-info-circle"></i> <span id="updates-available">', isset($_SESSION['debian']['count'][1]) ? $_SESSION['debian']['count'][1] : '', '</span> Updates Available!</h5>
-					APT test showed <span id="updates-msg">', isset($_SESSION['debian']['count'][0]) ? $_SESSION['debian']['count'][0] : '', '</span>
+					<h5><i class="icon fas fa-info-circle"></i> <span id="updates-available">', $updates, '</span> Updates Available, <span id="updates-installable">', $installable, '</span> Installable</h5>
+					APT test reported &quot;<span id="updates-msg">', isset($_SESSION['debian']['count'][0]) ? $_SESSION['debian']['count'][0] : '', '</span>&quot;
 				</div>
 				<h2 class="card-title"><strong>Available Updates: </strong></h2>
 				<table class="table table-striped table-bordered table-sm">
 					<thead>
 						<tr>
-							<th width="2%"><input type="checkbox" checked="checked"></th>
+							<th width="2%"><input type="checkbox"', $installable ? ' checked="checked"' : '', '></th>
 							<th width="30%">Package Name</th>
 							<th width="25%">New Version</th>
 							<th width="25%">Old Version</th>
@@ -46,7 +49,7 @@ echo '
 			</div>
 			<div class="card-footer">
 				<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right" id="apt_check">Check for Updates</button></a>
-				<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right hidden apt_pull" style="margin-right: 10px;" data-toggle="modal" data-target="#output-modal">Update Packages</button></a>
+				<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right apt_pull', $hidden, '" style="margin-right: 10px;" data-toggle="modal" data-target="#output-modal">Update Packages</button></a>
 			</div>
 		</div>
 	</div>';
@@ -62,7 +65,7 @@ echo '
 				<h3 class="modal-title"><i class="fab fa-linux"></i> Package Installation Progress</h3>
 			</div>
 			<div class="modal-body">
-				<textarea id="output_div" class="form-control" rows="15" readonly="readonly"></textarea>
+				<textarea id="output_div" class="form-control" rows="15" readonly="readonly" style="overflow-y: scroll;"></textarea>
 			</div>
 			<div class="modal-footer justify-content-between">
 				<button type="button" id="modal-close" class="btn btn-primary disabled float-right">Close</button>

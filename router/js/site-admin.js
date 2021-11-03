@@ -201,7 +201,9 @@ function Repo_Pull()
 function Init_Debian()
 {
 	$("#apt_check").click(Debian_Check);
-	$(".apt_pull").click(Debian_Pull);
+	$(".apt_pull").click(function() {
+		Debian_Pull('upgrade');
+	});
 	$("#modal-close").click(function() {
 		if (!$(this).hasClass("disabled"))
 			$("#output-modal").modal('hide');
@@ -214,13 +216,15 @@ function Debian_Check()
 	$("#Repo_avail").html("<i>Retrieving...</i>");
 	$.post("/ajax/admin/debian", __postdata('check'), function(data) {
 		Del_Overlay("debian-div");
-		$("#updates-available").html(data.count[1]);
+		$("#updates-msg").html(data.count[0]);
+		total = Number(data.count[1]) + Number(data.count[2]) + Number(data.count[4]);
+		$("#updates-available").html(total);
+		$("#updates-installable").html(data.count[1]);
 		$("#updates-div").removeClass("hidden");
-		if (data.count[1] == 0 && data.count[2] == 0 && data.count[3] == 0 && data.count[4] == 0)
+		if (total == 0)
 			$('#packages_div').html('<tr><td colspan="5"><center><strong>No Updates Available</strong></center></td></tr>');
 		else
 		{
-			$("#apt_check").addClass("hidden");
 			$(".apt_pull").removeClass("hidden");
 			$("#packages_div").html( data.list );
 		}
@@ -230,21 +234,22 @@ function Debian_Check()
 	});
 }
 
-function Debian_Pull()
+function Debian_Pull(mode, packages = [])
 {
 	element = $("#output_div");
 	element.html("");
 	myTimer = setInterval(function() {
-		element.scrollTop = element.scrollHeight;
+		if(element.length)
+			element.scrollTop(element.scrollHeight - element.height());
 	}, 100);
 	$("#modal-close").addClass("disabled");
-	last_response_len = false;
+	last_response_len = 0;
 	$.ajax({
 		url: '/ajax/admin/debian',
 		dataType: 'text',
 		type: 'post',
 		contentType: 'application/x-www-form-urlencoded',
-		data: 'sid=' + SID + '&action=upgrade',
+		data: 'sid=' + SID + '&action=' + mode + '&packages=' + packages.join(","),
 		success: function( data, textStatus, jQxhr ){
 			clearInterval(MyTimer);
 			$("#modal-close").removeClass("disabled");
@@ -256,16 +261,8 @@ function Debian_Pull()
 			onprogress: function(e)
 			{
 				var this_response, response = e.currentTarget.response;
-				if(last_response_len === false)
-				{
-					this_response = response;
-					last_response_len = response.length;
-				}
-				else
-				{
-					this_response = response.substring(last_response_len);
-					last_response_len = response.length;
-				}
+				this_response = response.substring(last_response_len);
+				last_response_len = response.length;
 				msg = this_response.trim().replace("\n", "") + "\n";
 				if (msg != "\n")
 					element.append(msg);
