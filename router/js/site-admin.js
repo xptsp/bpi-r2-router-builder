@@ -249,9 +249,10 @@ function Debian_Pull(mode, packages = [])
 		success: function( data, textStatus, jQxhr ){
 			$("#modal-close").removeClass("disabled");
 		},
-//		error: function( jqXhr, textStatus, errorThrown ){
-//			console.log( errorThrown );
-//		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			$("#modal-close").removeClass("disabled");
+			element.append("<< AJAX ERROR: " + errorThrown + " >>");
+		},
 		xhrFields: {
 			onprogress: function(e)
 			{
