@@ -145,6 +145,7 @@ usermod -aG systemd-journal www-data
 systemctl enable php7.3-fpm
 systemctl enable nginx
 apt-mark hold php7.3-fpm
+echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
 ##################################################################################
 # Install and configure miniupnp install

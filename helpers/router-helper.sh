@@ -175,10 +175,12 @@ case $CMD in
 	###########################################################################
 	apt)
 		export DEBIAN_FRONTEND=noninteractive
-		if [[ "$1" == "upgrade" || "$1" == "dist-upgrade" || "$1" == "full-upgrade" ]]; then
+		if [[ "$1" == "hold" || "$1" == "unhold" ]]; then
+			apt-mark $@
+		elif [[ "$1" == "upgrade" || "$1" == "dist-upgrade" || "$1" == "full-upgrade" || "$1" == "install" ]]; then
 			apt -o Dpkg::Options::='--force-confdef' --assume-yes -fuy $@
 		else
-			/usr/bin/apt $@
+			apt $@
 		fi
 		;;
 

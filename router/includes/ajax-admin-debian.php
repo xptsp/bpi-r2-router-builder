@@ -4,7 +4,6 @@
 	#require_once("404.php");
 	#exit();
 #}
-set_time_limit(0);
 
 #################################################################################################
 # ACTION: CHECK => Returns the current version of the specified repo:
@@ -112,6 +111,7 @@ else if ($_POST['action'] == 'upgrade' || ($_POST['action'] == 'install' && isse
 		$buffer = str_repeat(' ', 2048);
 		while ($s = fgets($pipes[1], 4096))
 		{
+			set_time_limit(30);
 			print rtrim($s) . $buffer;
 			flush();
 		}
