@@ -83,7 +83,7 @@ if (!isset($_POST['action']) || $_POST['action'] == 'check')
 	$_SESSION['debian'] = $debian;
 }
 #################################################################################################
-# ACTION: PULL => Updates to the current version of the specified repo:
+# ACTION: UPGRADE/INSTALL => Updates to the current version of the specified repo:
 #################################################################################################
 else if ($_POST['action'] == 'upgrade' || ($_POST['action'] == 'install' && isset($_POST['packages'])))
 {
@@ -111,10 +111,32 @@ else if ($_POST['action'] == 'upgrade' || ($_POST['action'] == 'install' && isse
 		$buffer = str_repeat(' ', 2048);
 		while ($s = fgets($pipes[1], 4096))
 		{
-			set_time_limit(30);
 			print rtrim($s) . $buffer;
 			flush();
 		}
+	}
+}
+#################################################################################################
+# ACTION: UPGRADE/INSTALL => Updates to the current version of the specified repo:
+#################################################################################################
+else if ($_POST['action'] == 'test')
+{
+	# Send headers and turn off buffering and compression:
+	header("Content-type: text/plain");
+	ini_set('output_buffering', 'off');
+	ini_set('zlib.output_compression', false);
+	ini_set('implicit_flush', true);
+
+	# Flush everything in the cache right now:
+	@ob_implicit_flush(true);
+	@ob_end_flush();
+
+	$buffer = str_repeat(' ', 2048);
+	foreach (explode("\n", trim(@file_get_contents("/opt/bpi-r2-router-builder/misc/apt-test.txt"))) as $s)
+	{
+		print rtrim($s) . $buffer;
+		sleep(250);
+		flush();
 	}
 }
 #################################################################################################

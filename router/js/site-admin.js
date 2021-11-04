@@ -202,7 +202,7 @@ function Init_Debian()
 {
 	$("#apt_check").click(Debian_Check);
 	$(".apt_pull").click(function() {
-		Debian_Pull('upgrade');
+		Debian_Pull('test');
 	});
 	$("#modal-close").click(function() {
 		if (!$(this).hasClass("disabled"))
@@ -239,8 +239,7 @@ function Debian_Pull(mode, packages = [])
 	element = $("#output_div");
 	element.html("");
 	myTimer = setInterval(function() {
-		if(element.length)
-			element.scrollTop(element.scrollHeight - element.height());
+		element.scrollTop(element.scrollHeight - element.height());
 	}, 100);
 	$("#modal-close").addClass("disabled");
 	last_response_len = 0;
@@ -266,7 +265,6 @@ function Debian_Pull(mode, packages = [])
 				msg = this_response.trim().replace("\n", "") + "\n";
 				if (msg != "\n")
 					element.append(msg);
-				element.scrollTop = element.scrollHeight;
 			}
 		}
 	});
