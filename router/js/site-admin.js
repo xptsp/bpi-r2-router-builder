@@ -202,7 +202,7 @@ function Init_Debian()
 {
 	$("#apt_check").click(Debian_Check);
 	$(".apt_pull").click(function() {
-		Debian_Pull('test');
+		Debian_Pull('upgrade');
 	});
 	$("#modal-close").click(function() {
 		if (!$(this).hasClass("disabled"))
@@ -238,9 +238,6 @@ function Debian_Pull(mode, packages = [])
 {
 	element = $("#output_div");
 	element.html("");
-	myTimer = setInterval(function() {
-		element.scrollTop(element.scrollHeight - element.height());
-	}, 100);
 	$("#modal-close").addClass("disabled");
 	last_response_len = 0;
 	$.ajax({
@@ -250,7 +247,6 @@ function Debian_Pull(mode, packages = [])
 		contentType: 'application/x-www-form-urlencoded',
 		data: 'sid=' + SID + '&action=' + mode + '&packages=' + packages.join(","),
 		success: function( data, textStatus, jQxhr ){
-			clearInterval(MyTimer);
 			$("#modal-close").removeClass("disabled");
 		},
 //		error: function( jqXhr, textStatus, errorThrown ){
@@ -265,6 +261,7 @@ function Debian_Pull(mode, packages = [])
 				msg = this_response.trim().replace("\n", "") + "\n";
 				if (msg != "\n")
 					element.append(msg);
+				element.scrollTop( element.prop('scrollHeight') - element.height() );
 			}
 		}
 	});
