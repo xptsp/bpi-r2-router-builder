@@ -2,7 +2,7 @@ var iface_used;
 var reboot_suggested = false;
 
 //======================================================================================================
-// Javascript functions for "Setup / WAN Settings"
+// Javascript functions for "Setup / Internet Settings"
 //======================================================================================================
 function Init_WAN(mac_com, mac_cur)
 {
@@ -74,7 +74,7 @@ function WAN_Submit()
 }
 
 //======================================================================================================
-// Javascript functions for "Setup / LAN Setup"
+// Javascript functions for "Setup / Network Setup"
 //======================================================================================================
 function Init_LAN(iface)
 {
@@ -345,7 +345,7 @@ function LAN_Error(msg)
 }
 
 //======================================================================================================
-// Javascript functions for "Setup / Advanced Routing"
+// Javascript functions for "Setup / Network Routing"
 //======================================================================================================
 function Init_Routing()
 {
@@ -414,4 +414,12 @@ function Routing_Add()
 	}).fail(function() {
 		LAN_Error("AJAX call failed!");
 	});
+}
+
+//======================================================================================================
+// Javascript functions for "Setup / Firewall Setup"
+//======================================================================================================
+function Init_Firewall()
+{
+	$(".checkbox").bootstrapSwitch();
 }
