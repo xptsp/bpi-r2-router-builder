@@ -157,12 +157,12 @@ echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
 echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
 apt install -y miniupnpd miniupnpc
 # NOTE: Configure the service:
+sed -i "s|#ext_ifname=eth1|ext_ifname=wan|g" /etc/miniupnpd/miniupnpd.conf
+sed -i "s|#listening_ip=eth0|listening_ip=br0|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#http_port=0|http_port=5000|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#enable_upnp=no|enable_upnp=yes|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#enable_natpmp=yes|enable_natpmp=yes|g" /etc/miniupnpd/miniupnpd.conf
-rm /etc/init.d/miniupnpd
-rm /etc/miniupnpd/*.sh
 systemctl enable miniupnpd
 
 ##################################################################################
