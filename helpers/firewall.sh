@@ -13,7 +13,7 @@ if [[ "${UID}" -ne 0 ]]; then
 	exit $?
 fi
 
-# Read the INTERNET from the configuration file:
+# Read the configuration file:
 [[ -f /etc/default/firewall ]] && source /etc/default/firewall
 
 #############################################################################
@@ -45,7 +45,7 @@ if [[ "$1" == "start" ]]; then
 	# CTA: Allow masquerading to the wan port:
 	iptables -t nat -A POSTROUTING -o wan -j MASQUERADE
 
-7	# CTA: This rule blocks all packets that are not a SYN packet and don’t
+	# CTA: This rule blocks all packets that are not a SYN packet and don’t
 	# belong to an established TCP connection.
 	iptables -t mangle -A PREROUTING -m conntrack --ctstate INVALID -j DROP
 
@@ -97,10 +97,10 @@ if [[ "$1" == "start" ]]; then
 	iptables -A FORWARD -i wan ! -o wan -j MINIUPNPD
 
 	#############################################################################
-	# Configurable INTERNET chain:
+	# Configurable WAN_IN chain:
 	#############################################################################
-	iptables -N INTERNET
-	iptables -A INPUT -i wan -j INTERNET
+	iptables -N WAN_IN
+	iptables -A INPUT -i wan -j WAN_IN
 
 	#############################################################################
 	# Default network configuration:
@@ -116,19 +116,21 @@ fi
 #############################################################################
 if [[ "$1" == "start" || "$1" == "reload" ]]; then
 	#############################################################################
-	# Clear the "INTERNET" iptables chain of rules:
+	# Clear the "WAN_IN" chain of both "filter" and "mangle" tables:
 	#############################################################################
-	iptables -F INTERNET
+	iptables -F WAN_IN
+	iptables -t mangle -F WAN_IN
 
 	#############################################################################
 	# OPTION "disable_port_scan" => Disable ping response from internet
 	#############################################################################
-	[[ "${disable_port_scan:-"Y"}" == "Y" ]] && iptables -A INTERNET -p icmp --icmp-type echo-request -j DROP
+	[[ "${disable_ping:-"Y"}" == "Y" ]] && iptables -A WAN_IN -p icmp --icmp-type echo-request -j DROP
 
 	#############################################################################
-	# OPTION "disable_port_scan" => Disable ping response from internet
+	# OPTION "enable_port_scan" => Protect against port scans:
 	#############################################################################
-	if [[ "${disable_port_scan:-"Y"}" == "Y" ]]; then
+	if [[ "${enable_port_scan:-"Y"}" == "Y" ]]; then
+
 		# CTB: Create a chain port scan and add logging to it with your preferred prefix
 		iptables -N PORTSCAN
 		iptables -A PORTSCAN -j LOG --log-level 4 --log-prefix 'Blocked_scans '
@@ -142,29 +144,29 @@ if [[ "$1" == "start" || "$1" == "reload" ]]; then
 
 		# CTB: Continue processing for all connections for ports from 32768 to 61000.  These are mostly
 		# used in ACK and don’t have too many services hosted here.
-		iptables -A INTERNET -p tcp -m tcp --destination-port 32768:61000 -j RETURN
+		iptables -A WAN_IN -p tcp -m tcp --destination-port 32768:61000 -j RETURN
 
 		# CTB: Anyone who previously tried to portscan or UDP flood us are locked out for an entire day.
 		# Their IP’s are stored in a list called ‘PORTSCAN’:
-		iptables -A INTERNET -m recent --name PORTSCAN --rcheck --seconds 86400 -j PORTSCAN
-		iptables -A INTERNET -m recent --name UDP_FLOOD --rcheck --seconds 86400 -j PORTSCAN
+		iptables -A WAN_IN -m recent --name PORTSCAN --rcheck --seconds 86400 -j PORTSCAN
+		iptables -A WAN_IN -m recent --name UDP_FLOOD --rcheck --seconds 86400 -j PORTSCAN
 
 		# CTB: Once the day has passed, remove them from the PORTSCAN list:
-		iptables -A INTERNET -m recent --name PORTSCAN --remove
-		iptables -A INTERNET -m recent --name UDP_FLOOD --remove
+		iptables -A WAN_IN -m recent --name PORTSCAN --remove
+		iptables -A WAN_IN -m recent --name UDP_FLOOD --remove
 
 		# CTB: Anyone who does not match the above rules (open ports) is trying to access a port our sever does not
 		# serve. So, as per design we consider them port scanners and we block them for an entire day
 		# These rules add scanners to the PORTSCAN list, and log the attempt:
-		iptables -A INTERNET -p tcp -m tcp -m recent -m state --state NEW --name PORTSCAN --set -j PORTSCAN
+		iptables -A WAN_IN -p tcp -m tcp -m recent -m state --state NEW --name PORTSCAN --set -j PORTSCAN
 
 		# CTB: Same for UDP
-		iptables -A INTERNET -p udp -m state --state NEW -m recent --set --name Domainscans
-		iptables -A INTERNET -p udp -m state --state NEW -m recent --rcheck --seconds 5 --hitcount 5 --name Domainscans -j UDP
+		iptables -A WAN_IN -p udp -m state --state NEW -m recent --set --name Domainscans
+		iptables -A WAN_IN -p udp -m state --state NEW -m recent --rcheck --seconds 5 --hitcount 5 --name Domainscans -j UDP
 	fi
 
 	#############################################################################
 	# OPTION "disable_ident" => Block port 113 (IDENT) from internet
 	#############################################################################
-	[[ "${disable_ident:-"Y"}" == "Y" ]] && iptables -A INTERNET -p tcp --destination-port 113 -j DROP
+	[[ "${disable_ident:-"Y"}" == "Y" ]] && iptables -A WAN_IN -p tcp --destination-port 113 -j DROP
 fi
