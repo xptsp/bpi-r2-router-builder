@@ -30,7 +30,7 @@ echo '
 		<h3 class="card-title">Firewall Settings</h3>
 	</div>
 	<div class="card-body">
-		', checkbox("port_scan_ddos",    "Enable Port Scan and DDoS protection", false), '
+		', checkbox("enable_port_scan",  "Enable Port Scan protection from Internet"), '
 		', checkbox("disable_ping",      "Disable Pings from the Internet"), '
 		', checkbox("disable_ident",     "Disable IDENT from Internet (port 113)"), '
 	</div>
