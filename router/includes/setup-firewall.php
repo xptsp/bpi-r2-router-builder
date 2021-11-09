@@ -13,10 +13,11 @@ foreach (explode("\n", trim(@file_get_contents($file))) as $line)
 ##############################################################################
 # Helper function to simplify checkbox creation task:
 ##############################################################################
-function checkbox($name, $description)
+function checkbox($name, $description, $default = true)
 {
 	global $options;
-	return '<p><input type="checkbox" id="' . $name . '" class="checkbox"' . (!empty($options[$name]) ? ' checked="checked"' : '') . ' data-bootstrap-switch=""> <strong>' . $description . '</strong></p>';
+	$checked = (!isset($options[$name]) ? $default : ($options[$name] == "Y"));
+	return '<p><input type="checkbox" id="' . $name . '" class="checkbox"' . ($checked ? ' checked="checked"' : '') . ' data-bootstrap-switch="" data-off-color="danger" data-on-color="success"> <strong>' . $description . '</strong></p>';
 }
 
 ##############################################################################
@@ -29,7 +30,9 @@ echo '
 		<h3 class="card-title">Firewall Settings</h3>
 	</div>
 	<div class="card-body">
-		', checkbox("port_scan", "Disable Port Scans from Internet"), '
+		', checkbox("disable_port_scan", "Disable Port Scan and DDoS protection"), '
+		', checkbox("disable_ping",      "Disable Pings from the Internet"), '
+		', checkbox("disable_ident",     "Disable IDENT from Internet (port 113)"), '
 	</div>
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-danger center_50" id="apply_changes">Apply Changes</button></a>

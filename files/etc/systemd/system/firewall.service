@@ -4,7 +4,8 @@ Before=networking.target
 
 [Service]
 Type=oneshot
-ExecStart=/opt/bpi-r2-router-builder/helpers/firewall.sh
+ExecStart=/opt/bpi-r2-router-builder/helpers/firewall.sh start
+ExecReload=/opt/bpi-r2-router-builder/helpers/firewall.sh reload
 
 [Install]
 WantedBy=multi-user.target
