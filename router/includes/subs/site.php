@@ -10,13 +10,15 @@ $sidebar_menu = array(
 	'home'   => menu_link('/', 'Home', 'fas fa-home'),
 	'setup'  => array('Setup', 'fas fa-cog', array(
 		'device'   => menu_link('/setup/wan', 'Internet Settings', 'fas fa-globe'),
-		'firewall' => menu_link('/setup/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
 		'wired'    => menu_link('/setup/lan', 'Network Setup', 'fas fa-ethernet'),
 #		'wireless' => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
 		'routing'  => menu_link('/setup/routing', 'Network Routing', 'fas fa-route'),
 	)),
-	'storage'    => array('Storage', 'fas fa-hdd', array(
+	'storage' => array('Storage', 'fas fa-hdd', array(
 #		'basic'    => menu_link('/storage/usb-basic', 'Basic Settings', 'fab fa-usb'),
+	)),
+	'security' => array('Security', 'fas fa-shield-alt', array(
+		'firewall' => menu_link('/security/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
 	)),
 	'admin'  => array('Administration', 'fas fa-cog', array(
 		'status'   => menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),

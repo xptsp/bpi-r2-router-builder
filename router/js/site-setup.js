@@ -415,11 +415,3 @@ function Routing_Add()
 		LAN_Error("AJAX call failed!");
 	});
 }
-
-//======================================================================================================
-// Javascript functions for "Setup / Firewall Setup"
-//======================================================================================================
-function Init_Firewall()
-{
-	$(".checkbox").bootstrapSwitch();
-}

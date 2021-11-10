@@ -9,6 +9,8 @@
 #	https://offensivesecuritygeek.wordpress.com/2014/06/24/how-to-block-port-scans-using-iptables-only/
 # "Filter Multicast" iptable commands from source:
 # 	https://jeanwan.wordpress.com/2013/08/14/block-multicast-packets-by-using-ipfilter/
+# "Default DMZ Server" iptables commands from source:
+#   https://www.linuxquestions.org/questions/linux-networking-3/iptables-dmz-host-490491/#post2454665
 #############################################################################
 if [[ "${UID}" -ne 0 ]]; then
 	sudo $0 $@
@@ -30,16 +32,16 @@ if [[ "$1" == "start" ]]; then
 	iptables -F -t nat
 
 	#############################################################################
-	# CTB: Accept loopback input
-	#############################################################################
-	iptables -A INPUT -i lo -p all -j ACCEPT
-
-	#############################################################################
 	# CTA: Set default policy to ACCEPT for input, output and forwarding:
 	#############################################################################
 	iptables -P INPUT ACCEPT
 	iptables -P FORWARD ACCEPT
 	iptables -P OUTPUT ACCEPT
+
+	#############################################################################
+	# CTB: Accept loopback input
+	#############################################################################
+	iptables -A INPUT -i lo -p all -j ACCEPT
 
 	#############################################################################
 	# Block user "vpn" from accessing anything other than the "lo" interface:
@@ -113,6 +115,8 @@ if [[ "$1" == "start" ]]; then
 	iptables -A INPUT -i wan -j WAN_IN
 	iptables -N WAN_OUT
 	iptables -A OUTPUT -o wan -j WAN_OUT
+	iptables -N WAN_FORWARD
+	iptables -A FORWARD -j WAN_FORWARD
 
 	#############################################################################
 	# Final Destination: The default network configuration....
@@ -127,28 +131,29 @@ fi
 #############################################################################
 if [[ "$1" == "start" || "$1" == "reload" ]]; then
 	#############################################################################
-	# Clear the "WAN_IN" chain of both "filter" and "mangle" tables:
+	# Clear the "WAN_IN", "WAN_OUT" and "WAN_FORWARD" chains of rules:
 	#############################################################################
 	iptables -F WAN_IN
 	iptables -F WAN_OUT
+	iptables -F WAN_FORWARD
 
 	#############################################################################
-	# OPTION "disable_port_scan" => Disable ping response from internet
+	# OPTION "drop_ping" => Disable ping response from internet
 	#############################################################################
 	[[ "${drop_ping:-"Y"}" == "Y" ]] && iptables -A WAN_IN -p icmp --icmp-type echo-request -j DROP
 
 	#############################################################################
-	# OPTION "enable_port_scan" => Protect against port scans:
+	# OPTION "drop_port_scan" => Protect against port scans:
 	#############################################################################
 	if [[ "${drop_port_scan:-"Y"}" == "Y" ]]; then
-		# CTB: Create a chain port scan and add logging to it with your preferred prefix
+		# CTB: Create chain PORTSCAN and add logging to it (if requested) with your preferred prefix
 		iptables -N PORTSCAN
-		iptables -A PORTSCAN -j LOG --log-level 4 --log-prefix 'Blocked_scans '
+		[[ "${log_port_scan:-"N"}" == "Y" ]] && iptables -A PORTSCAN -j LOG --log-level 4 --log-prefix 'Blocked_scans '
 		iptables -A PORTSCAN -j DROP
 
-		# CTB: Create another chain UDP with custom logging
+		# CTB: Create another chain UDP with custom logging (if requested) 
 		iptables -N UDP
-		iptables -A UDP -j LOG --log-level 4 --log-prefix 'UDP_FLOOD '
+		[[ "${log_udp_flood:-"N"}" == "Y" ]] && iptables -A UDP -j LOG --log-level 4 --log-prefix 'UDP_FLOOD '
 		iptables -A UDP -p udp -m state --state NEW -m recent --set --name UDP_FLOOD
 		iptables -A UDP -j DROP
 
@@ -176,15 +181,23 @@ if [[ "$1" == "start" || "$1" == "reload" ]]; then
 	fi
 
 	#############################################################################
-	# OPTION "disable_ident" => Block port 113 (IDENT) from internet
+	# OPTION "drop_ident" => Block port 113 (IDENT) from the Internet
 	#############################################################################
 	[[ "${drop_ident:-"Y"}" == "Y" ]] && iptables -A WAN_IN -p tcp --destination-port 113 -j DROP
 
 	#############################################################################
-	# OPTION "filter_multicast" => Block port 113 (IDENT) from internet
+	# OPTION "drop_multicast" => Drop multicast packets from the Internet:
 	#############################################################################
 	if [[ "${drop_multicast:-"N"}" == "Y" ]]; then
 		iptables -A WAN_OUT -o wan -m pkttype --pkt-type multicast -j DROP
 		iptables -A WAN_IN -i wan -m pkttype --pkt-type multicast -j DROP
+	fi
+
+	#############################################################################
+	# OPTION "enable_dmz" => Enables the default DMZ server specified in option "dmz_server"
+	#############################################################################
+	if [[ "${enable_dmz:-"N"}" == "Y" && ! -z "${dmz_server}" && ! -z "${dmz_iface}" ]]; then
+		iptables -A WAN_FORWARD -i wan -o ${dmz_iface} -d ${dmz_server} -m state --state NEW -j ACCEPT
+		iptables -A WAN_FORWARD -o wan -i ${dmz_iface} -s ${dmz_server} -m state --state NEW -j ACCEPT
 	fi
 fi
