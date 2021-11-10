@@ -30,9 +30,10 @@ echo '
 		<h3 class="card-title">Firewall Settings</h3>
 	</div>
 	<div class="card-body">
-		', checkbox("enable_port_scan",  "Enable Port Scan protection from Internet"), '
-		', checkbox("disable_ping",      "Disable Pings from the Internet"), '
-		', checkbox("disable_ident",     "Disable IDENT from Internet (port 113)"), '
+		', checkbox("drop_port_scan", "Enable Port Scan protection from Internet"), '
+		', checkbox("drop_ping",      "Do Not Respond to Pings from the Internet"), '
+		', checkbox("drop_ident",     "Do Not Respond to IDENT requests from Internet (port 113)"), '
+		', checkbox("drop_multicast", "Filter Multicast Packets from Internet", false), '
 	</div>
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-danger center_50" id="apply_changes">Apply Changes</button></a>

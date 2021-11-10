@@ -7,6 +7,8 @@
 #	https://javapipe.com/blog/iptables-ddos-protection/
 # Comments starting with "CTB:" and iptables commands from source:
 #	https://offensivesecuritygeek.wordpress.com/2014/06/24/how-to-block-port-scans-using-iptables-only/
+# "Filter Multicast" iptable commands from source:
+# 	https://jeanwan.wordpress.com/2013/08/14/block-multicast-packets-by-using-ipfilter/
 #############################################################################
 if [[ "${UID}" -ne 0 ]]; then
 	sudo $0 $@
@@ -33,17 +35,25 @@ if [[ "$1" == "start" ]]; then
 	iptables -A INPUT -i lo -p all -j ACCEPT
 
 	#############################################################################
-	# CTA: Set default policy to DROP for input, output and forwarding:
+	# CTA: Set default policy to ACCEPT for input, output and forwarding:
 	#############################################################################
 	iptables -P INPUT ACCEPT
 	iptables -P FORWARD ACCEPT
 	iptables -P OUTPUT ACCEPT
 
 	#############################################################################
+	# Block user "vpn" from accessing anything other than the "lo" interface:
+	#############################################################################
+	iptables -A OUTPUT ! -o lo -m owner --uid-owner vpn -j DROP
+
+	#############################################################################
 	# These are global rules that will always be set!
 	#############################################################################
 	# CTA: Allow masquerading to the wan port:
 	iptables -t nat -A POSTROUTING -o wan -j MASQUERADE
+
+	# Allow any related and established connections:
+	iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 	# CTA: This rule blocks all packets that are not a SYN packet and don’t
 	# belong to an established TCP connection.
@@ -71,7 +81,7 @@ if [[ "$1" == "start" ]]; then
 	# Redirect incoming port 67 to port 68:
 	iptables -A INPUT -p udp -m udp --sport 67 --dport 68 -j ACCEPT
 
-	# CTB: Droping all invalid packets
+	# CTB: Dropping all invalid packets
 	iptables -A INPUT -m state --state INVALID -j DROP
 	iptables -A FORWARD -m state --state INVALID -j DROP
 	iptables -A OUTPUT -m state --state INVALID -j DROP
@@ -81,7 +91,7 @@ if [[ "$1" == "start" ]]; then
 	iptables -A INPUT -p icmp -m icmp --icmp-type timestamp-request -j DROP
 	iptables -A INPUT -p icmp -m icmp -m limit --limit 1/second -j ACCEPT
 
-	# CTB: flooding of RST packets, smurf attack Rejection
+	# CTB: flooding of RST packets, SMURF attack Rejection
 	iptables -A INPUT -p tcp -m tcp --tcp-flags RST RST -m limit --limit 2/second --limit-burst 2 -j ACCEPT
 
 	#############################################################################
@@ -97,15 +107,16 @@ if [[ "$1" == "start" ]]; then
 	iptables -A FORWARD -i wan ! -o wan -j MINIUPNPD
 
 	#############################################################################
-	# Configurable WAN_IN chain:
+	# Configurable WAN_IN and WAN_OUT chains:
 	#############################################################################
 	iptables -N WAN_IN
 	iptables -A INPUT -i wan -j WAN_IN
+	iptables -N WAN_OUT
+	iptables -A OUTPUT -o wan -j WAN_OUT
 
 	#############################################################################
-	# Default network configuration:
+	# Final Destination: The default network configuration....
 	#############################################################################
-	iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 	iptables -A INPUT -i wan -j DROP
 	iptables -A FORWARD -i wan ! -o wan -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 	iptables -A FORWARD -i wan ! -o wan -j DROP
@@ -119,18 +130,17 @@ if [[ "$1" == "start" || "$1" == "reload" ]]; then
 	# Clear the "WAN_IN" chain of both "filter" and "mangle" tables:
 	#############################################################################
 	iptables -F WAN_IN
-	iptables -t mangle -F WAN_IN
+	iptables -F WAN_OUT
 
 	#############################################################################
 	# OPTION "disable_port_scan" => Disable ping response from internet
 	#############################################################################
-	[[ "${disable_ping:-"Y"}" == "Y" ]] && iptables -A WAN_IN -p icmp --icmp-type echo-request -j DROP
+	[[ "${drop_ping:-"Y"}" == "Y" ]] && iptables -A WAN_IN -p icmp --icmp-type echo-request -j DROP
 
 	#############################################################################
 	# OPTION "enable_port_scan" => Protect against port scans:
 	#############################################################################
-	if [[ "${enable_port_scan:-"Y"}" == "Y" ]]; then
-
+	if [[ "${drop_port_scan:-"Y"}" == "Y" ]]; then
 		# CTB: Create a chain port scan and add logging to it with your preferred prefix
 		iptables -N PORTSCAN
 		iptables -A PORTSCAN -j LOG --log-level 4 --log-prefix 'Blocked_scans '
@@ -160,7 +170,7 @@ if [[ "$1" == "start" || "$1" == "reload" ]]; then
 		# These rules add scanners to the PORTSCAN list, and log the attempt:
 		iptables -A WAN_IN -p tcp -m tcp -m recent -m state --state NEW --name PORTSCAN --set -j PORTSCAN
 
-		# CTB: Same for UDP
+		# CTB: UDP
 		iptables -A WAN_IN -p udp -m state --state NEW -m recent --set --name Domainscans
 		iptables -A WAN_IN -p udp -m state --state NEW -m recent --rcheck --seconds 5 --hitcount 5 --name Domainscans -j UDP
 	fi
@@ -168,5 +178,13 @@ if [[ "$1" == "start" || "$1" == "reload" ]]; then
 	#############################################################################
 	# OPTION "disable_ident" => Block port 113 (IDENT) from internet
 	#############################################################################
-	[[ "${disable_ident:-"Y"}" == "Y" ]] && iptables -A WAN_IN -p tcp --destination-port 113 -j DROP
+	[[ "${drop_ident:-"Y"}" == "Y" ]] && iptables -A WAN_IN -p tcp --destination-port 113 -j DROP
+
+	#############################################################################
+	# OPTION "filter_multicast" => Block port 113 (IDENT) from internet
+	#############################################################################
+	if [[ "${drop_multicast:-"N"}" == "Y" ]]; then
+		iptables -A WAN_OUT -o wan -m pkttype --pkt-type multicast -j DROP
+		iptables -A WAN_IN -i wan -m pkttype --pkt-type multicast -j DROP
+	fi
 fi
