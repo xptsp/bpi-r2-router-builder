@@ -138,6 +138,14 @@ if [[ "$1" == "start" || "$1" == "reload" ]]; then
 	iptables -F WAN_FORWARD
 
 	#############################################################################
+	# OPTION "enable_dmz" => Enables the default DMZ server specified in option "dmz_server"
+	#############################################################################
+	if [[ "${enable_dmz:-"N"}" == "Y" && ! -z "${dmz_server}" ]]; then
+		iptables -A WAN_FORWARD -i wan $([[ ! -z "${dmz_iface}" ]] && echo "-o ${dmz_iface}") -d ${dmz_server} -m state --state NEW -j ACCEPT
+		iptables -A WAN_FORWARD -o wan $([[ ! -z "${dmz_iface}" ]] && echo "-i ${dmz_iface}") -s ${dmz_server} -m state --state NEW -j ACCEPT
+	fi
+
+	#############################################################################
 	# OPTION "drop_ping" => Disable ping response from internet
 	#############################################################################
 	[[ "${drop_ping:-"Y"}" == "Y" ]] && iptables -A WAN_IN -p icmp --icmp-type echo-request -j DROP
@@ -151,7 +159,7 @@ if [[ "$1" == "start" || "$1" == "reload" ]]; then
 		[[ "${log_port_scan:-"N"}" == "Y" ]] && iptables -A PORTSCAN -j LOG --log-level 4 --log-prefix 'Blocked_scans '
 		iptables -A PORTSCAN -j DROP
 
-		# CTB: Create another chain UDP with custom logging (if requested) 
+		# CTB: Create chain UDP with custom logging (if requested) 
 		iptables -N UDP
 		[[ "${log_udp_flood:-"N"}" == "Y" ]] && iptables -A UDP -j LOG --log-level 4 --log-prefix 'UDP_FLOOD '
 		iptables -A UDP -p udp -m state --state NEW -m recent --set --name UDP_FLOOD
@@ -191,13 +199,5 @@ if [[ "$1" == "start" || "$1" == "reload" ]]; then
 	if [[ "${drop_multicast:-"N"}" == "Y" ]]; then
 		iptables -A WAN_OUT -o wan -m pkttype --pkt-type multicast -j DROP
 		iptables -A WAN_IN -i wan -m pkttype --pkt-type multicast -j DROP
-	fi
-
-	#############################################################################
-	# OPTION "enable_dmz" => Enables the default DMZ server specified in option "dmz_server"
-	#############################################################################
-	if [[ "${enable_dmz:-"N"}" == "Y" && ! -z "${dmz_server}" && ! -z "${dmz_iface}" ]]; then
-		iptables -A WAN_FORWARD -i wan -o ${dmz_iface} -d ${dmz_server} -m state --state NEW -j ACCEPT
-		iptables -A WAN_FORWARD -o wan -i ${dmz_iface} -s ${dmz_server} -m state --state NEW -j ACCEPT
 	fi
 fi
