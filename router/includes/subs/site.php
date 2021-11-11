@@ -19,6 +19,7 @@ $sidebar_menu = array(
 	)),
 	'security' => array('Security', 'fas fa-shield-alt', array(
 		'firewall' => menu_link('/security/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
+		'dmz' => menu_link('/security/dmz', 'DMZ Setup', 'fas fa-server'),
 	)),
 	'admin'  => array('Administration', 'fas fa-cog', array(
 		'status'   => menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),

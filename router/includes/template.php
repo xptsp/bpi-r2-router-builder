@@ -8,7 +8,7 @@ echo '
 	<div class="card-body">
 	</div>
 	<div class="card-footer">
-		<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-danger center_50" id="apply_changes">Apply Changes</button></a>
+		<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-success center_50" id="apply_changes">Apply Changes</button></a>
 	</div>
 	<!-- /.card-body -->
 </div>';

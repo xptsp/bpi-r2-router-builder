@@ -42,3 +42,11 @@ function FireWall_Apply()
 		$(".alert_control").removeClass("hidden");
 	});
 }
+
+//======================================================================================================
+// Javascript functions for "Security / DMZ Settings"
+//======================================================================================================
+function Init_DMZ()
+{
+	$(".checkbox").bootstrapSwitch();
+}

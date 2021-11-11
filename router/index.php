@@ -38,5 +38,5 @@ foreach (glob('includes/plugins/hook-*.php') as $file)
 	require_once($file);
 
 # Call any needed functions for the specified action:
-$include_file = (file_exists('includes/' . $_GET['action'] . '.php') ? $_GET['action'] : '404');
+$include_file = (file_exists('includes/' . $_GET['action'] . '.php') ? ($_GET['action'] != 'template' ? $_GET['action'] : '404') : '404');;
 require_once('includes/' . $include_file . '.php');

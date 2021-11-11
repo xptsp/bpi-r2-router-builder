@@ -1,25 +1,6 @@
 <?php
-##############################################################################
-# Read in the iptables configuration file:
-##############################################################################
-$file = '/etc/default/firewall';
-$options = array();
-foreach (explode("\n", trim(@file_get_contents($file))) as $line)
-{
-	$parts = explode("=", $line . '=');
-	$options[$parts[0]] = $parts[1];
-}
-
-##############################################################################
-# Helper function to simplify checkbox creation task:
-##############################################################################
-function checkbox($name, $description, $default = true, $disabled_by = '')
-{
-	global $options;
-	$options[$name] = $checked = (!isset($options[$name]) ? $default : ($options[$name] == "Y"));
-	$enabled = (!empty($disabled_by) ? $options[$disabled_by] : true);
-	return '<p><input type="checkbox" id="' . $name . '" class="checkbox"' . ($checked ? ' checked="checked"' : '') . ' data-bootstrap-switch="" data-off-color="danger" data-on-color="success" ' . ($enabled ? '' : ' disabled="disabled"') . '> <strong id="' . $name . '_txt" ' . ($enabled ? '' : ' disabled="disabled"') . '>' . $description . '</strong></p>';
-}
+require_once("subs/security.php");
+$options = parse_file();
 
 ##############################################################################
 # Output the configuration screen:

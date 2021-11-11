@@ -4,51 +4,15 @@ if (!isset($_POST['action']) || !isset($_POST['sid']) || $_POST['sid'] != $_SESS
 	require_once("404.php");
 	exit();
 }
-
-#################################################################################################
-# Supporting function(s)
-#################################################################################################
-function parse_file()
-{
-	$file = '/etc/default/firewall';
-	$options = array();
-	foreach (explode("\n", trim(@file_get_contents($file))) as $line)
-	{
-		$parts = explode("=", $line . '=');
-		if (!empty($parts[0]))
-			$options[$parts[0]] = $parts[1];
-	}
-	return $options;
-}
-
-function option($name, $allowed = "/^[Y|N]$/")
-{
-	global $options;
-	if (!isset($_POST[$name]) || (!empty($allowed) && !preg_match($allowed, $_POST[$name])))
-		die('ERROR: Missing or invalid value for option "' . $name . '"!');
-	return $_POST[$name];
-}
-
-function apply_file()
-{
-	global $options;
-	$text = '';
-	foreach ($options as $name => $setting)
-		$text .= (!empty($setting) ? $name . '=' . $setting . "\n" : '');
-	#echo '<pre>'; echo $text; exit;
-	$handle = fopen("/tmp/firewall", "w");
-	fwrite($handle, $text);
-	fclose($handle);
-	echo @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh firewall reload");
-}
+#echo '<pre>'; print_r($_POST); exit;
+require_once("subs/security.php");
+$options = parse_file();
 
 #################################################################################################
 # ACTION: FIREWALL ==> Update the configuration file using the parameters specified:
 #################################################################################################
 if ($_POST['action'] == 'firewall')
 {
-	#echo '<pre>'; print_r($_POST); exit;
-	$options = parse_file();
 	$options['drop_port_scan'] = option('drop_port_scan');
 	$options['log_port_scan']  = option('log_port_scan');
 	$options['log_udp_flood']  = option('log_udp_flood');
