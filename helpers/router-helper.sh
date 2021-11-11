@@ -420,7 +420,7 @@ case $CMD in
 
 	###########################################################################
 	firewall-config)
-		if ! test -d /tmp/firewall; then echo "ERROR: Firewall configuration has not been created!"; exit; fi
+		if ! test -f /tmp/firewall; then echo "ERROR: Firewall configuration has not been created!"; exit; fi
 		mv /tmp/firewall /etc/default/firewall
 		chown root:root /etc/default/firewall
 		systemctl reload firewall
