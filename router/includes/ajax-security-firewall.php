@@ -8,10 +8,10 @@ if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
 #################################################################################################
 # Returns "Y" if option is "true"
 #################################################################################################
-function isYes($name, $default = true)
+function option($name, $default = '')
 {
 	global $options;
-	return !empty($_POST[$name]) ? ($_POST[$name] == 'Y' ? "Y" : "N") : (isset($options[$name]) ? $options[$name] : ($default ? "Y" : "N"));
+	return !empty($_POST[$name]) ? $_POST[$name] : (isset($options[$name]) ? $options[$name] : $default);
 }
 
 #################################################################################################
@@ -26,12 +26,12 @@ foreach (explode("\n", trim(@file_get_contents($file))) as $line)
 	if (!empty($parts[0]))
 		$options[$parts[0]] = $parts[1];
 }
-$options['drop_port_scan'] = isYes('drop_port_scan');
-$options['log_port_scan']  = isYes('log_port_scan', false);
-$options['log_udp_flood']  = isYes('log_udp_flood', false);
-$options['drop_ping']      = isYes('drop_ping');
-$options['drop_ident']     = isYes('drop_ident');
-$options['drop_multicast'] = isYes('drop_multicast', false);
+$options['drop_port_scan'] = option('drop_port_scan');
+$options['log_port_scan']  = option('log_port_scan');
+$options['log_udp_flood']  = option('log_udp_flood');
+$options['drop_ping']      = option('drop_ping');
+$options['drop_ident']     = option('drop_ident');
+$options['drop_multicast'] = option('drop_multicast');
 #echo '<pre>'; print_r($options); exit;
 
 #################################################################################################
@@ -39,7 +39,7 @@ $options['drop_multicast'] = isYes('drop_multicast', false);
 #################################################################################################
 $text = '';
 foreach ($options as $name => $setting)
-	$text .= $name . '=' . $setting . "\n";
+	$text .= (!empty($setting) ? $name . '=' . $setting . "\n" : '');
 #echo '<pre>'; echo $text; exit;
 $handle = fopen("/tmp/firewall", "w");
 fwrite($handle, $text);
