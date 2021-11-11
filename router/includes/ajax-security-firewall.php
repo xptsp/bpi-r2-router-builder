@@ -11,7 +11,7 @@ if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
 function isYes($name, $default = true)
 {
 	global $options;
-	return !empty($_POST[$name]) ? ($_POST[$name] == 'Y' ? "Y" : "N") : ($default ? "Y" : "N");
+	return !empty($_POST[$name]) ? ($_POST[$name] == 'Y' ? "Y" : "N") : (isset($options[$name]) ? $options[$name] : ($default ? "Y" : "N"));
 }
 
 #################################################################################################
