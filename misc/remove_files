@@ -47,3 +47,7 @@ mv /tmp/history.log /var/log/apt/history.log
 rm /var/lib/apt/lists/* >& /dev/null
 rm /etc/samba/smb.d/router >& /dev/null
 touch /var/lib/apt/lists/lock
+
+####################################################################################################
+echo -e "${GREEN}NOTE:${NC} Repulling BPIWRT builder repo to minimize size..."
+mv /opt/bpi-r2-router-builder /opt/r2-backup && git clone --depth=1 https://github.com/xptsp/bpiwrt-builder /opt/bpi-r2-router-builder && rm -rf /opt/r2-backup
