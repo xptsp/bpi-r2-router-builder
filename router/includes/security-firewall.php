@@ -18,7 +18,7 @@ function checkbox($name, $description, $default = true, $disabled_by = '')
 	global $options;
 	$options[$name] = $checked = (!isset($options[$name]) ? $default : ($options[$name] == "Y"));
 	$enabled = (!empty($disabled_by) ? $options[$disabled_by] : true);
-	return '<p><input type="checkbox" id="' . $name . '_btn" class="checkbox"' . ($checked ? ' checked="checked"' : '') . ' data-bootstrap-switch="" data-off-color="danger" data-on-color="success" ' . ($enabled ? '' : ' disabled="disabled"') . '> <strong id="' . $name . '_txt" ' . ($enabled ? '' : ' disabled="disabled"') . '>' . $description . '</strong></p>';
+	return '<p><input type="checkbox" id="' . $name . '" class="checkbox"' . ($checked ? ' checked="checked"' : '') . ' data-bootstrap-switch="" data-off-color="danger" data-on-color="success" ' . ($enabled ? '' : ' disabled="disabled"') . '> <strong id="' . $name . '_txt" ' . ($enabled ? '' : ' disabled="disabled"') . '>' . $description . '</strong></p>';
 }
 
 ##############################################################################
@@ -42,8 +42,35 @@ echo '
 		', checkbox("drop_multicast", "Filter Multicast Packets from Internet", false), '
 	</div>
 	<div class="card-footer">
-		<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-success center_50" id="apply_changes">Apply Changes</button></a>
+		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-block btn-success center_50" data-toggle="modal" data-target="#apply-modal" id="reboot_button">Apply Changes</button></a>
 	</div>
 	<!-- /.card-body -->
 </div>';
+
+###################################################################################################
+# Apply Changes modal:
+###################################################################################################
+echo '
+<div class="modal fade" id="apply-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header bg-primary">
+				<h4 class="modal-title">Applying Changes</h4>
+				<a href="javascript:void(0);"><button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button></a>
+			</div>
+			<div class="modal-body">
+				<p id="apply_msg">Please wait while the firewall service is restarted....</p>
+			</div>
+			<div class="modal-footer justify-content-between hidden alert_control">
+				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>
+			</div>
+		</div>
+	</div>
+</div>';
+
+###################################################################################################
+# Close the page:
+###################################################################################################
 site_footer('Init_Firewall();');

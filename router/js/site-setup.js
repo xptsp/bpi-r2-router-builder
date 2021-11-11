@@ -59,7 +59,7 @@ function WAN_Submit()
 	$("#apply_msg").html("Please wait while the networking service is restarted...");
 	$(".alert_control").addClass("hidden");
 	$("#apply-modal").modal("show");
-	$.post("/ajax/setup-wan", postdata, function(data) {
+	$.post("/ajax/setup/wan", postdata, function(data) {
 		if (data == "OK")
 			document.location.reload(true);
 		else
@@ -175,7 +175,7 @@ function LAN_Submit()
 		$("#apply-modal").modal("show");
 
 	// Perform our AJAX request to change the WAN settings:
-	$.post("/ajax/setup-lan", postdata, function(data) {
+	$.post("/ajax/setup/lan", postdata, function(data) {
 		if (data == "OK")
 			document.location.reload(true);
 		else if (data == "REBOOT")
