@@ -17,7 +17,16 @@ if [[ "${UID}" -ne 0 ]]; then
 	exit $?
 fi
 
-# Read the configuration file:
+#############################################################################
+# RELOAD => Move the new configuration file into place and reload settings:
+#############################################################################
+if [[ "$1" == "reload" ]]; then
+	if test -f /tmp/firewall; then
+		mv /tmp/firewall /etc/default/firewall
+		chown root:root /etc/default/firewall
+		systemctl reload firewall
+	fi
+fi
 [[ -f /etc/default/firewall ]] && source /etc/default/firewall
 
 #############################################################################

@@ -46,6 +46,6 @@ fwrite($handle, $text);
 fclose($handle);
 
 #################################################################################################
-# Change the DNS servers by calling the router-helper script:
+# Reload the iptable rules as specified by the new WebUI configuration file:
 #################################################################################################
-echo @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh firewall-config");
+echo @shell_exec("/opt/bpi-r2-router-builder/helpers/firewall.sh reload");

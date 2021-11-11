@@ -419,15 +419,6 @@ case $CMD in
 		;;
 
 	###########################################################################
-	firewall-config)
-		if ! test -f /tmp/firewall; then echo "ERROR: Firewall configuration has not been created!"; exit; fi
-		mv /tmp/firewall /etc/default/firewall
-		chown root:root /etc/default/firewall
-		systemctl reload firewall
-		echo "OK";
-		;;
-		
-	###########################################################################
 	route)
 		#####################################################################
 		# MOVE => Move the specified routing file to "/etc/network/if-up.d/":
