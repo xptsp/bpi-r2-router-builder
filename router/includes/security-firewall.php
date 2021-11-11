@@ -30,7 +30,7 @@ echo '
 	<div class="card-header">
 		<h3 class="card-title">Firewall Settings</h3>
 	</div>
-	<div class="card-body">
+	<div class="card-body" id="firewall-div">
 		', checkbox("drop_port_scan", "Enable Port Scan protection from Internet"), '
 		<div id="port_scan_options"', empty($options['drop_port_scan']) ? ' class="hidden"' : '', ' style="margin-left: 20px">
 			', checkbox("log_port_scan",  "Log Port Scan attempts from Internet", false, 'drop_port_scan'), '
@@ -42,7 +42,7 @@ echo '
 		', checkbox("drop_multicast", "Filter Multicast Packets from Internet", false), '
 	</div>
 	<div class="card-footer">
-		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-block btn-success center_50" data-toggle="modal" data-target="#apply-modal" id="reboot_button">Apply Changes</button></a>
+		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-block btn-success center_50" id="reboot_button">Apply Changes</button></a>
 	</div>
 	<!-- /.card-body -->
 </div>';
@@ -63,7 +63,7 @@ echo '
 			<div class="modal-body">
 				<p id="apply_msg">Please wait while the firewall service is restarted....</p>
 			</div>
-			<div class="modal-footer justify-content-between hidden alert_control">
+			<div class="modal-footer justify-content-between alert_control">
 				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>
 			</div>
 		</div>

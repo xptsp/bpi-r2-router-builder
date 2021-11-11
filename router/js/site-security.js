@@ -18,6 +18,7 @@ function FireWall_Apply()
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':            SID,
+		'action':         'firewall',
 		'drop_port_scan': $("#drop_port_scan").prop("checked") ? "Y" : "N",
 		'log_port_scan':  $("#log_port_scan").prop("checked") ? "Y" : "N",
 		'log_udp_flood':  $("#log_udp_flood").prop("checked") ? "Y" : "N",
@@ -28,13 +29,14 @@ function FireWall_Apply()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to change the WAN settings:
-	$(".alert_control").addClass("hidden");
+	Add_Overlay("firewall-div");
 	$.post("/ajax/security/firewall", postdata, function(data) {
-		$(".alert_control").removeClass("hidden");
-		if (data.trim() == "OK")
-			$("#apply-modal").modal("hide");
-		else
+		Del_Overlay("firewall-div");
+		if (data.trim() != "OK")
+		{
+			$("#apply-modal").modal("show");
 			$("#apply_msg").html(data);
+		}
 	}).fail(function() {
 		$("#apply_msg").html("AJAX call failed!");
 		$(".alert_control").removeClass("hidden");
