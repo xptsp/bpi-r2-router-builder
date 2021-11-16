@@ -177,8 +177,6 @@ elif [[ "$1" == "dmz" ]]; then
 		fi
 	elif [[ "${dmz_src_type}" == "mask" && ! -z "${dmz_mask_ip}"  && ! -z "${dmz_mask_bits}" ]]; then
 		params="--src-range ${dmz_mask_ip}/${dmz_mask_bits}"
-	elif [[ "${dmz_src_type}" == "mac" && ! -z "${dmz_mac_source}" ]]; then
-		params="--mac-source ${dmz_mac_source}"
 	fi
 
 	# Create the iptable rule for the DMZ server:
