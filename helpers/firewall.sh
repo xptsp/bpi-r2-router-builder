@@ -7,10 +7,6 @@
 #	https://javapipe.com/blog/iptables-ddos-protection/
 # Comments starting with "CTB:" and iptables commands from source:
 #	https://offensivesecuritygeek.wordpress.com/2014/06/24/how-to-block-port-scans-using-iptables-only/
-# "Filter Multicast" iptable commands from source:
-# 	https://jeanwan.wordpress.com/2013/08/14/block-multicast-packets-by-using-ipfilter/
-# "Default DMZ Server" iptables commands from source:
-#   https://www.linuxquestions.org/questions/linux-networking-3/iptables-dmz-host-490491/#post2454665
 #############################################################################
 if [[ "${UID}" -ne 0 ]]; then
 	sudo $0 $@
@@ -152,6 +148,11 @@ elif [[ "$1" == "reload" ]]; then
 #############################################################################
 # DMZ => Setup the DMZ server rule:
 #############################################################################
+# "Default DMZ Server" iptables commands from source:
+#   https://www.linuxquestions.org/questions/linux-networking-3/iptables-dmz-host-490491/#post2454665
+# "MAC Address Filter" iptables parameters from source:
+#   https://tecadmin.net/mac-address-filtering-using-iptables/
+#############################################################################
 elif [[ "$1" == "dmz" ]]; then
 	# Is the DMZ server enabled?  If not, exit without error:
 	[[ "${enable_dmz:-"N"}" == "N" ]] && exit 0
@@ -167,8 +168,13 @@ elif [[ "$1" == "dmz" ]]; then
 
 	# Restrict access to the DMZ based on the WebUI settings (IP range/IP mask/MAC address):
 	unset params
-	if [[ "${dmz_src_type}" == "range" && ! -z "${dmz_range_from}" && ! -z "${dmz_range_to}" ]]; then
-		params="--src-range ${dmz_range_from}-$(echo ${dmz_range_from} | awk 'BEGIN{FS=OFS="."} NF--').${dmz_range_to}"
+	subnet=$(echo ${dmz_range_from} | awk 'BEGIN{FS=OFS="."} NF--')
+	if [[ "${dmz_src_type}" == "range" && ! -z "${dmz_range_from}" ]]; then
+		if [[ -z "${dmz_range_to}" || "${dmz_range_from/$subnet/}" == "${dmz_range_to}" ]]; then
+			params="--s ${dmz_range_from}"
+		else
+			params="--src-range ${dmz_range_from}-${subnet}.${dmz_range_to}"
+		fi
 	elif [[ "${dmz_src_type}" == "mask" && ! -z "${dmz_mask_ip}"  && ! -z "${dmz_mask_bits}" ]]; then
 		params="--src-range ${dmz_mask_ip}/${dmz_mask_bits}"
 	elif [[ "${dmz_src_type}" == "mac" && ! -z "${dmz_mac_source}" ]]; then
@@ -180,6 +186,11 @@ elif [[ "$1" == "dmz" ]]; then
 
 #############################################################################
 # FIREWALL => Set the basic firewall security settings, according to WebUI:
+#############################################################################
+# "Filter Multicast" iptable commands from source:
+# 	https://jeanwan.wordpress.com/2013/08/14/block-multicast-packets-by-using-ipfilter/
+# "Drop Pings from Internet" iptable commands from source:
+#   https://vitux.com/how-to-block-allow-ping-using-iptables-in-ubuntu/
 #############################################################################
 elif [[ "$1" == "firewall" ]]; then
 	#############################################################################
