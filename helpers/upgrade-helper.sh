@@ -27,7 +27,7 @@ TFL=/tmp/bpiwrt-builder.filelist
 COPY_ONLY=(
 	/etc/hosts.adblock
 	/etc/network/interfaces.d/
-	/etc/dnsmasq.d/[a-z]
+	/etc/dnsmasq.d/
 	/etc/hostapd/
 	/etc/fstab
 	/etc/rc.local
@@ -52,7 +52,7 @@ function replace()
 	COPY=false
 	SRC=$(echo ${PWD}/$1 | sed "s|/ro/|/|g")
 	for MATCH in ${COPY_ONLY[@]}; do 
-		[[ "${DEST}" == "${MATCH}"* ]] && COPY=true
+		[[ "${DEST}" == "${MATCH}"* && "${DEST}" != "/etc/dnsmasq.d/"[0-9]* ]] && COPY=true
 	done
 	mkdir -p $(dirname ${DEST})
 	if [[ "${COPY}" == "true" ]]; then
