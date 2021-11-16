@@ -35,7 +35,7 @@ systemctl disable hostapd
 ##############################################################################################
 # Install some necessary packages:
 ##############################################################################################
-apt install -y locales wget git apt-transport-https toilet pmount eject lsb-release bash-completion dialog
+apt install -y locales wget git apt-transport-https toilet pmount eject lsb-release bash-completion dialog mosquitto-clients
 
 ##############################################################################################
 # Create our default users and assign default passwords to users:
