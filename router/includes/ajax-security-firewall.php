@@ -22,5 +22,35 @@ if ($_POST['action'] == 'firewall')
 	#echo '<pre>'; print_r($options); exit;
 	apply_file();
 }
+#################################################################################################
+# ACTION: DMZ ==> Update the configuration file using the parameters specified:
+#################################################################################################
+if ($_POST['action'] == 'dmz')
+{
+	$options['enable_dmz'] = option('enable_dmz');
+	$options['dmz_src_type'] = option_allowed('src_type', array('any', 'range', 'mask'));
+	unset($options['dmz_range_from'], $options['dmz_range_to'], $options['dmz_mask_ip'], $options['dmz_mask_bits']);
+	if ($options['dmz_src_type'] == 'range')
+	{
+		$options['dmz_range_from'] = option_ip('range_from');
+		$options['dmz_range_to'] = option_range('range_to', 0, 255);
+	}
+	else if ($options['dmz_src_type'] == 'mask')
+	{
+		$options['dmz_mask_ip'] = option_ip('mask_ip');
+		$options['dmz_mask_bits'] = option_range('mask_bits', 0, 32);
+	}
+	$option['dmz_dest_type'] = option_allowed('dest_type', array('addr', 'mac'));
+	unset($options['dmz_mac_addr'], $options['dmz_ip_addr']);
+	if ($option['dmz_dest_type'] == 'addr')
+		$options['dmz_ip_addr'] = option_ip('dest_ip');
+	else
+		$options['dmz_mac_addr'] = option_mac('dest_mac');
+	#echo '<pre>'; print_r($options); exit;
+	apply_file();
+}
+#################################################################################################
+# ACTION: Anything Else ==> Report unknown action to caller:
+#################################################################################################
 else
 	die("ERROR: Unknown action!");

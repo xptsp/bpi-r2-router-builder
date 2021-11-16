@@ -1,10 +1,6 @@
 <?php
 require_once("subs/security.php");
 $options = parse_file();
-
-##############################################################################
-# Output the configuration screen:
-##############################################################################
 site_menu();
 echo '
 <div class="card card-primary">
@@ -27,31 +23,5 @@ echo '
 	</div>
 	<!-- /.card-body -->
 </div>';
-
-###################################################################################################
-# Apply Changes modal:
-###################################################################################################
-echo '
-<div class="modal fade" id="apply-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header bg-primary">
-				<h4 class="modal-title">Applying Changes</h4>
-				<a href="javascript:void(0);"><button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button></a>
-			</div>
-			<div class="modal-body">
-				<p id="apply_msg">Please wait while the firewall service is restarted....</p>
-			</div>
-			<div class="modal-footer justify-content-between alert_control">
-				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>
-			</div>
-		</div>
-	</div>
-</div>';
-
-###################################################################################################
-# Close the page:
-###################################################################################################
+security_apply_changes();
 site_footer('Init_Firewall();');

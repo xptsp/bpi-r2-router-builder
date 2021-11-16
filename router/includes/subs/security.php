@@ -12,14 +12,6 @@ function parse_file()
 	return $options;
 }
 
-function option($name, $allowed = "/^[Y|N]$/")
-{
-	global $options;
-	if (!isset($_POST[$name]) || (!empty($allowed) && !preg_match($allowed, $_POST[$name])))
-		die('ERROR: Missing or invalid value for option "' . $name . '"!');
-	return $_POST[$name];
-}
-
 function apply_file()
 {
 	global $options;
@@ -41,3 +33,25 @@ function checkbox($name, $description, $default = true, $disabled_by = '')
 	return '<p><input type="checkbox" id="' . $name . '" class="checkbox"' . ($checked ? ' checked="checked"' : '') . ' data-bootstrap-switch="" data-off-color="danger" data-on-color="success" ' . ($enabled ? '' : ' disabled="disabled"') . '> <strong id="' . $name . '_txt" ' . ($enabled ? '' : ' disabled="disabled"') . '>' . $description . '</strong></p>';
 }
 
+function security_apply_changes()
+{
+	echo '
+<div class="modal fade" id="apply-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header bg-primary">
+				<h4 class="modal-title">Applying Changes</h4>
+				<a href="javascript:void(0);"><button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button></a>
+			</div>
+			<div class="modal-body">
+				<p id="apply_msg">Please wait while the firewall service is restarted....</p>
+			</div>
+			<div class="modal-footer justify-content-between alert_control">
+				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>
+			</div>
+		</div>
+	</div>
+</div>';
+}

@@ -381,3 +381,48 @@ echo '
 	<!-- /.modal-dialog -->
 </div>';
 }
+
+#######################################################################################################
+# Functions dealing with passed parameters:
+#######################################################################################################
+function option($name, $allowed = "/^[Y|N]$/")
+{
+	global $options;
+	if (!isset($_POST[$name]) || (!empty($allowed) && !preg_match($allowed, $_POST[$name])))
+		die('ERROR: Missing or invalid value for option "' . $name . '"!');
+	return $_POST[$name];
+}
+
+function option_allowed($name, $allowed = array())
+{
+	global $options;
+	if (!isset($_POST[$name]) || !in_array($_POST[$name], $allowed))
+		die('ERROR: Missing or invalid value for option "' . $name . '"!');
+	return $_POST[$name];
+}
+
+function option_range($name, $min, $max)
+{
+	global $options;
+	$int = (int) (isset($_POST[$name]) ? $_POST[$name] : '');
+	if ($int < $min || $int > $max)
+		die('ERROR: Missing or invalid value for option "' . $name . '"!');
+	return $_POST[$name];
+}
+
+function option_ip($name)
+{
+	$_POST[$name] = isset($_POST[$name]) ? $_POST[$name] : '';
+	if (!filter_var($_POST[$name], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
+		die('ERROR: Missing or invalid value for option "' . $name . '"!');
+	return $_POST[$name];
+}
+
+function option_mac($name)
+{
+	$_POST[$name] = isset($_POST[$name]) ? strtoupper($_POST[$name]) : '';
+	if (!filter_var($_POST[$name], FILTER_VALIDATE_MAC))
+		die('ERROR: Missing or invalid value for option "' . $name . '"!');
+	return $_POST[$name];
+}
+

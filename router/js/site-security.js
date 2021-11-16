@@ -38,6 +38,7 @@ function FireWall_Apply()
 			$("#apply_msg").html(data);
 		}
 	}).fail(function() {
+		Del_Overlay("firewall-div");
 		$("#apply_msg").html("AJAX call failed!");
 		$(".alert_control").removeClass("hidden");
 	});
@@ -48,5 +49,77 @@ function FireWall_Apply()
 //======================================================================================================
 function Init_DMZ()
 {
-	$(".checkbox").bootstrapSwitch();
+	$("#enable_dmz").bootstrapSwitch().on('switchChange.bootstrapSwitch', function(event, state) {
+		if (state == true)
+			$("#dmz_info").slideDown(400);
+		else
+			$("#dmz_info").slideUp(400);
+	});
+	$("#src_any").click(function() {
+		$("#range_from").attr("disabled", "disabled");
+		$("#range_to").attr("disabled", "disabled");
+		$("#mask_ip").attr("disabled", "disabled");
+		$("#mask_bits").attr("disabled", "disabled");
+	});
+	$("#src_range").click(function() {
+		$("#range_from").removeAttr("disabled");
+		$("#range_to").removeAttr("disabled");
+		$("#mask_ip").attr("disabled", "disabled");
+		$("#mask_bits").attr("disabled", "disabled");
+	});
+	$("#src_mask").click(function() {
+		$("#range_from").attr("disabled", "disabled");
+		$("#range_to").attr("disabled", "disabled");
+		$("#mask_ip").removeAttr("disabled");
+		$("#mask_bits").removeAttr("disabled");
+	});
+	$("#range_from").change(function() {
+		$("#range_to").val( $("#range_from").val().substring( $("#range_from").val().lastIndexOf('.') + 1) );
+	});
+	$("#range_to").inputmask('integer', {min:0, max:254});
+	$("#mask_bits").inputmask('integer', {min:0, max: 32});
+	$("#dest_ip").click(function() {
+		$("#ip_addr").removeAttr("disabled");
+		$("#mac_addr").attr("disabled", "disabled");
+	});
+	$("#dest_mac").click(function() {
+		$("#ip_addr").attr("disabled", "disabled");
+		$("#mac_addr").removeAttr("disabled");
+	});
+	$("#mac_addr").inputmask('mac');
+	$("#apply_changes").click( DMZ_Apply );
+}
+
+function DMZ_Apply()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':        SID,
+		'action':     'dmz',
+		'enable_dmz': $("#enable_dmz").prop("checked") ? "Y" : "N",
+		'src_type':   $("[name=src_type]:checked").val(),
+		'range_from': $("#range_from").val(),
+		'range_to':   $("#range_to").val(),
+		'mask_ip':    $("#mask_ip").val(),
+		'mask_bits':  $("#mask_bits").val(),
+		'dest_type':   $("[name=dest_type]:checked").val(),
+		'dest_ip':    $("#ip_addr").val(),
+		'dest_mac':   $("#mac_addr").val(),
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to change the WAN settings:
+	Add_Overlay("dmz_div");
+	$.post("/ajax/security/firewall", postdata, function(data) {
+		Del_Overlay("dmz_div");
+		if (data.trim() != "OK")
+		{
+			$("#apply-modal").modal("show");
+			$("#apply_msg").html(data);
+		}
+	}).fail(function() {
+		Del_Overlay("dmz_div");
+		$("#apply_msg").html("AJAX call failed!");
+		$(".alert_control").removeClass("hidden");
+	});
 }
