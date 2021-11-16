@@ -133,27 +133,55 @@ if [[ "$1" == "start" ]]; then
 	iptables -A INPUT -i wan -j DROP
 	iptables -A FORWARD -i wan ! -o wan -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 	iptables -A FORWARD -i wan ! -o wan -j DROP
-fi
+
+	#############################################################################
+	# We need to call ourselves to complete other tasks:
+	#############################################################################
+	$0 reload
 
 #############################################################################
-# START/RELOAD => Setup any iptables rules for our WebUI configuration:
+# RELOAD => Setup the WebUI customizable firewall rules:
 #############################################################################
-if [[ "$1" == "start" || "$1" == "reload" ]]; then
-	#############################################################################
-	# Clear the "WAN_IN", "WAN_OUT" and "WAN_FORWARD" chains of rules:
-	#############################################################################
+elif [[ "$1" == "reload" ]]; then
 	iptables -F WAN_IN
 	iptables -F WAN_OUT
 	iptables -F WAN_FORWARD
+	$0 dmz
+	$0 firewall
 
-	#############################################################################
-	# OPTION "enable_dmz" => Enables the default DMZ server specified in option "dmz_server"
-	#############################################################################
-	if [[ "${enable_dmz:-"N"}" == "Y" && ! -z "${dmz_server}" ]]; then
-		iptables -A WAN_FORWARD -i wan $([[ ! -z "${dmz_iface}" ]] && echo "-o ${dmz_iface}") -d ${dmz_server} -m state --state NEW -j ACCEPT
-		iptables -A WAN_FORWARD -o wan $([[ ! -z "${dmz_iface}" ]] && echo "-i ${dmz_iface}") -s ${dmz_server} -m state --state NEW -j ACCEPT
+#############################################################################
+# DMZ => Setup the DMZ server rule:
+#############################################################################
+elif [[ "$1" == "dmz" ]]; then
+	# Is the DMZ server enabled?  If not, exit without error:
+	[[ "${enable_dmz:-"N"}" == "N" ]] && exit 0
+
+	# Remove any DMZ-commented lines from the iptables rules list:
+	iptables --list-rules | grep "\-m comment \-\-comment DMZ" | while read rule; do iptables $(echo $rule | sed "s|^-A|-D|g"); done
+
+	# Can we locate the DMZ server?  If not, exit without error:
+	server=($(arp | grep ${dmz_ip_addr:-"${dmz_mac_addr}"} 2> /dev/null))
+	[[ -z "${server[0]}" ]] && exit 0
+	dmz_ip_addr=${server[0]}
+	iface=${server[-1]}
+
+	# Restrict access to the DMZ based on the WebUI settings (IP range/IP mask/MAC address):
+	unset params
+	if [[ "${dmz_src_type}" == "range" && ! -z "${dmz_range_from}" && ! -z "${dmz_range_to}" ]]; then
+		params="--src-range ${dmz_range_from}-$(echo ${dmz_range_from} | awk 'BEGIN{FS=OFS="."} NF--').${dmz_range_to}"
+	elif [[ "${dmz_src_type}" == "mask" && ! -z "${dmz_mask_ip}"  && ! -z "${dmz_mask_bits}" ]]; then
+		params="--src-range ${dmz_mask_ip}/${dmz_mask_bits}"
+	elif [[ "${dmz_src_type}" == "mac" && ! -z "${dmz_mac_source}" ]]; then
+		params="--mac-source ${dmz_mac_source}"
 	fi
 
+	# Create the iptable rule for the DMZ server:
+	iptables -A WAN_FORWARD -i wan -o ${iface} ${params} -d ${dmz_ip_addr} -m comment --comment DMZ -m state --state NEW -j ACCEPT
+
+#############################################################################
+# FIREWALL => Set the basic firewall security settings, according to WebUI:
+#############################################################################
+elif [[ "$1" == "firewall" ]]; then
 	#############################################################################
 	# OPTION "drop_ping" => Disable ping response from internet
 	#############################################################################
