@@ -1,0 +1,5 @@
+#!/bin/bash
+if [[ "$IFACE" == "br0" ]]; then
+	iptables --list-rules -t nat | grep "\-\-dport 53" | while read rule; do iptables -t nat $(echo $rule | sed "s|^-A|-D|g"); done
+fi
+

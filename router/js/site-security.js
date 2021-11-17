@@ -25,6 +25,7 @@ function FireWall_Apply()
 		'drop_ping':      $("#drop_ping").prop("checked") ? "Y" : "N",
 		'drop_ident':     $("#drop_ident").prop("checked") ? "Y" : "N",
 		'drop_multicast': $("#drop_multicast").prop("checked") ? "Y" : "N",
+		'redirect_dns':   $("#redirect_dns").prop("checked") ? "Y" : "N",
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
