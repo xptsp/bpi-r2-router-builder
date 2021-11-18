@@ -1,6 +1,6 @@
 <?php
-$_POST['action'] = 'detect';
-$_POST['sid'] = $_SESSION['sid'];
+#$_POST['action'] = 'detect';
+#$_POST['sid'] = $_SESSION['sid'];
 if (!isset($_POST['action']) || !isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
 {
 	require_once("404.php");

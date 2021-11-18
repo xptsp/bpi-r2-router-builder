@@ -18,9 +18,9 @@ $sidebar_menu = array(
 	'storage' => array('Storage', 'fas fa-hdd', array(
 #		'basic'    => menu_link('/storage/usb-basic', 'Basic Settings', 'fab fa-usb'),
 	)),
-	'security' => array('Security', 'fas fa-shield-alt', array(
-		'firewall' => menu_link('/security/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
-		'dmz' => menu_link('/security/dmz', 'DMZ Setup', 'fas fa-server'),
+	'advanced' => array('Advanced', 'fas fa-shield-alt', array(
+		'firewall' => menu_link('/advanced/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
+		'dmz' => menu_link('/advanced/dmz', 'DMZ Setup', 'fas fa-server'),
 	)),
 	'admin'  => array('Administration', 'fas fa-cog', array(
 		'status'   => menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),

@@ -1,5 +1,5 @@
 //======================================================================================================
-// Javascript functions for "Security / Firewall Settings"
+// Javascript functions for "Advanced / Firewall Settings"
 //======================================================================================================
 function Init_Firewall()
 {
@@ -31,7 +31,7 @@ function FireWall_Apply()
 
 	// Perform our AJAX request to change the WAN settings:
 	Add_Overlay("firewall-div");
-	$.post("/ajax/security/firewall", postdata, function(data) {
+	$.post("/ajax/advanced", postdata, function(data) {
 		Del_Overlay("firewall-div");
 		if (data.trim() != "OK")
 		{
@@ -46,7 +46,7 @@ function FireWall_Apply()
 }
 
 //======================================================================================================
-// Javascript functions for "Security / DMZ Settings"
+// Javascript functions for "Advanced / DMZ Settings"
 //======================================================================================================
 function Init_DMZ()
 {
@@ -111,7 +111,7 @@ function DMZ_Apply()
 
 	// Perform our AJAX request to change the WAN settings:
 	Add_Overlay("dmz_div");
-	$.post("/ajax/security/firewall", postdata, function(data) {
+	$.post("/ajax/advanced", postdata, function(data) {
 		Del_Overlay("dmz_div");
 		if (data.trim() != "OK")
 		{
