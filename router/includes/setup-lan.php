@@ -28,7 +28,7 @@ $use_dhcp = isset($dhcp[1]);
 #echo (int) $use_dhcp; exit;
 
 ###################################################################################################
-# Device Name
+# Tabbed interface with list of wired adapters:
 ###################################################################################################
 echo '
 <div id="alert-div" style="display:none">
@@ -38,29 +38,6 @@ echo '
 	</div>
 </div>
 <div class="card card-primary">
-	<div class="card-header">
-		<h3 class="card-title">Wired Network Setup</h3>
-	</div>
-	<div class="card-body">
-		<table width="100%">
-			<tr>
-				<td width="50%"><label for="hostname">Device Name</label></td>
-				<td>
-					<div class="input-group">
-						<div class="input-group-prepend">
-							<span class="input-group-text"><i class="fas fa-laptop-code"></i></span>
-						</div>
-						<input id="hostname" type="text" class="hostname form-control" value="', @file_get_contents('/etc/hostname'), '" data-inputmask-regex="([0-9a-zA-Z]|[0-9a-zA-Z][0-9a-zA-Z0-9\-]+)">
-					</div>
-				</td>
-			</tr>
-		</table>
-	</div>';
-
-###################################################################################################
-# Tabbed interface with list of wired adapters:
-###################################################################################################
-echo '
     <div class="card-header p-0 pt-1">
 		<ul class="nav nav-tabs">';
 $init_list = array();

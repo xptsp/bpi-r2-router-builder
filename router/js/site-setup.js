@@ -44,7 +44,6 @@ function WAN_Submit()
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':      SID,
-		'hostname': $("#hostname").val(),
 		'static':   ($("[name=static_dynamic]:checked").val()) == "dynamic" ? 0 : 1,
 		'ip_addr':  $("#ip_addr").val(),
 		'ip_mask':  $("#ip_mask").val(),
@@ -102,7 +101,6 @@ function Init_LAN(iface)
 	$(".bridge").click( function() {
 		$(this).toggleClass("active");
 	});
-	$(".hostname").inputmask();
 	$(".ip_address").change(function() {
 		parts = $("#ip_addr").val().substring(0, $("#ip_addr").val().lastIndexOf('.'));
 		$("#dhcp_start").val( parts + $("#dhcp_start").val().substring( $("#dhcp_start").val().lastIndexOf('.')) );
@@ -148,7 +146,6 @@ function LAN_Submit()
 	postdata = {
 		'sid':        SID,
 		'iface':      iface_used,
-		'hostname':   $("#hostname").val(),
 		'iface':      $("#iface").val(),
 		'ip_addr':    $("#ip_addr").val(),
 		'ip_mask':    $("#ip_mask").val(),
@@ -409,6 +406,48 @@ function Routing_Add()
 	$.post("/ajax/setup/routing", postdata, function(data) {
 		if (data.trim() == "OK")
 			LAN_Refresh_Reservations();
+		else
+			LAN_Error(data);
+	}).fail(function() {
+		LAN_Error("AJAX call failed!");
+	});
+}
+
+//======================================================================================================
+// Javascript functions for "Setup / System Settings"
+//======================================================================================================
+function Init_System()
+{
+	$(".hostname").inputmask();
+	$("#apply_changes").click(System_Apply);
+	$("#tz_detect").click(System_Detect);
+}
+
+function System_Detect()
+{
+	$.post("/ajax/setup/device", __postdata("detect"), function(data) {
+		data = JSON.parse(data);
+		$("#timezone").val(data.timezone).change();
+	}).fail(function() {
+		alert("AJAX call failed!");
+	});
+}
+
+function System_Apply()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':      SID,
+		'action':   'set',
+		'hostname': $("#hostname").val(),
+		'timezone': $("#timezone").val(),
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to remove the IP reservation:
+	$.post("/ajax/setup/device", postdata, function(data) {
+		if (data.trim() == "OK")
+			document.location.reload(true);
 		else
 			LAN_Error(data);
 	}).fail(function() {

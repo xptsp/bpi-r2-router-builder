@@ -10,10 +10,6 @@ if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
 #################################################################################################
 # Validate the input sent to this script (we paranoid... for the right reasons, of course...):
 #################################################################################################
-$_POST['hostname'] = isset($_POST['hostname']) ? $_POST['hostname'] : '';
-if (!preg_match("/^([0-9a-zA-Z]|[0-9a-zA-Z][0-9a-zA-Z0-9\-]+)$/", $_POST['hostname']))
-	die("[HOSTNAME] ERROR: " . $_POST['hostname'] . " is not a valid hostname");
-
 $_POST['iface'] = isset($_POST['iface']) ? $_POST['iface'] : '';
 if (empty($_POST['iface']) || !file_exists("/sys/class/net/" . $_POST['iface']))
 	die('[IFACE] ERROR: "' . $_POST['iface'] . '" is not a valid network interface!');
