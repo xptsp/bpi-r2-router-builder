@@ -1,9 +1,8 @@
 <?php
-if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
-{
+if (!isset($_POST['sid']))
 	require_once("404.php");
-	exit();
-}
+if ($_POST['sid'] != $_SESSION['sid'])
+	die('RELOAD');
 
 #echo '<pre>'; print_r($_POST); exit();
 
@@ -24,7 +23,7 @@ if (!filter_var($_POST['ip_mask'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
 
 $_POST['reboot'] = isset($_POST['reboot']) ? $_POST['reboot'] : '';
 if (!preg_match("/^(true|false)$/", $_POST['reboot']))
-	die("[REBOOT] ERROR: " . $_POST['hostname'] . " is not a valid boolean");
+	die("[REBOOT] ERROR: " . $_POST['reboot'] . " is not a valid boolean");
 
 #################################################################################################
 # If using DHCP on this interface, make sure addresses are valid:

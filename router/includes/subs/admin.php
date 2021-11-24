@@ -119,7 +119,7 @@ function get_dns_servers()
 ################################################################################################
 function get_network_adapters()
 {
-	$arr = array();
+	$arr = array('wan' => 'wan');
 	$bridged = array();
 	foreach (glob("/sys/class/net/*") as $iface)
 	{
@@ -131,11 +131,13 @@ function get_network_adapters()
 			{
 				if (preg_match('/bridge_ports\s+(.*)/', $line, $regex))
 				{
-					$arr[$name] += $ifaces = explode(" ", $regex[1]);
+					foreach (($arr[$name] += $ifaces = explode(" ", $regex[1])) as $name)
+						unset($arr[$name]);
 					$bridged += $ifaces;
 				}
 			}
 		}
 	}
+	#echo '<pre>'; print_r($arr); exit;
 	return $arr;
 }

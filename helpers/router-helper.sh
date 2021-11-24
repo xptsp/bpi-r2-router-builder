@@ -223,13 +223,26 @@ case $CMD in
 		;;
 
 	###########################################################################
-	hostname)
+	device)
+		if [[ -z "$1" ]]; then echo "ERROR: No hostname specified!"; exit 1; fi
+		if [[ -z "$2" ]]; then echo "ERROR: No timezone specified!"; exit 1; fi
+		if [[ -z "$3" ]]; then echo "ERROR: No locale specified!"; exit 1; fi
+
+		# Set the new hostname:
 		OLD_HOST=$(hostname)
 		ORIG="$(grep ${OLD_HOST} /etc/hosts)"
 		REPL="${ORIG//${OLD_HOST}/${1}}"
 		sed -i "s|^${ORIG}\$|${REPL}|g" /etc/hosts
 		echo "$1" > /etc/hostname
 		/bin/hostname $1
+
+		# Set the new timezone:
+		echo "$2" > /etc/timezone
+		timedatectl set-timezone $2
+
+		# Set the new OS locale:
+		echo "LANG=$3" > /etc/default/locale
+		localectl set-locale LANG=$3
 		echo "OK"
 		;;
 
@@ -440,11 +453,6 @@ case $CMD in
 			ip route $@
 			echo 'OK'
 		fi
-		;;
-
-	###########################################################################
-	timezone)
-		timedatectl set-timezone $2 && echo "OK"
 		;;
 
 	###########################################################################

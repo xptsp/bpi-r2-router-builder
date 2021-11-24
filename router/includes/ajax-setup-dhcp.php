@@ -1,16 +1,16 @@
 <?php
 $iface = !isset($_POST['iface']) ? (isset($_POST['misc']) ? $_POST['misc'] : '') : $_POST['iface'];
-if (empty($iface) || !isset($_POST['action']) || !isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
-{
+if (empty($iface) || !isset($_POST['action']) || !isset($_POST['sid']))
 	require_once("404.php");
-	exit();
-}
+if ($_POST['sid'] != $_SESSION['sid'])
+	die('RELOAD');
 require_once("subs/setup.php");
 $reserve = $hostname = $leases = array();
 
 ###################################################################################################
 # Parse the DNSMASQ configuration file for the specified interface:
 ###################################################################################################
+$subnet = '';
 foreach (explode("\n", @file_get_contents("/etc/dnsmasq.d/" . $iface . ".conf")) as $line)
 {
 	$parts = explode("=", trim($line));
@@ -45,7 +45,7 @@ foreach (explode("\n", @file_get_contents("/etc/dnsmasq.d/" . $iface . ".conf"))
 foreach (explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases"))) as $lease)
 {
 	$sub_parts = explode(' ', $lease);
-	if (strpos($sub_parts[2], $subnet) != -1)
+	if (!empty($subnet) && strpos($sub_parts[2], $subnet) != -1)
 	{
 		$leases[$sub_parts[1]] = $leases[strtoupper($sub_parts[2])] = $sub_parts;
 		$leases[$sub_parts[1]]['hide'] = true;

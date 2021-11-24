@@ -5,22 +5,18 @@
 ###################################################################################################
 function get_network_adapters_list($get_bridged = true)
 {
-	$out = array();
+	$out = array('wan' => 'wan');
 	foreach (glob("/sys/class/net/*") as $iface)
 	{
 		$base = basename($iface);
-		if ($base != 'wan')
+		$found = false;
+		foreach (explode("\n", @file_get_contents("/etc/network/interfaces.d/" . $base)) as $line)
 		{
-			$arr = explode("\n", @file_get_contents("/etc/network/interfaces.d/" . $base));
-			$found = false;
-			foreach ($arr as $line)
-			{
-				if (preg_match('/bridge_ports\s+(.*)/', $line, $regex))
-					$found = true;
-			}
-			if (!$found)
-				$out[] = basename($iface);
+			if ($found = preg_match('/bridge_ports\s+(.*)/', $line, $regex))
+				break;
 		}
+		if (!$found)
+			$out[$base] = $base;
 	}
 	return $out;
 }

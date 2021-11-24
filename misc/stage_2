@@ -35,7 +35,7 @@ systemctl disable hostapd
 ##############################################################################################
 # Install some necessary packages:
 ##############################################################################################
-apt install -y locales wget git apt-transport-https toilet pmount eject lsb-release bash-completion dialog mosquitto-clients
+apt install -y locales wget git apt-transport-https toilet pmount eject lsb-release bash-completion dialog mosquitto-clients sudo
 
 ##############################################################################################
 # Create our default users and assign default passwords to users:
@@ -107,7 +107,7 @@ ln -s /var/run/motd /etc/motd
 ##################################################################################
 # Install some new utilities
 ##################################################################################
-apt install -y pciutils usbutils sudo iw wireless-tools net-tools curl unzip debconf-utils tree screen parted device-tree-compiler
+apt install -y pciutils usbutils iw wireless-tools net-tools curl unzip debconf-utils tree screen parted device-tree-compiler
 
 ##################################################################################
 # Install avahi utilities
@@ -243,7 +243,7 @@ ln -sf /opt/stats/stats.service /etc/systemd/system/stats.service
 systemctl enable stats
 mkdir /var/lib/stats
 chown pi:pi /var/lib/stats
-sudo -u pi -s /opt/bpi-r2-router-builder/misc/build_stats.sh
+-u pi -s /opt/bpi-r2-router-builder/misc/build_stats.sh
 
 ##################################################################################
 # Install PiHole
@@ -275,3 +275,14 @@ systemctl restart nginx
 # Q: Maybe install these packages?
 ##################################################################################
 #apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance 
+
+##################################################################################
+# Install cloudflared binary:
+##################################################################################
+wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm -O /usr/local/bin/cloudflared
+chmod +x /usr/local/bin/cloudflared
+useradd -s /usr/sbin/nologin -r -M cloudflared
+chown cloudflared:cloudflared /etc/default/cloudflared
+chown cloudflared:cloudflared /usr/local/bin/cloudflared
+systemctl enable cloudflared
+systemctl start cloudflared

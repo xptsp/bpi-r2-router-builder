@@ -1,9 +1,8 @@
 <?php
-if (!isset($_POST['action']) || !isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
-{
+if (!isset($_POST['action']) || !isset($_POST['sid']))
 	require_once("404.php");
-	die;
-}
+if ($_POST['sid'] != $_SESSION['sid'])
+	die('RELOAD');
 
 ###################################################################################################
 # ACTION: REBOOT ==> Reboot the router:

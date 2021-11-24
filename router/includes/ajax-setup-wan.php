@@ -1,9 +1,8 @@
 <?php
-if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
-{
+if (!isset($_POST['sid']))
 	require_once("404.php");
-	exit();
-}
+if ($_POST['sid'] != $_SESSION['sid'])
+	die('RELOAD');
 
 #################################################################################################
 # Validate the input sent to this script (we paranoid... for the right reasons, of course...):
@@ -40,10 +39,6 @@ else if ($_POST['use_isp'] == 1)
 		die('[DNS2] ERROR: "' . $_POST['dns2'] . '" is an invalid IPv4 address!');
 }
 
-$_POST['mac'] = isset($_POST['mac']) ? $_POST['mac'] : '';
-if (!filter_var($_POST['mac'], FILTER_VALIDATE_MAC))
-	die('[MAC] ERROR: "' . $_POST['mac'] . '" is an invalid MAC address!');
-
 #echo '<pre>'; print_r($_POST); echo '</pre>'; exit;
 
 #################################################################################################
@@ -67,5 +62,4 @@ fclose($handle);
 # Change the DNS servers by calling the router-helper script:
 #################################################################################################
 @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh move_config wan");
-echo (@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh mac " . $_POST['mac']) == "REBOOT" ? "REBOOT" : "OK");
 

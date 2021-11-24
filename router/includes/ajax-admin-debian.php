@@ -1,9 +1,8 @@
 <?php
-#if (!isset($_POST['action']) && !isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
-#{
-	#require_once("404.php");
-	#exit();
-#}
+if (!isset($_POST['action']) || !isset($_POST['sid']))
+	require_once("404.php");
+if ($_POST['sid'] != $_SESSION['sid'])
+	die('RELOAD');
 
 #################################################################################################
 # ACTION: CHECK => Returns the current version of the specified repo:

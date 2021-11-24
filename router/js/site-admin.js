@@ -17,6 +17,8 @@ function Stats_Update()
 	if ($("#connection_type").html() == "DHCP")
 	{
 		$.post("/ajax/admin/status", __postdata("status"), function(data) {
+			if (data == "RELOAD")
+				document.location.reload(true);
 			$("#dhcp_server").html( data.dhcp_server );
 			$("#dhcp_begin").html( data.dhcp_begin );
 			$("#dhcp_expire").html( data.dhcp_expire );
@@ -53,6 +55,8 @@ function Stats_Power_Button()
 function Stats_Network_Get()
 {
 	$.post("/ajax/admin/status", __postdata("network"), function(data) {
+		if (data == "RELOAD")
+			document.location.reload(true);
 		$("#stats_body").html(data);
 	}).fail(function() {
 		$("#stats_body").html("AJAX call failed");
@@ -131,7 +135,9 @@ function Creds_Password_Submit()
 
 	// Perform our AJAX request to change the password:
 	$.post("/ajax/admin/creds", postdata, function(data) {
-		if (data == "oldPass")
+		if (data == "RELOAD")
+			document.location.reload(true);
+		else if (data == "oldPass")
 			Creds_Password_Fail("Old Password cannot contain characters other than alphanumeric characters!");
 		else if (data == "newPass")
 			Creds_Password_Fail("New Password cannot contain characters other than alphanumeric characters!");
@@ -168,6 +174,8 @@ function Repo_Check()
 	elem = $(this).attr('id').split("_")[0];
 	Add_Overlay(elem + "_div");
 	$.post("/ajax/admin/repo", __postdata("check", elem), function(data) {
+		if (data == "RELOAD")
+			document.location.reload(true);
 		data = JSON.parse(data);
 		Del_Overlay(data.elem + "_div");
 		valid = (data.time != "Invalid Data");
@@ -215,6 +223,9 @@ function Debian_Check()
 	Add_Overlay("debian-div");
 	$("#Repo_avail").html("<i>Retrieving...</i>");
 	$.post("/ajax/admin/debian", __postdata('check'), function(data) {
+		data = data.trim();
+		if (data == "RELOAD")
+			document.location.reload(true);
 		Del_Overlay("debian-div");
 		$("#updates-msg").html(data.count[0]);
 		total = Number(data.count[1]) + Number(data.count[2]) + Number(data.count[4]);
@@ -357,7 +368,10 @@ function Restore_File()
 		contentType: false,
 		processData: false,
 		success: function(data) {
-			if (data.indexOf("ERROR:") > -1)
+			data = data.trim();
+			if (data == "RELOAD")
+				document.location.reload(true);
+			else if (data.indexOf("ERROR:") > -1)
 				Restore_Alert(data);
 			else
 				$("#reboot-modal").modal("show");
@@ -385,7 +399,9 @@ function Restore_Confirm()
 {
 	// Make the AJAX call to confirm restoration:
 	$.post("/ajax/admin/backup", __postdata(restore_type), function(data) {
-		if (data.indexOf("ERROR:") > -1)
+		if (data == "RELOAD")
+			document.location.reload(true);
+		else if (data.indexOf("ERROR:") > -1)
 			Restore_Alert(data);
 		else
 			Stats_Confirm_Reboot();

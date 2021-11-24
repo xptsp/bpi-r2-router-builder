@@ -4,7 +4,7 @@ var reboot_suggested = false;
 //======================================================================================================
 // Javascript functions for "Setup / Internet Settings"
 //======================================================================================================
-function Init_WAN(mac_com, mac_cur)
+function Init_WAN()
 {
 	$('.ip_address').inputmask("ip");
 	$("#dynamic_ip").click(function() {
@@ -20,22 +20,6 @@ function Init_WAN(mac_com, mac_cur)
 	$("#dns_custom").click(function() {
 		$(".dns_address").removeAttr("disabled");
 	});
-	$("#mac_default").click(function() {
-		$("#mac_addr").val(mac_cur).attr("disabled", "disabled");
-	});
-	$("#mac_random").click(function() {
-		s = "X" + "26AE".charAt(Math.floor(Math.random() * 4)) + ":XX:XX:XX:XX:XX";
-		$("#mac_addr").val(s.replace(/X/g, function() {
-			return "0123456789ABCDEF".charAt(Math.floor(Math.random() * 16))
-		})).attr("disabled", "disabled");
-	});
-	$("#mac_computer").click(function() {
-		$("#mac_addr").val(mac_com).attr("disabled", "disabled");
-	});
-	$("#mac_custom").click(function() {
-		$("#mac_addr").removeAttr("disabled");
-	});
-	$("#mac_addr").inputmask("mac");
 	$("#submit").click( WAN_Submit );
 }
 
@@ -51,7 +35,6 @@ function WAN_Submit()
 		'use_isp':  ($("[name=dns_server_opt]:checked").val()) == "isp" ? 0 : 1,
 		'dns1':     $("#dns1").val(),
 		'dns2':     $("#dns2").val(),
-		'mac':      $("#mac_addr").val()
 	};
 
 	// Perform our AJAX request to change the WAN settings:
@@ -416,14 +399,30 @@ function Routing_Add()
 //======================================================================================================
 // Javascript functions for "Setup / System Settings"
 //======================================================================================================
-function Init_System()
+function Init_Router(mac_com, mac_cur)
 {
 	$(".hostname").inputmask();
-	$("#apply_changes").click(System_Apply);
-	$("#tz_detect").click(System_Detect);
+	$("#tz_detect").click( Router_Detect );
+	$("#mac_default").click(function() {
+		$("#mac_addr").val(mac_cur).attr("disabled", "disabled");
+	});
+	$("#mac_random").click(function() {
+		s = "X" + "26AE".charAt(Math.floor(Math.random() * 4)) + ":XX:XX:XX:XX:XX";
+		$("#mac_addr").val(s.replace(/X/g, function() {
+			return "0123456789ABCDEF".charAt(Math.floor(Math.random() * 16))
+		})).attr("disabled", "disabled");
+	});
+	$("#mac_computer").click(function() {
+		$("#mac_addr").val(mac_com).attr("disabled", "disabled");
+	});
+	$("#mac_custom").click(function() {
+		$("#mac_addr").removeAttr("disabled");
+	});
+	$("#mac_addr").inputmask("mac");
+	$("#apply_changes").click( Router_Apply );
 }
 
-function System_Detect()
+function Router_Detect()
 {
 	$.post("/ajax/setup/device", __postdata("detect"), function(data) {
 		data = JSON.parse(data);
@@ -433,7 +432,7 @@ function System_Detect()
 	});
 }
 
-function System_Apply()
+function Router_Apply()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
@@ -441,11 +440,13 @@ function System_Apply()
 		'action':   'set',
 		'hostname': $("#hostname").val(),
 		'timezone': $("#timezone").val(),
+		'locale':	$("#locale").val(),
+		'mac':      $("#mac_addr").val()
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to remove the IP reservation:
-	$.post("/ajax/setup/device", postdata, function(data) {
+	$.post("/ajax/setup/router", postdata, function(data) {
 		if (data.trim() == "OK")
 			document.location.reload(true);
 		else

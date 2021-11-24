@@ -1,9 +1,8 @@
 <?php
-if (!isset($_POST['action']) || !isset($_POST['misc']) || !isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
-{
+if (!isset($_POST['action']) || !isset($_POST['misc']) || !isset($_POST['sid']))
 	require_once("404.php");
-	exit();
-}
+if ($_POST['sid'] != $_SESSION['sid'])
+	die('RELOAD');
 
 #################################################################################################
 # Make sure we know what repo is expected to be actioned upon:

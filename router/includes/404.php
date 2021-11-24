@@ -16,3 +16,4 @@ echo '
 			</div>
 			<!-- /.error-page -->';
 site_footer();
+exit();

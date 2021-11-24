@@ -10,9 +10,9 @@ $ifaces = get_network_adapters();
 #echo '<pre>'; print_r($ifaces); exit();
 $adapters = get_network_adapters_list();
 #echo '<pre>'; print_r($adapters); exit();
-$iface = isset($_GET['iface']) ? $_GET['iface'] : 'br0';
+$iface = isset($_GET['iface']) ? $_GET['iface'] : 'wan';
 #echo $iface; exit();
-$exclude_regex = '/^(' . implode('|',array_merge(explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'"))), array("docker.+", "lo", "sit.+", "eth0", "wan"))) . ')$/';
+$exclude_regex = '/^(' . implode('|',array_merge(explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'"))), array("docker.+", "lo", "sit.+", "eth0"))) . ')$/';
 #echo $exclude_regex; exit;
 $invalid = get_invalid_adapters($iface);
 #echo '<pre>'; print_r($invalid); exit();
@@ -48,7 +48,7 @@ foreach ($ifaces as $tface => $details)
 	{
 		echo '
 			<li class="nav-item">
-				<a class="ifaces nav-link', $iface == $tface ? ' active' : '', '" href="', $URL, $tface == "br0" ? '' : '?iface=' . $tface, '">', $tface, '</a>
+				<a class="ifaces nav-link', $iface == $tface ? ' active' : '', '" href="', $URL, $tface == "wan" ? '' : '?iface=' . $tface, '">', $tface, '</a>
 			</li>';
 	}
 }
@@ -62,55 +62,71 @@ echo '
 ###################################################################################################
 #echo '<pre>'; print_r($ifaces[$iface]); exit();
 echo '
-		<table width="100%">
-			<tr>
-				<td><label for="', $iface . '_bound">Bound Network Adapters:</td>
-				<td>
-					<input id="iface" type="hidden" value="', $iface, '" />
-					<ul class="pagination pagination-sm">';
+		<div class="row">
+			<div class="col-6">
+				<label for="', $iface . '_bound">Bound Network Adapters:
+			</div>
+			<div class="col-6">
+				<input id="iface" type="hidden" value="', $iface, '" />
+				<ul class="pagination pagination-sm">';
 foreach ($adapters as $tface)
 {
-	if (!preg_match($exclude_regex, $tface))
+	if (!preg_match($exclude_regex, $tface) && !in_array($tface, $invalid))
 	{
-		if (!in_array($tface, $invalid))
-			echo '
-						<li class="bridge page-item', $tface == $iface || in_array($tface, $ifaces[$iface]) ? ' active' : '', '">
-							<div class="page-link">', $tface, '</div>
-						</li>';
+		echo '
+					<li class="bridge page-item', $tface == $iface || in_array($tface, $ifaces[$iface]) ? ' active' : '', '">
+						<div class="page-link">', $tface, '</div>
+					</li>';
 	}
 }
 echo '
-					</ul>
-				</td>
-			</tr>';
+				</ul>
+			</div>
+		</div>';
 
 ###################################################################################################
 # Internet IP Address section
 ###################################################################################################
 echo '
-			<tr>
-				<td width="50%"><label for="ip_addr">IP Address:</label></td>
-				<td>
-					<div class="input-group">
-						<div class="input-group-prepend">
-							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
-						</div>
-						<input id="ip_addr" type="text" class="ip_address form-control" value="', isset($ifcfg['inet']) ? $ifcfg['inet'] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask>
+		<div class="row">
+			<div class="col-6">
+				<label for="ip_addr">IP Address:</label>
+			</div>
+			<div class="col-6">
+				<div class="input-group">
+					<div class="input-group-prepend">
+						<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 					</div>
-				</td>
-			</tr>
-			<tr>
-				<td width="50%"><label for="ip_mask">IP Subnet Mask:</label></td>
-				<td>
-					<div class="input-group">
-						<div class="input-group-prepend">
-							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
-						</div>
-						<input id="ip_mask" type="text" class="ip_address form-control" value="', isset($ifcfg['netmask']) ? $ifcfg['netmask'] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask>
+					<input id="ip_addr" type="text" class="ip_address form-control" value="', isset($ifcfg['inet']) ? $ifcfg['inet'] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask>
+				</div>
+			</div>
+		</div>
+		<div class="row" style="margin-top: 5px">
+			<div class="col-6">
+				<label for="ip_mask">IP Subnet Mask:</label>
+			</div>
+			<div class="col-6">
+				<div class="input-group">
+					<div class="input-group-prepend">
+						<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 					</div>
-				</td>
-			</tr>
-		</table>
+					<input id="ip_mask" type="text" class="ip_address form-control" value="', isset($ifcfg['netmask']) ? $ifcfg['netmask'] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask>
+				</div>
+			</div>
+		</div>
+		<div class="row" style="margin-top: 5px">
+			<div class="col-6">
+				<label for="ip_gate">IP Gateway Address:</label>
+			</div>
+			<div class="col-6">
+				<div class="input-group">
+					<div class="input-group-prepend">
+						<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+					</div>
+					<input id="ip_gate" type="text" class="ip_address form-control" value="', isset($ifcfg['gateway']) ? $ifcfg['gateway'] : '0.0.0.0', '" data-inputmask="\'alias\': \'ip\'" data-mask>
+				</div>
+			</div>
+		</div>
 		<hr style="border-width: 2px" />';
 
 ###################################################################################################
@@ -128,32 +144,38 @@ echo '
 			<input type="checkbox" id="use_dhcp"', $use_dhcp ? ' checked="checked"' : '', '>
 			<label for="use_dhcp">Use DHCP on interface ', $iface, '</label>
 		</div>
-		<table width="100%" class="dhcp_div">
-			<tr>
-				<td width="50%"><label for="dhcp_start">Starting IP Address:</label></td>
-				<td>
+		<div class="dhcp_div ', !$use_dhcp ? ' hidden' : '', '">
+			<div class="row">
+				<div class="col-6">
+					<label for="dhcp_start">Starting IP Address:</label>
+				</div>
+				<div class="col-6">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
 						<input id="dhcp_start" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[1]) ? $dhcp[1] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
 					</div>
-				</td>
-			</tr>
-			<tr>
-				<td width="50%"><label for="dhcp_end">Ending IP Address:</label></td>
-				<td>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="dhcp_end">Ending IP Address:</label>
+				</div>
+				<div class="col-6">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
 						<input id="dhcp_end" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[2]) ? $dhcp[2] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
 					</div>
-				</td>
-			</tr>
-			<tr>
-				<td width="50%"><label for="dhcp_lease">Client Lease Time:</label></td>
-				<td>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="dhcp_lease">Client Lease Time:</label>
+				</div>
+				<div class="col-6">
 					<div class="input-group col-6 p-0">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="far fa-clock"></i></span>
@@ -170,32 +192,34 @@ echo '
 							</select>
 						</div>
 					</div>
-				</td>
-			</tr>
-		</table>
-		<hr style="border-width: 2px" class="dhcp_div" />';
+				</div>';
 
 ###################################################################################################
 # IP Address Reservation section
 ###################################################################################################
 echo '
-		<h5 class="dhcp_div">
-			<a href="javascript:void(0);"><button type="button" id="reservations-refresh" class="btn btn-sm btn-primary float-right">Refresh</button></a>
-			Address Reservations
-		</h5>
-		<div class="table-responsive p-0 dhcp_div">
-			<table class="table table-hover text-nowrap table-sm table-striped">
-				<thead class="bg-primary">
-					<td width="30%">Device Name</td>
-					<td width="30%">IP Address</td>
-					<td width="30%">MAC Address</td>
-					<td width="3%">&nbsp;</td>
-					<td width="3%">&nbsp;</td>
-				</thead>
-				<tbody id="reservations-table">
-					<tr><td colspan="5"><center>Loading...</center></td></tr>
-				</tbody>
-			</table>
+				<div class="col-12">
+					<hr style="border-width: 2px" />
+					<h5>
+						<a href="javascript:void(0);"><button type="button" id="reservations-refresh" class="btn btn-sm btn-primary float-right">Refresh</button></a>
+						Address Reservations
+					</h5>
+					<div class="table-responsive p-0">
+						<table class="table table-hover text-nowrap table-sm table-striped">
+							<thead class="bg-primary">
+								<td width="30%">Device Name</td>
+								<td width="30%">IP Address</td>
+								<td width="30%">MAC Address</td>
+								<td width="3%">&nbsp;</td>
+								<td width="3%">&nbsp;</td>
+							</thead>
+							<tbody id="reservations-table">
+								<tr><td colspan="5"><center>Loading...</center></td></tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 	<div class="card-footer">
