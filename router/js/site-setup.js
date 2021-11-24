@@ -63,28 +63,37 @@ function Init_LAN(iface)
 	iface_used = iface;
 
 	// Main screen setup and handlers:
-	$('.ip_address').inputmask("ip");
-	$("#dynamic_ip").click(function() {
-		$(".ip_address").attr("disabled", "disabled");
-		$(".static_section").addClass("hidden");
-	});
-	$("#static_ip").click(function() {
-		$(".ip_address").removeAttr("disabled");
-		$(".static_section").removeClass("hidden");
+	$("#op_mode").change(function() {
+		if ($(this).find("option:selected").val() == 'dhcp')
+		{
+			$("#static_ip_div").addClass("hidden");
+			$("#add_reservation_href").addClass("hidden");
+		}
+		else
+		{
+			$("#static_ip_div").removeClass("hidden");
+			if ($("#use_dhcp").is(":checked"))
+				$("#add_reservation_href").removeClass("hidden");
+			else
+				$("#add_reservation_href").addClass("hidden");
+		}
 	});
 	$('#use_dhcp').click(function() {
 		if ($(this).is(":checked")) {
 			$(".dhcp").removeAttr("disabled");
 			$(".dhcp_div").removeClass("hidden");
+			$("#add_reservation_href").removeClass("hidden");
+			$("#ip_addr").val( $("#ip_addr").val() );
 		} else {
 			$(".dhcp").attr("disabled", "disabled");
 			$(".dhcp_div").addClass("hidden");
+			$("#add_reservation_href").addClass("hidden");
 		}
 	});
 	$(".bridge").click( function() {
 		$(this).toggleClass("active");
 	});
-	$(".ip_address").change(function() {
+	$('.ip_address').inputmask("ip").change(function() {
 		parts = $("#ip_addr").val().substring(0, $("#ip_addr").val().lastIndexOf('.'));
 		$("#dhcp_start").val( parts + $("#dhcp_start").val().substring( $("#dhcp_start").val().lastIndexOf('.')) );
 		$("#dhcp_end").val( parts + $("#dhcp_end").val().substring( $("#dhcp_end").val().lastIndexOf('.')) );
@@ -129,7 +138,7 @@ function LAN_Submit()
 	postdata = {
 		'sid':        SID,
 		'iface':      iface_used,
-		'iface':      $("#iface").val(),
+		'op_mode':    $("#op_mode option:selected").val(),
 		'ip_addr':    $("#ip_addr").val(),
 		'ip_mask':    $("#ip_mask").val(),
 		'use_dhcp':   $("#use_dhcp").is(":checked") ? 1 : 0,

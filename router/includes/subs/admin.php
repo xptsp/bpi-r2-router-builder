@@ -31,14 +31,20 @@ function system_uptime($sep = ', ')
 ################################################################################################
 function get_mac_info($interface)
 {
-	$file = @file_get_contents('/etc/network/interfaces.d/' . $interface);
 	$arr = array();
-	foreach (explode("\n", $file) as $line)
+	foreach (@file("/etc/network/interfaces.d/" . $interface) as $id => $line)
 	{
-		$parts = explode(' ', trim($line));
-		$arr[$parts[0]] = str_replace($parts[0], '', trim($line));
+		$line = trim($line);
+		if (!empty($line))
+		{
+			$parts = explode(" ", trim($line) . ' ');
+			$arr[$parts[0] . (!empty($arr[$parts[0]]) ? strval($id) : '') ] = trim($line);
+		}
 	}
-	#echo '<pre>'; print_r($arr); exit();
+	$tmp = explode(' ', $arr['iface']);
+	$arr['op_mode'] = $tmp[ count($tmp) - 1 ];
+	if (!empty($arr['bridge_ports']))
+		$arr['op_mode'] = 'bridged';
 	return $arr;
 }
 

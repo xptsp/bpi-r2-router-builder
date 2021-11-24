@@ -1,5 +1,5 @@
 <?php
-require_once("subs/security.php");
+require_once("subs/advanced.php");
 $options = parse_file();
 site_menu();
 echo '

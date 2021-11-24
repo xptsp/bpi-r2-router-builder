@@ -4,13 +4,13 @@ if (empty($iface) || !isset($_POST['action']) || !isset($_POST['sid']))
 	require_once("404.php");
 if ($_POST['sid'] != $_SESSION['sid'])
 	die('RELOAD');
+require_once("subs/admin.php");
 require_once("subs/setup.php");
 $reserve = $hostname = $leases = array();
 
 ###################################################################################################
 # Parse the DNSMASQ configuration file for the specified interface:
 ###################################################################################################
-$subnet = '';
 foreach (explode("\n", @file_get_contents("/etc/dnsmasq.d/" . $iface . ".conf")) as $line)
 {
 	$parts = explode("=", trim($line));
@@ -36,16 +36,21 @@ foreach (explode("\n", @file_get_contents("/etc/dnsmasq.d/" . $iface . ".conf"))
 	else if ($parts[0] == 'dhcp-range')
 		$subnet = substr($sub_parts[1], 0, strrpos($sub_parts[1], ".") + 1);
 }
+if (empty($subnet))
+{
+	$parts = parse_ifconfig($iface);
+	$subnet = substr($parts['inet'], 0, strrpos($parts['inet'], ".") + 1);
+}
 #echo '<pre>$reserve >> '; print_r($reserve); exit();
 #echo '<pre>hostname >> '; print_r($hostname); exit();
 
 ###################################################################################################
 # Parse the DNSMASQ leases files:
 ###################################################################################################
-foreach (explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases"))) as $lease)
+foreach (file("/var/lib/misc/dnsmasq.leases") as $lease)
 {
-	$sub_parts = explode(' ', $lease);
-	if (!empty($subnet) && strpos($sub_parts[2], $subnet) != -1)
+	$sub_parts = explode(' ', trim($lease));
+	if (strpos($sub_parts[2], $subnet) != -1)
 	{
 		$leases[$sub_parts[1]] = $leases[strtoupper($sub_parts[2])] = $sub_parts;
 		$leases[$sub_parts[1]]['hide'] = true;
@@ -80,10 +85,10 @@ if ($_POST['action'] == 'reservations')
 ###################################################################################################
 else if ($_POST['action'] == 'clients')
 {
-	foreach ($leases as $parts)
+	foreach ($leases as $id => $parts)
 	{
 		$parts[1] = strtoupper($parts[1]);
-		if (empty($parts['hide']))
+		if (empty($parts['hide']) && strpos($parts[2], $subnet) !== false)
 			echo
 			'<tr class="reservation-option">' .
 				'<td class="dhcp_host">' . (!empty($parts[3]) ? $parts[3] : (isset($hostname[$parts[1]]) ? $hostname[$parts[1]] : 'Unknown')) . '</td>' .
@@ -91,6 +96,8 @@ else if ($_POST['action'] == 'clients')
 				'<td class="dhcp_mac_addr">' . $parts[1] . '</td>' .
 				'<td><center><a href="javascript:void(0);"><i class="far fa-plus-square"></i></a></center></td>' .
 			'</tr>';
+		else
+			unset($leases[$id]);
 	}
 	if (empty($leases))
 		echo '<tr><td colspan="5"><center>ERROR: No Leases Found</center></td></tr>';

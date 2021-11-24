@@ -1,5 +1,5 @@
 <?php
-require_once("subs/security.php");
+require_once("subs/advanced.php");
 $options = parse_file();
 site_menu();
 $src_type = isset($config['dmz_src_type']) ? $config['dmz_src_type'] : 'any';

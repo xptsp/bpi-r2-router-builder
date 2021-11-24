@@ -26,6 +26,8 @@ $dhcp = explode(",", explode("=", trim(@shell_exec("cat /etc/dnsmasq.d/" . $ifac
 #echo '<pre>'; print_r($dhcp); exit();
 $use_dhcp = isset($dhcp[1]);
 #echo (int) $use_dhcp; exit;
+$netcfg = get_mac_info($iface);
+#echo '<pre>'; print_r($netcfg); exit();
 
 ###################################################################################################
 # Tabbed interface with list of wired adapters:
@@ -58,76 +60,103 @@ echo '
 	<div class="card-body">';
 
 ###################################################################################################
-# Interfaces bound to the specified adapter:
+# List modes of operation for the interface:
 ###################################################################################################
-#echo '<pre>'; print_r($ifaces[$iface]); exit();
-echo '
-		<div class="row">
-			<div class="col-6">
-				<label for="', $iface . '_bound">Bound Network Adapters:
-			</div>
-			<div class="col-6">
-				<input id="iface" type="hidden" value="', $iface, '" />
-				<ul class="pagination pagination-sm">';
+$tmp = array();
 foreach ($adapters as $tface)
 {
 	if (!preg_match($exclude_regex, $tface) && !in_array($tface, $invalid))
-	{
-		echo '
-					<li class="bridge page-item', $tface == $iface || in_array($tface, $ifaces[$iface]) ? ' active' : '', '">
-						<div class="page-link">', $tface, '</div>
-					</li>';
-	}
+		$tmp[] = $tface;
 }
 echo '
-				</ul>
+		<div class="row">
+			<div class="col-6">
+				<label for="iface_mode">Mode of Operation:</label>
 			</div>
-		</div>';
+			<div class="col-6">
+				<select id="op_mode" class="form-control"', $netcfg['op_mode'] == 'bridged' ? ' disabled="disabled"' : '', '>
+					<option value="dhcp"', $netcfg['op_mode'] == 'dhcp' ? ' selected="selected"' : '', '>Automatic Configuration - DHCP</option>
+					<option value="static"', $netcfg['op_mode'] == 'static' ? ' selected="selected"' : '', '>Static IP Address</option>';
+if (count($tmp) > 1)
+	echo '
+					<option value="bridged"', $netcfg['op_mode'] == 'bridged' ? ' selected="selected"' : '', '>Bridged Interfaces</option>';
+echo '
+				</select>
+			</div>
+		</div>
+		<div id="static_ip_div"', $netcfg['op_mode'] == 'dhcp' ? ' class="hidden"' : '', '>';
+
+###################################################################################################
+# List interfaces bridged under the specified interface ONLY when more than 1 interfaces bridged:
+###################################################################################################
+if (count($tmp) > 1)
+{
+	echo '
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="', $iface . '_bound">Bridged Interfaces:
+				</div>
+				<div class="col-6">
+					<input id="iface" type="hidden" value="', $iface, '" />
+					<ul class="pagination pagination-sm" style="margin-bottom: 0px">';
+	foreach ($tmp as $tface)
+	{
+		echo '
+						<li class="bridge page-item', $tface == $iface || in_array($tface, $ifaces[$iface]) ? ' active' : '', '">
+							<div class="page-link">', $tface, '</div>
+						</li>';
+	}
+	echo '
+					</ul>
+				</div>
+			</div>';
+}
 
 ###################################################################################################
 # Internet IP Address section
 ###################################################################################################
+$subnet = isset($ifcfg['inet']) ? $ifcfg['inet'] : '';
 echo '
-		<div class="row">
-			<div class="col-6">
-				<label for="ip_addr">IP Address:</label>
-			</div>
-			<div class="col-6">
-				<div class="input-group">
-					<div class="input-group-prepend">
-						<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_addr">IP Address:</label>
+				</div>
+				<div class="col-6">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+						</div>
+						<input id="ip_addr" type="text" class="ip_address form-control" value="', $subnet, '" data-inputmask="\'alias\': \'ip\'" data-mask>
 					</div>
-					<input id="ip_addr" type="text" class="ip_address form-control" value="', isset($ifcfg['inet']) ? $ifcfg['inet'] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask>
 				</div>
 			</div>
-		</div>
-		<div class="row" style="margin-top: 5px">
-			<div class="col-6">
-				<label for="ip_mask">IP Subnet Mask:</label>
-			</div>
-			<div class="col-6">
-				<div class="input-group">
-					<div class="input-group-prepend">
-						<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_mask">IP Subnet Mask:</label>
+				</div>
+				<div class="col-6">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+						</div>
+						<input id="ip_mask" type="text" class="ip_address form-control" value="', isset($ifcfg['netmask']) ? $ifcfg['netmask'] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask>
 					</div>
-					<input id="ip_mask" type="text" class="ip_address form-control" value="', isset($ifcfg['netmask']) ? $ifcfg['netmask'] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask>
 				</div>
 			</div>
-		</div>
-		<div class="row" style="margin-top: 5px">
-			<div class="col-6">
-				<label for="ip_gate">IP Gateway Address:</label>
-			</div>
-			<div class="col-6">
-				<div class="input-group">
-					<div class="input-group-prepend">
-						<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_gate">IP Gateway Address:</label>
+				</div>
+				<div class="col-6">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+						</div>
+						<input id="ip_gate" type="text" class="ip_address form-control" value="', isset($netcfg['gateway']) ? $netcfg['gateway'] : '0.0.0.0', '" data-inputmask="\'alias\': \'ip\'" data-mask>
 					</div>
-					<input id="ip_gate" type="text" class="ip_address form-control" value="', isset($ifcfg['gateway']) ? $ifcfg['gateway'] : '0.0.0.0', '" data-inputmask="\'alias\': \'ip\'" data-mask>
 				</div>
 			</div>
-		</div>
-		<hr style="border-width: 2px" />';
+			<hr style="border-width: 2px" />';
 
 ###################################################################################################
 # DHCP Settings and IP Range Section
@@ -137,86 +166,88 @@ foreach ($leases as $id => $lease)
 	$leases[$id] = explode(' ', $lease);
 #echo '<pre>'; print_r($leases); exit();
 
-$lease_time = isset($dhcp[4]) ? $dhcp[4] : '1h';
+$lease_time = isset($dhcp[4]) ? $dhcp[4] : '48h';
 $lease_units = substr($lease_time, strlen($lease_time) - 1, 1);
+$subnet = substr($subnet, 0, strrpos($subnet, '.') + 1);
 echo '
-		<div class="icheck-primary">
-			<input type="checkbox" id="use_dhcp"', $use_dhcp ? ' checked="checked"' : '', '>
-			<label for="use_dhcp">Use DHCP on interface ', $iface, '</label>
-		</div>
-		<div class="dhcp_div ', !$use_dhcp ? ' hidden' : '', '">
-			<div class="row">
-				<div class="col-6">
-					<label for="dhcp_start">Starting IP Address:</label>
-				</div>
-				<div class="col-6">
-					<div class="input-group">
-						<div class="input-group-prepend">
-							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
-						</div>
-						<input id="dhcp_start" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[1]) ? $dhcp[1] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
-					</div>
-				</div>
+			<div class="icheck-primary">
+				<input type="checkbox" id="use_dhcp"', $use_dhcp ? ' checked="checked"' : '', '>
+				<label for="use_dhcp">Use DHCP on interface ', $iface, '</label>
 			</div>
-			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
-					<label for="dhcp_end">Ending IP Address:</label>
-				</div>
-				<div class="col-6">
-					<div class="input-group">
-						<div class="input-group-prepend">
-							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+			<div class="dhcp_div ', !$use_dhcp ? ' hidden' : '', '">
+				<div class="row">
+					<div class="col-6">
+						<label for="dhcp_start">Starting IP Address:</label>
+					</div>
+					<div class="col-6">
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+							</div>
+							<input id="dhcp_start" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[1]) ? $dhcp[1] : $subnet, '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
 						</div>
-						<input id="dhcp_end" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[2]) ? $dhcp[2] : '', '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
 					</div>
 				</div>
-			</div>
-			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
-					<label for="dhcp_lease">Client Lease Time:</label>
-				</div>
-				<div class="col-6">
-					<div class="input-group col-6 p-0">
-						<div class="input-group-prepend">
-							<span class="input-group-text"><i class="far fa-clock"></i></span>
-						</div>
-						<input id="dhcp_lease" type="text" class="dhcp form-control" value="', (int) $lease_time, '"', !$use_dhcp || $lease_time == 'infinite' ? ' disabled="disabled"' : '', '>
-						<div class="input-group-append">
-							<select class="custom-select form-control" id="dhcp_units">
-								<option value="">Seconds</option>
-								<option value="m"', ($lease_units == "m" ? ' selected="selected"' : ''), '>Minutes</option>
-								<option value="h"', ($lease_units == "h" ? ' selected="selected"' : ''), '>Hours</option>
-								<option value="d"', ($lease_units == "d" ? ' selected="selected"' : ''), '>Days</option>
-								<option value="w"', ($lease_units == "w" ? ' selected="selected"' : ''), '>Weeks</option>
-								<option value="infinite"', ($lease_time == "infinite" ? ' selected="selected"' : ''), '>Infinite</option>
-							</select>
+				<div class="row" style="margin-top: 5px">
+					<div class="col-6">
+						<label for="dhcp_end">Ending IP Address:</label>
+					</div>
+					<div class="col-6">
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+							</div>
+							<input id="dhcp_end" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[2]) ? $dhcp[2] : $subnet, '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
 						</div>
 					</div>
-				</div>';
+				</div>
+				<div class="row" style="margin-top: 5px">
+					<div class="col-6">
+						<label for="dhcp_lease">Client Lease Time:</label>
+					</div>
+					<div class="col-6">
+						<div class="input-group col-6 p-0">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="far fa-clock"></i></span>
+							</div>
+							<input id="dhcp_lease" type="text" class="dhcp form-control" value="', (int) $lease_time, '"', !$use_dhcp || $lease_time == 'infinite' ? ' disabled="disabled"' : '', '>
+							<div class="input-group-append">
+								<select class="custom-select form-control" id="dhcp_units">
+									<option value="">Seconds</option>
+									<option value="m"', ($lease_units == "m" ? ' selected="selected"' : ''), '>Minutes</option>
+									<option value="h"', ($lease_units == "h" ? ' selected="selected"' : ''), '>Hours</option>
+									<option value="d"', ($lease_units == "d" ? ' selected="selected"' : ''), '>Days</option>
+									<option value="w"', ($lease_units == "w" ? ' selected="selected"' : ''), '>Weeks</option>
+									<option value="infinite"', ($lease_time == "infinite" ? ' selected="selected"' : ''), '>Infinite</option>
+								</select>
+							</div>
+						</div>
+					</div>';
 
 ###################################################################################################
 # IP Address Reservation section
 ###################################################################################################
 echo '
-				<div class="col-12">
-					<hr style="border-width: 2px" />
-					<h5>
-						<a href="javascript:void(0);"><button type="button" id="reservations-refresh" class="btn btn-sm btn-primary float-right">Refresh</button></a>
-						Address Reservations
-					</h5>
-					<div class="table-responsive p-0">
-						<table class="table table-hover text-nowrap table-sm table-striped">
-							<thead class="bg-primary">
-								<td width="30%">Device Name</td>
-								<td width="30%">IP Address</td>
-								<td width="30%">MAC Address</td>
-								<td width="3%">&nbsp;</td>
-								<td width="3%">&nbsp;</td>
-							</thead>
-							<tbody id="reservations-table">
-								<tr><td colspan="5"><center>Loading...</center></td></tr>
-							</tbody>
-						</table>
+					<div class="col-12">
+						<hr style="border-width: 2px" />
+						<h5>
+							<a href="javascript:void(0);"><button type="button" id="reservations-refresh" class="btn btn-sm btn-primary float-right">Refresh</button></a>
+							Address Reservations
+						</h5>
+						<div class="table-responsive p-0">
+							<table class="table table-hover text-nowrap table-sm table-striped">
+								<thead class="bg-primary">
+									<td width="30%">Device Name</td>
+									<td width="30%">IP Address</td>
+									<td width="30%">MAC Address</td>
+									<td width="3%">&nbsp;</td>
+									<td width="3%">&nbsp;</td>
+								</thead>
+								<tbody id="reservations-table">
+									<tr><td colspan="5"><center>Loading...</center></td></tr>
+								</tbody>
+							</table>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -225,7 +256,7 @@ echo '
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" id="apply_reboot" class="btn btn-success float-right hidden" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Apply and Reboot</button></a>
 		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button></a>
-		<a href="javascript:void(0);"><button type="button" id="add_reservation" class="dhcp_div btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button></a>
+		<a id="add_reservation_href" href="javascript:void(0);"', $use_dhcp || $netcfg['op_mode'] == 'dhcp' ? ' class="hidden"' : '', '><button type="button" id="add_reservation" class="dhcp_div btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button></a>
 	</div>';
 
 ###################################################################################################
