@@ -1,7 +1,7 @@
 <?php
 site_menu();
 
-function show_repo($title, $repo)
+function show_repo($title, $repo, $url, $alt_desc = null)
 {
 	echo '
 		<div class="col-md-6">
@@ -19,6 +19,10 @@ function show_repo($title, $repo)
 						<tr>
 							<td><strong>Latest Version</strong></td>
 							<td><span id="', $repo, '_latest"><i>Retrieving...</i></span></td>
+						</tr>
+						<tr>
+							<td><strong>Repository Location</strong></td>
+							<td><a href="', $url, '">', $alt_desc == null ? $title : $alt_desc, '</a></td>
 						</tr>
 						<tr id="', $repo, '_check_div">
 							<td colspan="2">
@@ -42,8 +46,8 @@ function show_repo($title, $repo)
 echo '
 <div class="container-fluid">
 	<div class="row">';
-show_repo('Web UI', 'webui');
-show_repo('Wifi Regulatory Database', 'regdb');
+show_repo('Web UI', 'webui', 'https://github.com/xptsp/bpiwrt-builder', 'BPI-R2 Router Builder');
+show_repo('Wifi Regulatory Database', 'regdb', 'https://github.com/sforshee/wireless-regdb');
 echo '
 	</div>
 </div>';
