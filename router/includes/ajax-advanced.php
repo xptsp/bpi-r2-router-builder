@@ -18,7 +18,6 @@ if ($_POST['action'] == 'firewall')
 	$options['drop_ping']      = option('drop_ping');
 	$options['drop_ident']     = option('drop_ident');
 	$options['drop_multicast'] = option('drop_multicast');
-	$options['redirect_dns']   = option('redirect_dns');
 	#echo '<pre>'; print_r($options); exit;
 	apply_file();
 }

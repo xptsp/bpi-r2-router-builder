@@ -191,6 +191,12 @@ elif [[ "$1" == "dmz" ]]; then
 #   https://vitux.com/how-to-block-allow-ping-using-iptables-in-ubuntu/
 #############################################################################
 elif [[ "$1" == "firewall" ]]; then
+
+	#############################################################################
+	# OPTION "block_dot" => Drop outgoing DoT (DNS-over-TLS port 853) requests:
+	#############################################################################
+	[[ "${block_dot:-"Y"}" == "Y" ]] && iptables -A WAN_OUT -p tcp --dport 853 -j DROP
+
 	#############################################################################
 	# OPTION "drop_ping" => Disable ping response from internet
 	#############################################################################

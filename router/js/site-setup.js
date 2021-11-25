@@ -6,6 +6,7 @@ var reboot_suggested = false;
 //======================================================================================================
 function Init_DNS(dns1, dns2)
 {
+	$(".checkbox").bootstrapSwitch();
 	$('.dns_address').inputmask("ip");
 	$("#dns_isp").click(function() {
 		$(".dns_address").attr("disabled", "disabled");
@@ -33,11 +34,14 @@ function DNS_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
-		'sid':      SID,
-		'action':   'dns',
-		'use_isp':  ($("[name=dns_server_opt]:checked").val()) == "isp" ? 'Y' : 'N',
-		'dns1':     $("#dns1").val(),
-		'dns2':     $("#dns2").val(),
+		'sid':       SID,
+		'action':    'dns',
+		'use_isp':   ($("[name=dns_server_opt]:checked").val()) == "isp" ? 'Y' : 'N',
+		'dns1':      $("#dns1").val(),
+		'dns2':      $("#dns2").val(),
+		'redirect':  $("#redirect_dns").prop("checked") ? "Y" : "N",
+		'block_dot': $("#block_dot").prop("checked") ? "Y" : "N",
+		'disable':   $("#disable_pihole").prop("checked") ? "Y" : "N",
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 

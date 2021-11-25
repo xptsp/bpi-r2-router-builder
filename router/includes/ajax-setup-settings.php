@@ -42,9 +42,12 @@ else if ($_POST['action'] == 'set')
 #################################################################################################
 else if ($_POST['action'] == 'dns')
 {
-	$use_isp = option('use_isp');
-	$dns1 = option_ip('dns1');
-	$dns2 = option_ip('dns2', true);
+	$use_isp   = option('use_isp');
+	$dns1      = option_ip('dns1');
+	$dns2      = option_ip('dns2', true);
+	$redirect  = option('redirect_dns');
+	$block_dot = option('block_dot');
+	$disable   = option('disable');
 	die("GOT HERE");
 }
 #################################################################################################

@@ -1,5 +1,7 @@
 <?php
 require_once("subs/admin.php");
+require_once("subs/advanced.php");
+$options = parse_file();
 site_menu();
 $wan = parse_ifconfig('wan');
 #echo '<pre>'; print_r($wan); exit();
@@ -111,6 +113,10 @@ echo '
 				</div>
 			</div>
 		</div>
+		<hr />
+		', checkbox("disable_pihole", "Disable DNS-level adblocking in Integrated Pi-Hole", false), '
+		', checkbox("redirect_dns", "Redirect all DNS requests to Integrated Pi-Hole"), '
+		', checkbox("block_dot", "Block all outgoing DoT (DNS-over-TLS) requests"), '
 	</div>';
 
 ###################################################################################################
