@@ -42,7 +42,7 @@ if (empty($subnet))
 	$subnet = substr($parts['inet'], 0, strrpos($parts['inet'], ".") + 1);
 }
 #echo '<pre>$reserve >> '; print_r($reserve); exit();
-#echo '<pre>hostname >> '; print_r($hostname); exit();
+#echo '<pre>$hostname >> '; print_r($hostname); exit();
 
 ###################################################################################################
 # Parse the DNSMASQ leases files:
@@ -110,7 +110,8 @@ else if ($_POST['action'] == 'remove' || $_POST['action'] == 'add')
 {
 	$ip_addr = option_ip('ip_addr');
 	$mac_addr = option_mac('mac_addr');
-	echo @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp ' . ($_POST['action'] == 'remove' ? 'rm' : 'add') . ' ' . $_POST['iface'] . ' ' . $mac_addr . ' ' . $ip_addr . ' ' . $hostname);
+	$hostname = option('hostname', "/^([0-9a-zA-Z]|[0-9a-zA-Z][0-9a-zA-Z0-9\-]+)$/");
+	echo @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp ' . $_POST['action'] . ' ' . $_POST['iface'] . ' ' . $mac_addr . ' ' . $ip_addr . ' ' . $hostname);
 }
 ###################################################################################################
 # ACTION: CHECK ==> Check to see if the IP and/or MAC have already been assigned.

@@ -331,7 +331,7 @@ case $CMD in
 		# SET => Create or modify the DHCP for a specific interface:
 		elif [[ "$1" == "set" ]]; then
 			FILE=/etc/dnsmasq.d/${2}.conf
-			if ! valid_ip $3; then echo "ERROR: Invalid IP Address specified as 2nd param!"; exit; fi
+			if [[ ! "$3" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then echo "ERROR: Invalid MAC address specified as 2nd param!"; exit 1; fi
 			if ! valid_ip $4; then echo "ERROR: Invalid IP Address specified as 3rd param!"; exit; fi
 			if ! valid_ip $5; then echo "ERROR: Invalid IP Address specified as 4th param!"; exit; fi
 			if [[ ! "$5" =~ [0-9]+[m|h|d|w|] ]]; then echo "ERROR: Invalid time period specified as 5th param!"; exit; fi
@@ -367,7 +367,7 @@ case $CMD in
 		# ADD => Add the specified host to the DHCP configuration file:
 		elif [[ "$1" == "add" ]]; then
 			$0 dhcp remove $2 $3 $4 || exit
-			echo "dhcp-host=$2,$3,$4,$5" >> /etc/dnsmasq.d/${1}.conf
+			echo "dhcp-host=$2,$3,$4,$5" >> /etc/dnsmasq.d/${2}.conf
 		#####################################################################
 		# DEL => Delete the DHCP configuration file:
 		elif [[ "$1" == "del" ]]; then

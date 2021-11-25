@@ -94,9 +94,9 @@ if ($tmp != "")
 # Output the DNSMASQ configuration file related to the network adapter:
 #################################################################################################
 if (!empty($_POST['use_dhcp']))
-	$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp del " . $adapter);
+	$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp del " . $_POST['iface']);
 else
-	$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp set " . $adapter . " " . $ip_addr . " " . $dhcp_start . " " . $dhcp_end . (!empty($dhcp_lease) ? " " . $dhcp_lease : ''));
+	$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp set " . $_POST['iface'] . " " . $ip_addr . " " . $dhcp_start . " " . $dhcp_end . (!empty($dhcp_lease) ? " " . $dhcp_lease : ''));
 if ($tmp != "")
 	die($tmp);
 
