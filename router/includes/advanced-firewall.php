@@ -17,8 +17,6 @@ echo '
 		', checkbox("drop_ping",      "Do Not Respond to Pings from the Internet"), '
 		', checkbox("drop_ident",     "Do Not Respond to IDENT requests from Internet (port 113)"), '
 		', checkbox("drop_multicast", "Filter Multicast Packets from Internet", false), '
-		<hr />
-		', checkbox("redirect_dns",   "Redirect all DNS requests to integrated PiHole on router"), '
 	</div>
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-block btn-success center_50" id="reboot_button">Apply Changes</button></a>

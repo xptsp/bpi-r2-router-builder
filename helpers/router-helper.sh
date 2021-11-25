@@ -307,10 +307,9 @@ case $CMD in
 	iface)
 		# MOVE => Move specified configuration file from "/tmp" to "/etc/network/interfaces.d/":
 		if [[ "$1" == "move" ]]; then
-			if ! ifconfig ${1} >& /dev/null; then echo "ERROR: Invalid adapter specified"; exit; fi
-			if ! test -f /tmp/${1}; then echo "ERROR: Missing Configuration File"; exit; fi
-			mv /tmp/${1} /etc/network/interfaces.d/${1}.conf
-			chroot root:root /etc/network/interfaces.d/${1}.conf	
+			if ! test -f /tmp/${2}; then echo "ERROR: Missing Configuration File"; exit; fi
+			mv /tmp/${2} /etc/network/interfaces.d/${2}
+			chroot root:root /etc/network/interfaces.d/${2}
 		#####################################################################
 		# DELETE => Delete specified configuration file from "/etc/network/interfaces.d/":
 		elif [[ "$1" == "delete" ]]; then
@@ -344,12 +343,12 @@ case $CMD in
 				# Replace any hostnames with the old IP address with the correct IP address:
 				OLD_IP=$(cat ${FILE} | grep dhcp-option | cut -d"," -f 3)
 				sed -i "s|${OLD_SUB}|${NEW_SUB}|g" /etc/hosts
-	
+
 				# Fix any IP addresses on any dhcp host lines in the configuration file:
 				OLD_SUB=$(echo ${OLD_IP} | cut -d"." -f 1-3).
 				NEW_SUB=$(echo $2 | cut -d"." -f 1-3).
 				sed -i "s|${OLD_IP}|${2}|g" ${FILE}
-	
+
 				# Replace the DHCP range and option lines with our new configuration:
 				sed -i "s|^dhcp-range=*.|dhcp-range=${1},${3},${4},${5}|g" ${FILE}
 				sed -i "s|^dhcp-option=*.|dhcp-option=${1},3,${2}|g" >> ${FILE}
@@ -406,7 +405,7 @@ case $CMD in
 		if [[ "${OLD,,}" == "${MAC}" ]]; then
 			echo "INFO: Same MAC address.  Exiting!"
 			exit
-		fi		
+		fi
 		if [[ ! -z "${OLD}" ]]; then
 			sed -i "s|mac-address = \[.*\]|mac-address = [ ${MAC//:/ } ]|g" /tmp/dts
 		else
@@ -417,7 +416,7 @@ case $CMD in
 		echo "MAC=${MAC}" > /boot/eth0.conf
 		dtc -q -O dtb /tmp/dts > ${FILE}
 		[[ ! -z "$RO" ]] && mount -o remount,ro /boot
-		
+
 		# We need to change the MAC address on our ethernet interfaces:
 		[[ "$1" == "current" ]] && echo "OK" && exit
 		WIFI=($(iw dev | grep Interface | awk '{print $NF}'))

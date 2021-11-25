@@ -4,7 +4,7 @@ var reboot_suggested = false;
 //======================================================================================================
 // Javascript functions for "Setup / Internet Settings"
 //======================================================================================================
-function Init_WAN()
+function Init_DNS()
 {
 	$('.ip_address').inputmask("ip");
 	$("#dynamic_ip").click(function() {
@@ -20,10 +20,10 @@ function Init_WAN()
 	$("#dns_custom").click(function() {
 		$(".dns_address").removeAttr("disabled");
 	});
-	$("#submit").click( WAN_Submit );
+	$("#submit").click( DNS_Submit );
 }
 
-function WAN_Submit()
+function DNS_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
@@ -106,8 +106,8 @@ function Init_LAN(iface)
 		else
 			$("#dhcp_lease").removeAttr("disabled");
 	});
-	$("#apply_changes").click(LAN_Submit);
-	$("#reservations-refresh").click(LAN_Refresh_Reservations).click();
+	$("#apply_changes").click(Wired_Submit);
+	$("#reservations-refresh").click(Wired_Refresh_Reservations).click();
 
 	//=========================================================================
 	// IP Reservation modals and handlers:
@@ -121,18 +121,18 @@ function Init_LAN(iface)
 		$("#dhcp_error_box").addClass("hidden");
 		$("#reservation-modal").modal("show");
 		$("#reservation_remove").click();
-		LAN_Refresh_Leases();
+		Wired_Refresh_Leases();
 	});
-	$("#leases_refresh").click(LAN_Refresh_Leases);
-	$("#dhcp_add").click(LAN_Reservation_Add);
+	$("#leases_refresh").click(Wired_Refresh_Leases);
+	$("#dhcp_add").click(Wired_Reservation_Add);
 	$("#dhcp_error_close").click(function() {
 		$("#dhcp_error_box").addClass("hidden");
 	});
-	$("#confirm-proceed").click(LAN_Reservation_Confirmed);
+	$("#confirm-proceed").click(Wired_Reservation_Confirmed);
 	$("#reboot_yes").click(Reboot_Confirmed);
 }
 
-function LAN_Submit()
+function Wired_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
@@ -180,7 +180,7 @@ function LAN_Submit()
 	});
 }
 
-function LAN_Refresh_Leases()
+function Wired_Refresh_Leases()
 {
 	// Perform our AJAX request to refresh the LAN leases:
 	$("#clients-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
@@ -193,11 +193,11 @@ function LAN_Refresh_Leases()
 			$("#dhcp_mac_addr").val( line.find(".dhcp_mac_addr").html() );
 		});
 	}).fail(function() {
-		LAN_Error("AJAX call failed!");
+		Wired_Error("AJAX call failed!");
 	});
 }
 
-function LAN_Refresh_Reservations()
+function Wired_Refresh_Reservations()
 {
 	// Perform our AJAX request to refresh the reservations:
 	$("#reservations-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
@@ -211,11 +211,11 @@ function LAN_Refresh_Reservations()
 			$("#dhcp_ip_addr").val( line.find(".dhcp_ip_addr").html() );
 			$("#dhcp_mac_addr").val( line.find(".dhcp_mac_addr").html() );
 		});
-		$(".dhcp_delete").click(LAN_Reservation_Remove);
+		$(".dhcp_delete").click(Wired_Reservation_Remove);
 	});
 }
 
-function LAN_Reservation_Remove()
+function Wired_Reservation_Remove()
 {
 	// Assemble the post data for the AJAX call:
 	line = $(this).parent();
@@ -233,17 +233,17 @@ function LAN_Reservation_Remove()
 	$.post("/ajax/setup/dhcp", postdata, function(data) {
 		if (data.trim() == "OK")
 		{
-			LAN_Refresh_Reservations();
+			Wired_Refresh_Reservations();
 			reboot_suggested = true;
 		}
 		else
-			LAN_Error(data);
+			Wired_Error(data);
 	}).fail(function() {
-		LAN_Error("AJAX call failed!");
+		Wired_Error("AJAX call failed!");
 	});
 }
 
-function LAN_Reservation_Add()
+function Wired_Reservation_Add()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
@@ -258,31 +258,31 @@ function LAN_Reservation_Add()
 
 	// Check to make sure we actually have something to pass to the AJAX call:
 	if (postdata.hostname == "")
-		return LAN_Error("No hostname specified!");
+		return Wired_Error("No hostname specified!");
 	else if (postdata.ip_addr == "")
-		return LAN_Error("No IP address specified!");
+		return Wired_Error("No IP address specified!");
 	else if (postdata.mac_addr == "")
-		return LAN_Error("No MAC address specified!");
+		return Wired_Error("No MAC address specified!");
 
 	// Perform our AJAX request to add the IP reservation:
 	$.post("/ajax/setup/dhcp", postdata, function(data) {
 		if (data.trim() == "SAME")
-			LAN_Refresh_Reservations();
+			Wired_Refresh_Reservations();
 		else if (data.trim() == "OK")
-			LAN_Reservation_Add_Msg();
+			Wired_Reservation_Add_Msg();
 		else if (data.trim() == "ADD")
-			LAN_Reservation_Confirmed();
+			Wired_Reservation_Confirmed();
 		else
 		{
 			$("#confirm-mac").html('<p>' + data + '</p><p>Proceed with replacement?</p>');
 			$("#confirm-modal").modal("show");
 		}
 	}).fail(function() {
-		LAN_Error("AJAX call failed!");
+		Wired_Error("AJAX call failed!");
 	});
 }
 
-function LAN_Reservation_Add_Msg()
+function Wired_Reservation_Add_Msg()
 {
 	$("#apply_changes").addClass("hidden");
 	$("#apply_reboot").removeClass("hidden");
@@ -292,10 +292,10 @@ function LAN_Reservation_Add_Msg()
 			clearInterval(timer);
 		}, 5000);
 	});
-	LAN_Reservation_Confirmed();
+	Wired_Reservation_Confirmed();
 }
 
-function LAN_Reservation_Confirmed()
+function Wired_Reservation_Confirmed()
 {
 	// Hide confirmation dialog if shown:
 	$("#confirm-modal").modal("hide");
@@ -314,15 +314,15 @@ function LAN_Reservation_Confirmed()
 	// Perform our AJAX request to add the IP reservation:
 	$.post("/ajax/setup/dhcp", postdata, function(data) {
 		if (data.trim() == "OK")
-			LAN_Refresh_Reservations();
+			Wired_Refresh_Reservations();
 		else
-			LAN_Error(data);
+			Wired_Error(data);
 	}).fail(function() {
-		LAN_Error("AJAX call failed!");
+		Wired_Error("AJAX call failed!");
 	});
 }
 
-function LAN_Error(msg)
+function Wired_Error(msg)
 {
 	$("#dhcp_error_msg").html(msg);
 	$("#dhcp_error_box").slideDown(400, function() {
@@ -372,11 +372,11 @@ function Routing_Delete()
 	// Perform our AJAX request to add the IP reservation:
 	$.post("/ajax/setup/routing", postdata, function(data) {
 		if (data.trim() == "OK")
-			LAN_Refresh_Reservations();
+			Wired_Refresh_Reservations();
 		else
-			LAN_Error(data);
+			Wired_Error(data);
 	}).fail(function() {
-		LAN_Error("AJAX call failed!");
+		Wired_Error("AJAX call failed!");
 	});
 }
 
@@ -397,11 +397,11 @@ function Routing_Add()
 	// Perform our AJAX request to add the IP reservation:
 	$.post("/ajax/setup/routing", postdata, function(data) {
 		if (data.trim() == "OK")
-			LAN_Refresh_Reservations();
+			Wired_Refresh_Reservations();
 		else
-			LAN_Error(data);
+			Wired_Error(data);
 	}).fail(function() {
-		LAN_Error("AJAX call failed!");
+		Wired_Error("AJAX call failed!");
 	});
 }
 
@@ -459,8 +459,8 @@ function Router_Apply()
 		if (data.trim() == "OK")
 			document.location.reload(true);
 		else
-			LAN_Error(data);
+			Wired_Error(data);
 	}).fail(function() {
-		LAN_Error("AJAX call failed!");
+		Wired_Error("AJAX call failed!");
 	});
 }

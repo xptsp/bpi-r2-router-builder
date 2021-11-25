@@ -10,8 +10,8 @@ $sidebar_menu = array(
 	'home'   => menu_link('/', 'Home', 'fas fa-home'),
 	'setup'  => array('Setup', 'fas fa-cog', array(
 		'router'   => menu_link('/setup/router', 'Router Settings', 'fab fa-linux'),
-		'wan'      => menu_link('/setup/wan', 'WAN Settings', 'fas fa-globe'),
-		'lan'      => menu_link('/setup/lan', 'LAN Setup', 'fas fa-ethernet'),
+		'wired'    => menu_link('/setup/wired', 'Wired Setup', 'fas fa-ethernet'),
+		'dns'      => menu_link('/setup/dns', 'DNS Settings', 'fas fa-address-card'),
 #		'wireless' => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
 		'routing'  => menu_link('/setup/routing', 'Network Routing', 'fas fa-route'),
 	)),
