@@ -52,7 +52,7 @@ function DNS_Submit()
 //======================================================================================================
 // Javascript functions for "Setup / Network Setup"
 //======================================================================================================
-function Init_LAN(iface)
+function Init_Wired(iface)
 {
 	iface_used = iface;
 

@@ -330,15 +330,15 @@ case $CMD in
 		#####################################################################
 		# SET => Create or modify the DHCP for a specific interface:
 		elif [[ "$1" == "set" ]]; then
-			FILE=/etc/dnsmasq.d/${1}.conf
-			if ! valid_ip $2; then echo "ERROR: Invalid IP Address specified as 2nd param!"; exit; fi
-			if ! valid_ip $3; then echo "ERROR: Invalid IP Address specified as 3rd param!"; exit; fi
-			if ! valid_ip $4; then echo "ERROR: Invalid IP Address specified as 4th param!"; exit; fi
+			FILE=/etc/dnsmasq.d/${2}.conf
+			if ! valid_ip $3; then echo "ERROR: Invalid IP Address specified as 2nd param!"; exit; fi
+			if ! valid_ip $4; then echo "ERROR: Invalid IP Address specified as 3rd param!"; exit; fi
+			if ! valid_ip $5; then echo "ERROR: Invalid IP Address specified as 4th param!"; exit; fi
 			if [[ ! "$5" =~ [0-9]+[m|h|d|w|] ]]; then echo "ERROR: Invalid time period specified as 5th param!"; exit; fi
 			if ! test -f ${FILE}; then
-				echo "interface=$1" > ${FILE}
-				echo "dhcp-range=${1},${3},${4},${5}" >> ${FILE}
-				echo "dhcp-option=$1,3,${2}" >> ${FILE}
+				echo "interface=$2" > ${FILE}
+				echo "dhcp-range=${2},${4},${5},${6}" >> ${FILE}
+				echo "dhcp-option=${2},3,${3}" >> ${FILE}
 			else
 				# Replace any hostnames with the old IP address with the correct IP address:
 				OLD_IP=$(cat ${FILE} | grep dhcp-option | cut -d"," -f 3)
@@ -346,32 +346,32 @@ case $CMD in
 
 				# Fix any IP addresses on any dhcp host lines in the configuration file:
 				OLD_SUB=$(echo ${OLD_IP} | cut -d"." -f 1-3).
-				NEW_SUB=$(echo $2 | cut -d"." -f 1-3).
-				sed -i "s|${OLD_IP}|${2}|g" ${FILE}
+				NEW_SUB=$(echo $3 | cut -d"." -f 1-3).
+				sed -i "s|${OLD_IP}|${3}|g" ${FILE}
 
 				# Replace the DHCP range and option lines with our new configuration:
-				sed -i "s|^dhcp-range=*.|dhcp-range=${1},${3},${4},${5}|g" ${FILE}
-				sed -i "s|^dhcp-option=*.|dhcp-option=${1},3,${2}|g" >> ${FILE}
+				sed -i "s|^dhcp-range=*.|dhcp-range=${2},${4},${5},${6}|g" ${FILE}
+				sed -i "s|^dhcp-option=*.|dhcp-option=${2},3,${3}|g" >> ${FILE}
 			fi
 		#####################################################################
 		# RM => Remove the specified host from the DHCP configuration file:
-		elif [[ "$1" == "rm" ]]; then
-			FILE=/etc/dnsmasq.d/${1}.conf
+		elif [[ "$1" == "remove" ]]; then
+			FILE=/etc/dnsmasq.d/${2}.conf
 			if ! test -f ${FILE}; then echo "ERROR: No DNSMASQ configuration found for adapter!"; exit; fi
-			if [[ ! "$2" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then echo "ERROR: Invalid MAC address specified as 2nd param!"; exit 1; fi
-			if ! valid_ip $3; then echo "ERROR: Invalid IP address specified as 3rd param!"; exit 1; fi
-			sed -i "/^dhcp-host=.*,${2},/d" ${FILE}
+			if [[ ! "$3" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then echo "ERROR: Invalid MAC address specified as 2nd param!"; exit 1; fi
+			if ! valid_ip $4; then echo "ERROR: Invalid IP address specified as 3rd param!"; exit 1; fi
 			sed -i "/^dhcp-host=.*,${3},/d" ${FILE}
+			sed -i "/^dhcp-host=.*,${4},/d" ${FILE}
 			echo "OK"
 		#####################################################################
 		# ADD => Add the specified host to the DHCP configuration file:
 		elif [[ "$1" == "add" ]]; then
-			$0 dhcp remove $1 $2 $3 || exit
-			echo "dhcp-host=$1,$2,$3,$4" >> /etc/dnsmasq.d/${1}.conf
+			$0 dhcp remove $2 $3 $4 || exit
+			echo "dhcp-host=$2,$3,$4,$5" >> /etc/dnsmasq.d/${1}.conf
 		#####################################################################
 		# DEL => Delete the DHCP configuration file:
 		elif [[ "$1" == "del" ]]; then
-			rm /etc/dnsmasq.d/${1}.conf
+			rm /etc/dnsmasq.d/${2}.conf
 		fi
 		;;
 

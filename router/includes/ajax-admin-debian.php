@@ -1,13 +1,27 @@
 <?php
-if (!isset($_POST['action']) || !isset($_POST['sid']))
+if (!isset($_GET['sid']))
+	die(echo word('adjectives') . word('animals') . strval(rand(0,100)));
+if (!isset($_POST['action']))
 	require_once("404.php");
 if ($_POST['sid'] != $_SESSION['sid'])
 	die('RELOAD');
 
+####################################################################################
+# Supporting function:
+####################################################################################
+function word($file)
+{
+	global $num;
+	$lines = file('/usr/share/dict/' . $file . '.list');
+	$max = count($lines);
+	$word = explode("'", trim(ucfirst( $lines[ rand(0, $max) ] )))[0];
+	return $word;
+}
+
 #################################################################################################
 # ACTION: CHECK => Returns the current version of the specified repo:
 #################################################################################################
-if (!isset($_POST['action']) || $_POST['action'] == 'check')
+if ($_POST['action'] == 'check')
 {
 	# Define everything we need for the entire operation:
 	header('Content-type: application/json');
@@ -138,6 +152,47 @@ else if ($_POST['action'] == 'test')
 		sleep(250);
 		flush();
 	}
+}
+#################################################################################################
+# ACTION: CREDS => Validate the password parameters sent:
+#################################################################################################
+else if ($_POST['action'] == 'creds')
+{
+	####################################################################################
+	# 
+	####################################################################################
+	$oldPass = isset($_POST['oldPass']) ? $_POST['oldPass'] : '';
+	$newPass = isset($_POST['newPass']) ? $_POST['newPass'] : '';
+	$conPass = isset($_POST['conPass']) ? $_POST['conPass'] : '';
+	$tmp1 = preg_replace("/[^A-Za-z0-9 ]/", '-', $oldPass);
+	$tmp2 = preg_replace("/[^A-Za-z0-9 ]/", '-', $newPass);
+	$tmp3 = preg_replace("/[^A-Za-z0-9 ]/", '-', $conPass);
+	if ($oldPass != $tmp1)
+		$results = "oldPass";
+	else if ($newPass != $tmp2)
+		$results = "newPass";
+	else if ($newPass != $conPass || $conPass != $tmp3)
+		$results = "conPass";
+	else
+	{
+		if (!isset($_POST['username']))
+			$username = isset($_POST['newPass']) ? '' : trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login webui'));
+		else
+			$username = isset($_POST['username']) ? $_POST['username'] : '';
+
+		$result = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check ' . $username . ' ' . $oldPass));
+		if ($result == "Match")
+		{
+			if (empty($newPass))
+				$_SESSION['login_valid_until'] = time() + 10*60;
+			else
+			{
+				$result = @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login passwd ' . $newPass . ' 2>&1');
+				$result = strpos($result, "password updated successfully") > 0 ? 'Successful' : 'Failed';
+			}
+		}
+	}
+	echo $result;
 }
 #################################################################################################
 # ACTION: Anything else ==> Return "Unknown action" to user:

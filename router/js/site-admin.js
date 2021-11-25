@@ -117,7 +117,8 @@ function Creds_Password_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
-		'sid': SID,
+		'sid':     SID,
+		'action':  'creds',
 		'oldPass': $("#oldPass").val(),
 		'newPass': $("#newPass").val(),
 		'conPass': $("#conPass").val()
@@ -134,7 +135,7 @@ function Creds_Password_Submit()
 		return Creds_Password_Fail("New password does not match Confirm Password!");
 
 	// Perform our AJAX request to change the password:
-	$.post("/ajax/admin/creds", postdata, function(data) {
+	$.post("/ajax/admin/debian", postdata, function(data) {
 		if (data == "RELOAD")
 			document.location.reload(true);
 		else if (data == "oldPass")

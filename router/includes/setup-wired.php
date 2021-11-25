@@ -370,4 +370,4 @@ echo '
 # Close page
 ###################################################################################################
 site_reboot_modal();
-site_footer('Init_LAN("' . $iface . '");');
+site_footer('Init_Wired("' . $iface . '");');
