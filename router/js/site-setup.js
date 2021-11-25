@@ -4,14 +4,27 @@ var reboot_suggested = false;
 //======================================================================================================
 // Javascript functions for "Setup / Internet Settings"
 //======================================================================================================
-function Init_DNS()
+function Init_DNS(dns1, dns2)
 {
 	$('.dns_address').inputmask("ip");
 	$("#dns_isp").click(function() {
 		$(".dns_address").attr("disabled", "disabled");
+		$("#providers").attr("disabled", "disabled");
+		$("#dns1").val(dns1);
+		$("#dns2").val(dns2);
 	});
 	$("#dns_custom").click(function() {
 		$(".dns_address").removeAttr("disabled");
+		$("#providers").attr("disabled", "disabled");
+	});
+	$("#dns_provider").click(function() {
+		$(".dns_address").attr("disabled", "disabled");
+		$("#providers").removeAttr("disabled").change();
+	});
+	$("#providers").change(function() {
+		dns = $(this).find("option:selected").val().split('/');
+		$("#dns1").val(dns[0]);
+		$("#dns2").val(dns[1]);
 	});
 	$("#submit").click( DNS_Submit );
 }

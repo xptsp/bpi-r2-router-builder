@@ -39,6 +39,9 @@ $providers = array(
 	array('Alternate DNS', '76.76.19.19', '76.223.122.150'),
 	array('AdGuard DNS', '94.140.14.14', '94.140.15.15'),
 );
+$use_provider = false;
+foreach ($providers as $provider)
+	$use_provider |= ($primary == $provider[1] && $secondary == $provider[2]);
 echo '
 <div class="card card-primary">
 	<div class="card-header">
@@ -49,22 +52,22 @@ echo '
 			<div class="col-6">
 				<div class="form-group clearfix">
 					<div class="icheck-primary">
-						<input type="radio" id="dns_free" value="alt" name="dns_server_opt"', empty($custom) ? ' checked="checked"' : '', '>
-						<label for="dns_free">Use Free and Public DNS Servers</label>
+						<input type="radio" id="dns_provider" value="alt" name="dns_server_opt"', $use_provider ? ' checked="checked"' : '', '>
+						<label for="dns_provider">Use Free and Public DNS Servers</label>
 					</div>
 					<div class="icheck-primary">
-						<input type="radio" id="dns_isp" value="isp" name="dns_server_opt"', empty($custom) ? ' checked="checked"' : '', '>
+						<input type="radio" id="dns_isp" value="isp" name="dns_server_opt"', !$use_provider && empty($custom) ? ' checked="checked"' : '', '>
 						<label for="dns_isp">Get Automatically from ISP</label>
 					</div>
 					<div class="icheck-primary">
-						<input type="radio" id="dns_custom" value="custom" name="dns_server_opt"', empty($custom) ? '' : ' checked="checked"', '>
+						<input type="radio" id="dns_custom" value="custom" name="dns_server_opt"', !$use_provider && !empty($custom) ? ' checked="checked"' : '', '>
 						<label for="dns_custom">Manually Set DNS Servers</label>
 					</div>
 				</div>
 			</div>
 			<div class="col-6">
 				<div class="form-group">
-					<select class="form-control">';
+					<select class="form-control" id="providers">';
 foreach ($providers as $provider)
 	echo '
 						<option value="', $provider[1], '/', $provider[2], '"', ($primary == $provider[1] && $secondary == $provider[2]) ? ' selected="selected"' : '', '>', $provider[0], '</option>';
@@ -136,4 +139,4 @@ echo '
 ###################################################################################################
 # Close page
 ###################################################################################################
-site_footer('Init_DNS();');
+site_footer('Init_DNS("' . $primary . '", "' . $secondary . '");');

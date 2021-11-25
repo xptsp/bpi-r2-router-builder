@@ -15,9 +15,9 @@ function ip_range_cmd($dest_addr, $mask_addr, $gate_addr, $dev, $metric)
 
 function validate_params()
 {
-	$_POST['dest_addr'] = option_ip('dest_addr']);
-	$_POST['mask_addr'] = option_ip('mask_addr']);
-	$_POST['gate_addr'] = option_ip('gate_addr']);
+	$_POST['dest_addr'] = option_ip('dest_addr');
+	$_POST['mask_addr'] = option_ip('mask_addr');
+	$_POST['gate_addr'] = option_ip('gate_addr');
 	$_POST['metric'] = option_range('metric', 0, 9999);
 
 	$_POST['iface'] = isset($_POST['iface']) ? $_POST['iface'] : '';

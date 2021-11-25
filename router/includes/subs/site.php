@@ -405,10 +405,10 @@ function option_allowed($name, $allowed = array())
 function option_range($name, $min, $max)
 {
 	global $options;
-	$int = (int) (isset($_POST[$name]) ? $_POST[$name] : '');
+	$int = (int) (isset($_POST[$name]) ? $_POST[$name] : -99999999);
 	if ($int < $min || $int > $max)
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
-	return $_POST[$name];
+	return $int;
 }
 
 function option_ip($name)

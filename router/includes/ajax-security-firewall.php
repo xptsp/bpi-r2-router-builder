@@ -4,7 +4,7 @@ if (!isset($_POST['action']) || !isset($_POST['sid']))
 if ($_POST['sid'] != $_SESSION['sid'])
 	die('RELOAD');
 #echo '<pre>'; print_r($_POST); exit;
-require_once("subs/security.php");
+require_once("subs/advanced.php");
 $options = parse_file();
 
 #################################################################################################
