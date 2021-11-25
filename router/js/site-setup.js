@@ -35,14 +35,11 @@ function DNS_Submit()
 	postdata = {
 		'sid':      SID,
 		'action':   'dns',
-		'static':   ($("[name=static_dynamic]:checked").val()) == "dynamic" ? 0 : 1,
-		'ip_addr':  $("#ip_addr").val(),
-		'ip_mask':  $("#ip_mask").val(),
-		'ip_gate':  $("#ip_gate").val(),
-		'use_isp':  ($("[name=dns_server_opt]:checked").val()) == "isp" ? 0 : 1,
+		'use_isp':  ($("[name=dns_server_opt]:checked").val()) == "isp" ? 'Y' : 'N',
 		'dns1':     $("#dns1").val(),
 		'dns2':     $("#dns2").val(),
 	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to change the WAN settings:
 	$("#apply_msg").html("Please wait while the networking service is restarted...");

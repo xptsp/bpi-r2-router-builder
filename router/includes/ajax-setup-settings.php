@@ -42,9 +42,9 @@ else if ($_POST['action'] == 'set')
 #################################################################################################
 else if ($_POST['action'] == 'dns')
 {
-	$use_isp = option_range('use_ip', 0, 1);
+	$use_isp = option('use_isp');
 	$dns1 = option_ip('dns1');
-	$dns2 = option_ip('dns2');
+	$dns2 = option_ip('dns2', true);
 	die("GOT HERE");
 }
 #################################################################################################

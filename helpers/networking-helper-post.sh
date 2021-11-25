@@ -18,36 +18,34 @@ fi
 # Rename wireless interfaces according to their physical index number.
 # Ex: Wireless interface with physical index number 1 would be named "wradio1".
 cd /sys/class/net
-for DIR in $(ls | grep -v "^wradio" | grep -v "^ap"); do
+for DIR in $(iw dev | grep "Interface" | awk '{print $2}'); do
 	if [[ -f ${DIR}/phy80211/index ]]; then
 		IFACE=$(basename $DIR)
 		INDEX=$(cat ${DIR}/phy80211/index)
-		NEW=wradio${INDEX}
 
 		# If DNSMASQ configuration exists for this interface, get the IP address assigned.
 		# Otherwise, create a default DNSMASQ configuration for the interface:
-		FILE=/etc/dnsmasq.d/${NEW}.conf
+		FILE=/etc/dnsmasq.d/${IFACE}.conf
 		if [[ ! -f ${FILE} ]]; then
 			IP_ADDR=192.168.$((20 + ${INDEX} ))
-			echo "interface=${NEW}" > ${FILE}
-			echo "dhcp-range=${NEW},${IP_ADDR}.100,${IP_ADDR}.150,255.255.255.0,48h" >> ${FILE}
-			echo "dhcp-option=${NEW},3,${IP_ADDR}.1" >> ${FILE}
+			echo "interface=${IFACE}" > ${FILE}
+			echo "dhcp-range=${IFACE},${IP_ADDR}.100,${IP_ADDR}.150,255.255.255.0,48h" >> ${FILE}
+			echo "dhcp-option=${IFACE},3,${IP_ADDR}.1" >> ${FILE}
 			IP_ADDR=${IP_ADDR}.1
 		else
 			IP_ADDR=$(cat ${FILE} | grep dhcp-option | cut -d, -f 3)
 		fi
 
 		# Rename the interface and bring the interface up:
-		ip link set ${IFACE} down
-		ip link set ${IFACE} name ${NEW}
-		ip link set ${NEW} up
-		ip addr add ${IP_ADDR}/24 dev ${NEW}
+		ip link set ${IFACE} up
+		ip addr add ${IP_ADDR}/24 dev ${IFACE}
 
 		# Change interface's password if it is "bananapi", and launch hostapd AP on that interface:
-		if [[ -f /etc/hostapd/${NEW}.conf ]]; then
-			if [[ "$(cat /etc/hostapd/${NEW}.conf | grep wpa_passphrase | cut -d"=" -f 2)" == "bananapi" ]]; then
-				sed -i "s|wpa_passphrase=.*|wpa_passphrase=${WIFI_PASS}|g" /etc/hostapd/${NEW}.conf
+		if [[ -f /etc/hostapd/${IFACE}.conf ]]; then
+			if [[ "$(cat /etc/hostapd/${IFACE}.conf | grep wpa_passphrase | cut -d"=" -f 2)" == "bananapi" ]]; then
+				sed -i "s|wpa_passphrase=.*|wpa_passphrase=${WIFI_PASS}|g" /etc/hostapd/${IFACE}.conf
 			fi
+			systemctl start hostapd@${IFACE}
 		fi
 	fi
 done

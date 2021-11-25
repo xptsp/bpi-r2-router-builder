@@ -388,42 +388,42 @@ echo '
 #######################################################################################################
 function option($name, $allowed = "/^[Y|N]$/")
 {
-	global $options;
-	if (!isset($_POST[$name]) || (!empty($allowed) && !preg_match($allowed, $_POST[$name])))
+	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
+	if (empty($tmp) || empty($allowed) || !preg_match($allowed, $tmp))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
-	return $_POST[$name];
+	return $tmp;
 }
 
 function option_allowed($name, $allowed = array())
 {
-	global $options;
-	if (!isset($_POST[$name]) || !in_array($_POST[$name], $allowed))
+	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
+	if (!isset($tmp) || !in_array($_POST[$name], $allowed))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
-	return $_POST[$name];
+	return $tmp;
 }
 
 function option_range($name, $min, $max)
 {
-	global $options;
-	$int = (int) (isset($_POST[$name]) ? $_POST[$name] : -99999999);
-	if ($int < $min || $int > $max)
+	$tmp = isset($_POST[$name]) ? (int) $_POST[$name] : -99999999;
+	if ($tmp < $min || $tmp > $max)
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
-	return $int;
+	return $tmp;
 }
 
-function option_ip($name)
+function option_ip($name, $empty = false)
 {
-	$_POST[$name] = isset($_POST[$name]) ? $_POST[$name] : '';
-	if (!filter_var($_POST[$name], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
+	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
+	if ($empty && empty($tmp))
+		return $tmp;
+	else if (!filter_var($tmp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
-	return $_POST[$name];
+	return $tmp;
 }
 
 function option_mac($name)
 {
-	$_POST[$name] = isset($_POST[$name]) ? strtoupper($_POST[$name]) : '';
-	if (!filter_var($_POST[$name], FILTER_VALIDATE_MAC))
+	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
+	if (!filter_var($tmp, FILTER_VALIDATE_MAC))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
-	return $_POST[$name];
+	return $tmp;
 }
-
