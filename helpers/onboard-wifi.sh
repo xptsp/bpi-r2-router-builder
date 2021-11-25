@@ -87,8 +87,13 @@ else
 
 	ip -6 addr add fd00:B::10/64 dev ap0
 	#ip -6 addr add 2001:xxx:xxxx:B::10/64 dev ap0
-	echo "restart dnsmasq..."
-	service dnsmasq restart
+	if systemctl is-active dnsmasq; then
+		echo "restart dnsmasq..."
+		service dnsmasq restart
+	elif systemctl is-active pihole-FTL; then
+		echo "restart pihole-FTL..."
+		service pihole-FTL restart
+	fi
 fi
 #echo "waiting before starting second hostapd..."
 #sleep 30s
