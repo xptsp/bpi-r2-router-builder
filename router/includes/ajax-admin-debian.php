@@ -15,10 +15,11 @@ if (!isset($_POST['action']) || $_POST['action'] == 'check')
 	$start_indent = 0;
 	$packages = array('good' => array(), 'hold' => array(), 'kept' => array());
 	$debian = array('list' => array('good' => '', 'hold' => '', 'kept' => ''));	
+	$disabled = ' disabled="disabled"';
 	$button = array(
-		'good' => '<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-xs btn-success pkg-upgrade">Upgrade</button></a>',
-		'hold' => '<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-xs btn-danger pkg-held">Held</button></a>',
-		'kept' => '<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-xs btn-info pkg-kept">Kept Back</button></a>',
+		'good' => '<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-xs btn-success pkg-upgrade"' . $disabled . '>Upgrade</button></a>',
+		'hold' => '<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-xs btn-danger pkg-held"' . $disabled . '>Held</button></a>',
+		'kept' => '<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-xs btn-info pkg-kept"' . $disabled . '>Kept Back</button></a>',
 	);
 
 	# Get current list of packages for Debian:
@@ -64,7 +65,7 @@ if (!isset($_POST['action']) || $_POST['action'] == 'check')
 			$status = isset($packages['hold'][$package]) ? 'hold' : (isset($packages['kept'][$package]) ? 'kept' : 'good');
 			$debian['list'][$status] .=
 				'<tr>' .
-					'<td><input type="checkbox"' . (isset($packages['good'][$package]) ? ' checked="checked"' : '') . '></td>' .
+					'<td><input type="checkbox"' . (isset($packages['good'][$package]) ? ' checked="checked"' : '') . $disabled . '></td>' .
 					'<td>' . $package . '</td>' .
 					'<td>' . $matches[2] . '</td>' .
 					'<td>' . $matches[3] . '</td>' .

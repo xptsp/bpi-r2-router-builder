@@ -27,9 +27,6 @@ if (!$logged_in and !in_array($_GET['action'], array('home', 'ajax-creds', 'ajax
 	die();
 }
 
-# Set the PHP timezone according to the system timezone:
-date_default_timezone_set(trim(file_get_contents("/etc/timezone")));
-
 # Generate a random SID for use in the session:
 if (!isset($_SESSION['sid']))
 	$_SESSION['sid'] = substr(bin2hex(random_bytes(32)), 0, 32);

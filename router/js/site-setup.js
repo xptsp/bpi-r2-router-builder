@@ -6,13 +6,6 @@ var reboot_suggested = false;
 //======================================================================================================
 function Init_DNS()
 {
-	$('.ip_address').inputmask("ip");
-	$("#dynamic_ip").click(function() {
-		$(".ip_address").attr("disabled", "disabled");
-	});
-	$("#static_ip").click(function() {
-		$(".ip_address").removeAttr("disabled");
-	});
 	$('.dns_address').inputmask("ip");
 	$("#dns_isp").click(function() {
 		$(".dns_address").attr("disabled", "disabled");
@@ -28,6 +21,7 @@ function DNS_Submit()
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':      SID,
+		'action':   'dns',
 		'static':   ($("[name=static_dynamic]:checked").val()) == "dynamic" ? 0 : 1,
 		'ip_addr':  $("#ip_addr").val(),
 		'ip_mask':  $("#ip_mask").val(),
@@ -41,7 +35,7 @@ function DNS_Submit()
 	$("#apply_msg").html("Please wait while the networking service is restarted...");
 	$(".alert_control").addClass("hidden");
 	$("#apply-modal").modal("show");
-	$.post("/ajax/setup/wan", postdata, function(data) {
+	$.post("/ajax/setup/settings", postdata, function(data) {
 		if (data == "OK")
 			document.location.reload(true);
 		else
@@ -370,7 +364,7 @@ function Routing_Delete()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to add the IP reservation:
-	$.post("/ajax/setup/routing", postdata, function(data) {
+	$.post("/ajax/setup/settings", postdata, function(data) {
 		if (data.trim() == "OK")
 			Wired_Refresh_Reservations();
 		else
@@ -395,7 +389,7 @@ function Routing_Add()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to add the IP reservation:
-	$.post("/ajax/setup/routing", postdata, function(data) {
+	$.post("/ajax/setup/settings", postdata, function(data) {
 		if (data.trim() == "OK")
 			Wired_Refresh_Reservations();
 		else
@@ -406,12 +400,12 @@ function Routing_Add()
 }
 
 //======================================================================================================
-// Javascript functions for "Setup / System Settings"
+// Javascript functions for "Setup / Router Settings"
 //======================================================================================================
-function Init_Router(mac_com, mac_cur)
+function Init_Settings(mac_com, mac_cur)
 {
 	$(".hostname").inputmask();
-	$("#tz_detect").click( Router_Detect );
+	$("#tz_detect").click( Settings_Detect );
 	$("#mac_default").click(function() {
 		$("#mac_addr").val(mac_cur).attr("disabled", "disabled");
 	});
@@ -428,12 +422,12 @@ function Init_Router(mac_com, mac_cur)
 		$("#mac_addr").removeAttr("disabled");
 	});
 	$("#mac_addr").inputmask("mac");
-	$("#apply_changes").click( Router_Apply );
+	$("#apply_changes").click( Settings_Apply );
 }
 
-function Router_Detect()
+function Settings_Detect()
 {
-	$.post("/ajax/setup/device", __postdata("detect"), function(data) {
+	$.post("/ajax/setup/settings", __postdata("detect"), function(data) {
 		data = JSON.parse(data);
 		$("#timezone").val(data.timezone).change();
 	}).fail(function() {
@@ -441,7 +435,7 @@ function Router_Detect()
 	});
 }
 
-function Router_Apply()
+function Settings_Apply()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
@@ -455,7 +449,7 @@ function Router_Apply()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to remove the IP reservation:
-	$.post("/ajax/setup/router", postdata, function(data) {
+	$.post("/ajax/setup/settings", postdata, function(data) {
 		if (data.trim() == "OK")
 			document.location.reload(true);
 		else

@@ -108,30 +108,17 @@ else if ($_POST['action'] == 'clients')
 ###################################################################################################
 else if ($_POST['action'] == 'remove' || $_POST['action'] == 'add')
 {
-	$_POST['ip_addr'] = isset($_POST['ip_addr']) ? $_POST['ip_addr'] : '';
-	if (!filter_var($_POST['ip_addr'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
-		die('[IP_ADDR] ERROR: "' . $_POST['ip_addr'] . '" is an invalid IPv4 address!');
-
-	$_POST['mac_addr'] = isset($_POST['mac_addr']) ? strtoupper($_POST['mac_addr']) : '';
-	if (!filter_var($_POST['mac_addr'], FILTER_VALIDATE_MAC))
-		die('[MAC_ADDR] ERROR: "' . $_POST['mac_addr'] . '" is an invalid MAC address!');
-
-	$action = $_POST['action'] == 'remove' ? 'rm' : 'add';
-	$action .=  ' ' . $_POST['iface'] . ' ' . $_POST['mac_addr'] . ' ' . $_POST['ip_addr'] . ' ' . $_POST['hostname'];
-	echo @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp ' . $action);
+	$ip_addr = option_ip('ip_addr');
+	$mac_addr = option_mac('mac_addr');
+	echo @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp ' . ($_POST['action'] == 'remove' ? 'rm' : 'add') . ' ' . $_POST['iface'] . ' ' . $mac_addr . ' ' . $ip_addr . ' ' . $hostname);
 }
 ###################################################################################################
 # ACTION: CHECK ==> Check to see if the IP and/or MAC have already been assigned.
 ###################################################################################################
 else if ($_POST['action'] == 'check')
 {
-	$_POST['ip_addr'] = isset($_POST['ip_addr']) ? $_POST['ip_addr'] : '';
-	if (!filter_var($_POST['ip_addr'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
-		die('[IP_ADDR] ERROR: "' . $_POST['ip_addr'] . '" is an invalid IPv4 address!');
-
-	$_POST['mac_addr'] = isset($_POST['mac_addr']) ? strtoupper($_POST['mac_addr']) : '';
-	if (!filter_var($_POST['mac_addr'], FILTER_VALIDATE_MAC))
-		die('[MAC_ADDR] ERROR: "' . $_POST['mac_addr'] . '" is an invalid MAC address!');
+	$ip_addr = option_ip('ip_addr');
+	$mac_addr = option_mac('mac_addr');
 
 	if (isset($reserve[$_POST['mac_addr']]))
 		echo $reserve[$_POST['mac_addr']]['ip'] == $_POST['ip_addr'] ? 'SAME' : 'This MAC address has already been assigned to ' . $reserve[$_POST['mac_addr']]['ip'] . '.';

@@ -2,9 +2,7 @@
 require_once("subs/admin.php");
 site_menu();
 
-function thead()
-{
-	return '
+$thead = '
 				<thead>
 					<tr>
 						<th width="25%">Destination LAN IP</th>
@@ -15,8 +13,6 @@ function thead()
 						<th width="5%">&nbsp;</th>
 					</tr>
 				</thead>';
-}
-
 echo '
 <div class="card card-primary">
 	<div class="card-header">
@@ -32,7 +28,7 @@ echo '
 			Routing Table
 		</h5>
 		<div class="table-responsive p-0 dhcp_div">
-			<table class="table table-hover text-nowrap table-sm table-striped">' . thead() . '
+			<table class="table table-hover text-nowrap table-sm table-striped">' . $thead . '
 				<tbody id="routing-table">
 					<tr><td colspan="6"><center>Loading...</center></td></tr>
 				</tbody>
@@ -41,7 +37,7 @@ echo '
 		<br />
 		<h5 class="dhcp_div">Add New Routing</h5>
 		<div class="table-responsive p-0 dhcp_div">
-			<table class="table table-hover text-nowrap table-sm table-striped">' . thead() . '
+			<table class="table table-hover text-nowrap table-sm table-striped">' . $thead . '
 				<tbody>
 					<tr>
 						<td><input id="dest_addr" type="text" class="ip_address form-control" /></td>

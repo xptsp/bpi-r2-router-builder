@@ -15,21 +15,10 @@ function ip_range_cmd($dest_addr, $mask_addr, $gate_addr, $dev, $metric)
 
 function validate_params()
 {
-	$_POST['dest_addr'] = isset($_POST['dest_addr']) ? $_POST['dest_addr'] : '';
-	if (!filter_var($_POST['dest_addr'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
-		die('[DEST_ADDR] ERROR: "' . $_POST['dest_addr'] . '" is an invalid IPv4 address!');
-
-	$_POST['mask_addr'] = isset($_POST['mask_addr']) ? $_POST['mask_addr'] : '';
-	if (!filter_var($_POST['dest_addr'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
-		die('[MASK_ADDR] ERROR: "' . $_POST['mask_addr'] . '" is an invalid IPv4 address!');
-
-	$_POST['gate_addr'] = isset($_POST['gate_addr']) ? $_POST['gate_addr'] : '';
-	if (!filter_var($_POST['gate_addr'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
-		die('[GATE_ADDR] ERROR: "' . $_POST['gate_addr'] . '" is an invalid IPv4 address!');
-
-	$_POST['metric'] = isset($_POST['metric']) ? intval($_POST['metric']) : -1;
-	if ($_POST['metric'] < 0 || $_POST['metric'] > 9999)
-		die('[METRIC] ERROR: "' . $_POST['metric'] . '" is outside allowed range (0-9999)!');
+	$_POST['dest_addr'] = option_ip('dest_addr']);
+	$_POST['mask_addr'] = option_ip('mask_addr']);
+	$_POST['gate_addr'] = option_ip('gate_addr']);
+	$_POST['metric'] = option_range('metric', 0, 9999);
 
 	$_POST['iface'] = isset($_POST['iface']) ? $_POST['iface'] : '';
 	if (empty($_POST['iface']) || !file_exists("/sys/class/net/" . $_POST['iface']))
