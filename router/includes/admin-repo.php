@@ -22,7 +22,7 @@ function show_repo($title, $repo, $url, $alt_desc = null)
 						</tr>
 						<tr>
 							<td><strong>Repository Location</strong></td>
-							<td><a href="', $url, '">', $alt_desc == null ? $title : $alt_desc, '</a></td>
+							<td><a href="', $url, '" target="_blank">', $alt_desc == null ? $title : $alt_desc, '</a></td>
 						</tr>
 						<tr id="', $repo, '_check_div">
 							<td colspan="2">
