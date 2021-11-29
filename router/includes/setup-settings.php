@@ -2,6 +2,50 @@
 require_once("subs/admin.php");
 require_once("subs/setup.php");
 
+#################################################################################################
+# If action specified and invalid SID passed, force a reload of the page.
+#################################################################################################
+if (isset($_POST['action']))
+{
+	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
+		die('RELOAD');
+
+	#################################################################################################
+	#   ACTION: DETECT ==> Detect where the machine is, according to "http://ipinfo.io":
+	#################################################################################################
+	if ($_POST['action'] == 'detect')
+	{
+		if (!isset($_SESSION['ipinfo']['time']) || $_SESSION['ipinfo']['time'] > time())
+		{
+			$_SESSION['ipinfo']['arr'] = array();
+			foreach (explode("\n", trim(@shell_exec("curl ipinfo.io"))) as $line)
+			{
+				if (preg_match("/\"(.*)\"\:\s\"(.*)\"/", $line, $matches))
+					$_SESSION['ipinfo']['arr'][$matches[1]] = $matches[2];
+			}
+			$_SESSION['ipinfo']['time'] = time() + 600;
+		}
+		die(json_encode($_SESSION['ipinfo']['arr']));
+	}
+	#################################################################################################
+	#   ACTION: SET ==> Set the timezone and hostname of the system:
+	#################################################################################################
+	else if ($_POST['action'] == 'set')
+	{
+		$mac = option_mac('mac');
+		$timezone = option_allowed('timezone', array_keys(timezone_list()) );
+		$locale = option_allowed('locale', array_keys(get_os_locales()) );
+		$hostname = option('hostname', "/^([0-9a-zA-Z]|[0-9a-zA-Z][0-9a-zA-Z0-9\-]+)$/");
+	
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh mac " . $mac);
+		die(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh device ' . $hostname . ' ' . $timezone . ' ' . $locale));
+	}
+	#################################################################################################
+	# Got here?  We need to return "invalid action" to user:
+	#################################################################################################
+	die("Invalid action");
+}
+
 ###########################################################################################
 # Main code for this page:
 ###########################################################################################

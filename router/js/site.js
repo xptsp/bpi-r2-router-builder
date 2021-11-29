@@ -30,7 +30,7 @@ function Init_Home()
 
 function Home_Data()
 {
-	$.getJSON("/ajax/home?sid=" + SID, function(results) {
+	$.getJSON("/home?sid=" + SID, function(results) {
 		// Update internet connectivity status:
 		if (results.wan_status == "Online")
 			$("#connectivity-div").removeClass("bg-danger");

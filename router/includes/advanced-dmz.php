@@ -2,12 +2,62 @@
 require_once("subs/advanced.php");
 $options = parse_file();
 site_menu();
+
+#################################################################################################
+# If action specified and invalid SID passed, force a reload of the page.  Otherwise:
+#################################################################################################
+if (isset($_POST['action']))
+{
+	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
+		die('RELOAD');
+
+	#################################################################################################
+	# ACTION: DMZ ==> Update the configuration file using the parameters specified:
+	#################################################################################################
+	if ($_POST['action'] == 'submit')
+	{
+		$options['enable_dmz'] = option('enable_dmz');
+		$options['dmz_src_type'] = option_allowed('src_type', array('any', 'range', 'mask'));
+		unset($options['dmz_range_from'], $options['dmz_range_to'], $options['dmz_mask_ip'], $options['dmz_mask_bits']);
+		if ($options['dmz_src_type'] == 'range')
+		{
+			$options['dmz_range_from'] = option_ip('range_from');
+			$options['dmz_range_to'] = option_range('range_to', 0, 255);
+		}
+		else if ($options['dmz_src_type'] == 'mask')
+		{
+			$options['dmz_mask_ip'] = option_ip('mask_ip');
+			$options['dmz_mask_bits'] = option_range('mask_bits', 0, 32);
+		}
+		$option['dmz_dest_type'] = option_allowed('dest_type', array('addr', 'mac'));
+		unset($options['dmz_mac_addr'], $options['dmz_ip_addr']);
+		if ($option['dmz_dest_type'] == 'addr')
+			$options['dmz_ip_addr'] = option_ip('dest_ip');
+		else
+			$options['dmz_mac_addr'] = option_mac('dest_mac');
+		#echo '<pre>'; print_r($options); exit;
+		apply_file();
+		die("OK");
+	}
+	#################################################################################################
+	# Got here?  We need to return "invalid action" to user:
+	#################################################################################################
+	die("Invalid action");
+}
+
+#################################################################################################
+# If action specified and invalid SID passed, force a reload of the page.  Otherwise:
+#################################################################################################
 $src_type = isset($config['dmz_src_type']) ? $config['dmz_src_type'] : 'any';
 $dest_type = isset($config['dmz_dest_type']) ? $config['dmz_dest_type'] : 'addr';
 $default = trim(@shell_exec("ifconfig br0 | grep 'inet ' | awk '{print $2}'"));
 $octet = (int) substr($default, strrpos($default, '.') + 1) + 1;
 $default = substr($default, 0, strrpos($default, '.') + 1) . strval($octet);
 $dest_ip = trim(@shell_exec("arp -i br0 | grep -v Address | sort | head -1 | awk '{print $1}'"));
+
+#################################################################################################
+# Output the DMZ settings page:
+#################################################################################################
 echo '
 <div class="card card-primary">
 	<div class="card-header">

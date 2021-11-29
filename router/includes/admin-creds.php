@@ -1,4 +1,58 @@
 <?php
+#################################################################################################
+# If action specified and invalid SID passed, force a reload of the page.  Otherwise:
+#################################################################################################
+if (isset($_POST['action']))
+{
+	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
+		die('RELOAD');
+
+	#################################################################################################
+	# ACTION: SUBMIT => Validate the password parameters sent:
+	#################################################################################################
+	else if ($_POST['action'] == 'submit')
+	{
+		####################################################################################
+		# 
+		####################################################################################
+		$oldPass = isset($_POST['oldPass']) ? $_POST['oldPass'] : '';
+		$newPass = isset($_POST['newPass']) ? $_POST['newPass'] : '';
+		$conPass = isset($_POST['conPass']) ? $_POST['conPass'] : '';
+		$tmp1 = preg_replace("/[^A-Za-z0-9 ]/", '-', $oldPass);
+		$tmp2 = preg_replace("/[^A-Za-z0-9 ]/", '-', $newPass);
+		$tmp3 = preg_replace("/[^A-Za-z0-9 ]/", '-', $conPass);
+		if ($oldPass != $tmp1)
+			$results = "oldPass";
+		else if ($newPass != $tmp2)
+			$results = "newPass";
+		else if ($newPass != $conPass || $conPass != $tmp3)
+			$results = "conPass";
+		else
+		{
+			$username = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login webui'));
+			$result = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check ' . $username . ' ' . $oldPass));
+			if ($result == "Match")
+			{
+				if (empty($newPass))
+					$_SESSION['login_valid_until'] = time() + 10*60;
+				else
+				{
+					$result = @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login passwd ' . $newPass . ' 2>&1');
+					$result = strpos($result, "password updated successfully") > 0 ? 'Successful' : 'Failed';
+				}
+			}
+		}
+		die($result);
+	}
+	#################################################################################################
+	# Got here?  We need to return "invalid action" to user:
+	#################################################################################################
+	die("Invalid action");
+}
+
+###################################################################################################
+# Output the Credentials page:
+###################################################################################################
 site_menu();
 $debug = false;
 echo '

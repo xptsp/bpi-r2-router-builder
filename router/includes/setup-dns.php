@@ -2,13 +2,42 @@
 require_once("subs/admin.php");
 require_once("subs/advanced.php");
 $options = parse_file();
-site_menu();
-$wan = parse_ifconfig('wan');
-#echo '<pre>'; print_r($wan); exit();
-$cfg = get_mac_info('wan');
-#echo '<pre>'; print_r($cfg); exit();
-$gateway = @trim(shell_exec("ip route | grep default | grep wan | awk '{print $3}'"));
-#echo $gateway; exit();
+
+#################################################################################################
+# If action specified and invalid SID passed, force a reload of the page.  Otherwise:
+#################################################################################################
+if (isset($_POST['action']))
+{
+	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
+		die('RELOAD');
+
+	#################################################################################################
+	# ACTION: SUBMIT => Make the requested changes to the firewall
+	#################################################################################################
+	if ($_POST['action'] == 'submit')
+	{
+		// Apply configuration file changes:
+		$config['use_isp']        = option('use_isp');
+		$config['dns1']           = option_ip('dns1');
+		$config['dns2']           = option_ip('dns2', true);
+		$config['redirect_dns']   = option('redirect');
+		$config['block_dot']      = option('block_dot');
+		$config['block_doq']      = option('block_doq');
+		$config['disable_pihole'] = option('disable');
+		#apply_file();
+
+		// Change the PiHole blocking status if it is requested:
+		if ((strpos(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole status"), 'enabled') !== false) != ($config['disable_pihole'] == 'Y'))
+			@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole ' . ($config['disable_pihole'] = 'Y' ? 'disable' : 'enable'));
+
+		// Quit executing the script with an "OK" result code:
+		die("OK");
+	}
+	#################################################################################################
+	# Got here?  We need to return "invalid action" to user:
+	#################################################################################################
+	die("Invalid action");
+}
 
 ###################################################################################################
 # Domain Name (DNS) Servers
@@ -52,6 +81,11 @@ $providers = array(
 $use_provider = false;
 foreach ($providers as $provider)
 	$use_provider |= ($primary == $provider[1] && $secondary == $provider[2]);
+
+###################################################################################################
+# Output the DNS Settings page:
+###################################################################################################
+site_menu();
 echo '
 <div class="card card-primary">
 	<div class="card-header">
@@ -116,7 +150,8 @@ echo '
 		<hr />
 		', checkbox("disable_pihole", "Disable DNS-level adblocking in Integrated Pi-Hole", false), '
 		', checkbox("redirect_dns", "Redirect all DNS requests to Integrated Pi-Hole"), '
-		', checkbox("block_dot", "Block all outgoing DoT (DNS-over-TLS) requests"), '
+		', checkbox("block_dot", "Block outgoing DoT (DNS-over-TLS - port 853) requests not from router"), '
+		', checkbox("block_doq", "Block outgoing DoQ (DNS-over-QUIC - port 8853) requests not from router"), '
 	</div>';
 
 ###################################################################################################
@@ -141,7 +176,7 @@ echo '
 				</button></a>
 			</div>
 			<div class="modal-body">
-				<p id="apply_msg">Please wait while the networking service is restarted....</p>
+				<p id="apply_msg">Please wait while the Pi-Hole FTL service is restarted....</p>
 			</div>
 			<div class="modal-footer justify-content-between hidden alert_control">
 				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>

@@ -1,6 +1,39 @@
 <?php
 require_once("subs/advanced.php");
 $options = parse_file();
+
+#################################################################################################
+# If action specified and invalid SID passed, force a reload of the page.  Otherwise:
+#################################################################################################
+if (isset($_POST['action']))
+{
+	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
+		die('RELOAD');
+
+	#################################################################################################
+	# ACTION: FIREWALL ==> Update the configuration file using the parameters specified:
+	#################################################################################################
+	if ($_POST['action'] == 'submit')
+	{
+		$options['drop_port_scan'] = option('drop_port_scan');
+		$options['log_port_scan']  = option('log_port_scan');
+		$options['log_udp_flood']  = option('log_udp_flood');
+		$options['drop_ping']      = option('drop_ping');
+		$options['drop_ident']     = option('drop_ident');
+		$options['drop_multicast'] = option('drop_multicast');
+		#echo '<pre>'; print_r($options); exit;
+		apply_file();
+		die("OK");
+	}
+	#################################################################################################
+	# Got here?  We need to return "invalid action" to user:
+	#################################################################################################
+	die("Invalid action");
+}
+
+#################################################################################################
+# Output the Firewall settings page:
+#################################################################################################
 site_menu();
 echo '
 <div class="card card-primary">

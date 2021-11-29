@@ -198,6 +198,11 @@ elif [[ "$1" == "firewall" ]]; then
 	[[ "${block_dot:-"Y"}" == "Y" ]] && iptables -A WAN_OUT -p tcp --dport 853 -j DROP
 
 	#############################################################################
+	# OPTION "block_doq" => Drop outgoing DoT (DNS-over-QUIC port 8853) requests:
+	#############################################################################
+	[[ "${block_doq:-"Y"}" == "Y" ]] && iptables -A WAN_OUT -p tcp --dport 8853 -j DROP
+
+	#############################################################################
 	# OPTION "drop_ping" => Disable ping response from internet
 	#############################################################################
 	[[ "${drop_ping:-"Y"}" == "Y" ]] && iptables -A WAN_IN -p icmp --icmp-type echo-request -j DROP

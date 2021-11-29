@@ -41,15 +41,16 @@ function DNS_Submit()
 		'dns2':      $("#dns2").val(),
 		'redirect':  $("#redirect_dns").prop("checked") ? "Y" : "N",
 		'block_dot': $("#block_dot").prop("checked") ? "Y" : "N",
+		'block_doq': $("#block_doq").prop("checked") ? "Y" : "N",
 		'disable':   $("#disable_pihole").prop("checked") ? "Y" : "N",
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to change the WAN settings:
-	$("#apply_msg").html("Please wait while the networking service is restarted...");
+	$("#apply_msg").html("Please wait while the Pi-Hole FTL service is restarted....");
 	$(".alert_control").addClass("hidden");
 	$("#apply-modal").modal("show");
-	$.post("/ajax/setup/settings", postdata, function(data) {
+	$.post("/setup/dns", postdata, function(data) {
 		if (data == "OK")
 			document.location.reload(true);
 		else
@@ -172,7 +173,7 @@ function Wired_Submit()
 		$("#apply-modal").modal("show");
 
 	// Perform our AJAX request to change the WAN settings:
-	$.post("/ajax/setup/lan", postdata, function(data) {
+	$.post("/setup/wired", postdata, function(data) {
 		if (data == "OK")
 			document.location.reload(true);
 		else if (data == "REBOOT")
@@ -192,7 +193,7 @@ function Wired_Refresh_Leases()
 {
 	// Perform our AJAX request to refresh the LAN leases:
 	$("#clients-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
-	$.post("/ajax/setup/dhcp", __postdata("clients", iface_used), function(data) {
+	$.post("/setup/wired", __postdata("clients", iface_used), function(data) {
 		$("#clients-table").html(data);
 		$(".reservation-option").click(function() {
 			line = $(this).parent();
@@ -354,7 +355,7 @@ function Init_Routing()
 
 function Routing_Refresh()
 {
-	$.post("/ajax/setup/routing", __postdata("show"), function(data) {
+	$.post("/setup/routing", __postdata("show"), function(data) {
 		$("#routing-table").html(data);
 		$(".fa-trash-alt").click(Routing_Delete);
 	}).fail(function() {
@@ -378,7 +379,7 @@ function Routing_Delete()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to add the IP reservation:
-	$.post("/ajax/setup/settings", postdata, function(data) {
+	$.post("/setup/settings", postdata, function(data) {
 		if (data.trim() == "OK")
 			Wired_Refresh_Reservations();
 		else
@@ -403,7 +404,7 @@ function Routing_Add()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to add the IP reservation:
-	$.post("/ajax/setup/settings", postdata, function(data) {
+	$.post("/setup/settings", postdata, function(data) {
 		if (data.trim() == "OK")
 			Wired_Refresh_Reservations();
 		else
@@ -441,7 +442,7 @@ function Init_Settings(mac_com, mac_cur)
 
 function Settings_Detect()
 {
-	$.post("/ajax/setup/settings", __postdata("detect"), function(data) {
+	$.post("/setup/settings", __postdata("detect"), function(data) {
 		data = JSON.parse(data);
 		$("#timezone").val(data.timezone).change();
 	}).fail(function() {
@@ -454,7 +455,7 @@ function Settings_Apply()
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':      SID,
-		'action':   'set',
+		'action':   'submit',
 		'hostname': $("#hostname").val(),
 		'timezone': $("#timezone").val(),
 		'locale':	$("#locale").val(),
@@ -463,7 +464,7 @@ function Settings_Apply()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to remove the IP reservation:
-	$.post("/ajax/setup/settings", postdata, function(data) {
+	$.post("/setup/settings", postdata, function(data) {
 		if (data.trim() == "OK")
 			document.location.reload(true);
 		else

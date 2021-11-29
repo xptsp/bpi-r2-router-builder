@@ -16,7 +16,7 @@ function Stats_Update()
 {
 	if ($("#connection_type").html() == "DHCP")
 	{
-		$.post("/ajax/admin/status", __postdata("status"), function(data) {
+		$.post("/admin/status", __postdata("status"), function(data) {
 			if (data == "RELOAD")
 				document.location.reload(true);
 			$("#dhcp_server").html( data.dhcp_server );
@@ -54,7 +54,7 @@ function Stats_Power_Button()
 
 function Stats_Network_Get()
 {
-	$.post("/ajax/admin/status", __postdata("network"), function(data) {
+	$.post("/admin/status", __postdata("network"), function(data) {
 		if (data == "RELOAD")
 			document.location.reload(true);
 		$("#stats_body").html(data);
@@ -118,7 +118,7 @@ function Creds_Password_Submit()
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':     SID,
-		'action':  'creds',
+		'action':  'submit',
 		'oldPass': $("#oldPass").val(),
 		'newPass': $("#newPass").val(),
 		'conPass': $("#conPass").val()
@@ -135,7 +135,7 @@ function Creds_Password_Submit()
 		return Creds_Password_Fail("New password does not match Confirm Password!");
 
 	// Perform our AJAX request to change the password:
-	$.post("/ajax/admin/debian", postdata, function(data) {
+	$.post("/admin/creds", postdata, function(data) {
 		if (data == "RELOAD")
 			document.location.reload(true);
 		else if (data == "oldPass")
@@ -174,7 +174,7 @@ function Repo_Check()
 {
 	elem = $(this).attr('id').split("_")[0];
 	Add_Overlay(elem + "_div");
-	$.post("/ajax/admin/repo", __postdata("check", elem), function(data) {
+	$.post("/admin/repo", __postdata("check", elem), function(data) {
 		if (data == "RELOAD")
 			document.location.reload(true);
 		data = JSON.parse(data);
@@ -196,7 +196,7 @@ function Repo_Pull()
 {
 	elem = $(this).attr('id').split("_")[0];
 	Add_Overlay(elem + "_div");
-	$.post("/ajax/admin/repo", __postdata("pull", elem), function(data) {
+	$.post("/admin/repo", __postdata("pull", elem), function(data) {
 		document.location.reload(true);
 	}).fail( function() {
 		Del_Overlay(elem + "_div");
@@ -223,7 +223,7 @@ function Debian_Check()
 {
 	Add_Overlay("debian-div");
 	$("#Repo_avail").html("<i>Retrieving...</i>");
-	$.post("/ajax/admin/debian", __postdata('check'), function(data) {
+	$.post("/admin/debian", __postdata('check'), function(data) {
 		data = data.trim();
 		if (data == "RELOAD")
 			document.location.reload(true);
@@ -253,7 +253,7 @@ function Debian_Pull(mode, packages = [])
 	$("#modal-close").addClass("disabled");
 	last_response_len = 0;
 	$.ajax({
-		url: '/ajax/admin/debian',
+		url: '/admin/debian',
 		dataType: 'text',
 		type: 'post',
 		contentType: 'application/x-www-form-urlencoded',
@@ -363,7 +363,7 @@ function Restore_File()
 	postdata.append('file', $('#restore_file')[0].files[0]);
 	postdata.append('action', 'upload');
 	$.ajax({
-		url: '/ajax/admin/backup',
+		url: '/admin/backup',
 		type: 'post',
 		data: postdata,
 		contentType: false,
@@ -399,7 +399,7 @@ function Restore_Alert(msg)
 function Restore_Confirm()
 {
 	// Make the AJAX call to confirm restoration:
-	$.post("/ajax/admin/backup", __postdata(restore_type), function(data) {
+	$.post("/admin/backup", __postdata(restore_type), function(data) {
 		if (data == "RELOAD")
 			document.location.reload(true);
 		else if (data.indexOf("ERROR:") > -1)

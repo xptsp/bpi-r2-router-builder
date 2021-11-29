@@ -18,7 +18,7 @@ function FireWall_Apply()
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':            SID,
-		'action':         'firewall',
+		'action':         'submit',
 		'drop_port_scan': $("#drop_port_scan").prop("checked") ? "Y" : "N",
 		'log_port_scan':  $("#log_port_scan").prop("checked") ? "Y" : "N",
 		'log_udp_flood':  $("#log_udp_flood").prop("checked") ? "Y" : "N",
@@ -31,7 +31,7 @@ function FireWall_Apply()
 
 	// Perform our AJAX request to change the WAN settings:
 	Add_Overlay("firewall-div");
-	$.post("/ajax/advanced", postdata, function(data) {
+	$.post("/advanced/firewall", postdata, function(data) {
 		Del_Overlay("firewall-div");
 		data = data.trim();
 		if (data == "RELOAD")
@@ -99,7 +99,7 @@ function DMZ_Apply()
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':        SID,
-		'action':     'dmz',
+		'action':     'submit',
 		'enable_dmz': $("#enable_dmz").prop("checked") ? "Y" : "N",
 		'src_type':   $("[name=src_type]:checked").val(),
 		'range_from': $("#range_from").val(),
@@ -114,7 +114,7 @@ function DMZ_Apply()
 
 	// Perform our AJAX request to change the WAN settings:
 	Add_Overlay("dmz_div");
-	$.post("/ajax/advanced", postdata, function(data) {
+	$.post("/advanced/dmz", postdata, function(data) {
 		Del_Overlay("dmz_div");
 		data = data.trim();
 		if (data == "RELOAD")

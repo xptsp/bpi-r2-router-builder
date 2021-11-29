@@ -1,6 +1,50 @@
 <?php
-site_menu();
+#################################################################################################
+# If action specified and invalid SID passed, force a reload of the page.  Otherwise:
+#################################################################################################
+if (isset($_POST['action']))
+{
+	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
+		die('RELOAD');
 
+	#################################################################################################
+	# Make sure we know what repo is expected to be actioned upon:
+	#################################################################################################
+	$match = array(
+		'webui' => '',
+		'regdb' => 'wireless-regdb',
+	);
+	$misc = isset($match[$_POST['misc']]) ? $match[$_POST['misc']] : $_POST['misc'];
+
+	#################################################################################################
+	# ACTION: CHECK => Returns the current version of the specified repo:
+	#################################################################################################
+	if ($_POST['action'] == 'check')
+	{
+		$time = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git remote ' . $misc));
+		die(json_encode(array(
+			'elem' => $_POST['misc'],
+			'time' => $time ? date('Y.md.Hi', $time) : 'Invalid Data',
+		)));
+	}
+	#################################################################################################
+	# ACTION: PULL => Updates to the current version of the specified repo:
+	#################################################################################################
+	else if ($_POST['action'] == 'pull')
+	{
+		unset($_SESSION[$_POST['misc'] . '_version']);
+		unset($_SESSION[$_POST['misc'] . '_version_last']);
+		die(trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git update ' . $misc)));
+	}
+	#################################################################################################
+	# Got here?  We need to return "invalid action" to user:
+	#################################################################################################
+	die("Invalid action");
+}
+
+#################################################################################################
+# This function shows a card about the specified repository:
+#################################################################################################
 function show_repo($title, $repo, $url, $alt_desc = null)
 {
 	echo '
@@ -43,6 +87,10 @@ function show_repo($title, $repo, $url, $alt_desc = null)
 		<!-- /.col -->';
 }
 
+#################################################################################################
+# Main code of the page:
+#################################################################################################
+site_menu();
 echo '
 <div class="container-fluid">
 	<div class="row">';

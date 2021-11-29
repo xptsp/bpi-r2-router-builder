@@ -21,7 +21,7 @@ else
 	$_SESSION['login_valid_until'] = time() + 600;
 
 # When not logged in, redirect all page requests to the home page:
-if (!$logged_in and !in_array($_GET['action'], array('home', 'ajax-creds', 'ajax-home')))
+if (!$logged_in and $_GET['action'] != 'home')
 {
 	header('Location: http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/', true, 301);
 	die();
