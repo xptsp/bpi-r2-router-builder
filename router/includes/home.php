@@ -4,7 +4,7 @@ require_once('subs/admin.php');
 #################################################################################################
 # If SID is specified, retrieve the information and statistics for the router's home page:
 #################################################################################################
-if (isset($_POST['sid']))
+if (isset($_GET['sid']))
 {
 	#################################################################################################
 	# If action specified and invalid SID passed, force a reload of the page.  Otherwise:
