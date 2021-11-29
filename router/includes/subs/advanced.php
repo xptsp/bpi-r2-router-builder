@@ -14,7 +14,9 @@ function parse_file()
 
 function apply_file()
 {
-	global $options;
+	global $options, $options_changed;
+	if (!$options_changed)
+		return;
 	$text = '';
 	foreach ($options as $name => $setting)
 		$text .= (!empty($setting) ? $name . '=' . $setting . "\n" : '');
