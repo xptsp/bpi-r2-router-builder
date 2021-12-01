@@ -482,6 +482,13 @@ case $CMD in
 		;;
 
 	###########################################################################
+	remove_files)
+		unset PRE
+		[[ -d /ro ]] && PRE="router-helper chroot"
+		$PRE /opt/bpi-r2-router-builder/misc/remove_files $@
+		;;
+
+	###########################################################################
 	*)
 		echo "Syntax: $(basename $0) [command] [options]"
 		;;
