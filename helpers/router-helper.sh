@@ -449,9 +449,12 @@ case $CMD in
 		fi
 
 		# Remove existing IP addresses and add the included ones:
-		sed -i "/PIHOLE_DNS_/d" /etc/pihole/setupVars.conf
+		sed -i "/^PIHOLE_DNS_/d" /etc/pihole/setupVars.conf
 		echo "PIHOLE_DNS_1=$1" >> /etc/pihole/setupVars.conf
 		[[ ! -z "$2" ]] && echo "PIHOLE_DNS_2=$2" >> /etc/pihole/setupVars.conf
+		sed -i "/^server=/d" /etc/dnsmasq.d/01-pihole.conf
+		echo "server=$1" >> /etc/dnsmasq.d/01-pihole.conf
+		[[ ! -z "$2" ]] && echo "server=$2" >> /etc/dnsmasq.d/01-pihole.conf
 
 		# Restart the PiHole FTL service if running:
 		if [[ "$3" != "norestart" ]]; then if systemctl is-active pihole-FTL >& /dev/null; then pihole restartdns; else true; fi; fi
