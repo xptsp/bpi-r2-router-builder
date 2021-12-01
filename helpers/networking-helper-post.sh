@@ -6,7 +6,7 @@
 # starts hostapd on that interface if a configuration file is available.
 #############################################################################
 
-# Determine new default WiFi password:
+# Determine new default WiFi password and change it in all hostapd configuration files:
 [[ -f /boot/wifi.conf ]] && source /boot/wifi.conf
 [[ -z "${WIFI_PASS}" ]] && WIFI_PASS=$(php /opt/bpi-r2-router-builder/router/includes/ajax-newpass.php)
 if [[ ! -f /boot/wifi.conf ]]; then
@@ -14,6 +14,7 @@ if [[ ! -f /boot/wifi.conf ]]; then
 	echo "WIFI_PASS=${WIFI_PASS}" > /boot/wifi.conf
 	mount -o remount,ro /boot
 fi
+sed -i "s|wpa_passphrase=bananapi|wpa_passphrase=${WIFI_PASS}|g" /etc/hostapd/*.conf
 
 # Rename wireless interfaces according to their physical index number.
 # Ex: Wireless interface with physical index number 1 would be named "wradio1".
@@ -40,13 +41,8 @@ for DIR in $(iw dev | grep "Interface" | awk '{print $2}'); do
 		ip link set ${IFACE} up
 		ip addr add ${IP_ADDR}/24 dev ${IFACE}
 
-		# Change interface's password if it is "bananapi", and launch hostapd AP on that interface:
-		if [[ -f /etc/hostapd/${IFACE}.conf ]]; then
-			if [[ "$(cat /etc/hostapd/${IFACE}.conf | grep wpa_passphrase | cut -d"=" -f 2)" == "bananapi" ]]; then
-				sed -i "s|wpa_passphrase=.*|wpa_passphrase=${WIFI_PASS}|g" /etc/hostapd/${IFACE}.conf
-			fi
-			systemctl start hostapd@${IFACE}
-		fi
+		# Launch hostapd AP on that interface if a configuration file exists:
+		[[ -f /etc/hostapd/${IFACE}.conf ]] && systemctl start hostapd@${IFACE}
 	fi
 done
 exit 0

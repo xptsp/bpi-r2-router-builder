@@ -87,10 +87,10 @@ else
 
 	ip -6 addr add fd00:B::10/64 dev ap0
 	#ip -6 addr add 2001:xxx:xxxx:B::10/64 dev ap0
-	if systemctl is-active dnsmasq; then
+	if systemctl is-active dnsmasq >& /dev/null; then
 		echo "restart dnsmasq..."
 		service dnsmasq restart
-	elif systemctl is-active pihole-FTL; then
+	elif systemctl is-active pihole-FTL >& /dev/null; then
 		echo "restart pihole-FTL..."
 		service pihole-FTL restart
 	fi

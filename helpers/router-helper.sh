@@ -455,7 +455,7 @@ case $CMD in
 
 		# Restart the PiHole FTL service if running:
 		if [[ "$3" != "norestart" ]]; then if systemctl is-active pihole-FTL >& /dev/null; then pihole restartdns; else true; fi; fi
-		[[ $? -eq 0 ]]; then echo "OK"
+		[[ $? -eq 0 ]] && echo "OK"
 		;;
 
 	###########################################################################
