@@ -77,6 +77,9 @@ $providers = array(
 	array('AdGuard DNS - Non-Filtering', '94.140.14.140', '94.140.15.141'),
 	array('AdGuard DNS - Family Protection', '94.140.14.15', '94.140.15.16'),
 	array('Alternate DNS', '76.76.19.19', '76.223.122.150'),
+	array('Level3 DNS', '4.2.2.1', '4.2.2.2'),
+	array('Comodo Secure DNS', '8.26.56.26', '8.20.247.20'),
+	array('DNS.WATCH', '84.200.69.80', '84.200.70.40'),
 );
 $use_provider = false;
 foreach ($providers as $provider)

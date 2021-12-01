@@ -1,6 +1,7 @@
 <?php
 require_once("subs/admin.php");
 require_once("subs/setup.php");
+require_once("subs/dhcp.php");
 
 #################################################################################################
 # If we are not doing the submission action, then skip this entire block of code:

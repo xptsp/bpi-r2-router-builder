@@ -437,8 +437,25 @@ case $CMD in
 		;;
 
 	###########################################################################
-	pihole)
-		/usr/local/sbin/pihole $@
+	dns)
+		# Make sure we have valid IP addresses (and port numbers if included):
+		IP=(${1/"#"/" "})
+		if ! valid_ip ${IP[0]}; then echo "ERROR: Invalid IP Address specified as 1st param!"; exit; fi
+		if [[ ! -z "$IP[1]}" ]]; then if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 1st param!"; echo exit; fi; fi
+		if [[ ! -z "$2" ]]; then
+			IP=(${2/"#"/" "})
+			if ! valid_ip ${IP[0]}; then echo "ERROR: Invalid IP Address specified as 2nd param!"; exit; fi
+			if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 2nd param!"; echo exit; fi; 
+		fi
+
+		# Remove existing IP addresses and add the included ones:
+		sed -i "/PIHOLE_DNS_/d" /etc/pihole/setupVars.conf
+		echo "PIHOLE_DNS_1=$1" >> /etc/pihole/setupVars.conf
+		[[ ! -z "$2" ]] && echo "PIHOLE_DNS_2=$2" >> /etc/pihole/setupVars.conf
+
+		# Restart the PiHole FTL service if running:
+		if [[ "$3" != "norestart" ]]; then if systemctl is-active pihole-FTL >& /dev/null; then pihole restartdns; else true; fi; fi
+		[[ $? -eq 0 ]]; then echo "OK"
 		;;
 
 	###########################################################################

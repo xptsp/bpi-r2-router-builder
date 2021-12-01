@@ -1,6 +1,6 @@
 [Unit]
 Description=Onboard Wifi
-Before=networking.target
+After=networking.target
 
 [Service]
 Type=oneshot
