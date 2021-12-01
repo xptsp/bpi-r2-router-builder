@@ -1,5 +1,5 @@
 #<file_system>  <dir>         <type>  <options>                           <dump>  <pass>
 /dev/mmcblk0p2  /             ext4    defaults,noatime,errors=remount-ro  0       1
 /dev/mmcblk0p1  /boot         vfat    ro,defaults,noatime                 0       2
-LABEL=ROOT-RW   /mnt/ROOT-RW  ext4    defaults,noatime,nofail             0       2
+LABEL=ROOT-RW   /mnt/ROOT-RW  ext4    noauto,defaults,noatime             0       2
 tmpfs           /tmp          tmpfs   defaults                            0       0
