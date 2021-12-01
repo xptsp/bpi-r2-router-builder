@@ -1,7 +1,15 @@
 #!/bin/bash
 
+# If the caller is requesting Pihole to be updated, we need to revert our changes 
+# prior to calling original script:
+if [[ "$1" == "updatePihole" ]]; then
+	pushd /var/www/html/admin >& /dev/null
+	git reset --hard >& /dev/null
+	popd >& /dev/null
+fi
+
 # Call original "pihole" script:
 /usr/local/bin/pihole $@
 
 # Make sure DHCP tab in Pihole settings is diabled!
- sed -i 's|piholedhcp"){ ?> class="active"<?php } ?>>|piholedhcp"){ ?> class="active"<?php } ?> class="hidden">|g' /var/www/html/admin/settings.php
+sed -i 's|piholedhcp"){ ?> class="active"<?php } ?>>|piholedhcp"){ ?> class="active"<?php } ?> class="hidden">|g' /var/www/html/admin/settings.php
