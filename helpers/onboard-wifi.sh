@@ -1,13 +1,13 @@
 #!/bin/bash
 ### BEGIN INIT INFO
-# Provides:       wifi
+# Provides:			 wifi
 # Required-Start: $network $remote_fs $syslog
-# Required-Stop:  $network $remote_fs $syslog
-# Default-Start:  2 3 4 5
-# Default-Stop:   0 1 6
-# Description:    Load MediaTek MT6625L firmware
+# Required-Stop:	$network $remote_fs $syslog
+# Default-Start:	2 3 4 5
+# Default-Stop:	 0 1 6
+# Description:		Load MediaTek MT6625L firmware
 ### END INIT INFO
-
+	
 # Don't exit on error status
 set +e
 
@@ -16,50 +16,49 @@ DAEMON=/dev/null
 NAME=wifi
 DESC="Load MediaTek MT6625L firmware wifi & BT"
 
-if [[ ! -e /dev/wmtWifi ]];
-then
-  echo "wifidev does not exist...create it..."
-  # Check FILE exists and is executable
-  if [[ -x /usr/bin/wmt_loader ]];
-  then
-	# ??
-	/usr/bin/wmt_loader &> /var/log/wmtloader.log
-	sleep 3
-  else
-	echo "Error, unable to find wmt_loader"
-  fi
+if [[ ! -e /dev/wmtWifi ]]; then
+	echo "wifidev does not exist...create it..."
+	# Check FILE exists and is executable
+	if [[ -x /usr/bin/wmt_loader ]]; then
+		# ??
+		/usr/bin/wmt_loader &> /var/log/wmtloader.log
+		sleep 3
+	else
+		echo "Error, unable to find wmt_loader"
+	fi
 
-  # Check FILE exists and is character special
-  if  [[ -c /dev/stpwmt ]];
-  then
-	# Load firmware
-	/usr/bin/stp_uart_launcher -p /etc/firmware &> /var/log/stp_launcher.log &
-	sleep 5
-  else
-  	echo "Error, device no created, /dev/stpwmt"
-  fi
+	# Check FILE exists and is character special
+	if	[[ -c /dev/stpwmt ]]; then
+		# Load firmware
+		/usr/bin/stp_uart_launcher -p /etc/firmware &> /var/log/stp_launcher.log &
+		sleep 5
+	else
+		echo "Error, device no created, /dev/stpwmt"
+	fi
 fi
 
 ismodule=$(find /lib/modules/$(uname -r)/kernel -iname wlan_gen2.ko | wc -l)
 if [[ $ismodule -ne 0 ]];then
-        echo "loading wifi driver module"
-        modprobe wlan_gen2
+	echo "loading wifi driver module"
+	modprobe wlan_gen2
+fi
+ismodule=$(find /lib/modules/$(uname -r)/kernel -iname stp-chrdev-bt.ko | wc -l)
+if [[ $ismodule -ne 0 ]];then
+	echo "loading bluetooth driver module"
+	modprobe stp-chrdev-bt
 fi
 
 # Check FILE exists and is character special
-if  [[ -c /dev/wmtWifi ]];
-then
-	if [[ -n $(pidof hostapd) ]];
-	then
+if	[[ -c /dev/wmtWifi ]]; then
+	if [[ -n $(pidof hostapd) ]]; then
 		echo "hostapd running...kill it";
 		#killall hostapd
 		pid=$(ps auxf | grep hostapd | grep ap0 | awk '{print $2}')
-		if [[ -n "$pid" ]];then
+		if [[ -n "$pid" ]]; then
 			kill $pid
 		fi
 	fi
-	if [[ -n $(ip a|grep ap0) ]];
-	then
+	if [[ -n $(ip a|grep ap0) ]]; then
 		echo "ap0 exists, reset it";
 		echo 0 >/dev/wmtWifi
 		sleep 5
