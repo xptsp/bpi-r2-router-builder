@@ -34,15 +34,14 @@ function DNS_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
-		'sid':       SID,
-		'action':    'dns',
-		'use_isp':   ($("[name=dns_server_opt]:checked").val()) == "isp" ? 'Y' : 'N',
-		'dns1':      $("#dns1").val(),
-		'dns2':      $("#dns2").val(),
-		'redirect':  $("#redirect_dns").prop("checked") ? "Y" : "N",
-		'block_dot': $("#block_dot").prop("checked") ? "Y" : "N",
-		'block_doq': $("#block_doq").prop("checked") ? "Y" : "N",
-		'disable':   $("#disable_pihole").prop("checked") ? "Y" : "N",
+		'sid':          SID,
+		'action':       'submit',
+		'use_isp':      ($("[name=dns_server_opt]:checked").val()) == "isp" ? 'Y' : 'N',
+		'dns1':         $("#dns1").val(),
+		'dns2':         $("#dns2").val(),
+		'redirect_dns': $("#redirect_dns").prop("checked") ? "Y" : "N",
+		'block_dot':    $("#block_dot").prop("checked") ? "Y" : "N",
+		'block_doq':    $("#block_doq").prop("checked") ? "Y" : "N",
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
@@ -51,7 +50,7 @@ function DNS_Submit()
 	$(".alert_control").addClass("hidden");
 	$("#apply-modal").modal("show");
 	$.post("/setup/dns", postdata, function(data) {
-		if (data == "OK")
+		if (data.trim() == "OK")
 			document.location.reload(true);
 		else
 		{

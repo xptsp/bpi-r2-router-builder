@@ -1,4 +1,6 @@
 <?php
+$options_changed = false;
+
 function parse_file()
 {
 	$file = '/etc/default/firewall';
@@ -15,22 +17,24 @@ function parse_file()
 function apply_file()
 {
 	global $options, $options_changed;
-	if (!$options_changed)
-		return;
+	#if (!$options_changed)
+	#	return;
 	$text = '';
 	foreach ($options as $name => $setting)
-		$text .= (!empty($setting) ? $name . '=' . $setting . "\n" : '');
+		$text .= (!empty($setting) ? $name . '=' . $setting . "\n" : $name);
 	#echo '<pre>'; echo $text; exit;
 	$handle = fopen("/tmp/firewall", "w");
 	fwrite($handle, $text);
 	fclose($handle);
-	echo @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh firewall reload");
+	$options['use_isp'] = isset($options['use_isp']) ? $options['use_isp'] : 'N';
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns " . ($options['use_isp'] == 'Y' ? 'use_isp' : $options['dns1'] . ' ' . $options['dns2']));
+	return @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh firewall reload");
 }
 
 function checkbox($name, $description, $default = true, $disabled_by = '')
 {
 	global $options;
-	$options[$name] = $checked = (!isset($options[$name]) ? $default : ($options[$name] == "Y"));
+	$checked = (!isset($options[$name]) ? $default : ($options[$name] == "Y"));
 	$enabled = (!empty($disabled_by) ? $options[$disabled_by] : true);
 	return '<p><input type="checkbox" id="' . $name . '" class="checkbox"' . ($checked ? ' checked="checked"' : '') . ' data-bootstrap-switch="" data-off-color="danger" data-on-color="success" ' . ($enabled ? '' : ' disabled="disabled"') . '> <strong id="' . $name . '_txt" ' . ($enabled ? '' : ' disabled="disabled"') . '>' . $description . '</strong></p>';
 }

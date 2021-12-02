@@ -440,7 +440,14 @@ case $CMD in
 
 	###########################################################################
 	dns)
-		# Make sure we have valid IP addresses (and port numbers if included):
+		# If we are being requested to set the DNS servers from the ISP, do so then exit
+		if [[ "$1" == "use_isp" ]]; then
+			test -f /etc/default/firewall && source /etc/default/firewall
+			[[ "${use_isp:="N"}" == "Y" ]] && $0 dns $(cat /etc/resolv.conf | grep "nameserver" | head -2 | awk '{print $2}')
+			exit $?
+		fi
+
+		# Otherwise, make sure we have valid IP addresses (and port numbers if included):
 		IP=(${1/"#"/" "})
 		if ! valid_ip ${IP[0]}; then echo "ERROR: Invalid IP Address specified as 1st param!"; exit; fi
 		if [[ ! -z "$IP[1]}" ]]; then if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 1st param!"; echo exit; fi; fi

@@ -20,7 +20,6 @@ if [[ "$1" == "reload" ]]; then
 	if test -f /tmp/firewall; then
 		mv /tmp/firewall /etc/default/firewall
 		chown root:root /etc/default/firewall
-		systemctl reload firewall
 	fi
 fi
 [[ -f /etc/default/firewall ]] && source /etc/default/firewall

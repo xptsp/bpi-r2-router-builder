@@ -389,47 +389,52 @@ echo '
 #######################################################################################################
 function option($name, $allowed = "/^[Y|N]$/")
 {
+	global $options, $options_changed;
 	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
 	if (empty($tmp) || empty($allowed) || !preg_match($allowed, $tmp))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
-	$options[$name] != !isset($options[$name]) || $options[$name] != $tmp;
+	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
 	return $tmp;
 }
 
 function option_allowed($name, $allowed = array())
 {
+	global $options, $options_changed;
 	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
 	if (!isset($tmp) || !in_array($_POST[$name], $allowed))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
-	$options[$name] != !isset($options[$name]) || $options[$name] != $tmp;
+	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
 	return $tmp;
 }
 
 function option_range($name, $min, $max)
 {
+	global $options, $options_changed;
 	$tmp = isset($_POST[$name]) ? (int) $_POST[$name] : -99999999;
 	if ($tmp < $min || $tmp > $max)
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
-	$options[$name] != !isset($options[$name]) || $options[$name] != $tmp;
+	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
 	return $tmp;
 }
 
 function option_ip($name, $empty = false)
 {
+	global $options, $options_changed;
 	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
 	if ($empty && empty($tmp))
 		return $tmp;
 	else if (!filter_var($tmp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
-	$options[$name] != !isset($options[$name]) || $options[$name] != $tmp;
+	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
 	return $tmp;
 }
 
 function option_mac($name)
 {
+	global $options, $options_changed;
 	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
 	if (!filter_var($tmp, FILTER_VALIDATE_MAC))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
-	$options[$name] != !isset($options[$name]) || $options[$name] != $tmp;
+	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
 	return $tmp;
 }

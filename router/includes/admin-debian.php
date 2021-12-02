@@ -1,4 +1,6 @@
 <?php
+$disabled = ' disabled="disabled"';
+
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
 #################################################################################################
@@ -18,7 +20,6 @@ if (isset($_POST['action']))
 		$start_indent = 0;
 		$packages = array('good' => array(), 'hold' => array(), 'kept' => array());
 		$debian = array('list' => array('good' => '', 'hold' => '', 'kept' => ''));	
-		$disabled = ' disabled="disabled"';
 		$button = array(
 			'good' => '<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-xs btn-success pkg-upgrade"' . $disabled . '>Upgrade</button></a>',
 			'hold' => '<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-xs btn-danger pkg-held"' . $disabled . '>Held</button></a>',
@@ -182,7 +183,7 @@ echo '
 				<table class="table table-striped table-bordered table-sm">
 					<thead>
 						<tr>
-							<th width="2%"><input type="checkbox"', $installable ? ' checked="checked"' : '', '></th>
+							<th width="2%"><input type="checkbox"', $installable ? ' checked="checked"' : '', $disabled, '></th>
 							<th width="30%">Package Name</th>
 							<th width="25%">New Version</th>
 							<th width="25%">Old Version</th>

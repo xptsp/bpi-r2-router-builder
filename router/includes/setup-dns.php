@@ -17,21 +17,14 @@ if (isset($_POST['action']))
 	if ($_POST['action'] == 'submit')
 	{
 		// Apply configuration file changes:
-		$config['use_isp']        = option('use_isp');
-		$config['dns1']           = option_ip('dns1');
-		$config['dns2']           = option_ip('dns2', true);
-		$config['redirect_dns']   = option('redirect');
-		$config['block_dot']      = option('block_dot');
-		$config['block_doq']      = option('block_doq');
-		$config['disable_pihole'] = option('disable');
-		#apply_file();
-
-		// Change the PiHole blocking status if it is requested:
-		if ((strpos(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole status"), 'enabled') !== false) != ($config['disable_pihole'] == 'Y'))
-			@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole ' . ($config['disable_pihole'] = 'Y' ? 'disable' : 'enable'));
-
-		// Quit executing the script with an "OK" result code:
-		die("OK");
+		$options['use_isp']        = option('use_isp');
+		$options['dns1']           = option_ip('dns1');
+		$options['dns2']           = option_ip('dns2', true);
+		$options['redirect_dns']   = option('redirect_dns');
+		$options['block_dot']      = option('block_dot');
+		$options['block_doq']      = option('block_doq');
+		#echo '<pre>'; print_r($options); exit;
+		die(apply_file());
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
@@ -42,25 +35,23 @@ if (isset($_POST['action']))
 ###################################################################################################
 # Domain Name (DNS) Servers
 ###################################################################################################
-$current = array();
-$contents = @file("/etc/network/interfaces.d/wan");
-foreach (is_array($contents) ? $contents : array() as $line)
+$isp = $current = array();
+foreach (@file("/etc/dnsmasq.d/01-pihole.conf") as $line)
 {
-	if (preg_match("/nameserver (.*) >/", $line, $regex))
+	if (preg_match("/^server=(.*)/", $line, $regex))
 		$current[ count($current) ] = $regex[1];
-}
-$custom = !empty($current);
-if (empty($current))
-{
-	$contents = @file("/etc/resolv.conf");
-	foreach (is_array($contents) ? $contents : array() as $line)
-	{
-		if (preg_match("/nameserver (.*)/", $line, $regex))
-			$current[ count($current) ] = $regex[1];
-	}
 }
 $primary = empty($current[0]) ? '' : $current[0];
 $secondary = empty($current[1]) ? '' : $current[1];
+foreach (@file("/etc/resolv.conf") as $line)
+{
+	if (preg_match("/^nameserver (.*)/", $line, $regex))
+		$isp[ count($isp) ] = $regex[1];
+}
+#echo '<pre>$current = '; print_r($current); echo '$primary = ' . $primary . "\n" . '$secondary = ' . $secondary . "\n" . '$isp = '; print_r($isp); exit;
+$use_isp = (empty($isp[0]) || $primary == $isp[0]);
+if (!empty($isp[1]))
+	$use_isp |= ($secondary == $isp[1]);
 $providers = array(
 	array('Google', '8.8.8.8', '8.8.4.4'),
 	array('Cloudflare', '1.1.1.1', '1.0.0.1'),
@@ -103,11 +94,11 @@ echo '
 						<label for="dns_provider">Use Public DNS Servers</label>
 					</div>
 					<div class="icheck-primary">
-						<input type="radio" id="dns_isp" value="isp" name="dns_server_opt"', !$use_provider && empty($custom) ? ' checked="checked"' : '', '>
+						<input type="radio" id="dns_isp" value="isp" name="dns_server_opt"', !$use_provider && $use_isp ? ' checked="checked"' : '', '>
 						<label for="dns_isp">Get Automatically from ISP</label>
 					</div>
 					<div class="icheck-primary">
-						<input type="radio" id="dns_custom" value="custom" name="dns_server_opt"', !$use_provider && !empty($custom) ? ' checked="checked"' : '', '>
+						<input type="radio" id="dns_custom" value="custom" name="dns_server_opt"', !$use_provider && !$use_isp ? ' checked="checked"' : '', '>
 						<label for="dns_custom">Manually Set DNS Servers</label>
 					</div>
 				</div>
@@ -133,7 +124,7 @@ echo '
 					<div class="input-group-prepend">
 						<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 					</div>
-					<input id="dns1" type="text" class="dns_address form-control" value="', $primary, '" data-inputmask="\'alias\': \'ip\'" data-mask', empty($custom) ? ' disabled="disabled"' : '', '>
+					<input id="dns1" type="text" class="dns_address form-control" value="', $primary, '"', empty($use_isp) ? ' disabled="disabled"' : '', '>
 				</div>
 			</div>
 		</div>
@@ -146,12 +137,11 @@ echo '
 					<div class="input-group-prepend">
 						<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 					</div>
-					<input id="dns2" type="text" class="dns_address form-control"  value="', $secondary, '"data-inputmask="\'alias\': \'ip\'" data-mask', empty($custom) ? ' disabled="disabled"' : '', '>
+					<input id="dns2" type="text" class="dns_address form-control" value="', $secondary, '"', !$use_isp ? ' disabled="disabled"' : '', '>
 				</div>
 			</div>
 		</div>
 		<hr />
-		', checkbox("disable_pihole", "Disable DNS-level adblocking in Integrated Pi-Hole", false), '
 		', checkbox("redirect_dns", "Redirect all DNS requests to Integrated Pi-Hole"), '
 		', checkbox("block_dot", "Block outgoing DoT (DNS-over-TLS - port 853) requests not from router"), '
 		', checkbox("block_doq", "Block outgoing DoQ (DNS-over-QUIC - port 8853) requests not from router"), '
@@ -191,4 +181,4 @@ echo '
 ###################################################################################################
 # Close page
 ###################################################################################################
-site_footer('Init_DNS("' . $primary . '", "' . $secondary . '");');
+site_footer('Init_DNS("' . (!empty($isp[0]) ? $isp[0] : '') . '", "' . (!empty($isp[1]) ? $isp[1] : '') . '");');
