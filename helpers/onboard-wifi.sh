@@ -1,11 +1,11 @@
 #!/bin/bash
 ### BEGIN INIT INFO
-# Provides:			 wifi
-# Required-Start: $network $remote_fs $syslog
-# Required-Stop:	$network $remote_fs $syslog
-# Default-Start:	2 3 4 5
-# Default-Stop:	 0 1 6
-# Description:		Load MediaTek MT6625L firmware
+# Provides:         wifi
+# Required-Start:   $network $remote_fs $syslog
+# Required-Stop:    $network $remote_fs $syslog
+# Default-Start:    2 3 4 5
+# Default-Stop:     0 1 6
+# Description:      Load MediaTek MT6625L firmware
 ### END INIT INFO
 	
 # Don't exit on error status
@@ -41,11 +41,6 @@ ismodule=$(find /lib/modules/$(uname -r)/kernel -iname wlan_gen2.ko | wc -l)
 if [[ $ismodule -ne 0 ]];then
 	echo "loading wifi driver module"
 	modprobe wlan_gen2
-fi
-ismodule=$(find /lib/modules/$(uname -r)/kernel -iname stp-chrdev-bt.ko | wc -l)
-if [[ $ismodule -ne 0 ]];then
-	echo "loading bluetooth driver module"
-	modprobe stp-chrdev-bt
 fi
 
 # Check FILE exists and is character special
