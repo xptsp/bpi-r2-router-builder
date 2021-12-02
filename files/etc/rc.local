@@ -11,4 +11,8 @@
 #
 # By default this script does nothing.
 
+# Start the onboard WiFi software components:
+/opt/bpi-r2-router-builder/helpers/onboard-wifi.sh
+systemctl start bluetooth
+
 exit 0

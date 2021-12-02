@@ -10,7 +10,7 @@ export LANG=C
 ##############################################################################################
 # Install some packages that Frank-W had in his image:
 ##############################################################################################
-apt install -y apt-transport-https bridge-utils dnsmasq hostapd ca-certificates openssh-server ppp pppoeconf
+apt install -y apt-transport-https bridge-utils dnsmasq hostapd ca-certificates openssh-server ppp pppoeconf pppoe
 
 ##############################################################################################
 # Fix the hung SSH session issue with Debian Buster:
@@ -35,7 +35,7 @@ systemctl disable hostapd
 ##############################################################################################
 # Install some necessary packages:
 ##############################################################################################
-apt install -y locales wget git apt-transport-https toilet pmount eject lsb-release bash-completion dialog mosquitto-clients sudo pppoe pppoeconf
+apt install -y locales wget git apt-transport-https toilet pmount eject lsb-release bash-completion dialog mosquitto-clients sudo
 
 ##############################################################################################
 # Create our default users and assign default passwords to users:
@@ -243,7 +243,7 @@ ln -sf /opt/stats/stats.service /etc/systemd/system/stats.service
 systemctl enable stats
 mkdir /var/lib/stats
 chown pi:pi /var/lib/stats
--u pi -s /opt/bpi-r2-router-builder/misc/build_stats.sh
+sudo -u pi -s /opt/bpi-r2-router-builder/misc/build_stats.sh
 
 ##################################################################################
 # Install PiHole
@@ -272,7 +272,6 @@ ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl restart nginx
 # NOTE: Add our custom script to sudoers.d:
 echo "www-data ALL=NOPASSWD: /usr/local/sbin/pihole" >> /etc/sudoers.d/pihole
-
 
 ##################################################################################
 # Q: Maybe install these packages?

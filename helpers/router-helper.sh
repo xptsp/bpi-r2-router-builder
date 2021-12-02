@@ -226,7 +226,9 @@ case $CMD in
 	device)
 		if [[ -z "$1" ]]; then echo "ERROR: No hostname specified!"; exit 1; fi
 		if [[ -z "$2" ]]; then echo "ERROR: No timezone specified!"; exit 1; fi
+		if [[ ! -f /usr/share/zoneinfo/$2 ]]; then echo "ERROR: Invalid timezone specified!"; exit 1; fi
 		if [[ -z "$3" ]]; then echo "ERROR: No locale specified!"; exit 1; fi
+		if [[ -z "$(cat /etc/locale.gen | grep "^$3 ")" ]]; then echo "ERROR: Invalid locale specified!"; exit 1; fi
 
 		# Set the new hostname:
 		OLD_HOST=$(hostname)

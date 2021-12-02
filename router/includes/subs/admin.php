@@ -111,9 +111,9 @@ function parse_ifconfig($interface)
 function get_dns_servers()
 {
 	$ip = array();
-	foreach (explode("\n", @file_get_contents('/etc/resolv.conf')) as $line)
+	foreach (explode("\n", @file_get_contents('/etc/dnsmasq.d/01-pihole.conf')) as $line)
 	{
-		if (preg_match('/nameserver (.*)/', $line, $regex))
+		if (preg_match('/server=(.*)/', $line, $regex))
 			$ip[] = $regex[1];
 	}
 	#echo '<pre>'; print_r($ip); exit();
