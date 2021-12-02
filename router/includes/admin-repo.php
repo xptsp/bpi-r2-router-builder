@@ -95,7 +95,7 @@ echo '
 <div class="container-fluid">
 	<div class="row">';
 show_repo('Web UI', 'webui', 'https://github.com/xptsp/bpiwrt-builder', 'BPI-R2 Router Builder');
-show_repo('Wifi Regulatory Database', 'regdb', 'https://github.com/sforshee/wireless-regdb');
+show_repo('Wifi Regulatory Database', 'regdb', 'https://git.kernel.org/pub/scm/linux/kernel/git/sforshee/wireless-regdb.git/');
 echo '
 	</div>
 </div>';
