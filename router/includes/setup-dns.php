@@ -48,10 +48,8 @@ foreach (@file("/etc/resolv.conf") as $line)
 	if (preg_match("/^nameserver (.*)/", $line, $regex))
 		$isp[ count($isp) ] = $regex[1];
 }
-#echo '<pre>$current = '; print_r($current); echo '$primary = ' . $primary . "\n" . '$secondary = ' . $secondary . "\n" . '$isp = '; print_r($isp); exit;
-$use_isp = (empty($isp[0]) || $primary == $isp[0]);
-if (!empty($isp[1]))
-	$use_isp |= ($secondary == $isp[1]);
+$use_isp = (empty($isp[0]) || $primary == $isp[0]) && (empty($isp[1]) ? true : ($secondary == $isp[1]));
+#echo '<pre>$current = '; print_r($current); echo '$primary = ' . $primary . "\n" . '$secondary = ' . $secondary . "\n" . '$isp = '; print_r($isp); echo '$use_isp = ' . ($use_isp ? 'Y' : 'N'); exit;
 $providers = array(
 	array('Google', '8.8.8.8', '8.8.4.4'),
 	array('Cloudflare', '1.1.1.1', '1.0.0.1'),
