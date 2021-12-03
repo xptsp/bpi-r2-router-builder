@@ -1,7 +1,7 @@
 <?php
 $options_changed = false;
 
-function parse_file()
+function parse_config()
 {
 	$file = '/etc/default/firewall';
 	$options = array();
@@ -14,7 +14,7 @@ function parse_file()
 	return $options;
 }
 
-function apply_file()
+function apply_config()
 {
 	global $options, $options_changed;
 	#if (!$options_changed)

@@ -1,7 +1,7 @@
 <?php
 require_once("subs/admin.php");
 require_once("subs/advanced.php");
-$options = parse_file();
+$options = parse_config();
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
@@ -24,7 +24,7 @@ if (isset($_POST['action']))
 		$options['block_dot']      = option('block_dot');
 		$options['block_doq']      = option('block_doq');
 		#echo '<pre>'; print_r($options); exit;
-		die(apply_file());
+		die(apply_config());
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
