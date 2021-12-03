@@ -1,0 +1,65 @@
+##########################################################################
+# WebUI Setup / DNS Settings
+##########################################################################
+# Use ISP-supplied DNS servers.  Accepts "Y" or "N". Default: N
+use_isp=N
+
+# Redirect all DNS requests to Integrated Pi-Hole.  Accepts "Y" or "N".  Default: Y
+redirect_dns=Y
+
+# Block outgoing DoT (DNS-over-TLS - port 853) requests not from router.  Accepts "Y" or "N".  Default: Y
+block_dot=Y
+
+# Block outgoing DoQ (DNS-over-QUIC - port 8853) requests not from router.  Accepts "Y" or "N".  Default: Y
+block_doq=Y
+
+##########################################################################
+# WebUI Advanced / Firewall Settings
+##########################################################################
+# Enable Port Scan protection from Internet.  Accepts "Y" or "N".  Default: Y
+drop_port_scan=Y
+
+# When Port Scan protection is enabled, log Port Scan attempts from Internet.  Accepts "Y" or "N".  Default: N
+log_port_scan=N
+
+# When Port Scan protection is enabled, log UDP Floods from Internet.  Accepts "Y" or "N".  Default: N
+log_udp_flood=N
+
+# Do Not Respond to Pings from the Internet.  Accepts "Y" or "N".  Default: Y
+drop_ping=Y
+
+# Do Not Respond to IDENT requests from Internet (port 113).  Accepts "Y" or "N".  Default: Y
+drop_ident=Y
+
+# Filter Multicast Packets from Internet.  Accepts "Y" or "N".  Default: N
+drop_multicast=N
+
+##########################################################################
+# WebUI Advanced / DMZ Settings
+##########################################################################
+# Enable DMZ Default Server.  Accepts "Y" or "N".  Default: Y
+enable_dmz=N
+
+# DMZ Source Type. Accepts: "any", "range", "mask".  Default: any
+dmz_src_type=any
+
+# Allowed DMZ Source IP Range start.  Accepts an IP address.  Default: "192.168.2.2"
+dmz_range_from=192.168.2.2
+
+# Allowed DMZ Source IP Range End.  Accepts integers from 0 to 255.  Default: 254
+dmz_range_to=255
+
+# Allowed DMZ Source IP Address Mask.  Accepts an IP address.  Default: "192.168.2.1"
+dmz_mask_ip=192.168.2.1
+
+# Allowed DMZ Source IP Address Mask Bits.  Accepts an integer from 0 to 32.  Default: 24
+dmz_mask_bits=24
+
+# Allowed DMZ Destination type.  Accepts: "addr" and "mac".  Default: addr
+dmz_dest_type=addr
+
+# Allowed DMZ Destination IP Address.  Accepts an IP address.  Default: "192.168.2.100"
+dmz_ip_addr=192.168.2.100
+
+# Allowed DMZ Destination MAC Address.  Accepts an MAC address.  Default: "12:34:56:78:9a:bc"
+dmz_mac_addr=12:34:56:78:9a:bc

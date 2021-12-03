@@ -8,9 +8,9 @@ function parse_file()
 	foreach (explode("\n", trim(@file_get_contents($file))) as $line)
 	{
 		$parts = explode("=", $line . '=');
-		if (!empty($parts[0]))
-			$options[$parts[0]] = $parts[1];
+		$options[ (empty($parts[1]) ? count($options) : $parts[0]) ] = trim(empty($parts[1]) ? $parts[0] : $parts[1]);
 	}
+	#echo '<pre>'; print_r($options); exit;
 	return $options;
 }
 
@@ -21,7 +21,12 @@ function apply_file()
 	#	return;
 	$text = '';
 	foreach ($options as $name => $setting)
-		$text .= (!empty($setting) ? $name . '=' . $setting . "\n" : $name);
+	{
+		if (is_numeric($name))
+			$text .= $setting . "\n";
+		else if ($name != "dns1" && $name != "dns2")
+			$text .= (!empty($setting) ? $name . '=' . $setting : $name). "\n";
+	}
 	#echo '<pre>'; echo $text; exit;
 	$handle = fopen("/tmp/firewall", "w");
 	fwrite($handle, $text);
