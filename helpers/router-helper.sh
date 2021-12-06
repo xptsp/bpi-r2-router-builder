@@ -444,8 +444,8 @@ case $CMD in
 		# If we are being requested to set the DNS servers from the ISP, do so then exit
 		if [[ "$1" == "use_isp" ]]; then
 			test -f /etc/default/firewall && source /etc/default/firewall
-			[[ "${use_isp:="N"}" == "Y" ]] && $0 dns $(cat /etc/resolv.conf | grep "nameserver" | head -2 | awk '{print $2}')
-			exit $?
+			if [[ "${use_isp:="N"}" == "Y" ]]; then $0 dns $(cat /etc/resolv.conf | grep "nameserver" | head -2 | awk '{print $2}'); fi
+			exit
 		fi
 
 		# Otherwise, make sure we have valid IP addresses (and port numbers if included):
