@@ -11,7 +11,7 @@ if (isset($_POST['action']))
 	# Make sure we know what repo is expected to be actioned upon:
 	#################################################################################################
 	$match = array(
-		'webui' => '',
+		'webui' => 'bpi-r2-router-builder',
 		'regdb' => 'wireless-regdb',
 	);
 	$misc = isset($match[$_POST['misc']]) ? $match[$_POST['misc']] : $_POST['misc'];
@@ -47,6 +47,11 @@ if (isset($_POST['action']))
 #################################################################################################
 function show_repo($title, $repo, $url, $alt_desc = null)
 {
+	if (!isset($_SESSION[$repo . '_version']))
+	{
+		$time = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current ' . $repo));
+		$_SESSION[$repo . '_version'] = ($time == (int) $time ? date('Y.md.Hi', (int) $time) : "Invalid Data");
+	}
 	echo '
 		<div class="col-md-6">
 			<div class="card card-primary">

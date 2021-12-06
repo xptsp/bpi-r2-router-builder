@@ -8,7 +8,7 @@
 
 # Determine new default WiFi password and change it in all hostapd configuration files:
 [[ -f /boot/wifi.conf ]] && source /boot/wifi.conf
-[[ -z "${WIFI_PASS}" ]] && WIFI_PASS=$(php /opt/bpi-r2-router-builder/router/includes/ajax-newpass.php)
+[[ -z "${WIFI_PASS}" ]] && WIFI_PASS=$(php /opt/bpi-r2-router-builder/router/includes/subs/newpass.php)
 if [[ ! -f /boot/wifi.conf ]]; then
 	mount -o remount,rw /boot
 	echo "WIFI_PASS=${WIFI_PASS}" > /boot/wifi.conf
