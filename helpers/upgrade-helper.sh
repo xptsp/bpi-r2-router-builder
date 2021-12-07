@@ -148,18 +148,23 @@ for DEST in $(cat $TFL); do
 done
 
 #####################################################################################
-# Reload the system daemons and enable any services deemed necessary by the script:
-#####################################################################################
-systemctl daemon-reload
-systemctl enable --now cloudflared@1
-systemctl enable --now cloudflared@2
-systemctl enable --now cloudflared@3
-
-#####################################################################################
 # Perform same operations in the read-only partition:
 #####################################################################################
 RW=($(mount | grep " /ro " 2> /dev/null))
 if [[ ! -z "${RW[5]}" ]]; then
+	#####################################################################################
+	# Reload the system daemons and enable any services deemed necessary by the script:
+	#####################################################################################
+	systemctl daemon-reload
+	if ! systemctl is-enabled cloudflared@1 >& /dev/null; then
+		systemctl enable --now cloudflared@1
+		systemctl enable --now cloudflared@2
+		systemctl enable --now cloudflared@3
+	fi
+
+	#####################################################################################
+	# Copy the toolkit into the read-only partition and perform upgrade:
+	#####################################################################################
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /ro
 	rm -rf /ro/opt/bpi-r2-router-builder
 	cp -R /opt/bpi-r2-router-builder /ro/opt/bpi-r2-router-builder
