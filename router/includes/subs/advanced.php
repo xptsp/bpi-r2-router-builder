@@ -32,7 +32,7 @@ function apply_config()
 	fwrite($handle, $text);
 	fclose($handle);
 	$options['use_isp'] = isset($options['use_isp']) ? $options['use_isp'] : 'N';
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns " . ($options['use_isp'] == 'Y' ? 'use_isp' : $options['dns1'] . ' ' . $options['dns2']));
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns " . ($options['use_isp'] == 'Y' ? 'config' : $options['dns1'] . ' ' . $options['dns2']));
 	return @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh firewall reload");
 }
 

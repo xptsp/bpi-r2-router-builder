@@ -5,8 +5,7 @@ After=syslog.target network-online.target
 [Service]
 Type=simple
 User=cloudflared
-EnvironmentFile=/etc/default/cloudflared
-ExecStart=/usr/local/bin/cloudflared proxy-dns $CLOUDFLARED_OPTS
+ExecStart=/usr/local/bin/cloudflared proxy-dns --port 505%i --upstream https://1.1.1.%i/dns-query --upstream https://1.0.0.%i/dns-query
 Restart=on-failure
 RestartSec=10
 KillMode=process

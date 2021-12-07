@@ -8,24 +8,50 @@ function Init_DNS(dns1, dns2)
 {
 	$(".checkbox").bootstrapSwitch();
 	$('.dns_address').inputmask("ip");
+	$(".dns_port").inputmask("integer", {min:0, max:65535});
 	$("#dns_isp").click(function() {
+		$(".provider").addClass("hidden");
 		$(".dns_address").attr("disabled", "disabled");
-		$("#providers").attr("disabled", "disabled");
+		$(".dns_port").attr("disabled", "disabled").val("");
 		$("#dns1").val(dns1);
 		$("#dns2").val(dns2);
 	});
 	$("#dns_custom").click(function() {
+		$(".provider").addClass("hidden");
 		$(".dns_address").removeAttr("disabled");
-		$("#providers").attr("disabled", "disabled");
+		$(".dns_port").removeAttr("disabled");
 	});
 	$("#dns_provider").click(function() {
+		$("#select_provider").removeClass("hidden");
+		$("#select_cloudflared").addClass("hidden");
 		$(".dns_address").attr("disabled", "disabled");
-		$("#providers").removeAttr("disabled").change();
+		$(".dns_port").attr("disabled", "disabled").val("");
 	});
-	$("#providers").change(function() {
+	$("#dns_cloud").click(function() {
+		$("#select_provider").addClass("hidden");
+		$("#select_cloudflared").removeClass("hidden");
+		$(".dns_address").attr("disabled", "disabled");
+		$(".dns_port").attr("disabled", "disabled").val("");
+		$("#dns_port1").val("5051")
+		$("#dns1").val("127.0.0.1");
+		$("#dns2").val("");
+	});
+	$("#dns_unbound").click(function() {
+		$(".provider").addClass("hidden");
+		$(".dns_address").attr("disabled", "disabled");
+		$(".dns_port").attr("disabled", "disabled").val("");
+		$("#dns_port1").val("5335");
+		$("#dns1").val("127.0.0.1");
+		$("#dns2").val("");
+	});
+	$(".provider").change(function() {
 		dns = $(this).find("option:selected").val().split('/');
-		$("#dns1").val(dns[0]);
-		$("#dns2").val(dns[1]);
+		$("#dns_port").attr("disabled", "disabled");
+		part = dns[0].split('#');
+		$("#dns1").val(part[0]);
+		$("#dns_port1").val(part[1]);
+		$("#dns2").val("");
+		$("#dns_port2").val("");
 	});
 	$("#submit").click( DNS_Submit );
 }
@@ -34,14 +60,16 @@ function DNS_Submit()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
-		'sid':          SID,
-		'action':       'submit',
-		'use_isp':      ($("[name=dns_server_opt]:checked").val()) == "isp" ? 'Y' : 'N',
-		'dns1':         $("#dns1").val(),
-		'dns2':         $("#dns2").val(),
-		'redirect_dns': $("#redirect_dns").prop("checked") ? "Y" : "N",
-		'block_dot':    $("#block_dot").prop("checked") ? "Y" : "N",
-		'block_doq':    $("#block_doq").prop("checked") ? "Y" : "N",
+		'sid':             SID,
+		'action':          'submit',
+		'use_isp':         ($("[name=dns_server_opt]:checked").val()) == "isp" ? 'Y' : 'N',
+		'use_cloudflared': ($("[name=dns_server_opt]:checked").val()) != "cloudflared" ? 'N' : 'Y',
+		'use_unbound':     ($("[name=dns_server_opt]:checked").val()) == "unbound" ? 'Y' : 'N',
+		'dns1':            $("#dns1").val() + (($("#dns_port1").val() != "53" && $("#dns_port1").val() != "") ? "#" + $("#dns_port1").val() : ''),
+		'dns2':            $("#dns2").val() + (($("#dns_port2").val() != "53" && $("#dns_port2").val() != "") ? "#" + $("#dns_port2").val() : ''),
+		'redirect_dns':    $("#redirect_dns").prop("checked") ? "Y" : "N",
+		'block_dot':       $("#block_dot").prop("checked") ? "Y" : "N",
+		'block_doq':       $("#block_doq").prop("checked") ? "Y" : "N",
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
@@ -50,8 +78,10 @@ function DNS_Submit()
 	$(".alert_control").addClass("hidden");
 	$("#apply-modal").modal("show");
 	$.post("/setup/dns", postdata, function(data) {
-		if (data.trim() == "OK")
+		if (data.trim() == "RELOAD")
 			document.location.reload(true);
+		else if (data.trim() == "OK")
+			$("#apply-modal").modal("hide");
 		else
 		{
 			$("#apply_msg").html(data);

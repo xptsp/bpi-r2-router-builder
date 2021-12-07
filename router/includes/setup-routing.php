@@ -134,9 +134,9 @@ echo '
 			<table class="table table-hover text-nowrap table-sm table-striped">' . $thead . '
 				<tbody>
 					<tr>
-						<td><input id="dest_addr" type="text" class="ip_address form-control" /></td>
-						<td><input id="mask_addr" type="text" class="ip_address form-control" value="255.255.255.0" /></td>
-						<td><input id="gate_addr" type="text" class="ip_address form-control" value="0.0.0.0" /></td>
+						<td><input id="dest_addr" type="text" class="ip_address form-control" placeholder="0.0.0.0" /></td>
+						<td><input id="mask_addr" type="text" class="ip_address form-control" placeholder="255.255.255.0" value="255.255.255.0" /></td>
+						<td><input id="gate_addr" type="text" class="ip_address form-control" placeholder="0.0.0.0" value="0.0.0.0" /></td>
 						<td><input id="metric" class="form-control" value="0" /></td>
 						<td colspan="2">
 							<select class="custom-select" id="iface">';

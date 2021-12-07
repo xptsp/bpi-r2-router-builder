@@ -154,7 +154,7 @@ echo '
 			</div>
 			<div class="col-6">
 				<span class="float-right">
-					<input id="mac_addr" name="mac_addr" type="text" class="form-control" value="', $mac, '" maxlength="17"', $mac_chk ? ' disabled="disabled"' : '', '>
+					<input id="mac_addr" name="mac_addr" type="text" class="form-control" placeholder="', strtoupper($mac), '" value="', $mac, '" maxlength="17"', $mac_chk ? ' disabled="disabled"' : '', '>
 				</span>
 			</div>
 		</div>';

@@ -442,29 +442,42 @@ case $CMD in
 	###########################################################################
 	dns)
 		# If we are being requested to set the DNS servers from the ISP, do so then exit
-		if [[ "$1" == "use_isp" ]]; then
+		unset DNS1 DNS2
+		if [[ "$1" == "config" ]]; then
 			test -f /etc/default/firewall && source /etc/default/firewall
-			if [[ "${use_isp:="N"}" == "Y" ]]; then $0 dns $(cat /etc/resolv.conf | grep "nameserver" | head -2 | awk '{print $2}'); fi
-			exit
-		fi
+			if [[ "${use_unbound:-"N"}" == "Y" ]]; then
+				DNS1=127.0.0.1#5335
+			elif [[ "${use_cloudflared:="N"}" == "Y" ]]; then
+				DNS1=127.0.0.1#5051
+			elif [[ "${use_isp:="N"}" == "Y" ]]; then 
+				IP=($(cat /etc/resolv.conf | grep "nameserver" | head -2 | awk '{print $2}'))
+				DNS1=${IP[0]}
+				DNS2=${IP[1]}
+			else
+				echo "ERROR: Invalid action specified!" && exit
+			fi
+		else
+			# Validate first IP address passed as parameter:
+			IP=(${1/"#"/" "})
+			if ! valid_ip ${IP[0]}; then echo "ERROR: Invalid IP Address specified as 1st param!"; exit; fi
+			if [[ ! -z "${IP[1]}" ]]; then if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 1st param!"; exit; fi; fi
+			DNS1=${DNS1[0]}$([[ "${DNS1[1]}" != "" ]] && echo "#${DNS1[1]}")
 
-		# Otherwise, make sure we have valid IP addresses (and port numbers if included):
-		IP=(${1/"#"/" "})
-		if ! valid_ip ${IP[0]}; then echo "ERROR: Invalid IP Address specified as 1st param!"; exit; fi
-		if [[ ! -z "$IP[1]}" ]]; then if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 1st param!"; echo exit; fi; fi
-		if [[ ! -z "$2" ]]; then
 			IP=(${2/"#"/" "})
-			if ! valid_ip ${IP[0]}; then echo "ERROR: Invalid IP Address specified as 2nd param!"; exit; fi
-			if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 2nd param!"; echo exit; fi; 
+			if [[ ! -z "${IP[@]}" ]]; then
+				if ! valid_ip ${IP[0]}; then echo "ERROR: Invalid IP Address specified as 2nd param!"; exit; fi
+				if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 2nd param!"; exit; fi; 
+				DNS2=${DNS2[0]}$([[ "${DNS2[1]}" != "" ]] && echo "#${DNS2[1]}")
+			fi
 		fi
 
 		# Remove existing IP addresses and add the included ones:
 		sed -i "/^PIHOLE_DNS_/d" /etc/pihole/setupVars.conf
-		echo "PIHOLE_DNS_1=$1" >> /etc/pihole/setupVars.conf
-		[[ ! -z "$2" ]] && echo "PIHOLE_DNS_2=$2" >> /etc/pihole/setupVars.conf
+		echo "PIHOLE_DNS_1=${DNS1}" >> /etc/pihole/setupVars.conf
+		[[ ! -z "${DNS2}" ]] && echo "PIHOLE_DNS_2=${DNS2}" >> /etc/pihole/setupVars.conf
 		sed -i "/^server=/d" /etc/dnsmasq.d/01-pihole.conf
-		echo "server=$1" >> /etc/dnsmasq.d/01-pihole.conf
-		[[ ! -z "$2" ]] && echo "server=$2" >> /etc/dnsmasq.d/01-pihole.conf
+		echo "server=${DNS1}" >> /etc/dnsmasq.d/01-pihole.conf
+		[[ ! -z "${DNS2}" ]] && echo "server=${DNS2}" >> /etc/dnsmasq.d/01-pihole.conf
 
 		# Restart the PiHole FTL service if running:
 		if [[ "$3" != "norestart" ]]; then if systemctl is-active pihole-FTL >& /dev/null; then pihole restartdns; else true; fi; fi

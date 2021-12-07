@@ -141,13 +141,19 @@ chmod +x /home/{pi,vpn}/.bash* /etc/skel/{.bash*,.profile}
 #####################################################################################
 for DEST in $(cat $TFL); do 
 	[[ "${QUIET}" == "false" ]] && echo -e "Removing ${BLUE}${DEST}${NC}... "
+	if [[ "$DEST" =~ /etc/systemd/system/ ]]; then
+		systemctl disable --now $(basename $DEST)
+	fi
 	rm ${DEST}
 done
 
 #####################################################################################
-# Reload the system daemons:
+# Reload the system daemons and enable any services deemed necessary by the script:
 #####################################################################################
 systemctl daemon-reload
+systemctl enable --now cloudflared@1
+systemctl enable --now cloudflared@2
+systemctl enable --now cloudflared@3
 
 #####################################################################################
 # Perform same operations in the read-only partition:

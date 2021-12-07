@@ -1,6 +1,5 @@
 <?php
-require_once("subs/advanced.php");
-$options = parse_config();
+$options = parse_options();
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
@@ -22,7 +21,7 @@ if (isset($_POST['action']))
 		$options['drop_ident']     = option('drop_ident');
 		$options['drop_multicast'] = option('drop_multicast');
 		#echo '<pre>'; print_r($options); exit;
-		die(apply_config());
+		die(apply_options());
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
@@ -55,5 +54,5 @@ echo '
 	</div>
 	<!-- /.card-body -->
 </div>';
-security_apply_changes();
+apply_changes_modal();
 site_footer('Init_Firewall();');

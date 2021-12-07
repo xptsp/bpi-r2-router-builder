@@ -4,6 +4,12 @@
 # Use ISP-supplied DNS servers.  Accepts "Y" or "N". Default: N
 use_isp=N
 
+# Use DoH CloudFlare DNS servers.  Accepts "N", "1", "2", "3". Default: N
+use_cloudflared=N
+
+# Use integrated Unbound package for DNS server.  Accepts "Y" or "N". Default: Y
+use_unbound=Y
+
 # Redirect all DNS requests to Integrated Pi-Hole.  Accepts "Y" or "N".  Default: Y
 redirect_dns=Y
 

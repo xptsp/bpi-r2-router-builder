@@ -1,7 +1,6 @@
 <?php
 require_once("subs/admin.php");
-require_once("subs/advanced.php");
-$options = parse_config();
+$options = parse_options();
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
@@ -17,14 +16,16 @@ if (isset($_POST['action']))
 	if ($_POST['action'] == 'submit')
 	{
 		// Apply configuration file changes:
-		$options['use_isp']        = option('use_isp');
-		$options['dns1']           = option_ip('dns1');
-		$options['dns2']           = option_ip('dns2', true);
-		$options['redirect_dns']   = option('redirect_dns');
-		$options['block_dot']      = option('block_dot');
-		$options['block_doq']      = option('block_doq');
+		$options['use_isp']         = option('use_isp');
+		$options['use_cloudflared'] = option_allowed('use_cloudflared', array("N", "1", "2", "3"));
+		$options['use_unbound']     = option('use_unbound');
+		$options['dns1']            = option_ip('dns1', false, true);
+		$options['dns2']            = option_ip('dns2', true, true);
+		$options['redirect_dns']    = option('redirect_dns');
+		$options['block_dot']       = option('block_dot');
+		$options['block_doq']       = option('block_doq');
 		#echo '<pre>'; print_r($options); exit;
-		die(apply_config());
+		die(apply_options());
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
@@ -49,12 +50,10 @@ foreach (@file("/etc/resolv.conf") as $line)
 		$isp[ count($isp) ] = $regex[1];
 }
 $use_isp = (empty($isp[0]) || $primary == $isp[0]) && (empty($isp[1]) ? true : ($secondary == $isp[1]));
-#echo '<pre>$current = '; print_r($current); echo '$primary = ' . $primary . "\n" . '$secondary = ' . $secondary . "\n" . '$isp = '; print_r($isp); echo '$use_isp = ' . ($use_isp ? 'Y' : 'N'); exit;
+$cloudflared_mode = (empty($isp[0]) || str_replace($primary, "127.0.0.1#505", ""));
+$use_unbound = (empty($isp[0]) || $primary == "127.0.0.1#5335");
 $providers = array(
 	array('Google', '8.8.8.8', '8.8.4.4'),
-	array('Cloudflare', '1.1.1.1', '1.0.0.1'),
-	array('Cloudflare - Malware Filter', '1.1.1.2', '1.0.0.2'),
-	array('Cloudflare - Malware and Adult Filter', '1.1.1.3', '1.0.0.3'),
 	array('OpenDNS', '208.67.222.222', '208.67.220.220'),
 	array('OpenDNS - FamilyShield', '208.67.222.123', '208.67.220.123'),
 	array('Quad9', '9.9.9.9', '149.112.112.112'),
@@ -73,6 +72,8 @@ $providers = array(
 $use_provider = false;
 foreach ($providers as $provider)
 	$use_provider |= ($primary == $provider[1] && $secondary == $provider[2]);
+$use_custom = !($use_isp || $cloudflared_mode != "N" || $use_unbound || $use_provider);
+#echo '<pre>$current = '; print_r($current); echo '$primary = ' . $primary . "\n" . '$secondary = ' . $secondary . "\n" . '$isp = '; print_r($isp); echo '$use_isp = ' . ($use_isp ? 'Y' : 'N') . "\n"; echo '$cloudflared_mode = ' . ($cloudflared_mode ? 'Y' : 'N') . "\n"; echo '$use_unbound = ' . ($use_unbound ? 'Y' : 'N') . "\n"; echo '$use_provider = ' . ($use_provider ? 'Y' : 'N') . "\n"; echo '$use_custom = ' . ($use_custom ? 'Y' : 'N') . "\n"; exit;
 
 ###################################################################################################
 # Output the DNS Settings page:
@@ -92,50 +93,81 @@ echo '
 						<label for="dns_provider">Use Public DNS Servers</label>
 					</div>
 					<div class="icheck-primary">
-						<input type="radio" id="dns_isp" value="isp" name="dns_server_opt"', !$use_provider && $use_isp ? ' checked="checked"' : '', '>
+						<input type="radio" id="dns_cloud" value="cloudflared" name="dns_server_opt"', $cloudflared_mode != "N" ? ' checked="checked"' : '', '>
+						<label for="dns_cloud">Use Cloudflare DNS Servers (DoH)</label>
+					</div>
+					<div class="icheck-primary">
+						<input type="radio" id="dns_unbound" value="unbound" name="dns_server_opt"', $use_unbound ? ' checked="checked"' : '', '>
+						<label for="dns_unbound">Use integrated Unbound DNS Server</label>
+					</div>
+					<div class="icheck-primary">
+						<input type="radio" id="dns_isp" value="isp" name="dns_server_opt"', $use_isp ? ' checked="checked"' : '', '>
 						<label for="dns_isp">Get Automatically from ISP</label>
 					</div>
 					<div class="icheck-primary">
-						<input type="radio" id="dns_custom" value="custom" name="dns_server_opt"', !$use_provider && !$use_isp ? ' checked="checked"' : '', '>
+						<input type="radio" id="dns_custom" value="custom" name="dns_server_opt"', $use_custom ? ' checked="checked"' : '', '>
 						<label for="dns_custom">Manually Set DNS Servers</label>
 					</div>
 				</div>
 			</div>
 			<div class="col-6">
 				<div class="form-group">
-					<select class="form-control" id="providers"', !$use_provider ? ' disabled="disabled"' : '', '>';
+					<select class="provider form-control', !$use_provider ? ' hidden' : '', '" id="select_provider">';
 foreach ($providers as $provider)
 	echo '
 						<option value="', $provider[1], '/', $provider[2], '"', ($primary == $provider[1] && $secondary == $provider[2]) ? ' selected="selected"' : '', '>', $provider[0], '</option>';
 echo '
 					</select>
+					<select class="provider form-control', $cloudflared_mode != "N" ? ' hidden' : '', '" id="select_cloudflared">
+						<option value="127.0.0.1#5051"', $cloudflared_mode == "1" ? ' selected="selected"' : '', '>Cloudflare</option>
+						<option value="127.0.0.1#5052"', $cloudflared_mode == "2" ? ' selected="selected"' : '', '>Cloudflare - Malware Filter</option>
+						<option value="127.0.0.1#5053"', $cloudflared_mode == "3" ? ' selected="selected"' : '', '>Cloudflare - Malware and Adult Filter</option>
+					</select>
 				</div>
 			</div>
 		</div>
-		<hr />
-		<div class="row">
-			<div class="col-6">
-				<label for="ip_address">Primary DNS Server</label>
-			</div>
-			<div class="col-6">
-				<div class="input-group">
-					<div class="input-group-prepend">
-						<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+		<div id="dns_settings">
+			<hr />
+			<div class="row">
+				<div class="col-6">
+					<label for="ip_address">Primary DNS Server</label>
+				</div>
+				<div class="col-4">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+						</div>
+						<input id="dns1" type="text" placeholder="127.0.0.1" class="dns_address form-control" value="', explode("#", $primary . "#")[0], '"', !$use_isp ? ' disabled="disabled"' : '', '>
 					</div>
-					<input id="dns1" type="text" class="dns_address form-control" value="', $primary, '"', empty($use_isp) ? ' disabled="disabled"' : '', '>
+				</div>
+				<div class="col-2">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text" title="Port Number"><i class="fas fa-hashtag"></i></span>
+						</div>
+						<input id="dns_port1" type="text" class="dns_port form-control" placeholder="53" value="', explode("#", $primary . "#")[1], '"', empty($use_isp) ? ' disabled="disabled"' : '', '>
+					</div>
 				</div>
 			</div>
-		</div>
-		<div class="row" style="margin-top: 5px">
-			<div class="col-6">
-				<label for="ip_address">Secondary DNS Server</label>
-			</div>
-			<div class="col-6">
-				<div class="input-group">
-					<div class="input-group-prepend">
-						<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_address">Secondary DNS Server</label>
+				</div>
+				<div class="col-4">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+						</div>
+						<input id="dns2" type="text" placeholder="127.0.0.1" class="dns_address form-control" value="', explode("#", $secondary . "#")[0], '"', !$use_isp ? ' disabled="disabled"' : '', '>
 					</div>
-					<input id="dns2" type="text" class="dns_address form-control" value="', $secondary, '"', !$use_isp ? ' disabled="disabled"' : '', '>
+				</div>
+				<div class="col-2">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text" title="Port Number"><i class="fas fa-hashtag"></i></span>
+						</div>
+						<input id="dns_port2" type="text" class="dns_port form-control" placeholder="53" value="', explode("#", $secondary . "#")[1], '"', empty($use_isp) ? ' disabled="disabled"' : '', '>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -154,29 +186,7 @@ echo '
 	</div>';
 
 ###################################################################################################
-# Apply Changes modal:
-###################################################################################################
-echo '
-<div class="modal fade" id="apply-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header bg-info">
-				<h4 class="modal-title">Applying Changes</h4>
-				<a href="javascript:void(0);"><button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button></a>
-			</div>
-			<div class="modal-body">
-				<p id="apply_msg">Please wait while the Pi-Hole FTL service is restarted....</p>
-			</div>
-			<div class="modal-footer justify-content-between hidden alert_control">
-				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>
-			</div>
-		</div>
-	</div>
-</div>';
-
-###################################################################################################
 # Close page
 ###################################################################################################
+apply_changes_modal("Please wait while the Pi-Hole FTL service is restarted....");
 site_footer('Init_DNS("' . (!empty($isp[0]) ? $isp[0] : '') . '", "' . (!empty($isp[1]) ? $isp[1] : '') . '");');

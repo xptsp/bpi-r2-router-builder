@@ -1,6 +1,5 @@
 <?php
-require_once("subs/advanced.php");
-$options = parse_config();
+$options = parse_options();
 site_menu();
 
 #################################################################################################
@@ -34,7 +33,7 @@ if (isset($_POST['action']))
 		else
 			$options['dmz_mac_addr'] = option_mac('dest_mac');
 		#echo '<pre>'; print_r($options); exit;
-		die(apply_config());
+		die(apply_options());
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
@@ -111,5 +110,5 @@ echo '
 	</div>
 	<!-- /.card-body -->
 </div>';
-security_apply_changes();
+apply_changes_modal();
 site_footer('Init_DMZ();');
