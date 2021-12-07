@@ -30,10 +30,12 @@ done
 #####################################################################################
 GIT=($(whereis git | cut -d":" -f 2))
 if [[ ! -z "${GIT[@]}" && -d $(dirname $0)/.git && "${FORCE_COPY}" == "false" ]]; then
-	# Repull BPIWRT builder repo to minimize size...
-	cd .. && mv /opt/bpi-r2-router-builder /opt/r2-backup && git clone --depth=1 https://github.com/xptsp/bpiwrt-builder /opt/bpi-r2-router-builder && rm -rf /opt/r2-backup && cd /opt/bpi-r2-router-builder
-	# Make user "pi" owner of the router UI
-	chown pi:pi -R /opt/bpi-r2-router-builder/router
+	rm -rf router/*
+	rm -rf files/*
+	git checkout -- .
+	git reset --hard
+	git pull
+	chown pi:pi -R router
 fi
 
 #####################################################################################
