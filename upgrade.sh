@@ -14,27 +14,24 @@ FORCE_COPY=false
 SKIP_COPY=false
 
 #####################################################################################
+# Assuming the GIT command is available upon script execution, force a complete
+# reset of the files and webui parts of the repository and pull any updated files:
+#####################################################################################
+GIT=($(whereis git | cut -d":" -f 2))
+if [[ ! -z "${GIT[@]}" && -d $(dirname $0)/.git ]]; then
+	# Repull BPIWRT builder repo to minimize size...
+	mv /opt/bpi-r2-router-builder /opt/r2-backup && git clone --depth=1 https://github.com/xptsp/bpiwrt-builder /opt/bpi-r2-router-builder && rm -rf /opt/r2-backup
+	# Make user "pi" owner of the router UI
+	chown pi:pi -R /opt/bpi-r2-router-builder/router
+fi
+
+#####################################################################################
 # Prepare for logging files that have been linked:
 #####################################################################################
 cd $(dirname $0)
 touch ${LOLD}
 test -f ${LORG} && cp ${LORG} ${LOLD}
 touch ${LNEW}
-
-#####################################################################################
-# Assuming the GIT command is available upon script execution, force a complete
-# reset of the files and webui parts of the repository and pull any updated files:
-#####################################################################################
-GIT=($(whereis git | cut -d":" -f 2))
-if [[ ! -z "${GIT[@]}" && -d $(dirname $0)/.git ]]; then
-	rm -rf router/*
-	rm -rf files/*
-	git checkout -- .
-	git reset --hard
-	git pull
-	# Make user "pi" owner of the router UI
-	chown pi:pi -R router
-fi
 
 #####################################################################################
 # Copy files to the boot partition ONLY IF MOUNTED!
