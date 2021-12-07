@@ -161,6 +161,8 @@ systemctl enable --now cloudflared@3
 RW=($(mount | grep " /ro " 2> /dev/null))
 if [[ ! -z "${RW[5]}" ]]; then
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /ro
+	rm -rf /ro/opt/bpi-r2-router-builder
+	cp -R /opt/bpi-r2-router-builder /ro/opt/bpi-r2-router-builder
 	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /ro
 fi

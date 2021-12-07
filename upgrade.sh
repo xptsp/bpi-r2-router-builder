@@ -14,13 +14,24 @@ FORCE_COPY=false
 SKIP_COPY=false
 
 #####################################################################################
+# Parse command-line parameters:
+#####################################################################################
+for i in "$@"; do
+	case $i in
+		-f|--force-copy)
+			FORCE_COPY=true
+			;;
+	esac
+done
+
+#####################################################################################
 # Assuming the GIT command is available upon script execution, force a complete
 # reset of the files and webui parts of the repository and pull any updated files:
 #####################################################################################
 GIT=($(whereis git | cut -d":" -f 2))
-if [[ ! -z "${GIT[@]}" && -d $(dirname $0)/.git ]]; then
+if [[ ! -z "${GIT[@]}" && -d $(dirname $0)/.git && "${FORCE_COPY}" == "false" ]]; then
 	# Repull BPIWRT builder repo to minimize size...
-	mv /opt/bpi-r2-router-builder /opt/r2-backup && git clone --depth=1 https://github.com/xptsp/bpiwrt-builder /opt/bpi-r2-router-builder && rm -rf /opt/r2-backup
+	cd .. && mv /opt/bpi-r2-router-builder /opt/r2-backup && git clone --depth=1 https://github.com/xptsp/bpiwrt-builder /opt/bpi-r2-router-builder && rm -rf /opt/r2-backup && cd /opt/bpi-r2-router-builder
 	# Make user "pi" owner of the router UI
 	chown pi:pi -R /opt/bpi-r2-router-builder/router
 fi
