@@ -50,8 +50,9 @@ function Init_DNS(dns1, dns2)
 		part = dns[0].split('#');
 		$("#dns1").val(part[0]);
 		$("#dns_port1").val(part[1]);
-		$("#dns2").val("");
-		$("#dns_port2").val("");
+		part = dns[1].split('#');
+		$("#dns2").val(part[0]);
+		$("#dns_port2").val(part[1]);
 	});
 	$("#submit").click( DNS_Submit );
 }
