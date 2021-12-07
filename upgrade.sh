@@ -27,6 +27,8 @@ touch ${LNEW}
 #####################################################################################
 GIT=($(whereis git | cut -d":" -f 2))
 if [[ ! -z "${GIT[@]}" && -d $(dirname $0)/.git ]]; then
+	rm -rf router/*
+	rm -rf files/*
 	git checkout -- .
 	git reset --hard
 	git pull
