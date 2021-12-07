@@ -410,3 +410,11 @@ function Restore_Confirm()
 		Restore_Alert("AJAX call failed!");
 	});
 }
+
+//======================================================================================================
+// Javascript functions for "Admin / WebUI Management"
+//======================================================================================================
+function Init_Management()
+{
+	$(".checkbox").bootstrapSwitch();
+}

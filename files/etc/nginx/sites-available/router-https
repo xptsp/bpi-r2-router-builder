@@ -1,0 +1,35 @@
+server {
+	listen 443;
+	listen [::]:443;
+
+	root /opt/bpi-r2-router-builder/router;
+
+	# Add index.php to the list if you are using PHP
+	index index.php index.html index.htm index.nginx-debian.html;
+
+	server_name _;
+
+	ssl_certificate /etc/ssl/certs/localhost.crt;
+	ssl_certificate_key /etc/ssl/private/localhost.key;
+
+	location ~ /includes {
+		rewrite ^(.*)$ /index.php?action=404;
+	}
+
+	location / {
+		try_files $uri $uri.html $uri/ @extensionless-php;
+		index index.html index.htm index.php;
+	}
+
+	# pass PHP scripts to FastCGI server
+	location ~ \.php$ {
+		include snippets/fastcgi-php.conf;
+	
+		# With php-fpm (or other unix sockets):
+		fastcgi_pass unix:/run/php/php7.3-fpm.sock;
+	}
+
+	location @extensionless-php {
+		rewrite ^(.*)$ /index.php?action=$1 last;
+	}
+}

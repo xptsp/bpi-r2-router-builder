@@ -25,6 +25,7 @@ $sidebar_menu = array(
 	)),
 	'admin'  => array('Administration', 'fas fa-cog', array(
 		'status'   => menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),
+		'manage'   => menu_link('/admin/management', 'WebUI Management', 'fas fa-server'),
 		'attached' => menu_link('/admin/attached', 'Attached Devices', 'fas fa-link'),
 		'backup'   => menu_link('/admin/backup', 'Backup &amp; Restore', 'fas fa-file-export'),
 		'creds'    => menu_link('/admin/creds', 'Credentials', 'fas fa-user-edit'),
@@ -355,7 +356,10 @@ function checkbox($name, $description, $default = true, $disabled_by = '')
 	global $options;
 	$checked = (!isset($options[$name]) ? $default : ($options[$name] == "Y"));
 	$enabled = (!empty($disabled_by) ? $options[$disabled_by] : true);
-	return '<p><input type="checkbox" id="' . $name . '" class="checkbox"' . ($checked ? ' checked="checked"' : '') . ' data-bootstrap-switch="" data-off-color="danger" data-on-color="success" ' . ($enabled ? '' : ' disabled="disabled"') . '> <strong id="' . $name . '_txt" ' . ($enabled ? '' : ' disabled="disabled"') . '>' . $description . '</strong></p>';
+	return '<div class="icheck-primary">' .
+				'<input type="checkbox" id="' . $name . '"' . ($checked == 'Y' ? ' checked="checked"' : '') . ($enabled ? '' : ' disabled="disabled"') . '>' .
+				'<label for="' . $name . '">' . $description . '</label>' .
+			'</div>';
 }
 
 #######################################################################################################
