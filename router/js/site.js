@@ -5,13 +5,55 @@ var timer;
 var MyTimer;
 var max_timer;
 
+//======================================================================================================
+// Function dealing with global site initialization stuff:
+//======================================================================================================
 function Init_Site(sid)
 {
 	SID=sid;
-	$("#login_close").click(Login_Close);
-	$("#login_submit").click(Login_Submit);
 }
 
+function __postdata(action, misc = '')
+{
+	return {
+		'sid':    SID,
+		'action': action,
+		'misc': misc,
+	};
+}
+//======================================================================================================
+// Javascript functions for "Login" page:
+//======================================================================================================
+function Init_Login()
+{
+	$("#login_button").click(Login_Submit);
+}
+
+function Login_Submit()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':      SID,
+		'action':   'submit',
+		'password': $("#password").val(),
+		'username': $("#username").val(),
+		'remember': $("#remember").prop("checked") ? "Y" : "N",
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to change the password:
+	$.post("/login", postdata, function(data) {
+		if (data.trim() == "OK")
+			document.location.reload(true);
+		else
+			Wired_Error();
+	});
+	return false;
+}
+
+//======================================================================================================
+// Javascript functions for "Home" page:
+//======================================================================================================
 function Init_Home()
 {
 	Home_Data();
@@ -72,46 +114,9 @@ function Home_Data()
 	});
 }
 
-function Login_Submit()
-{
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid':      SID,
-		'action':   'check',
-		'oldPass':  $("#password").val(),
-		'username': $("#username").val(),
-	};
-
-	// Make sure the username and password is valid:
-	$("#div").addClass("hidden");
-	tmp1 = $("#username").val().replace(/[\s\W]+/, '-');
-	tmp2 = $("#password").val().replace(/[\s\W]+/, '-');
-	if (postdata.username == "" || postdata.username != tmp1 || postdata.oldPass == "" || postdata.oldPass != tmp2)
-	{
-		$("#div").removeClass("hidden");
-		return;
-	}
-
-	// Perform our AJAX request to change the password:
-	$.post("/ajax/creds", postdata, function(data) {
-		if (data != "Successful" && data != "Match")
-		{
-			$("#login_div").removeClass("hidden").fadeIn("slow");
-			LoginTimer = setInterval(function() {
-				clearInterval(LoginTimer);
-				$("#login_div").fadeOut("slow");
-			}, 3000);
-		}
-		else
-			document.location.reload(true);
-	});
-}
-
-function Login_Close()
-{
-	$("#login_div").addClass("hidden");
-}
-
+//======================================================================================================
+// Helper functions dealing with reboot modals and overlays:
+//======================================================================================================
 function Reboot_Message()
 {
 	txt = timer.toString();
@@ -151,13 +156,4 @@ function Add_Overlay(id)
 function Del_Overlay(id)
 {
 	$("#" + id + "_loading").remove();
-}
-
-function __postdata(action, misc = '')
-{
-	return {
-		'sid':    SID,
-		'action': action,
-		'misc': misc,
-	};
 }

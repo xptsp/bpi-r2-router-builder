@@ -34,7 +34,7 @@ if (isset($_POST['action']))
 			if ($result == "Match")
 			{
 				if (empty($newPass))
-					$_SESSION['login_valid_until'] = time() + 10*60;
+					$_SESSION['login_valid_until'] = time() + $_SESSION['login_expires'];
 				else
 				{
 					$result = @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login passwd ' . $newPass . ' 2>&1');

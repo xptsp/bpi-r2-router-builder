@@ -238,69 +238,6 @@ echo '
 	echo '
 		<!-- Main content -->
 		<section class="content">';
-
-	# Include the login box if we are not logged in yet:
-	if (!$logged_in)
-		echo '
-			<div class="modal fade" id="login-modal" data-backdrop="static">
-				<div class="modal-dialog modal-dialog-centered">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h4 class="modal-title"><i class="fas fa-sign-in-alt"></i> Router Login</h4>
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-								<span aria-hidden="true">&times;</span>
-							</button>
-						</div>
-						<div class="modal-body">
-							<div class="callout callout-danger bg-danger hidden" id="login_div">
-								<p><i class="icon fas fa-info-circle"></i>&nbsp;&nbsp;<span id="login_msg">Incorrect username/password!</span></p>
-							</div>
-							<h5 class="login-box-msg">Sign in to start your session</h5>
-							<div class="input-group mb-3">
-								<input id="username" type="text" class="form-control" placeholder="Username">
-								<div class="input-group-append">
-									<div class="input-group-text">
-										<span class="fas fa-user"></span>
-									</div>
-								</div>
-							</div>
-							<div class="input-group mb-3">
-								<input id="password" type="password" class="form-control" placeholder="Password">
-								<div class="input-group-append">
-									<div class="input-group-text">
-										<span class="fas fa-lock"></span>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="modal-footer justify-content-between">
-							<button type="button" class="btn btn-default"', $logged_in ? '><a href="/logout">Sign Out</a>' : ' data-dismiss="modal" id="login_close">Close', '</button>
-							<div class="col-4">
-								<button type="submit" class="btn btn-primary btn-block" id="login_submit">', $logged_in ? 'Unlock' : 'Sign In', '</button>
-							</div>
-						</div>
-					</div>
-					<!-- /.modal-content -->
-				</div>
-				<!-- /.modal-dialog -->
-			</div>
-			<!-- /.modal -->';
-
-	# Display a box indicating that the router doesn't have persistent storage:
-	if (false && $logged_in && !empty($_SESSION['critical_alerts']))
-	{
-		echo '
-			<div class="alert alert-danger alert-dismissible">
-				<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>';
-		if (in_array("Temp", $_SESSION['critical_alerts']))
-			echo '
-				<h5><i class="icon fas fa-exclamation-triangle"></i> This router does not have persistent storage.  Go <a href="#">here</a> to fix this issue!</h5>';
-		if (in_array("Default", $_SESSION['critical_alerts']))
-			echo '
-				<h5><i class="icon fas fa-exclamation-triangle"></i> This router has the default passwords installed.  Go <a href="#">here</a> to fix this issue!</h5>';
-		echo '
-			</div>';
-	}
 }
 
 ################################################################################################################

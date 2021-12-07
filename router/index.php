@@ -12,16 +12,21 @@ $include_js = $include_js == 'site-ajax' ? '' : $include_js;
 
 # Decide whether the user is logged in or not:
 $logged_in = isset($_SESSION['login_valid_until']) && $_SESSION['login_valid_until'] >= time();
-$logged_in = true;
+#$logged_in = false;
 if ($_GET['action'] == 'logout')
 	unset($_SESSION['sid']);
 if (!$logged_in || $_GET['action'] == 'logout')
 	$logged_in = ($_SESSION['login_valid_until'] = 0) != 0;
 else
-	$_SESSION['login_valid_until'] = time() + 600;
+	$_SESSION['login_valid_until'] = time() + $_SESSION['login_expires'];
 
 # When not logged in, redirect all page requests to the home page:
-if (!$logged_in and $_GET['action'] != 'home')
+if (!$logged_in && $_GET['action'] != 'login')
+{
+	header('Location: http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/login', true, 301);
+	die();
+}
+else if ($logged_in && $_GET['action'] == 'login')
 {
 	header('Location: http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/', true, 301);
 	die();
