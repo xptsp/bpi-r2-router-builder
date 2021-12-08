@@ -6,6 +6,13 @@ function dns_actions()
 	$reserve = $hostname = $leases = array();
 
 	###################################################################################################
+	# If the "misc" parameter was passed, it has something to do with the DHCP code in this file:
+	###################################################################################################
+	if (!isset($_POST['misc']))
+		return;
+	$iface   = option('misc', '/^(' . implode("|", array_keys(get_network_adapters())) . ')$/');
+
+	###################################################################################################
 	# Parse the DNSMASQ configuration file for the specified interface:
 	###################################################################################################
 	foreach (explode("\n", @file_get_contents("/etc/dnsmasq.d/" . $iface . ".conf")) as $line)
@@ -106,7 +113,7 @@ function dns_actions()
 		$ip_addr = option_ip('ip_addr');
 		$mac_addr = option_mac('mac_addr');
 		$hostname = option('hostname', "/^([0-9a-zA-Z]|[0-9a-zA-Z][0-9a-zA-Z0-9\-]+)$/");
-		die( @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp ' . $_POST['action'] . ' ' . $_POST['iface'] . ' ' . $mac_addr . ' ' . $ip_addr . ' ' . $hostname) );
+		die( @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp ' . $_POST['action'] . ' ' . $iface . ' ' . $mac_addr . ' ' . $ip_addr . ' ' . $hostname) );
 	}
 	###################################################################################################
 	# ACTION: CHECK ==> Check to see if the IP and/or MAC have already been assigned.
@@ -130,5 +137,5 @@ function dns_actions()
 	###################################################################################################
 	# ACTION: Everything else ==> Let's just tell the user this page doesn't exist....
 	###################################################################################################
-	die("Unknown Action");
+	return;
 }

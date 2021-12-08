@@ -338,9 +338,8 @@ case $CMD in
 		# SET => Create or modify the DHCP for a specific interface:
 		elif [[ "$1" == "set" ]]; then
 			FILE=/etc/dnsmasq.d/${2}.conf
-			if [[ ! "$3" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then echo "ERROR: Invalid MAC address specified as 2nd param!"; exit 1; fi
-			if ! valid_ip $4; then echo "ERROR: Invalid IP Address specified as 3rd param!"; exit; fi
-			if ! valid_ip $5; then echo "ERROR: Invalid IP Address specified as 4th param!"; exit; fi
+			if [[ ! "$3" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then echo "ERROR: Invalid MAC address specified as 3rd param!"; exit 1; fi
+			if ! valid_ip $4; then echo "ERROR: Invalid IP Address specified as 4th param!"; exit; fi
 			if [[ ! "$5" =~ [0-9]+[m|h|d|w|] ]]; then echo "ERROR: Invalid time period specified as 5th param!"; exit; fi
 			if ! test -f ${FILE}; then
 				echo "interface=$2" > ${FILE}
@@ -364,9 +363,10 @@ case $CMD in
 		# RM => Remove the specified host from the DHCP configuration file:
 		elif [[ "$1" == "remove" ]]; then
 			FILE=/etc/dnsmasq.d/${2}.conf
+			echo $FILE; exit;
 			if ! test -f ${FILE}; then echo "ERROR: No DNSMASQ configuration found for adapter!"; exit; fi
-			if [[ ! "$3" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then echo "ERROR: Invalid MAC address specified as 2nd param!"; exit 1; fi
-			if ! valid_ip $4; then echo "ERROR: Invalid IP address specified as 3rd param!"; exit 1; fi
+			if [[ ! "$3" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then echo "ERROR: Invalid MAC address specified as 3rd param!"; exit 1; fi
+			if ! valid_ip $4; then echo "ERROR: Invalid IP address specified as 4th param!"; exit 1; fi
 			sed -i "/^dhcp-host=.*,${3},/d" ${FILE}
 			sed -i "/^dhcp-host=.*,${4},/d" ${FILE}
 			echo "OK"

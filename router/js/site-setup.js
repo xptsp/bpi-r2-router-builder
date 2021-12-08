@@ -177,7 +177,7 @@ function Wired_Submit()
 	postdata = {
 		'sid':        SID,
 		'iface':      iface_used,
-		'op_mode':    $("#op_mode option:selected").val(),
+		'action':     $("#op_mode option:selected").val(),
 		'ip_addr':    $("#ip_addr").val(),
 		'ip_mask':    $("#ip_mask").val(),
 		'use_dhcp':   $("#use_dhcp").is(":checked") ? 1 : 0,
@@ -240,7 +240,7 @@ function Wired_Refresh_Reservations()
 {
 	// Perform our AJAX request to refresh the reservations:
 	$("#reservations-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
-	$.post("/ajax/setup/dhcp", __postdata("reservations", iface_used), function(data) {
+	$.post("/setup/wired", __postdata("reservations", iface_used), function(data) {
 		$("#reservation-modal").modal("hide");
 		$("#reservations-table").html(data);
 		$(".dhcp_edit").click(function() {
@@ -261,7 +261,7 @@ function Wired_Reservation_Remove()
 	postdata = {
 		'sid':      SID,
 		'action':   'remove',
-		'iface':    iface_used,
+		'misc':     iface_used,
 		'hostname': line.find(".dhcp_host").html(),
 		'ip_addr':  line.find(".dhcp_ip_addr").html(),
 		'mac_addr': line.find(".dhcp_mac_addr").html(),
@@ -269,7 +269,7 @@ function Wired_Reservation_Remove()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to remove the IP reservation:
-	$.post("/ajax/setup/dhcp", postdata, function(data) {
+	$.post("/setup/wired", postdata, function(data) {
 		if (data.trim() == "OK")
 		{
 			Wired_Refresh_Reservations();
@@ -288,7 +288,7 @@ function Wired_Reservation_Add()
 	postdata = {
 		'sid':      SID,
 		'action':   'check',
-		'iface':    iface_used,
+		'misc':     iface_used,
 		'hostname': $("#dhcp_client_name").val(),
 		'ip_addr':  $("#dhcp_ip_addr").val(),
 		'mac_addr': $("#dhcp_mac_addr").val(),
@@ -304,7 +304,7 @@ function Wired_Reservation_Add()
 		return Wired_Error("No MAC address specified!");
 
 	// Perform our AJAX request to add the IP reservation:
-	$.post("/ajax/setup/dhcp", postdata, function(data) {
+	$.post("/setup/wired", postdata, function(data) {
 		if (data.trim() == "SAME")
 			Wired_Refresh_Reservations();
 		else if (data.trim() == "OK")
@@ -343,7 +343,7 @@ function Wired_Reservation_Confirmed()
 	postdata = {
 		'sid':      SID,
 		'action':   'add',
-		'iface':    iface_used,
+		'misc':     iface_used,
 		'hostname': $("#dhcp_client_name").val(),
 		'ip_addr':  $("#dhcp_ip_addr").val(),
 		'mac_addr': $("#dhcp_mac_addr").val(),
@@ -351,7 +351,7 @@ function Wired_Reservation_Confirmed()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to add the IP reservation:
-	$.post("/ajax/setup/dhcp", postdata, function(data) {
+	$.post("/setup/wired", postdata, function(data) {
 		if (data.trim() == "OK")
 			Wired_Refresh_Reservations();
 		else

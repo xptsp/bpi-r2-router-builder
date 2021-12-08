@@ -13,13 +13,12 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
 		die('RELOAD');
-	if ($_POST['action'] != "submit")
-		die("Invalid action");
 
 	#################################################################################################
 	# Validate the input sent to this script (we paranoid... for the right reasons, of course...):
 	#################################################################################################
-	$op_mode = option('op_mode', '/^(dhcp|static|bridged)$/');
+	$action  = option('action', '/^(dhcp|static|bridged|reservations|clients|remove|check|add)$/');
+	dns_actions();
 	$iface   = option('iface', '/^(' . implode("|", array_keys(get_network_adapters())) . ')$/');
 	$ip_addr = option_ip('ip_addr');
 	$ip_mask = option_ip('ip_mask');
@@ -83,10 +82,10 @@ if (isset($_POST['action']))
 	#################################################################################################
 	$text =
 	'auto ' . $iface . '
-	iface ' . $iface . ' inet ' . ($_POST['op_mode'] == 'dhcp' ? 'dhcp' : 'static') . ($_POST['op_mode'] != 'dhcp' ? '
+	iface ' . $iface . ' inet ' . ($_POST['action'] == 'dhcp' ? 'dhcp' : 'static') . ($_POST['action'] != 'dhcp' ? '
 		address ' . $ip_addr . '
 		netmask ' . $ip_mask . (!empty($_POST['gateway']) && $_POST['gateway'] != "0.0.0.0" ? '
-		gateway ' . $_POST['ip_gate'] : '') : '') . ($_POST['op_mode'] == 'bridged' && count($bridged) > 1 ? '
+		gateway ' . $_POST['ip_gate'] : '') : '') . ($_POST['action'] == 'bridged' && count($bridged) > 1 ? '
 		bridge_ports ' . implode(" ", $bridged) . '
 		bridge_fd 5
 		bridge_stp no' : '') . (in_array($iface, array('wan', 'br0')) ? '
@@ -194,7 +193,7 @@ echo '
 				<label for="iface_mode">Mode of Operation:</label>
 			</div>
 			<div class="col-6">
-				<select id="op_mode" class="form-control"', $netcfg['op_mode'] == 'bridged' ? ' disabled="disabled"' : '', '>
+				<select id="action" class="form-control"', $netcfg['op_mode'] == 'bridged' ? ' disabled="disabled"' : '', '>
 					<option value="dhcp"', $netcfg['op_mode'] == 'dhcp' ? ' selected="selected"' : '', '>Automatic Configuration - DHCP</option>
 					<option value="static"', $netcfg['op_mode'] == 'static' ? ' selected="selected"' : '', '>Static IP Address</option>';
 if (count($tmp) > 1)
