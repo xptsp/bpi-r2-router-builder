@@ -36,6 +36,7 @@ if (isset($_POST['action']))
 ###################################################################################################
 # Domain Name (DNS) Servers
 ###################################################################################################
+site_menu();
 $isp = $current = array();
 foreach (@file("/etc/dnsmasq.d/01-pihole.conf") as $line)
 {
@@ -50,7 +51,7 @@ foreach (@file("/etc/resolv.conf") as $line)
 		$isp[ count($isp) ] = $regex[1];
 }
 $use_isp = (empty($isp[0]) || $primary == $isp[0]) && (empty($isp[1]) ? true : ($secondary == $isp[1]));
-$cloudflared_mode = (empty($isp[0]) || str_replace($primary, "127.0.0.1#505", ""));
+$cloudflared_mode = preg_match('/^127\.0\.0\.1\#505(\d)$/', $primary, $regex) ? $regex[1] : 'N';
 $use_unbound = (empty($isp[0]) || $primary == "127.0.0.1#5335");
 $providers = array(
 	array('Google', '8.8.8.8', '8.8.4.4'),
@@ -78,7 +79,6 @@ $use_custom = !($use_isp || $cloudflared_mode != "N" || $use_unbound || $use_pro
 ###################################################################################################
 # Output the DNS Settings page:
 ###################################################################################################
-site_menu();
 echo '
 <div class="card card-primary">
 	<div class="card-header">
@@ -118,7 +118,7 @@ foreach ($providers as $provider)
 						<option value="', $provider[1], '/', $provider[2], '"', ($primary == $provider[1] && $secondary == $provider[2]) ? ' selected="selected"' : '', '>', $provider[0], '</option>';
 echo '
 					</select>
-					<select class="provider form-control', $cloudflared_mode != "N" ? ' hidden' : '', '" id="select_cloudflared">
+					<select class="provider form-control', $cloudflared_mode == "N" ? ' hidden' : '', '" id="select_cloudflared">
 						<option value="127.0.0.1#5051"', $cloudflared_mode == "1" ? ' selected="selected"' : '', '>Cloudflare</option>
 						<option value="127.0.0.1#5052"', $cloudflared_mode == "2" ? ' selected="selected"' : '', '>Cloudflare - Malware Filter</option>
 						<option value="127.0.0.1#5053"', $cloudflared_mode == "3" ? ' selected="selected"' : '', '>Cloudflare - Malware and Adult Filter</option>

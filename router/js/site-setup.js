@@ -64,7 +64,7 @@ function DNS_Submit()
 		'sid':             SID,
 		'action':          'submit',
 		'use_isp':         ($("[name=dns_server_opt]:checked").val()) == "isp" ? 'Y' : 'N',
-		'use_cloudflared': ($("[name=dns_server_opt]:checked").val()) != "cloudflared" ? 'N' : 'Y',
+		'use_cloudflared': ($("[name=dns_server_opt]:checked").val()) == "cloudflared" ? $('#select_cloudflared').find("option:selected").val().slice(-1) : 'N',
 		'use_unbound':     ($("[name=dns_server_opt]:checked").val()) == "unbound" ? 'Y' : 'N',
 		'dns1':            $("#dns1").val() + (($("#dns_port1").val() != "53" && $("#dns_port1").val() != "") ? "#" + $("#dns_port1").val() : ''),
 		'dns2':            $("#dns2").val() + (($("#dns_port2").val() != "53" && $("#dns_port2").val() != "") ? "#" + $("#dns_port2").val() : ''),

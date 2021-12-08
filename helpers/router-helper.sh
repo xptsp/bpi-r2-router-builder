@@ -466,13 +466,13 @@ case $CMD in
 			IP=(${1/"#"/" "})
 			if ! valid_ip ${IP[0]}; then echo "ERROR: Invalid IP Address specified as 1st param!"; exit; fi
 			if [[ ! -z "${IP[1]}" ]]; then if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 1st param!"; exit; fi; fi
-			DNS1=${DNS1[0]}$([[ "${DNS1[1]}" != "" ]] && echo "#${DNS1[1]}")
+			DNS1=${IP[0]}$([[ ! -z "${IP[1]}" ]] && echo "#${IP[1]}")
 
 			IP=(${2/"#"/" "})
 			if [[ ! -z "${IP[@]}" ]]; then
 				if ! valid_ip ${IP[0]}; then echo "ERROR: Invalid IP Address specified as 2nd param!"; exit; fi
-				if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 2nd param!"; exit; fi; 
-				DNS2=${DNS2[0]}$([[ "${DNS2[1]}" != "" ]] && echo "#${DNS2[1]}")
+				if [[ ! -z "${IP[1]}" ]]; then if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 2nd param!"; exit; fi; fi
+				DNS2=${IP[0]}$([[ ! -z "${IP[1]}" ]] && echo "#${IP[1]}")
 			fi
 		fi
 
