@@ -54,5 +54,5 @@ echo '
 	</div>
 	<!-- /.card-body -->
 </div>';
-apply_changes_modal();
+apply_changes_modal('Please wait while the firewall service is restarted....', true);
 site_footer('Init_Firewall();');

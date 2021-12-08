@@ -295,7 +295,7 @@ function site_footer($init_str = '')
 #######################################################################################################
 # Function showing "Reboot Router" confirmation modal:
 #######################################################################################################
-function site_reboot_modal()
+function reboot_modal()
 {
 echo '
 <div class="modal fade" id="reboot-modal" data-backdrop="static" style="display: none; z-index: 9000;" aria-hidden="true">
@@ -325,7 +325,7 @@ echo '
 #######################################################################################################
 # Function showing the "Apply Changes" modal:
 #######################################################################################################
-function apply_changes_modal($text = 'Please wait while the firewall service is restarted....')
+function apply_changes_modal($text = 'Please wait while the firewall service is restarted....', $close_hidden = false)
 {
 	echo '
 <div class="modal fade" id="apply-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
@@ -340,7 +340,7 @@ function apply_changes_modal($text = 'Please wait while the firewall service is 
 			<div class="modal-body">
 				<p id="apply_msg">', $text, '</p>
 			</div>
-			<div class="modal-footer justify-content-between alert_control">
+			<div class="modal-footer justify-content-between alert_control', $close_hidden ? ' hidden' : '', '">
 				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>
 			</div>
 		</div>

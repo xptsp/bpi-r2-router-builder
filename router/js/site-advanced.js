@@ -30,13 +30,14 @@ function FireWall_Apply()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to change the WAN settings:
-	Add_Overlay("firewall-div");
+	$("#apply-modal").modal("show");
 	$.post("/advanced/firewall", postdata, function(data) {
-		Del_Overlay("firewall-div");
 		data = data.trim();
 		if (data == "RELOAD")
 			document.location.reload(true);
-		else if (data != "OK")
+		else if (data == "OK")
+			$("#apply-modal").modal("hide");
+		else
 		{
 			$("#apply-modal").modal("show");
 			$("#apply_msg").html(data);
@@ -113,13 +114,14 @@ function DMZ_Apply()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to change the WAN settings:
-	Add_Overlay("dmz_div");
+	$("#apply-modal").modal("show");
 	$.post("/advanced/dmz", postdata, function(data) {
-		Del_Overlay("dmz_div");
 		data = data.trim();
 		if (data == "RELOAD")
 			document.location.reload(true);
-		else if (data != "OK")
+		else if (data == "OK")
+			$("#apply-modal").modal("hide");
+		else
 		{
 			$("#apply-modal").modal("show");
 			$("#apply_msg").html(data);

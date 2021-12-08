@@ -103,12 +103,11 @@ echo '
 				</td>
 			</tr>
 		</table>
-		<hr />
 	</div>
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-success center_50" id="apply_changes">Apply Changes</button></a>
 	</div>
 	<!-- /.card-body -->
 </div>';
-apply_changes_modal();
+apply_changes_modal('Please wait while the firewall service is restarted....', true);
 site_footer('Init_DMZ();');

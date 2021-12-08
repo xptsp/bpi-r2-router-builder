@@ -420,6 +420,6 @@ echo '
 	</div>
 	<!-- /.modal-dialog -->
 </div>';
-site_reboot_modal();
+reboot_modal();
 
 site_footer('Init_Stats();');
