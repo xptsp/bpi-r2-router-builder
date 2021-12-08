@@ -189,6 +189,7 @@ case $CMD in
 		#####################################################################
 		# CHECK => Checks to make sure supplied username/password combo is valid:
 		if [[ "$1" == "check" ]]; then
+			[[ "${2}" == "$(getent shadow $(cat /etc/passwd | grep ":1000:" | cut -d: -f1) | sha512sum | awk '{print $1}')" ]] && echo "OK" && exit
 			[[ "${2}" != "$($0 login webui)" ]] && echo "No match" && exit 1
 			[[ -z "${3}" ]] && echo "No match" && exit 1
 			pwd=$(getent shadow ${2} | cut -d: -f2)
@@ -214,6 +215,10 @@ case $CMD in
 			[[ "$($0 login check $($0 login webui) bananapi)" == "Match" ]] && echo "Default"
 			[[ "$($0 login check root bananapi)" == "Match" ]] && echo "Root"
 			mount | grep -e "[emergency|tmp]-root-rw on /rw " >& /dev/null && echo "Temp"
+		#####################################################################
+		# COOKIE => Returns hash of shadow password
+		elif [[ "$1" == "cookie" ]]; then
+			getent shadow $(cat /etc/passwd | grep ":1000:" | cut -d: -f1) | sha512sum | awk '{print $1}'
 		fi
 		;;
 
