@@ -38,10 +38,7 @@ function FireWall_Apply()
 		else if (data == "OK")
 			$("#apply-modal").modal("hide");
 		else
-		{
-			$("#apply-modal").modal("show");
 			$("#apply_msg").html(data);
-		}
 	}).fail(function() {
 		Del_Overlay("firewall-div");
 		$("#apply_msg").html("AJAX call failed!");
@@ -122,10 +119,7 @@ function DMZ_Apply()
 		else if (data == "OK")
 			$("#apply-modal").modal("hide");
 		else
-		{
-			$("#apply-modal").modal("show");
 			$("#apply_msg").html(data);
-		}
 	}).fail(function() {
 		Del_Overlay("dmz_div");
 		$("#apply_msg").html("AJAX call failed!");
