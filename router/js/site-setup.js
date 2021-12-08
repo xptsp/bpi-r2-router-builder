@@ -500,12 +500,14 @@ function Settings_Apply()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to remove the IP reservation:
+	Add_Overlay("settings-div");
 	$.post("/setup/settings", postdata, function(data) {
+		Del_Overlay("settings-div");
 		if (data.trim() == "OK")
 			document.location.reload(true);
 		else
 			Wired_Error(data);
 	}).fail(function() {
-		Wired_Error("AJAX call failed!");
+		alert("AJAX call failed!");
 	});
 }

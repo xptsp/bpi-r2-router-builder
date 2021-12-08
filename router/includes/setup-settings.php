@@ -52,7 +52,7 @@ if (isset($_POST['action']))
 site_menu();
 #echo '<pre>'; print_r($current); exit;
 echo '
-<div class="card card-primary">
+<div class="card card-primary" id="settings-div">
 	<div class="card-header">
 		<h3 class="card-title">Router Settings</h3>
 	</div>';
