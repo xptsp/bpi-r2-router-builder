@@ -13,18 +13,15 @@ $include_js = $include_js == 'site-ajax' ? '' : $include_js;
 # Decide whether the user is logged in or not:
 $logged_in = isset($_SESSION['login_valid_until']) && $_SESSION['login_valid_until'] >= time();
 #$logged_in = false;
-if (!$logged_in || $_GET['action'] == 'logout')
+if ($_GET['action'] == 'logout')
 {
-	unset($_SESSION['sid']);
 	$logged_in = ($_SESSION['login_valid_until'] = 0) != 0;
 	setcookie("remember_me", false, time() - 3600);
 	unset($_COOKIE["remember_me"]);
 }
-else
-	$_SESSION['login_valid_until'] = time() + 600;
 
 # If we are not logged and not using the login page, check to see if the "remember_me" cookie is valid:
-if ((!$logged_in || $_GET['action'] != 'login') && isset($_COOKIE["remember_me"]))
+else if (!$logged_in && isset($_COOKIE["remember_me"]))
 {
 	$hash = @trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh login cookie"));
 	if ($logged_in = ($_COOKIE["remember_me"] == $hash))
@@ -33,6 +30,12 @@ if ((!$logged_in || $_GET['action'] != 'login') && isset($_COOKIE["remember_me"]
 		setcookie("remember_me", $_COOKIE["remember_me"] = $hash, time() + 60*60*24*365);			
 	}
 }
+
+# Remove the session ID if not logged in.  Otherwise, extend the session time for another 10 minutes:
+if (!$logged_in)
+	unset($_SESSION['sid']);
+else
+	$_SESSION['login_valid_until'] = time() + 600;
 
 # If we are not logged it, redirect all page requests to the "Login" page:
 if (!$logged_in && $_GET['action'] != 'login')
