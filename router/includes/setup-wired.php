@@ -60,14 +60,13 @@ if (isset($_POST['action']))
 	$text = '
 allow-hotplug {iface}
 auto {iface}
-iface {iface} inet manual
-';
+iface {iface} inet manual';
 	if (count($bridged) > 1)
 	{
 		foreach ($bridged as $adapter)
 		{
 			$handle = fopen("/tmp/" . $adapter, "w");
-			fwrite($handle, str_replace('{iface}', $adapter, $text));
+			fwrite($handle, str_replace('{iface}', $adapter, trim($text)) . "\n");
 			fclose($handle);
 			$tmp = trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface move " . $adapter));
 			if ($tmp != "")
@@ -91,11 +90,10 @@ iface ' . $iface . ' inet ' . ($_POST['action'] == 'dhcp' ? 'dhcp' : 'static') .
     bridge_ports ' . implode(" ", $bridged) . '
     bridge_fd 5
     bridge_stp no' : '') . (in_array($iface, array('wan', 'br0')) ? '
-    post-up echo ' . ($iface == 'wan' ? '6' : '8') . ' > /sys/class/net/wan/queues/rx-0/rps_cpus' : '') . '
-';;
+    post-up echo ' . ($iface == 'wan' ? '6' : '8') . ' > /sys/class/net/wan/queues/rx-0/rps_cpus' : '');
 	#echo '<pre>'; echo $text; exit;
 	$handle = fopen("/tmp/" . $iface, "w");
-	fwrite($handle, $text);
+	fwrite($handle, trim($text) . "\n");
 	fclose($handle);
 	$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface move " . $iface);
 	if ($tmp != "")
@@ -104,13 +102,12 @@ iface ' . $iface . ' inet ' . ($_POST['action'] == 'dhcp' ? 'dhcp' : 'static') .
 	#################################################################################################
 	# Output the DNSMASQ configuration file related to the network adapter:
 	#################################################################################################
-	if ($_POST['use_dhcp'] == "N")
+	if ($_POST['action'] == 'dhcp' || $_POST['use_dhcp'] == "N")
 		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp del " . $_POST['iface']);
 	else
 		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp set " . $_POST['iface'] . " " . $ip_addr . " " . $dhcp_start . " " . $dhcp_end . ' ' . $dhcp_lease);
 	if ($tmp != "")
 		die($tmp);
-	die("Got Here");
 
 	#################################################################################################
 	# Restarting networking service:
@@ -118,7 +115,7 @@ iface ' . $iface . ' inet ' . ($_POST['action'] == 'dhcp' ? 'dhcp' : 'static') .
 	if ($reboot == "false")
 	{
 		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart networking");
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart dnsmasq");
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole restartdns");
 		die("OK");
 	}
 	else
