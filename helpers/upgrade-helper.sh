@@ -156,18 +156,12 @@ if [[ ! -z "${RW[5]}" ]]; then
 	# Reload the system daemons and enable any services deemed necessary by the script:
 	#####################################################################################
 	systemctl daemon-reload
+	[[ "${RW[5]}" == *ro,* ]] && NOW="--now" && mount -o remount,rw /ro
 	if ! systemctl is-enabled cloudflared@1 >& /dev/null; then
-		systemctl enable --now cloudflared@1
-		systemctl enable --now cloudflared@2
-		systemctl enable --now cloudflared@3
+		systemctl enable ${NOW} cloudflared@1
+		systemctl enable ${NOW} cloudflared@2
+		systemctl enable ${NOW} cloudflared@3
 	fi
-
-	#####################################################################################
-	# Copy the toolkit into the read-only partition and perform upgrade:
-	#####################################################################################
-	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /ro
-	rm -rf /ro/opt/bpi-r2-router-builder
-	cp -R /opt/bpi-r2-router-builder /ro/opt/bpi-r2-router-builder
 	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /ro
 fi

@@ -14,37 +14,24 @@ FORCE_COPY=false
 SKIP_COPY=false
 
 #####################################################################################
-# Parse command-line parameters:
-#####################################################################################
-for i in "$@"; do
-	case $i in
-		-f|--force-copy)
-			FORCE_COPY=true
-			;;
-	esac
-done
-
-#####################################################################################
-# Assuming the GIT command is available upon script execution, force a complete
-# reset of the files and webui parts of the repository and pull any updated files:
-#####################################################################################
-GIT=($(whereis git | cut -d":" -f 2))
-if [[ ! -z "${GIT[@]}" && -d $(dirname $0)/.git && "${FORCE_COPY}" == "false" ]]; then
-	rm -rf router/*
-	rm -rf files/*
-	git checkout -- .
-	git reset --hard
-	git pull
-	chown pi:pi -R router
-fi
-
-#####################################################################################
 # Prepare for logging files that have been linked:
 #####################################################################################
 cd $(dirname $0)
 touch ${LOLD}
 test -f ${LORG} && cp ${LORG} ${LOLD}
 touch ${LNEW}
+
+#####################################################################################
+# Assuming the GIT command is available upon script execution, force a complete
+# reset of the files and webui parts of the repository and pull any updated files:
+#####################################################################################
+GIT=($(whereis git | cut -d":" -f 2))
+if [[ ! -z "${GIT[@]}" && -d $(dirname $0)/.git ]]; then
+	git checkout -- .
+	git reset --hard
+	git pull
+	chown pi:pi -R router
+fi
 
 #####################################################################################
 # Copy files to the boot partition ONLY IF MOUNTED!
