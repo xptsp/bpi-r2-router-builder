@@ -33,13 +33,10 @@ if (isset($_POST['action']))
 			$result = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check ' . $username . ' ' . $oldPass));
 			if ($result == "Match")
 			{
-				if (empty($newPass))
-					$_SESSION['login_valid_until'] = time() + $_SESSION['login_expires'];
-				else
-				{
-					$result = @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login passwd ' . $newPass . ' 2>&1');
-					$result = strpos($result, "password updated successfully") > 0 ? 'Successful' : 'Failed';
-				}
+				$result = @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login passwd ' . $newPass . ' 2>&1');
+				$result = strpos($result, "password updated successfully") > 0 ? 'Successful' : 'Failed';
+				if ($result == "Successful" && isset($_COOKIE['remember_me']))
+					setcookie("remember_me", @trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh login cookie")), time() + 60*60*24*365 );
 			}
 		}
 		die($result);

@@ -90,10 +90,7 @@ else if ($_POST['action'] == 'submit')
 
 	// If "Remember Me" is checked, set a cookie with the hash of the hash of the password:
 	if (isset($_POST['remember']) && $_POST['remember'] == "Y")
-	{
-		$hash = @trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh login cookie"));
-		setcookie("remember_me", $hash, time() + 60*60*24*365 );
-	}
+		setcookie("remember_me", @trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh login cookie")), time() + 60*60*24*365 );
 
 	// Set "login_valid_until" session variable, then return "OK" to the caller:
 	$_SESSION['login_valid_until'] = time() + 600;

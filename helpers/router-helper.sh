@@ -363,7 +363,6 @@ case $CMD in
 		# RM => Remove the specified host from the DHCP configuration file:
 		elif [[ "$1" == "remove" ]]; then
 			FILE=/etc/dnsmasq.d/${2}.conf
-			echo $FILE; exit;
 			if ! test -f ${FILE}; then echo "ERROR: No DNSMASQ configuration found for adapter!"; exit; fi
 			if [[ ! "$3" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then echo "ERROR: Invalid MAC address specified as 3rd param!"; exit 1; fi
 			if ! valid_ip $4; then echo "ERROR: Invalid IP address specified as 4th param!"; exit 1; fi
