@@ -491,7 +491,7 @@ function Settings_Apply()
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':      SID,
-		'action':   'submit',
+		'action':   'set',
 		'hostname': $("#hostname").val(),
 		'timezone': $("#timezone").val(),
 		'locale':	$("#locale").val(),

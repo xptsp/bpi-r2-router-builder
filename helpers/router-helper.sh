@@ -233,7 +233,8 @@ case $CMD in
 		if [[ -z "$2" ]]; then echo "ERROR: No timezone specified!"; exit 1; fi
 		if [[ ! -f /usr/share/zoneinfo/$2 ]]; then echo "ERROR: Invalid timezone specified!"; exit 1; fi
 		if [[ -z "$3" ]]; then echo "ERROR: No locale specified!"; exit 1; fi
-		if [[ -z "$(cat /etc/locale.gen | grep "^$3 ")" ]]; then echo "ERROR: Invalid locale specified!"; exit 1; fi
+		LOC=${3/utf8/UTF-8}
+		if [[ -z "$(cat /etc/locale.gen | grep -i "^$LOC ")" ]]; then echo "ERROR: Invalid locale specified!"; exit 1; fi
 
 		# Set the new hostname:
 		OLD_HOST=$(hostname)
@@ -248,8 +249,8 @@ case $CMD in
 		timedatectl set-timezone $2
 
 		# Set the new OS locale:
-		echo "LANG=$3" > /etc/default/locale
-		localectl set-locale LANG=$3
+		echo "LANG=${LOC}" > /etc/default/locale
+		localectl set-locale LANG=${LOC}
 		echo "OK"
 		;;
 
