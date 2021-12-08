@@ -76,18 +76,18 @@ echo '
 				<div class="col-4">&nbsp;</div>
 				<div class="col-2">
 					<input type="radio" value="range" id="src_range"', $src_type == 'range' ? ' checked="checked"' : '', ' name="src_type">
-					<label for="src_spec">IP Range</label>
+					<label for="src_range">IP Range</label>
 				</div>				
 				<div class="col-6">
-					<label for="src_specific"><input id="range_from" type="text" value="', isset($config['dmz_range_from']) ? $config['dmz_range_from'] : $default, '"', $src_type == "range" ? '' : 'disabled="disabled"', ' class="ip_address form-control" data-inputmask="\'alias\': \'ip\'" data-mask></label> to
-					<label for="src_specific"><input id="range_to" type="text" value="', isset($config['dmz_range_to']) ? $config['dmz_range_to'] : $octet, '"', $src_type == "range" ? '' : 'disabled="disabled"', ' class="form-control" maxlength="3" style="width: 50px" /></label>
+					<label for="src_range"><input id="range_from" type="text" value="', isset($config['dmz_range_from']) ? $config['dmz_range_from'] : $default, '"', $src_type == "range" ? '' : 'disabled="disabled"', ' class="ip_address form-control" data-inputmask="\'alias\': \'ip\'" data-mask></label> to
+					<label for="src_range"><input id="range_to" type="text" value="', isset($config['dmz_range_to']) ? $config['dmz_range_to'] : $octet, '"', $src_type == "range" ? '' : 'disabled="disabled"', ' class="form-control" maxlength="3" style="width: 50px" /></label>
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-4">&nbsp;</div>
 				<div class="col-2">
 					<input type="radio" value="mask" id="src_mask" name="src_type"', $src_type == 'mask' ? ' checked="checked"' : '', '>
-					<label for="src_spec">IP Mask</label>
+					<label for="src_mask">IP Mask</label>
 				</div>				
 				<div class="col-6">
 					<label for="src_mask"><input id="mask_ip" type="text" value="', isset($config['dmz_mask_ip']) ? $config['dmz_mask_ip'] : $default, '"', $src_type == "mask" ? '' : 'disabled="disabled"', ' class="ip_address form-control" data-inputmask="\'alias\': \'ip\'" data-mask></label>/<label for="src_mask"><input type="text" value="', !empty($options['dmz_mask_bits']) ? $options['dmz_mask_bits'] : 24, '"', $src_type == "mask" ? '' : 'disabled="disabled"', ' id="mask_bits" maxlength="2" style="max-width: 50px" class="form-control" /></label>

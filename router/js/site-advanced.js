@@ -30,6 +30,7 @@ function FireWall_Apply()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to change the WAN settings:
+	$("#apply_msg").html( $("#apply_default").html() );
 	$("#apply-modal").modal("show");
 	$.post("/advanced/firewall", postdata, function(data) {
 		data = data.trim();
@@ -111,6 +112,7 @@ function DMZ_Apply()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to change the WAN settings:
+	$("#apply_msg").html( $("#apply_default").html() );
 	$("#apply-modal").modal("show");
 	$.post("/advanced/dmz", postdata, function(data) {
 		data = data.trim();
