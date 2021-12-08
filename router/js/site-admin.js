@@ -417,4 +417,25 @@ function Restore_Confirm()
 function Init_Management()
 {
 	$(".checkbox").bootstrapSwitch();
+	$("#apply_changes").click(Management_Apply);
+}
+
+function Management_Apply()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':               SID,
+		'action':            'submit',
+		'allow_local_http':  $("#allow_local_http").prop("checked") ? "Y" : "N",
+		'allow_local_https': $("#allow_local_https").prop("checked") ? "Y" : "N",
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to change the WAN settings:
+	$.post("/admin/management", postdata, function(data) {
+		alert(data);
+	}).fail(function() {
+		$("#apply_msg").html("AJAX call failed!");
+		$(".alert_control").removeClass("hidden");
+	});
 }

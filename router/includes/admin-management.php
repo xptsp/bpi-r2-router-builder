@@ -7,6 +7,13 @@ if (isset($_POST['action']))
 	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
 		die('RELOAD');
 
+	if ($_POST['action'] == 'submit')
+	{
+		$cmd = "/opt/bpi-r2-router-builder/helpers/router-helper.sh ";
+		$cmd .= ' http-' . (option('allow_local_http') == "Y" ? 'on' : 'off');
+		$cmd .= ' https-' . (option('allow_local_https') == "Y" ? 'on' : 'off');
+		die(@shell_exec($cmd));
+	}
 	die("Invalid action");
 }
 

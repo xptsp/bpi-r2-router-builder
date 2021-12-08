@@ -1,6 +1,6 @@
 server {
-	listen 443;
-	listen [::]:443;
+	listen 443 ssl;
+	listen [::]:443 ssl;
 
 	root /opt/bpi-r2-router-builder/router;
 

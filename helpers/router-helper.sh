@@ -517,11 +517,11 @@ case $CMD in
 	###########################################################################
 	webui)
 		for action in $@; do
-			if [[ "$action" == "http-on" ]]; then
+			if [[ "${action}" == "http-on" ]]; then
 				! test -f /etc/nginx/sites-enabled/default && ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
 			elif [[ "${action}" == "http-off" ]]; then
 				test -f /etc/nginx/sites-enabled/default && rm /etc/nginx/sites-enabled/default
-			elif [[ "$action" == "https-on" ]]; then
+			elif [[ "${action}" == "https-on" ]]; then
 				if ! test -f /etc/ssl/certs/localhost.crt; then
 					(echo; echo; echo; echo; echo; echo; echo) | sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /etc/ssl/private/localhost.key -out /etc/ssl/certs/localhost.crt
 				fi
@@ -530,6 +530,7 @@ case $CMD in
 				test -f /etc/nginx/sites-enabled/default-https && rm /etc/nginx/sites-enabled/default-https
 			fi
 		done
+		systemctl restart nginx
 		;;
 
 	###########################################################################
