@@ -339,9 +339,10 @@ case $CMD in
 		# SET => Create or modify the DHCP for a specific interface:
 		elif [[ "$1" == "set" ]]; then
 			FILE=/etc/dnsmasq.d/${2}.conf
-			if [[ ! "$3" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then echo "ERROR: Invalid MAC address specified as 3rd param!"; exit 1; fi
+			if ! valid_ip $3; then echo "ERROR: Invalid IP Address specified as 3rd param!"; exit; fi
 			if ! valid_ip $4; then echo "ERROR: Invalid IP Address specified as 4th param!"; exit; fi
-			if [[ ! "$5" =~ [0-9]+[m|h|d|w|] ]]; then echo "ERROR: Invalid time period specified as 5th param!"; exit; fi
+			if ! valid_ip $5; then echo "ERROR: Invalid IP Address specified as 5th param!"; exit; fi
+			if [[ ! "$6" =~ [0-9]+[m|h|d|w|] ]]; then echo "ERROR: Invalid time period specified as 6th param!"; exit; fi
 			if ! test -f ${FILE}; then
 				echo "interface=$2" > ${FILE}
 				echo "dhcp-range=${2},${4},${5},${6}" >> ${FILE}

@@ -1,7 +1,7 @@
 <?php
 require_once("admin.php");
 
-function dns_actions()
+function dhcp_actions()
 {
 	$reserve = $hostname = $leases = array();
 

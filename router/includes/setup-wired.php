@@ -18,7 +18,7 @@ if (isset($_POST['action']))
 	# Validate the input sent to this script (we paranoid... for the right reasons, of course...):
 	#################################################################################################
 	$action  = option('action', '/^(dhcp|static|bridged|reservations|clients|remove|check|add)$/');
-	dns_actions();
+	dhcp_actions();
 	$iface   = option('iface', '/^(' . implode("|", array_keys(get_network_adapters())) . ')$/');
 	$ip_addr = option_ip('ip_addr');
 	$ip_mask = option_ip('ip_mask');
@@ -53,13 +53,15 @@ if (isset($_POST['action']))
 	# Create the network configuration for each of the bound network adapters:
 	#################################################################################################
 	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface delete " . $iface);
+	$_POST['bridge'] = isset($_POST['bridge']) ? $_POST['bridge'] : '';
 	$bridged = array_diff( explode(" ", trim($_POST['bridge'])), array("undefined") );
 	if (empty($bridged))
 		die("[BRIDGE] ERROR: No interfaces specified in bridge configuration!");
-	$text =
-	'allow-hotplug {iface}
-	auto {iface}
-	iface {iface} inet manual';
+	$text = '
+allow-hotplug {iface}
+auto {iface}
+iface {iface} inet manual
+';
 	if (count($bridged) > 1)
 	{
 		foreach ($bridged as $adapter)
@@ -80,16 +82,17 @@ if (isset($_POST['action']))
 	#################################################################################################
 	# Output the network adapter configuration to the "/tmp" directory:
 	#################################################################################################
-	$text =
-	'auto ' . $iface . '
-	iface ' . $iface . ' inet ' . ($_POST['action'] == 'dhcp' ? 'dhcp' : 'static') . ($_POST['action'] != 'dhcp' ? '
-		address ' . $ip_addr . '
-		netmask ' . $ip_mask . (!empty($_POST['gateway']) && $_POST['gateway'] != "0.0.0.0" ? '
-		gateway ' . $_POST['ip_gate'] : '') : '') . ($_POST['action'] == 'bridged' && count($bridged) > 1 ? '
-		bridge_ports ' . implode(" ", $bridged) . '
-		bridge_fd 5
-		bridge_stp no' : '') . (in_array($iface, array('wan', 'br0')) ? '
-		post-up echo ' . ($iface == 'wan' ? '6' : '8') . ' > /sys/class/net/wan/queues/rx-0/rps_cpus' : '');
+	$text = '
+auto ' . $iface . '
+iface ' . $iface . ' inet ' . ($_POST['action'] == 'dhcp' ? 'dhcp' : 'static') . ($_POST['action'] != 'dhcp' ? '
+    address ' . $ip_addr . '
+    netmask ' . $ip_mask . (!empty($_POST['gateway']) && $_POST['gateway'] != "0.0.0.0" ? '
+    gateway ' . $_POST['ip_gate'] : '') : '') . ($_POST['action'] == 'bridged' && count($bridged) > 1 ? '
+    bridge_ports ' . implode(" ", $bridged) . '
+    bridge_fd 5
+    bridge_stp no' : '') . (in_array($iface, array('wan', 'br0')) ? '
+    post-up echo ' . ($iface == 'wan' ? '6' : '8') . ' > /sys/class/net/wan/queues/rx-0/rps_cpus' : '') . '
+';;
 	#echo '<pre>'; echo $text; exit;
 	$handle = fopen("/tmp/" . $iface, "w");
 	fwrite($handle, $text);
@@ -101,12 +104,13 @@ if (isset($_POST['action']))
 	#################################################################################################
 	# Output the DNSMASQ configuration file related to the network adapter:
 	#################################################################################################
-	if (!empty($_POST['use_dhcp']))
+	if ($_POST['use_dhcp'] == "N")
 		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp del " . $_POST['iface']);
 	else
-		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp set " . $_POST['iface'] . " " . $ip_addr . " " . $dhcp_start . " " . $dhcp_end . (!empty($dhcp_lease) ? " " . $dhcp_lease : ''));
+		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp set " . $_POST['iface'] . " " . $ip_addr . " " . $dhcp_start . " " . $dhcp_end . ' ' . $dhcp_lease);
 	if ($tmp != "")
 		die($tmp);
+	die("Got Here");
 
 	#################################################################################################
 	# Restarting networking service:
@@ -193,7 +197,7 @@ echo '
 				<label for="iface_mode">Mode of Operation:</label>
 			</div>
 			<div class="col-6">
-				<select id="action" class="form-control"', $netcfg['op_mode'] == 'bridged' ? ' disabled="disabled"' : '', '>
+				<select id="op_mode" class="form-control"', $netcfg['op_mode'] == 'bridged' ? ' disabled="disabled"' : '', '>
 					<option value="dhcp"', $netcfg['op_mode'] == 'dhcp' ? ' selected="selected"' : '', '>Automatic Configuration - DHCP</option>
 					<option value="static"', $netcfg['op_mode'] == 'static' ? ' selected="selected"' : '', '>Static IP Address</option>';
 if (count($tmp) > 1)
@@ -379,29 +383,6 @@ echo '
 	</div>';
 
 ###################################################################################################
-# Apply Changes modal:
-###################################################################################################
-echo '
-<div class="modal fade" id="apply-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header bg-primary">
-				<h4 class="modal-title">Applying Changes</h4>
-				<a href="javascript:void(0);"><button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button></a>
-			</div>
-			<div class="modal-body">
-				<p id="apply_msg">Please wait while the networking service is restarted....</p>
-			</div>
-			<div class="modal-footer justify-content-between hidden alert_control">
-				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>
-			</div>
-		</div>
-	</div>
-</div>';
-
-###################################################################################################
 # IP Reservation Confirmation modal:
 ###################################################################################################
 echo '
@@ -488,5 +469,6 @@ echo '
 ###################################################################################################
 # Close page
 ###################################################################################################
+apply_changes_modal('Please wait while the networking service is restarted....', true);
 reboot_modal();
 site_footer('Init_Wired("' . $iface . '");');

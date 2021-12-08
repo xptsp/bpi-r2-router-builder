@@ -75,7 +75,7 @@ function DNS_Submit()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to change the WAN settings:
-	$("#apply_msg").html("Please wait while the Pi-Hole FTL service is restarted....");
+	$("#apply_msg").html( $("#apply_default").html() );
 	$(".alert_control").addClass("hidden");
 	$("#apply-modal").modal("show");
 	$.post("/setup/dns", postdata, function(data) {
@@ -105,12 +105,12 @@ function Init_Wired(iface)
 	$("#op_mode").change(function() {
 		if ($(this).find("option:selected").val() == 'dhcp')
 		{
-			$("#static_ip_div").addClass("hidden");
+			$("#static_ip_div").slideUp(400);
 			$("#add_reservation_href").addClass("hidden");
 		}
 		else
 		{
-			$("#static_ip_div").removeClass("hidden");
+			$("#static_ip_div").slideDown(400);
 			if ($("#use_dhcp").is(":checked"))
 				$("#add_reservation_href").removeClass("hidden");
 			else
@@ -120,12 +120,12 @@ function Init_Wired(iface)
 	$('#use_dhcp').click(function() {
 		if ($(this).is(":checked")) {
 			$(".dhcp").removeAttr("disabled");
-			$(".dhcp_div").removeClass("hidden");
+			$(".dhcp_div").slideDown(400);
 			$("#add_reservation_href").removeClass("hidden");
 			$("#ip_addr").val( $("#ip_addr").val() );
 		} else {
 			$(".dhcp").attr("disabled", "disabled");
-			$(".dhcp_div").addClass("hidden");
+			$(".dhcp_div").slideUp(400);
 			$("#add_reservation_href").addClass("hidden");
 		}
 	});
@@ -195,7 +195,7 @@ function Wired_Submit()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Notify the user what we are doing:
-	$("#apply_msg").html("Please wait while the networking service is restarted...");
+	$("#apply_msg").html( $("#apply_default").html() );
 	$(".alert_control").addClass("hidden");
 	if (reboot_suggested)
 		$("#reboot-modal").modal("show");

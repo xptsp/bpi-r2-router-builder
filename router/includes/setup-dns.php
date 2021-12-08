@@ -188,5 +188,5 @@ echo '
 ###################################################################################################
 # Close page
 ###################################################################################################
-apply_changes_modal("Please wait while the Pi-Hole FTL service is restarted....");
+apply_changes_modal("Please wait while the Pi-Hole FTL service is restarted....", true);
 site_footer('Init_DNS("' . (!empty($isp[0]) ? $isp[0] : '') . '", "' . (!empty($isp[1]) ? $isp[1] : '') . '");');
