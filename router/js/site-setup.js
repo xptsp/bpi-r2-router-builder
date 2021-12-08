@@ -385,7 +385,9 @@ function Init_Routing()
 
 function Routing_Refresh()
 {
+	Add_Overlay("routing-div");
 	$.post("/setup/routing", __postdata("show"), function(data) {
+		Del_Overlay("routing-div");
 		$("#routing-table").html(data);
 		$(".fa-trash-alt").click(Routing_Delete);
 	}).fail(function() {
@@ -409,7 +411,9 @@ function Routing_Delete()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to add the IP reservation:
+	Add_Overlay("routing-div");
 	$.post("/setup/settings", postdata, function(data) {
+		Del_Overlay("routing-div");
 		if (data.trim() == "OK")
 			Wired_Refresh_Reservations();
 		else
@@ -434,7 +438,9 @@ function Routing_Add()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to add the IP reservation:
+	Add_Overlay("routing-div");
 	$.post("/setup/settings", postdata, function(data) {
+		Del_Overlay("routing-div");
 		if (data.trim() == "OK")
 			Wired_Refresh_Reservations();
 		else

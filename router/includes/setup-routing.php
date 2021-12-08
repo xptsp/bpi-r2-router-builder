@@ -50,7 +50,7 @@ if (isset($_POST['action']))
 					'<td class="gate_addr">', $a[1], '</td>',
 					'<td class="metric">', $a[4], '</td>',
 					'<td class="iface">', $a[7], '</td>',
-					'<td>', strpos($routes[$a[7]], ip_range_cmd($a[0], $a[2], $a[1], $a[7], $a[4])) ? $delete : '', '</td>',
+					'<td>', strpos($routes[$a[7]], ip_range_cmd($a[0], $a[2], $a[1], $a[7], $a[4])) !== false ? $delete : '', '</td>',
 				'</tr>';
 		}
 		die();
@@ -112,7 +112,7 @@ echo '
 	<div class="card-header">
 		<h3 class="card-title">Network Routing</h3>
 	</div>
-	<div class="card-body">
+	<div class="card-body" id="routing-div">
 		<div class="alert alert-danger hidden" id="dhcp_error_box">
 			<a href="javascript:void(0);"><button type="button" class="close" id="dhcp_error_close">&times;</button></a>
 			<i class="fas fa-ban"></i>&nbsp;<span id="dhcp_error_msg" />
