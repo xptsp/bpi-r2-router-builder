@@ -195,11 +195,21 @@ function Repo_Check()
 function Repo_Pull()
 {
 	elem = $(this).attr('id').split("_")[0];
-	Add_Overlay(elem + "_div");
+	$("#apply_msg").html( $("#apply_default").html() );
+	$("#apply_cancel").addClass("hidden");
+	$("#apply-modal").modal("show");
 	$.post("/admin/repo", __postdata("pull", elem), function(data) {
-		document.location.reload(true);
+		data = data.trim();
+		if (data == "RELOAD" || data == "OK")
+			document.location.reload(true);
+		else
+		{
+			$("#apply_msg").html(data);
+			$("#apply_cancel").removeClass("hidden");
+		}
 	}).fail( function() {
-		Del_Overlay(elem + "_div");
+		$("#apply_msg").html(data);
+		$("#apply_cancel").removeClass("hidden");
 		$("#" + elem + "_latest").html("AJAX Call Failed");
 	});
 }

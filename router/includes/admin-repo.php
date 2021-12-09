@@ -104,4 +104,5 @@ show_repo('Wifi Regulatory Database', 'regdb', 'https://git.kernel.org/pub/scm/l
 echo '
 	</div>
 </div>';
+apply_changes_modal("Please wait while the GitHub repository is being updated...", true);
 site_footer('Init_Repo();');
