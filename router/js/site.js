@@ -133,10 +133,10 @@ function Reboot_Message()
 function Reboot_Confirmed()
 {
 	mode = "";
-	$.get("/ajax/admin/status", __postdata("reboot"));
+	$.get("/admin/status", __postdata("reboot"));
 	$("#reboot_control").addClass("hidden");
 	$("#reboot_close").addClass("hidden");
-	max_timer = 60;
+	max_timer = 120;
 	timer = max_timer;
 	$("#reboot_msg").html("Please be patient while the router is rebooting.<br/>Page will reload after approximately " + max_timer + " seconds.");
 	Reboot_Message();

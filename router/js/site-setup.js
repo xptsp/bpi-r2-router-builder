@@ -412,9 +412,9 @@ function Routing_Delete()
 
 	// Perform our AJAX request to add the IP reservation:
 	Add_Overlay("routing-div");
-	$.post("/setup/settings", postdata, function(data) {
+	$.post("/setup/routing", postdata, function(data) {
 		Del_Overlay("routing-div");
-		if (data.trim() == "OK")
+		if (data.trim() == "")
 			Wired_Refresh_Reservations();
 		else
 			Wired_Error(data);
@@ -439,12 +439,12 @@ function Routing_Add()
 
 	// Perform our AJAX request to add the IP reservation:
 	Add_Overlay("routing-div");
-	$.post("/setup/settings", postdata, function(data) {
+	$.post("/setup/routing", postdata, function(data) {
 		Del_Overlay("routing-div");
-		if (data.trim() == "OK")
+		if (data.trim() == "")
 			Wired_Refresh_Reservations();
 		else
-			Wired_Error(data);
+			alert(data);
 	}).fail(function() {
 		Wired_Error("AJAX call failed!");
 	});
