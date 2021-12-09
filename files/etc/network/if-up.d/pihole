@@ -10,7 +10,7 @@ if [[ "$IFACE" == "br0" ]]; then
 	# Add the new address to "br0" interface, then update necessary files to reflect the new address:
 	ip addr add ${PIHOLE}/24 dev br0
 	sed -i "s|IPV4_ADDRESS=.*|IPV4_ADDRESS=${PIHOLE}|g" /etc/pihole/setupVars.conf
-	sed -i "s|listen .*|listen ${PIHOLE}:80;|g" /etc/nginx/sites-available/pihole
+	sed -i "s|listen .*|listen ${PIHOLE}:80|g" /etc/nginx/sites-available/pihole
 	sed -i "s|.* pi.hole|${PIHOLE}  pi.hole|g" /etc/hosts
 
 	# Execute the next lines ONLY if redirection of all DNS requests not from the router to the router if required:
