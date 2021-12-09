@@ -498,7 +498,7 @@ case $CMD in
 			if ! test -f /tmp/$2; then echo "ERROR: Specified file does not exist!"; exit; fi
 			chown root:root /tmp/$2
 			chmod 755 /tmp/$2
-			mv /tmp/$1 /etc/network/if-up.d/$2
+			mv /tmp/$2 /etc/network/if-up.d/$2
 			echo 'OK'
 		#####################################################################
 		# ADD/DEL => Call "ip route" with the specified parameters:
