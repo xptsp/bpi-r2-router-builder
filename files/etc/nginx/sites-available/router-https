@@ -1,5 +1,5 @@
 server {
-	listen 443 ssl;
+	listen 192.168.2.1:443 ssl;
 	listen [::]:443 ssl;
 
 	root /opt/bpi-r2-router-builder/router;
@@ -7,7 +7,7 @@ server {
 	# Add index.php to the list if you are using PHP
 	index index.php index.html index.htm index.nginx-debian.html;
 
-	server_name _;
+	server_name bpiwrt bpiwrt.local;
 
 	ssl_certificate /etc/ssl/certs/localhost.crt;
 	ssl_certificate_key /etc/ssl/private/localhost.key;

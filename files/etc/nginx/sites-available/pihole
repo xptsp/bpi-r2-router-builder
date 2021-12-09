@@ -1,6 +1,5 @@
 server {
-    listen 80;
-    listen [::]:80;
+    listen 192.168.2.2:80;
 
     root /var/www/html;
     server_name pi.hole;
