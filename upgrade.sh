@@ -29,7 +29,7 @@ GIT=($(whereis git | cut -d":" -f 2))
 if [[ ! -z "${GIT[@]}" && -d $(dirname $0)/.git ]]; then
 	git checkout -- .
 	git reset --hard
-	git pull
+	if ! git pull; then echo "ERROR"; exit; fi
 	chown pi:pi -R router
 fi
 
@@ -51,3 +51,4 @@ fi
 # Call rest of upgrade script from "misc" folder:
 #####################################################################################
 source helpers/upgrade-helper.sh
+echo "OK"

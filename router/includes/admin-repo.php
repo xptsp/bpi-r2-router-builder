@@ -34,7 +34,9 @@ if (isset($_POST['action']))
 	{
 		unset($_SESSION[$_POST['misc'] . '_version']);
 		unset($_SESSION[$_POST['misc'] . '_version_last']);
-		die(trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git update ' . $misc)));
+		$out = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git update ' . $misc));
+		$lines = explode("\n", $out);
+		die($lines[ count($lines) - 1 ] == "ERROR" ? '<pre>' . $out . '</pre>' : "OK");
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
