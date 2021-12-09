@@ -27,7 +27,6 @@ TFL=/tmp/bpiwrt-builder.filelist
 COPY_ONLY=(
 	/etc/hosts.adblock
 	/etc/network/interfaces.d/
-	/etc/nginx/sites-available/
 	/etc/dnsmasq.d/
 	/etc/hostapd/
 	/etc/fstab

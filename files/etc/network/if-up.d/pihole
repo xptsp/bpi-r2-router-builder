@@ -1,25 +1,10 @@
 #!/bin/bash
 [[ -f /etc/default/firewall ]] && source /etc/default/firewall
-
-# If we are dealing with the br0 (default bridged interface):
 if [[ "$IFACE" == "br0" ]]; then
-	# Get the next IP address up from the static IP address assigned to the "br0" interface:
+	[[ "${redirect_dns:-"Y"}" == "N" ]] && exit 0
 	PIHOLE=$(ifconfig br0 | grep 'inet ' | awk '{print $2}')
-	PIHOLE=$(echo ${PIHOLE} | cut -d. -f 1-3).$(( $(echo ${PIHOLE} | cut -d. -f 4) + 1 ))
-
-	# Add the new address to "br0" interface, then update necessary files to reflect the new address:
-	ip addr add ${PIHOLE}/24 dev br0
-	sed -i "s|IPV4_ADDRESS=.*|IPV4_ADDRESS=${PIHOLE}|g" /etc/pihole/setupVars.conf
-	sed -i "s|listen .*|listen ${PIHOLE}:80|g" /etc/nginx/sites-available/pihole
-	sed -i "s|.* pi.hole|${PIHOLE}  pi.hole|g" /etc/hosts
-
-	# Execute the next lines ONLY if redirection of all DNS requests not from the router to the router if required:
-	if [[ "${redirect_dns:-"Y"}" == "N" ]]; then
-		iptables -t nat -A PREROUTING -p udp ! --source ${PIHOLE} ! --destination ${PIHOLE} --dport 53 -j DNAT --to ${PIHOLE}
-		iptables -t nat -A PREROUTING -p tcp ! --source ${PIHOLE} ! --destination ${PIHOLE} --dport 53 -j DNAT --to ${PIHOLE}
-	fi
-
-# If we are dealing with the "wan" interface, use the ISP DNS servers if required:
+	iptables -t nat -A PREROUTING -p udp ! --source ${PIHOLE} ! --destination ${PIHOLE} --dport 53 -j DNAT --to ${PIHOLE}
+	iptables -t nat -A PREROUTING -p tcp ! --source ${PIHOLE} ! --destination ${PIHOLE} --dport 53 -j DNAT --to ${PIHOLE}
 elif [[ "$IFACE" == "wan" ]]; then
-	[[ "${use_isp:-"N"}" == "Y" ]] && /opt/bpi-r2-router-builder/helpers/router-helper.sh dns config
+	/opt/bpi-r2-router-builder/helpers/router-helper.sh dns config
 fi

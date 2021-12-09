@@ -1,5 +1,5 @@
 server {
-	listen 192.168.2.1:80;
+	listen 80;
 	listen [::]:80;
 
 	root /opt/bpi-r2-router-builder/router;
@@ -7,7 +7,7 @@ server {
 	# Add index.php to the list if you are using PHP
 	index index.php index.html index.htm index.nginx-debian.html;
 
-	server_name bpiwrt bpiwrt.local;
+	server_name _;
 
 	location ~ /includes {
 		rewrite ^(.*)$ /index.php?action=404;
