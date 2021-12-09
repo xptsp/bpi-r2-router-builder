@@ -64,8 +64,8 @@ if (isset($_POST['action']))
 		if (!file_exists('/etc/network/if-up.d/' . $_POST['iface'] . '-route'))
 			die('ERROR: Post-up script does not exist for interface "' . $_POST['iface'] . '"!');
 		@shell_exec('cat /etc/network/if-up.d/' . $_POST['iface'] . '-route | grep -v "' . $out . '" > /tmp/' . $_POST['iface'] . '-route');
-		@shell_exec('/opt/bpi-r2-router-builder/router-helper.sh route move ' . $_POST['iface'] . '-route');
-		die( @shell_exec('/opt/bpi-r2-router-builder/router-helper.sh route ' . str_replace("ip route add", "del", $out)) );
+		@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh route move ' . $_POST['iface'] . '-route');
+		die( @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh route ' . str_replace("ip route add", "del", $out)) );
 	}
 	###################################################################################################
 	# ACTION: ADD ==> Add specified ip routing to the system configuration:
@@ -83,8 +83,8 @@ if (isset($_POST['action']))
 		$handle = fopen("/tmp/" . $_POST['iface'] . "-route", "w");
 		fwrite($handle, $text);
 		fclose($handle);
-		@shell_exec('/opt/bpi-r2-router-builder/router-helper.sh route move ' . $_POST['iface'] . '-route');
-		die( @shell_exec('/opt/bpi-r2-router-builder/router-helper.sh route ' . str_replace("ip route ", "", $out)) );
+		@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh route move ' . $_POST['iface'] . '-route');
+		die( @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh route ' . str_replace("ip route ", "", $out)) );
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
