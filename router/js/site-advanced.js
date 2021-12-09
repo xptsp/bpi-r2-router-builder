@@ -31,7 +31,7 @@ function FireWall_Apply()
 
 	// Perform our AJAX request to change the WAN settings:
 	$("#apply_msg").html( $("#apply_default").html() );
-	$(".alert_control").addClass("hidden");
+	$("#apply_cancel").addClass("hidden");
 	$("#apply-modal").modal("show");
 	$.post("/advanced/firewall", postdata, function(data) {
 		data = data.trim();
@@ -45,9 +45,8 @@ function FireWall_Apply()
 			$(".alert_control").removeClass("hidden");
 		}
 	}).fail(function() {
-		$(".alert_control").removeClass("hidden");
 		$("#apply_msg").html("AJAX call failed!");
-		$(".alert_control").removeClass("hidden");
+		$("#apply_cancel").removeClass("hidden");
 	});
 }
 
@@ -118,7 +117,7 @@ function DMZ_Apply()
 	// Perform our AJAX request to change the WAN settings:
 	$("#apply_msg").html( $("#apply_default").html() );
 	$("#apply-modal").modal("show");
-	$(".alert_control").addClass("hidden");
+	$("#apply_cancel").addClass("hidden");
 	$.post("/advanced/dmz", postdata, function(data) {
 		data = data.trim();
 		if (data == "RELOAD")
@@ -131,8 +130,7 @@ function DMZ_Apply()
 			$(".alert_control").removeClass("hidden");
 		}
 	}).fail(function() {
-		$(".alert_control").removeClass("hidden");
 		$("#apply_msg").html("AJAX call failed!");
-		$(".alert_control").removeClass("hidden");
+		$("#apply_cancel").removeClass("hidden");
 	});
 }

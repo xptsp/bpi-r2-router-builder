@@ -38,4 +38,5 @@ echo '
 	</div>
 	<!-- /.card-body -->
 </div>';
+apply_changes_modal("Please wait while WebUI management access is set up...", true);
 site_footer('Init_Management();');

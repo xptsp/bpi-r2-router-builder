@@ -76,7 +76,7 @@ function DNS_Submit()
 
 	// Perform our AJAX request to change the WAN settings:
 	$("#apply_msg").html( $("#apply_default").html() );
-	$(".alert_control").addClass("hidden");
+	$("#apply_cancel").addClass("hidden");
 	$("#apply-modal").modal("show");
 	$.post("/setup/dns", postdata, function(data) {
 		if (data.trim() == "RELOAD")
@@ -86,11 +86,11 @@ function DNS_Submit()
 		else
 		{
 			$("#apply_msg").html(data);
-			$(".alert_control").removeClass("hidden");
+			$("#apply_cancel").removeClass("hidden");
 		}
 	}).fail(function() {
 		$("#apply_msg").html("AJAX call failed!");
-		$(".alert_control").removeClass("hidden");
+		$("#apply_cancel").removeClass("hidden");
 	});
 }
 
@@ -196,7 +196,7 @@ function Wired_Submit()
 
 	// Notify the user what we are doing:
 	$("#apply_msg").html( $("#apply_default").html() );
-	$(".alert_control").addClass("hidden");
+	$("#apply_cancel").addClass("hidden");
 	if (reboot_suggested)
 		$("#reboot-modal").modal("show");
 	else
@@ -211,11 +211,11 @@ function Wired_Submit()
 		else
 		{
 			$("#apply_msg").html(data);
-			$(".alert_control").removeClass("hidden");
+			$("#apply_cancel").removeClass("hidden");
 		}
 	}).fail(function() {
 		$("#apply_msg").html("AJAX call failed!");
-		$(".alert_control").removeClass("hidden");
+		$("#apply_cancel").removeClass("hidden");
 	});
 }
 
@@ -500,14 +500,22 @@ function Settings_Apply()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to remove the IP reservation:
-	Add_Overlay("settings-div");
+	$("#apply_msg").html( $("#apply_default").html() );
+	$("#apply_cancel").addClass("hidden");
+	$("#apply-modal").modal("show");
 	$.post("/setup/settings", postdata, function(data) {
-		Del_Overlay("settings-div");
-		if (data.trim() == "OK")
+		data = data.trim();
+		if (data == "RELOAD")
 			document.location.reload(true);
+		else if (data == "OK")
+			$("#apply-modal").modal("hide");
 		else
-			Wired_Error(data);
+		{
+			$("#apply_msg").html(data);
+			$("#apply_cancel").removeClass("hidden");
+		}
 	}).fail(function() {
-		alert("AJAX call failed!");
+		$("#apply_msg").html("AJAX call failed!");
+		$("#apply_cancel").removeClass("hidden");
 	});
 }

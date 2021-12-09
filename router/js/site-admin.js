@@ -432,10 +432,22 @@ function Management_Apply()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to change the WAN settings:
+	$("#apply_msg").html( $("#apply_default").html() );
+	$("#apply_cancel").addClass("hidden");
+	$("#apply-modal").modal("show");
 	$.post("/admin/management", postdata, function(data) {
-		alert(data);
+		data = data.trim();
+		if (data == "RELOAD")
+			document.location.reload(true);
+		else if (data == "OK")
+			$("#apply-modal").modal("hide");
+		else
+		{
+			$("#apply_msg").html(data);
+			$("#apply_cancel").removeClass("hidden");
+		}
 	}).fail(function() {
 		$("#apply_msg").html("AJAX call failed!");
-		$(".alert_control").removeClass("hidden");
+		$("#apply_cancel").removeClass("hidden");
 	});
 }

@@ -169,4 +169,5 @@ echo '
 	</div>
 	<!-- /.card-body -->
 </div>';
+apply_changes_modal("Please wait while router settings are being set....", true);
 site_footer('Init_Settings("' . $mac_com . '", "' . $mac . '");');
