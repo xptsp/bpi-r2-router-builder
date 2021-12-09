@@ -124,7 +124,7 @@ function Reboot_Message()
 	$("#reboot_timer").html('<h1 class="centered">' + txt + '</h1><div class="progress mb-3">' +
 		'<div class="progress-bar bg-info" role="progressbar" aria-valuenow="' + txt + '" aria-valuemin="0" aria-valuemax="' + max_timer + '" style="width: ' + per.toString() + '%"></div></div>');
 	--timer;
-	if (timer <= 0) {
+	if (timer == 0) {
 		clearInterval(MyTimer);
 		document.location.reload(true);
 	}
@@ -133,7 +133,7 @@ function Reboot_Message()
 function Reboot_Confirmed()
 {
 	mode = "";
-	$.get("/admin/status", __postdata("reboot"));
+	$.post("/admin/status", __postdata("reboot"));
 	$("#reboot_control").addClass("hidden");
 	$("#reboot_close").addClass("hidden");
 	max_timer = 120;

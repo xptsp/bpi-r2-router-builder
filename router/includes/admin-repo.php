@@ -77,12 +77,12 @@ function show_repo($title, $repo, $url, $alt_desc = null)
 						</tr>
 						<tr id="', $repo, '_check_div">
 							<td colspan="2">
-								<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-info center_50 check_repo" id="', $repo, '_check">Check for Update</button></a>
+								<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-primary center_50 check_repo" id="', $repo, '_check">Check for Update</button></a>
 							</td>
 						</tr>
 						<tr class="hidden" id="', $repo, '_pull_div">
 							<td colspan="2">
-								<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-primary center_50 pull_repo" id="', $repo, '_pull">Pull Updates</button></a>
+								<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-primary center_50 pull_repo" id="', $repo, '_pull">Pull Updates</button></a>
 							</td>
 						</tr>
 					</table>
