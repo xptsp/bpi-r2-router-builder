@@ -12,8 +12,12 @@ if (isset($_POST['action']))
 		$cmd = "/opt/bpi-r2-router-builder/helpers/router-helper.sh webui ";
 		$cmd .= ' http-' . (option('allow_local_http') == "Y" ? 'on' : 'off');
 		$cmd .= ' https-' . (option('allow_local_https') == "Y" ? 'on' : 'off');
-		die(@shell_exec($cmd));
+		@shell_exec($cmd);
+		die("OK");
 	}
+	else if ($_POST['action'] == 'reboot')
+		die(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh webui reboot"));
+		
 	die("Invalid action");
 }
 

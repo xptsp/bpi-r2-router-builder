@@ -450,7 +450,10 @@ function Management_Apply()
 		if (data == "RELOAD")
 			document.location.reload(true);
 		else if (data == "OK")
+		{
+			$.post("/admin/management", __postdata('reboot'));
 			$("#apply-modal").modal("hide");
+		}
 		else
 		{
 			$("#apply_msg").html(data);

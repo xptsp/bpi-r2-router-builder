@@ -441,10 +441,10 @@ function Routing_Add()
 	Add_Overlay("routing-div");
 	$.post("/setup/routing", postdata, function(data) {
 		Del_Overlay("routing-div");
-		if (data.trim() == "")
+		if (data.trim() == "OK")
 			Wired_Refresh_Reservations();
 		else
-			alert(data);
+			Wired_Error(data);
 	}).fail(function() {
 		Wired_Error("AJAX call failed!");
 	});
