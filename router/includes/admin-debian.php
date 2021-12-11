@@ -12,8 +12,19 @@ if (isset($_POST['action']))
 	#################################################################################################
 	# ACTION: CHECK => Returns the current version of the specified repo:
 	#################################################################################################
-	if ($_POST['action'] == 'check')
+	if ($_POST['action'] == 'update')
 	{
+		# Get current list of packages for Debian:
+		#################################################################################
+		@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt update');
+		die("OK");
+	}
+	#################################################################################################
+	# ACTION: CHECK => Returns the current version of the specified repo:
+	#################################################################################################
+	else if ($_POST['action'] == 'parse')
+	{
+
 		# Define everything we need for the entire operation:
 		header('Content-type: application/json');
 		$round = 'kept';
@@ -25,10 +36,6 @@ if (isset($_POST['action']))
 			'hold' => '<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-xs btn-danger pkg-held"' . $disabled . '>Held</button></a>',
 			'kept' => '<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-xs btn-info pkg-kept"' . $disabled . '>Kept Back</button></a>',
 		);
-
-		# Get current list of packages for Debian:
-		#################################################################################
-		@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt update');
 
 		# Get which packages (if any) are marked as hold:
 		#################################################################################
@@ -235,4 +242,5 @@ echo '
 ####################################################################################################
 # Close the page:
 ####################################################################################################
+apply_changes_modal("Please wait while the package list is being retrieved....", true, "Please wait while the package list is being parsed...");
 site_footer('Init_Debian();');

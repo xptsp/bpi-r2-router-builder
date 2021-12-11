@@ -325,21 +325,22 @@ echo '
 #######################################################################################################
 # Function showing the "Apply Changes" modal:
 #######################################################################################################
-function apply_changes_modal($text = 'Please wait while the firewall service is restarted....', $close_hidden = false)
+function apply_changes_modal($text = 'Please wait while the firewall service is restarted....', $close_hidden = false, $text2 = '')
 {
 	echo '
 <div class="modal fade" id="apply-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header bg-primary">
-				<h4 class="modal-title">Applying Changes</h4>
+				<h4 class="modal-title" id="apply_title">Applying Changes</h4>
 				<a href="javascript:void(0);"><button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button></a>
 			</div>
 			<div class="modal-body">
 				<p id="apply_msg"></p>
-				<p id="apply_default" class="hidden">', $text, '</p>
+				<p id="apply_default" class="hidden">', $text, '</p>', !empty($text2) ? '
+				<p id="apply_default2" class="hidden">' . $text2 . '</p>' : '', '
 			</div>
 			<div class="modal-footer justify-content-between', $close_hidden ? ' hidden' : '', '" id="apply_cancel">
 				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>

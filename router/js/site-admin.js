@@ -231,28 +231,44 @@ function Init_Debian()
 
 function Debian_Check()
 {
-	Add_Overlay("debian-div");
-	$("#Repo_avail").html("<i>Retrieving...</i>");
-	$.post("/admin/debian", __postdata('check'), function(data) {
-		data = data.trim();
-		if (data == "RELOAD")
+	$("#apply_msg").html( $("#apply_default").html() );
+	$("#apply_title").html( "Stage 1" );
+	$("#apply_cancel").addClass("hidden");
+	$("#apply-modal").modal("show");
+	$.post("/admin/debian", __postdata('update'), function(data) {
+		if (data.trim() == "RELOAD")
 			document.location.reload(true);
-		Del_Overlay("debian-div");
-		$("#updates-msg").html(data.count[0]);
-		total = Number(data.count[1]) + Number(data.count[2]) + Number(data.count[4]);
-		$("#updates-available").html(total);
-		$("#updates-installable").html(data.count[1]);
-		$("#updates-div").removeClass("hidden");
-		if (total == 0)
-			$('#packages_div').html('<tr><td colspan="5"><center><strong>No Updates Available</strong></center></td></tr>');
+		else if (data.trim() == "OK")
+		{
+			$("#apply_msg").html( $("#apply_default2").html() );
+			$("#apply_title").html( "Stage 2" );
+			$.post("/admin/debian", __postdata('parse'), function(data) {
+				$("#apply-modal").modal("hide");
+				$("#updates-msg").html(data.count[0]);
+				total = Number(data.count[1]) + Number(data.count[2]) + Number(data.count[4]);
+				$("#updates-available").html(total);
+				$("#updates-installable").html(data.count[1]);
+				$("#updates-div").removeClass("hidden");
+				if (total == 0)
+					$('#packages_div').html('<tr><td colspan="5"><center><strong>No Updates Available</strong></center></td></tr>');
+				else
+				{
+					$(".apt_pull").removeClass("hidden");
+					$("#packages_div").html( data.list );
+				}
+			}).fail( function() {
+				$("#apply_msg").html("AJAX Call Failed");
+				$("#apply_cancel").removeClass("hidden");
+			});
+		}
 		else
 		{
-			$(".apt_pull").removeClass("hidden");
-			$("#packages_div").html( data.list );
+			$("#apply_msg").html(data);
+			$("#apply_cancel").removeClass("hidden");
 		}
 	}).fail( function() {
-		Del_Overlay("debian-div");
-		$('#packages_div').html('<tr><td colspan="5"><center>AJAX Call Failed</center></td></tr>');
+		$("#apply_msg").html("AJAX Call Failed");
+		$("#apply_cancel").removeClass("hidden");
 	});
 }
 
