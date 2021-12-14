@@ -12,7 +12,8 @@ $include_js = $include_js == 'site-ajax' ? '' : $include_js;
 
 # Decide whether the user is logged in or not:
 $logged_in = isset($_SESSION['login_valid_until']) && $_SESSION['login_valid_until'] >= time();
-#$logged_in = false;
+
+# If user is logging out OR if the "sid" session variable isn't set, do the logout routine:
 if ($_GET['action'] == 'logout')
 {
 	$logged_in = ($_SESSION['login_valid_until'] = 0) != 0;
@@ -20,7 +21,7 @@ if ($_GET['action'] == 'logout')
 	unset($_COOKIE["remember_me"]);
 }
 
-# If we are not logged and not using the login page, check to see if the "remember_me" cookie is valid:
+# Otherwise, if we are not logged and not using the login page, check to see if the "remember_me" cookie is valid:
 else if (!$logged_in && isset($_COOKIE["remember_me"]))
 {
 	$hash = @trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh login cookie"));

@@ -16,7 +16,7 @@ if (isset($_POST['action']))
 	{
 		# Get current list of packages for Debian:
 		#################################################################################
-		@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt update');
+		//@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt update');
 		die("OK");
 	}
 	#################################################################################################
@@ -60,10 +60,10 @@ if (isset($_POST['action']))
 			else if (preg_match("/(\d+)\s.*\s(\d+)\s.*\s(\d+)\s.*\s(\d+).*/", $line, $regex))
 				$debian['count'] = $regex;
 		}
-		if (empty($debian['count'][1]) && !empty($packages['good']) && empty($packages['kept']))
+		if (!empty($debian['count'][1]) && !empty($packages['kept']) && empty($packages['good']))
 		{
-			$packages['kept'] = $packages['good'];
-			$packages['good'] = array();
+			$packages['good'] = $packages['kept'];
+			$packages['kept'] = array();
 		}
 
 		# Gather a complete list of upgradable packages:
