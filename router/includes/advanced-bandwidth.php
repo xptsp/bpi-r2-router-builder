@@ -66,7 +66,7 @@ if (isset($_POST['action']))
 # Create the page to show the data:
 #########################################################################################
 site_menu();
-$_POST['iface'] = isset($_POST['iface']) ? $_POST['iface'] : 'br0';
+$_POST['iface'] = isset($_POST['iface']) ? $_POST['iface'] : 'wan';
 echo '
 <div class="card card-primary">
 	<div class="card-header">
