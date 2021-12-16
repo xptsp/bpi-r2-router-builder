@@ -35,14 +35,14 @@ if (isset($_POST['action']))
 				$data['label'][$d[1]] = strftime($L['datefmt_days'],$d[2]);
 				$data['rx'][$d[1]] = $d[3] * 1024 + $d[5];
 				$data['tx'][$d[1]] = $d[4] * 1024 + $d[6];
-				$data['table'] .= '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' MB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' MB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' MB</span></td></tr>';
+				$data['table'] .= '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' KB</span></td></tr>';
 			}
 			if ($_POST['action'] == 'month' && $d[0] == 'm' && !empty($d[2]))
 			{
 				$data['label'][$d[1]] = strftime($L['datefmt_months'], $d[2]);
 				$data['rx'][$d[1]] = $d[3] * 1024 + $d[5];
 				$data['tx'][$d[1]] = $d[4] * 1024 + $d[6];
-				$data['table'] .= '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' MB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' MB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' MB</span></td></tr>';
+				$data['table'] .= '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' KB</span></td></tr>';
 			}
 			if ($_POST['action'] == 'hour' && $d[0] == 'h' && !empty($d[2]))
 			{
@@ -50,7 +50,7 @@ if (isset($_POST['action']))
 			    $data['label'][$d[1]] = strftime($L['datefmt_hours'], $st).' - '.strftime($L['datefmt_hours'], $st + 3600);
 				$data['rx'][$d[1]] = $d[3];
 				$data['tx'][$d[1]] = $d[4];
-				$data['table'] .= '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' MB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' MB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' MB</span></td></tr>';
+				$data['table'] .= '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' KB</span></td></tr>';
 			}
 		}
 		header('Content-type: application/json');
@@ -71,7 +71,7 @@ echo '
 <div class="card card-primary">
 	<div class="card-header">
 		<h3 class="card-title">
-			Bandwidth for Interface <select id="interface">';
+			Interface: <select id="interface">';
 foreach (get_network_adapters() as $iface => $dummy)
 {
 	if (!preg_match('/^(docker.+|lo|sit.+|eth0)$/', $iface))
@@ -81,6 +81,13 @@ foreach (get_network_adapters() as $iface => $dummy)
 echo '
 			</select>
 		</h3>
+		<div class="card-tools">
+			Display Mode: <select id="mode">
+				<option value="hour">Last 24 Hours</option>
+				<option value="day">Last 30 Days</option>
+				<option value="month">Last 12 Months</option>
+			</select>
+		</div>
 	</div>
 	<div class="card-body">
 		<div class="chart">

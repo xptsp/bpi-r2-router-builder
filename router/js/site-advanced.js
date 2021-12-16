@@ -140,8 +140,10 @@ function DMZ_Apply()
 //======================================================================================================
 function Init_Bandwidth()
 {
+	barChart = false;
 	$("#update_chart").click(Bandwidth_Update).click();
 	$("#interface").change(Bandwidth_Update);
+	$("#mode").change(Bandwidth_Update);
 }
 
 function Bandwidth_Update()
@@ -149,7 +151,7 @@ function Bandwidth_Update()
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':        SID,
-		'action':     'hour',
+		'action':     $("#mode").val(),
 		'iface':      $("#interface").val(),
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
@@ -158,6 +160,8 @@ function Bandwidth_Update()
 	$.post("/advanced/bandwidth", postdata, function(data) {
 		$("#table_header").html( data.title );
 		$("#table_data").html( data.table );
+		if (barChart != false)
+			barChart.destroy();
 		barChart = new Chart($("#barChart"), {
 			type: "bar",
 			data: {
