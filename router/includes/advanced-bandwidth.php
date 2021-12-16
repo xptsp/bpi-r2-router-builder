@@ -24,25 +24,24 @@ if (isset($_POST['action']))
 		$iface = option_allowed('iface', array_keys(get_network_adapters()));
 		$data = array(
 			'title' => ($_POST['action'] == 'hour' ? 'Last 24 Hours' : ($_POST['action'] == 'day' ? 'Last 30 Days' : 'Last 12 Months')),
-			'table' => '',
 		);
-		$data['rx'] = $data['tx'] = $data['label'] = array();
+		$data['table'] = $data['rx'] = $data['tx'] = $data['label'] = array();
 		foreach (explode("\n", @shell_exec("vnstat --dumpdb -i " . $iface)) as $line)
 		{
 			$d = explode(';', trim($line));
 			if ($_POST['action'] == 'day' && $d[0] == 'd' && !empty($d[2]))
 			{
-				$data['label'][$d[1]] = strftime($L['datefmt_days'],$d[2]);
+				$data['label'][$d[1]] = strftime($L['datefmt_days'], $d[2]);
 				$data['rx'][$d[1]] = $d[3] * 1024 + $d[5];
 				$data['tx'][$d[1]] = $d[4] * 1024 + $d[6];
-				$data['table'] .= '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' KB</span></td></tr>';
+				$data['table'][$d[1]] = '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' KB</span></td></tr>';
 			}
 			if ($_POST['action'] == 'month' && $d[0] == 'm' && !empty($d[2]))
 			{
 				$data['label'][$d[1]] = strftime($L['datefmt_months'], $d[2]);
 				$data['rx'][$d[1]] = $d[3] * 1024 + $d[5];
 				$data['tx'][$d[1]] = $d[4] * 1024 + $d[6];
-				$data['table'] .= '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' KB</span></td></tr>';
+				$data['table'][$d[1]] = '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' KB</span></td></tr>';
 			}
 			if ($_POST['action'] == 'hour' && $d[0] == 'h' && !empty($d[2]))
 			{
@@ -50,7 +49,7 @@ if (isset($_POST['action']))
 			    $data['label'][$d[1]] = strftime($L['datefmt_hours'], $st).' - '.strftime($L['datefmt_hours'], $st + 3600);
 				$data['rx'][$d[1]] = $d[3];
 				$data['tx'][$d[1]] = $d[4];
-				$data['table'] .= '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' KB</span></td></tr>';
+				$data['table'][$d[1]] = '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' KB</span></td></tr>';
 			}
 		}
 		header('Content-type: application/json');
@@ -67,6 +66,7 @@ if (isset($_POST['action']))
 #########################################################################################
 site_menu();
 $_POST['iface'] = isset($_POST['iface']) ? $_POST['iface'] : 'wan';
+$_POST['mode'] = isset($_POST['mode']) ? $_POST['mode'] : 'hour';
 echo '
 <div class="card card-primary">
 	<div class="card-header">
@@ -76,16 +76,16 @@ foreach (get_network_adapters() as $iface => $dummy)
 {
 	if (!preg_match('/^(docker.+|lo|sit.+|eth0)$/', $iface))
 		echo '
-				<option value="', $iface, '"', $_POST['iface'] == $iface ? ' selected' : '', '>' . $iface . '</option>';
+				<option value="', $iface, '"', $_POST['iface'] == $iface ? ' selected="selected"' : '', '>' . $iface . '</option>';
 }
 echo '
 			</select>
 		</h3>
 		<div class="card-tools">
-			Display Mode: <select id="mode">
-				<option value="hour">Last 24 Hours</option>
-				<option value="day">Last 30 Days</option>
-				<option value="month">Last 12 Months</option>
+			Display <select id="mode">
+				<option value="hour"', $_POST['mode'] == 'hour' ? ' selected="selected"' : '', '>Last 24 Hours</option>
+				<option value="day"', $_POST['mode'] == 'day' ? ' selected="selected"' : '', '>Last 30 Days</option>
+				<option value="month"', $_POST['mode'] == 'month' ? ' selected="selected"' : '', '>Last 12 Months</option>
 			</select>
 		</div>
 	</div>
@@ -93,18 +93,16 @@ echo '
 		<div class="chart">
 			<canvas id="barChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
 		</div>
-		<div>
-			<a href="javascript:void(0);"><button type="button" id="update_chart" class="btn btn-sm btn-primary float-right">Refresh</button></a>
-		</div>
 	</div>
 	<div class="card-header">
-		<h3 class="card-title" id="table_header"</h3>
+		<h3 class="card-title" id="table_header">', $_POST['mode'] == 'hour' ? 'Last 24 Hours' : ($_POST['mode'] == 'day' ? 'Last 30 Days' : 'Last 12 Months'), '</h3>
+		<button type="button" class="btn btn-xs btn-success float-right" id="update_chart">Refresh</button>
 	</div>
-	<div class="card-body p-0">
-		<table class="table table-sm table-bordered">
+	<div class="card-body table-responsive p-0">
+		<table class="table table-head-fixed text-nowrap table-sm table-bordered">
 			<thead>
 				<tr>
-					<th width="25%">&nbsp;</th>
+					<th width="25%"><center>Period</center></th>
 					<th width="25%"><center>In</center></th>
 					<th width="25%"><center>Out</center></th>
 					<th width="25%"><center>Total</center></th>

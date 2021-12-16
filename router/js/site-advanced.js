@@ -138,8 +138,10 @@ function DMZ_Apply()
 //======================================================================================================
 // Javascript functions for "Advanced / Bandwidth"
 //======================================================================================================
-function Init_Bandwidth()
+function Init_Bandwidth(tx, rx)
 {
+	barTX = tx;
+	barRX = rx;
 	barChart = false;
 	$("#update_chart").click(Bandwidth_Update).click();
 	$("#interface").change(Bandwidth_Update);
@@ -169,7 +171,7 @@ function Bandwidth_Update()
 			  datasets: 
 				[
 					{
-						label               : 'Transmitted',
+						label               : barTX,
 						backgroundColor     : 'rgba(60,141,188,0.9)',
 						borderColor         : 'rgba(60,141,188,0.8)',
 						pointRadius          : false,
@@ -180,7 +182,7 @@ function Bandwidth_Update()
 						data                : Object.values(data.tx)
 					},
 					{
-						label               : 'Received',
+						label               : barRX,
 						backgroundColor     : 'rgba(210, 214, 222, 1)',
 						borderColor         : 'rgba(210, 214, 222, 1)',
 						pointRadius         : false,
