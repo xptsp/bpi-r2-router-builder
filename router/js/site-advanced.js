@@ -234,6 +234,8 @@ function Bandwidth_Update()
 			}
 		});
 	}).fail(function() {
-		alert("AJAX call failed!");
+		$("#table_data").removeClass("hidden");
+		$("#table_empty").addClass("hidden");
+		$("#table_data").html('<tr><td colspan="4"><center><strong>AJAX Call Failed</strong></center></td></tr>');
 	});
 }
