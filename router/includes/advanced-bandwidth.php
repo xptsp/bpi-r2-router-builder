@@ -73,8 +73,11 @@ echo '
 		<h3 class="card-title">
 			Bandwidth for Interface <select id="interface">';
 foreach (get_network_adapters() as $iface => $dummy)
-	echo '
+{
+	if (!preg_match('/^(docker.+|lo|sit.+|eth0)$/', $iface))
+		echo '
 				<option value="', $iface, '"', $_POST['iface'] == $iface ? ' selected' : '', '>' . $iface . '</option>';
+}
 echo '
 			</select>
 		</h3>
