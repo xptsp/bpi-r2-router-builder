@@ -396,7 +396,7 @@ function option_allowed($name, $allowed = array())
 {
 	global $options, $options_changed;
 	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
-	if (!isset($tmp) || !in_array($_POST[$name], $allowed))
+	if (empty($tmp) || !in_array($_POST[$name], $allowed))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
 	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
 	return $tmp;

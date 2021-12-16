@@ -160,6 +160,14 @@ function Bandwidth_Update()
 
 	// Perform our AJAX request to change the WAN settings:
 	$.post("/advanced/bandwidth", postdata, function(data) {
+		if (Object.keys(data.rx).length == 0)
+		{
+			$("#table_data").addClass("hidden");
+			$("#table_empty").removeClass("hidden");
+			return;
+		}
+		$("#table_data").removeClass("hidden");
+		$("#table_empty").addClass("hidden");
 		$("#table_header").html( data.title );
 		$("#table_data").html( data.table );
 		if (barChart != false)

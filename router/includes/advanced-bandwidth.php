@@ -65,8 +65,8 @@ if (isset($_POST['action']))
 # Create the page to show the data:
 #########################################################################################
 site_menu();
-$_POST['iface'] = isset($_POST['iface']) ? $_POST['iface'] : 'wan';
-$_POST['mode'] = isset($_POST['mode']) ? $_POST['mode'] : 'hour';
+$_GET['iface'] = isset($_GET['iface']) ? $_GET['iface'] : 'wan';
+$_GET['mode'] = isset($_GET['mode']) ? $_GET['mode'] : 'hour';
 echo '
 <div class="card card-primary">
 	<div class="card-header">
@@ -76,16 +76,16 @@ foreach (get_network_adapters() as $iface => $dummy)
 {
 	if (!preg_match('/^(docker.+|lo|sit.+|eth0)$/', $iface))
 		echo '
-				<option value="', $iface, '"', $_POST['iface'] == $iface ? ' selected="selected"' : '', '>' . $iface . '</option>';
+				<option value="', $iface, '"', $_GET['iface'] == $iface ? ' selected="selected"' : '', '>' . $iface . '</option>';
 }
 echo '
 			</select>
 		</h3>
 		<div class="card-tools">
 			Display <select id="mode">
-				<option value="hour"', $_POST['mode'] == 'hour' ? ' selected="selected"' : '', '>Last 24 Hours</option>
-				<option value="day"', $_POST['mode'] == 'day' ? ' selected="selected"' : '', '>Last 30 Days</option>
-				<option value="month"', $_POST['mode'] == 'month' ? ' selected="selected"' : '', '>Last 12 Months</option>
+				<option value="hour"', $_GET['mode'] == 'hour' ? ' selected="selected"' : '', '>Last 24 Hours</option>
+				<option value="day"', $_GET['mode'] == 'day' ? ' selected="selected"' : '', '>Last 30 Days</option>
+				<option value="month"', $_GET['mode'] == 'month' ? ' selected="selected"' : '', '>Last 12 Months</option>
 			</select>
 		</div>
 	</div>
@@ -95,7 +95,7 @@ echo '
 		</div>
 	</div>
 	<div class="card-header">
-		<h3 class="card-title" id="table_header">', $_POST['mode'] == 'hour' ? 'Last 24 Hours' : ($_POST['mode'] == 'day' ? 'Last 30 Days' : 'Last 12 Months'), '</h3>
+		<h3 class="card-title" id="table_header">', $_GET['mode'] == 'hour' ? 'Last 24 Hours' : ($_GET['mode'] == 'day' ? 'Last 30 Days' : 'Last 12 Months'), '</h3>
 		<button type="button" class="btn btn-xs btn-success float-right" id="update_chart">Refresh</button>
 	</div>
 	<div class="card-body table-responsive p-0">
@@ -108,7 +108,8 @@ echo '
 					<th width="25%"><center>Total</center></th>
 				</tr>
 			</thead>
-			<tbody id="table_data" />
+			<tbody id="table_empty"><tr><td colspan="4"><center><strong>No Data Available</strong></center></td></tr></tbody>
+			<tbody id="table_data" class="hidden" />
 		</table>
 	</div>
 </div>';
