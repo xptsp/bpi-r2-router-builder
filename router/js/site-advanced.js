@@ -134,3 +134,67 @@ function DMZ_Apply()
 		$("#apply_cancel").removeClass("hidden");
 	});
 }
+
+//======================================================================================================
+// Javascript functions for "Advanced / Bandwidth"
+//======================================================================================================
+function Init_Bandwidth()
+{
+	$("#update_chart").click(Bandwidth_Update).click();
+	$("#interface").change(Bandwidth_Update);
+}
+
+function Bandwidth_Update()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':        SID,
+		'action':     'hour',
+		'iface':      $("#interface").val(),
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to change the WAN settings:
+	$.post("/advanced/bandwidth", postdata, function(data) {
+		$("#table_header").html( data.title );
+		$("#table_data").html( data.table );
+		barChart = new Chart($("#barChart"), {
+			type: "bar",
+			data: {
+			  labels  : Object.values(data.label),
+			  datasets: 
+				[
+					{
+						label               : 'Transmitted',
+						backgroundColor     : 'rgba(60,141,188,0.9)',
+						borderColor         : 'rgba(60,141,188,0.8)',
+						pointRadius          : false,
+						pointColor          : '#3b8bba',
+						pointStrokeColor    : 'rgba(60,141,188,1)',
+						pointHighlightFill  : '#fff',
+						pointHighlightStroke: 'rgba(60,141,188,1)',
+						data                : Object.values(data.tx)
+					},
+					{
+						label               : 'Received',
+						backgroundColor     : 'rgba(210, 214, 222, 1)',
+						borderColor         : 'rgba(210, 214, 222, 1)',
+						pointRadius         : false,
+						pointColor          : 'rgba(210, 214, 222, 1)',
+						pointStrokeColor    : '#c1c7d1',
+						pointHighlightFill  : '#fff',
+						pointHighlightStroke: 'rgba(220,220,220,1)',
+						data                : Object.values(data.rx)
+					},
+				]
+			},
+			options: {
+				responsive              : true,
+				maintainAspectRatio     : false,
+				datasetFill             : false
+			}
+		});
+	}).fail(function() {
+		alert("AJAX call failed!");
+	});
+}

@@ -10,29 +10,30 @@ $options_changed = false;
 $sidebar_menu = array(
 	'home'   => menu_link('/', 'Home', 'fas fa-home'),
 	'setup'  => array('Setup', 'fas fa-cog', array(
-		'settings' => menu_link('/setup/settings', 'Router Settings', 'fab fa-linux'),
-		'wired'    => menu_link('/setup/wired', 'Wired Setup', 'fas fa-ethernet'),
-		'dns'      => menu_link('/setup/dns', 'DNS Settings', 'fas fa-signature'),
-#		'wireless' => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
-		'routing'  => menu_link('/setup/routing', 'Network Routing', 'fas fa-route'),
+		'settings'  => menu_link('/setup/settings', 'Router Settings', 'fab fa-linux'),
+		'wired'     => menu_link('/setup/wired', 'Wired Setup', 'fas fa-ethernet'),
+		'dns'       => menu_link('/setup/dns', 'DNS Settings', 'fas fa-signature'),
+#		'wireless'  => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
+		'routing'   => menu_link('/setup/routing', 'Network Routing', 'fas fa-route'),
 	)),
 	'storage' => array('Storage', 'fas fa-hdd', array(
-#		'basic'    => menu_link('/storage/usb-basic', 'Basic Settings', 'fab fa-usb'),
+#		'basic'     => menu_link('/storage/usb-basic', 'Basic Settings', 'fab fa-usb'),
 	)),
 	'advanced' => array('Advanced', 'fas fa-shield-alt', array(
-		'firewall' => menu_link('/advanced/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
-		'dmz' => menu_link('/advanced/dmz', 'DMZ Setup', 'fas fa-server'),
+		'firewall'  => menu_link('/advanced/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
+		'dmz'       => menu_link('/advanced/dmz', 'DMZ Setup', 'fas fa-server'),
+		'bandwidth' => menu_link('/advanced/bandwidth', 'Bandwidth Usage', 'fas fa-exchange-alt'),
 	)),
 	'admin'  => array('Administration', 'fas fa-cog', array(
-		'status'   => menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),
-		'manage'   => menu_link('/admin/management', 'WebUI Management', 'fas fa-server'),
-		'attached' => menu_link('/admin/attached', 'Attached Devices', 'fas fa-link'),
-		'backup'   => menu_link('/admin/backup', 'Backup &amp; Restore', 'fas fa-file-export'),
-		'creds'    => menu_link('/admin/creds', 'Credentials', 'fas fa-user-edit'),
-		'kernel'   => menu_link('/admin/logs', 'Kernel Logs', 'far fa-list-alt'),
-		'journal'  => menu_link('/admin/logs?t=journalctl', 'Journal Logs', 'far fa-list-alt'),
-		'repo'     => menu_link('/admin/repo', 'Repository Updates', 'fab fa-github'),
-		'debian'   => menu_link('/admin/debian', 'Debian Updates', 'fab fa-linux'),
+		'status'    => menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),
+		'manage'    => menu_link('/admin/management', 'WebUI Management', 'fas fa-server'),
+		'attached'  => menu_link('/admin/attached', 'Attached Devices', 'fas fa-link'),
+		'backup'    => menu_link('/admin/backup', 'Backup &amp; Restore', 'fas fa-file-export'),
+		'creds'     => menu_link('/admin/creds', 'Credentials', 'fas fa-user-edit'),
+		'kernel'    => menu_link('/admin/logs', 'Kernel Logs', 'far fa-list-alt'),
+		'journal'   => menu_link('/admin/logs?t=journalctl', 'Journal Logs', 'far fa-list-alt'),
+		'repo'      => menu_link('/admin/repo', 'Repository Updates', 'fab fa-github'),
+		'debian'    => menu_link('/admin/debian', 'Debian Updates', 'fab fa-linux'),
 	)),
 	'plugins' => array('Plug-Ins', 'fas fa-puzzle-piece', array(
 	)),
@@ -275,6 +276,7 @@ function site_footer($init_str = '')
 <script src="/plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>
 <script src="/plugins/bootstrap-switch/js/bootstrap-switch.min.js"></script>
 <script src="/plugins/inputmask/jquery.inputmask.min.js"></script>
+<script src="/plugins/chart.js/Chart.js"></script>
 <script src="/js/site.js', $post_js, '"></script>';
 
 	# Include any additional javascript files requested by the pages:
