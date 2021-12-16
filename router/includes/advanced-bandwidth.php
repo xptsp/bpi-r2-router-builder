@@ -12,19 +12,22 @@ $L['datefmt_hours'] = '%l%p';
 if (isset($_POST['action']))
 {
 	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
-		die('RELOAD');
+		die(json_encode(array('reload' => true)));
 
 	####################################################################################
 	# ACTION: RETRIEVE ==> Process the raw data dump sent from the VNSTAT program and
 	#     return it as a JSON array for the JavaScript to deal with.
 	####################################################################################
+	#$_POST['action'] = 'hour';
 	if (in_array($_POST['action'], array('hour', 'day', 'month')))
 	{
 		$_POST['iface'] = isset($_POST['iface']) ? $_POST['iface'] : 'wan';
 		$iface = option_allowed('iface', array_keys(get_network_adapters()));
 		$data = array(
 			'title' => ($_POST['action'] == 'hour' ? 'Last 24 Hours' : ($_POST['action'] == 'day' ? 'Last 30 Days' : 'Last 12 Months')),
+			'unit' => 'KB',
 		);
+	    $units = array('KB', 'MB', 'GB', 'TB'); 
 		$data['table'] = $data['rx'] = $data['tx'] = $data['label'] = array();
 		foreach (explode("\n", @shell_exec("vnstat --dumpdb -i " . $iface)) as $line)
 		{
@@ -34,24 +37,41 @@ if (isset($_POST['action']))
 				$data['label'][$d[1]] = strftime($L['datefmt_days'], $d[2]);
 				$data['rx'][$d[1]] = $d[3] * 1024 + $d[5];
 				$data['tx'][$d[1]] = $d[4] * 1024 + $d[6];
-				$data['table'][$d[1]] = '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' KB</span></td></tr>';
 			}
-			if ($_POST['action'] == 'month' && $d[0] == 'm' && !empty($d[2]))
+			else if ($_POST['action'] == 'month' && $d[0] == 'm' && !empty($d[2]))
 			{
 				$data['label'][$d[1]] = strftime($L['datefmt_months'], $d[2]);
 				$data['rx'][$d[1]] = $d[3] * 1024 + $d[5];
 				$data['tx'][$d[1]] = $d[4] * 1024 + $d[6];
-				$data['table'][$d[1]] = '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' KB</span></td></tr>';
 			}
-			if ($_POST['action'] == 'hour' && $d[0] == 'h' && !empty($d[2]))
+			else if ($_POST['action'] == 'hour' && $d[0] == 'h' && !empty($d[2]))
 			{
 			    $st = $d[2] - ($d[2] % 3600);
 			    $data['label'][$d[1]] = strftime($L['datefmt_hours'], $st).' - '.strftime($L['datefmt_hours'], $st + 3600);
 				$data['rx'][$d[1]] = $d[3];
 				$data['tx'][$d[1]] = $d[4];
-				$data['table'][$d[1]] = '<tr><td>' . $data['label'][$d[1]] . '</td><td><span class="float-right">' . number_format($data['rx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]]) . ' KB</span></td><td><span class="float-right">' . number_format($data['tx'][$d[1]] + $data['rx'][$d[1]]) . ' KB</span></td></tr>';
 			}
 		}
+		$base = 0;
+		foreach (array_merge($data['rx'], $data['tx']) as $kilos)
+		{
+			$pow = floor(($kilos ? log($kilos) : 0) / log(1024)); 
+			$base = max($base, min($pow, count($units)));
+		}
+		$data['unit'] = $units[$base];
+		foreach ($data['rx'] as $id => $bytes)
+		{
+			$data['rx'][$id] = round($data['rx'][$id] /= pow(1024, $base), 2);
+			$data['tx'][$id] = round($data['tx'][$id] /= pow(1024, $base), 2);
+			$data['table'][$id] = 
+				'<tr>' .
+					'<td>' . $data['label'][$id] . '</td>' .
+					'<td><span class="float-right">' . number_format($data['rx'][$id], 2) . ' ' . $data['unit'] . '</span></td>' .
+					'<td><span class="float-right">' . number_format($data['tx'][$id], 2) . ' ' . $data['unit'] . '</span></td>' .
+					'<td><span class="float-right">' . number_format($data['tx'][$id] + $data['rx'][$id], 2) . ' ' . $data['unit'] . '</span></td>' .
+				'</tr>';
+		}
+		//echo '<pre>'; print_r($data); exit;
 		header('Content-type: application/json');
 		die(json_encode($data));
 	}

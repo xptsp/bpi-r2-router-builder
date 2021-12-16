@@ -160,14 +160,18 @@ function Bandwidth_Update()
 
 	// Perform our AJAX request to change the WAN settings:
 	$.post("/advanced/bandwidth", postdata, function(data) {
+		if (data.reload == true)
+			document.location.reload(true);
 		if (Object.keys(data.rx).length == 0)
 		{
 			$("#table_data").addClass("hidden");
 			$("#table_empty").removeClass("hidden");
-			return;
 		}
-		$("#table_data").removeClass("hidden");
-		$("#table_empty").addClass("hidden");
+		else
+		{
+			$("#table_data").removeClass("hidden");
+			$("#table_empty").addClass("hidden");
+		}
 		$("#table_header").html( data.title );
 		$("#table_data").html( data.table );
 		if (barChart != false)
@@ -176,8 +180,7 @@ function Bandwidth_Update()
 			type: "bar",
 			data: {
 			  labels  : Object.values(data.label),
-			  datasets: 
-				[
+			  datasets: [
 					{
 						label               : barTX,
 						backgroundColor     : 'rgba(60,141,188,0.9)',
@@ -205,7 +208,29 @@ function Bandwidth_Update()
 			options: {
 				responsive              : true,
 				maintainAspectRatio     : false,
-				datasetFill             : false
+				datasetFill             : false,
+				tooltips: {
+					borderWidth: 1,
+					borderColor: "white",
+					callbacks: {
+						label: function(tooltipItem, chartdata) {
+							var dataItem = chartdata.datasets[ tooltipItem.datasetIndex ].data[ tooltipItem.index ];
+							var labelItem = chartdata.datasets[ tooltipItem.datasetIndex ].label;
+							return labelItem + ": " + dataItem + " " + data.unit;
+						}
+					}
+				},
+				scales: {
+					yAxes: [{
+						display: true,
+						ticks: {
+							beginAtZero: true,
+		                    callback: function(value, index, values) {
+		                        return value + " " + data.unit;
+		                    }
+						}
+					}]
+				}
 			}
 		});
 	}).fail(function() {
