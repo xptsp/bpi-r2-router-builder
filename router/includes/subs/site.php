@@ -22,10 +22,10 @@ $sidebar_menu = array(
 	'advanced' => array('Advanced', 'fas fa-shield-alt', array(
 		'firewall'  => menu_link('/advanced/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
 		'dmz'       => menu_link('/advanced/dmz', 'DMZ Setup', 'fas fa-server'),
-		'bandwidth' => menu_link('/advanced/bandwidth', 'Bandwidth Usage', 'fas fa-exchange-alt'),
 	)),
 	'admin'  => array('Administration', 'fas fa-cog', array(
 		'status'    => menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),
+		'bandwidth' => menu_link('/admin/bandwidth', 'Bandwidth Usage', 'fas fa-exchange-alt'),
 		'manage'    => menu_link('/admin/management', 'WebUI Management', 'fas fa-server'),
 		'attached'  => menu_link('/admin/attached', 'Attached Devices', 'fas fa-link'),
 		'backup'    => menu_link('/admin/backup', 'Backup &amp; Restore', 'fas fa-file-export'),
