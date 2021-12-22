@@ -213,13 +213,13 @@ chmod -R 775 /var/lib/transmission-daemon/
 mkdir /home/vpn/{Incomplete,Download}
 chown -R vpn:vpn /home/vpn/{Incomplete,Download}
 chmod -R 775 /home/vpn/{Incomplete,Download}
-systemctl enable transmission-daemon
+systemctl enable --now transmission-daemon
 
 ##################################################################################
 # Install TrueCrypt and HD-Idle
 ##################################################################################
 wget https://github.com/stefansundin/truecrypt.deb/releases/download/7.1a-15/truecrypt-cli_7.1a-15_armhf.deb -O /tmp/truecrypt.deb
-wget https://github.com/adelolmo/hd-idle/releases/download/v1.12/hd-idle_1.12_armhf.deb -O /tmp/hdidle.deb
+wget https://github.com/adelolmo/hd-idle/releases/download/v1.16/hd-idle_1.16_armhf.deb -O /tmp/hdidle.deb
 mv /etc/default/hd-idle /tmp/
 apt install -y /tmp/*.deb
 mv /tmp/hd-idle /etc/default/hd-idle
