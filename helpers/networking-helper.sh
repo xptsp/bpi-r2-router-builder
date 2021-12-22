@@ -64,7 +64,10 @@ if [[ ! -z "${LIST[@]}" ]]; then
 		DEV="$(lspci -s $(basename $(ls -l ${IFACE}/device | awk '{print $NF}')) | grep MEDIATEK | awk '{print $NF}')"
 		if [[ ! -z "${DEV}" ]]; then
 			[[ -f /sys/kernel/debug/ieee80211/$(basename $(ls -l ${IFACE}/phy80211 | awk '{print $NF}'))/mt76/dbdc ]] && POST=24g || POST=5g
-			ip link set ${IFACE} name mt${DEV}_${POST}
+			NEW=mt${DEV}_${POST}
+			ip link set ${IFACE} name ${NEW}
+			iw dev ${NEW} interface add ${NEW}_0 type managed
+			ip link set $(dmesg | grep ${NEW}_0 | awk '{print $5}' | sed 's|:||g') name ${NEW}_0
 		fi
 	done
 fi
