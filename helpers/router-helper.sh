@@ -450,7 +450,7 @@ case $CMD in
 		# If we are being requested to set the DNS servers from the ISP, do so then exit
 		unset DNS1 DNS2
 		if [[ "$1" == "config" ]]; then
-			test -f /etc/default/firewall && source /etc/default/firewall
+			test -f /etc/default/router-settings && source /etc/default/router-settings
 			if [[ "${use_unbound:-"N"}" == "Y" ]]; then
 				DNS1=127.0.0.1#5335
 			elif [[ "${use_cloudflared:="N"}" == "Y" ]]; then

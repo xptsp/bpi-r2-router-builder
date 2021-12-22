@@ -5,7 +5,7 @@
 # take very long to execute and should not rely on other services being up
 # and running.
 #############################################################################
-[[ -f /etc/default/firewall ]] && source /etc/default/firewall
+[[ -f /etc/default/router-settings ]] && source /etc/default/router-settings
 
 #############################################################################
 # Determine new default WiFi password and change it in all hostapd configuration files:
@@ -59,7 +59,7 @@ echo $([[ "${ONBOARD_MODE:-"A"}" == "A" ]] && echo A || echo 1) > /dev/wmtWifi
 #############################################################################
 cd /sys/class/net
 LIST=($(ls -l | grep pcie | awk '{print $9}'))
-if [[ -z "${LIST[@]}" ]]; then
+if [[ ! -z "${LIST[@]}" ]]; then
 	for IFACE in ${LIST[@]}; do
 		DEV="$(lspci -s $(basename $(ls -l ${IFACE}/device | awk '{print $NF}')) | grep MEDIATEK | awk '{print $NF}')"
 		if [[ ! -z "${DEV}" ]]; then

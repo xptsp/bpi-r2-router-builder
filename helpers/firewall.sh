@@ -101,33 +101,31 @@ if [[ "$1" == "start" ]]; then
 	iptables -A INPUT -p tcp -m tcp --tcp-flags RST RST -m limit --limit 2/second --limit-burst 2 -j ACCEPT
 
 	#############################################################################
-	# Direct WAN interface to check SERVICES table for further rules:
+	# Rules for input, output and forwarding for internet-facing interfaces:
 	#############################################################################
 	iptables -N SERVICES
-	iptables -A INPUT -i wan -j SERVICES
-
-	#############################################################################
-	# Our "intervention" for miniupnpd to work properly:
-	#############################################################################
 	iptables -N MINIUPNPD
-	iptables -A FORWARD -i wan ! -o wan -j MINIUPNPD
-
-	#############################################################################
-	# Configurable WAN_IN and WAN_OUT chains:
-	#############################################################################
 	iptables -N WAN_IN
-	iptables -A INPUT -i wan -j WAN_IN
 	iptables -N WAN_OUT
-	iptables -A OUTPUT -o wan -j WAN_OUT
 	iptables -N WAN_FORWARD
-	iptables -A FORWARD -j WAN_FORWARD
-
-	#############################################################################
-	# Final Destination: The default network configuration....
-	#############################################################################
-	iptables -A INPUT -i wan -j DROP
-	iptables -A FORWARD -i wan ! -o wan -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-	iptables -A FORWARD -i wan ! -o wan -j DROP
+	for IFACE in ${WAN_IFACES[@]:-"wan"}; do 
+		# Direct interface to check SERVICES chain for further rules:
+		iptables -A INPUT -i ${IFACE} -j SERVICES
+		# Our "intervention" for miniupnpd to work properly:
+		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j MINIUPNPD
+		# Direct interface to check WAN_IN chain for further INPUT rules:
+		iptables -A INPUT -i ${IFACE} -j WAN_IN
+		# Drop any connections coming from the interface:
+		iptables -A INPUT -i ${IFACE} -j DROP
+		# Direct interface to check WAN_OUT chain for further OUTPUT rules:
+		iptables -A OUTPUT -o ${IFACE} -j WAN_OUT
+		# Direct interface to check WAN_FORWARD chain for further FORWARD rules:
+		iptables -A FORWARD -i ${IFACE} -j WAN_FORWARD
+		# Allow related and established connections to be forwarded from the interface to other interfaces:
+		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+		# Drop any connections being forwarded from the interface:
+		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j DROP
+	done
 
 	#############################################################################
 	# We need to call ourselves to complete other tasks:
