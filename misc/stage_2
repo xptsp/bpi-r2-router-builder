@@ -16,14 +16,13 @@ apt install -y apt-transport-https bridge-utils dnsmasq hostapd ca-certificates 
 # Fix the hung SSH session issue with Debian Buster:
 ##############################################################################################
 ln -sf /usr/share/doc/openssh-client/examples/ssh-session-cleanup.service /etc/systemd/system/
-systemctl enable ssh-session-cleanup
-systemctl start ssh-session-cleanup
+systemctl enable --now ssh-session-cleanup
 
 ##############################################################################################
 # Install files from the GitHub repository:
 ##############################################################################################
 /opt/bpi-r2-router-builder/upgrade.sh --force-copy
-systemctl enable firewall
+systemctl enable --now firewall
 
 ##############################################################################################
 # Upgrade any packages needing upgrading:
@@ -113,7 +112,7 @@ apt install -y pciutils usbutils iw wireless-tools net-tools curl unzip debconf-
 # Install avahi utilities
 ##################################################################################
 apt install -y avahi-daemon 
-systemctl enable avahi-daemon
+systemctl enable --now avahi-daemon
 
 ##################################################################################
 # Install utility to track internet usage by adapter:
@@ -131,8 +130,8 @@ echo -e "bananapi\nbananapi" | smbpasswd -a pi
 sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" /etc/samba/smb.conf
 touch /etc/samba/includes.conf
 sed -i "s|/var/run|/run|g" /lib/systemd/system/?mbd.service
-systemctl enable smbd
-systemctl enable nmbd
+systemctl enable --now smbd
+systemctl enable --now nmbd
 
 ##################################################################################
 # Install NGINX and PHP 7.3
@@ -143,8 +142,9 @@ rm /etc/nginx/sites-enabled/default
 ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
 usermod -aG systemd-journal www-data
 systemctl enable php7.3-fpm
-systemctl enable nginx
 apt-mark hold php7.3-fpm
+systemctl enable nginx
+apt-mark hold nginx
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
 ##################################################################################
@@ -157,13 +157,12 @@ echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
 echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
 apt install -y miniupnpd miniupnpc
 # NOTE: Configure the service:
-sed -i "s|#ext_ifname=eth1|ext_ifname=wan|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#listening_ip=eth0|listening_ip=br0|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#http_port=0|http_port=5000|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#enable_upnp=no|enable_upnp=yes|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#enable_natpmp=yes|enable_natpmp=yes|g" /etc/miniupnpd/miniupnpd.conf
-systemctl enable miniupnpd
+systemctl enable --now miniupnpd
 
 ##################################################################################
 # Install minissdpd package
@@ -174,7 +173,7 @@ echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
 echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 # NOTE: Install minissdpd package:
 apt install -y minissdpd
-systemctl enable minissdpd
+systemctl enable --now minissdpd
 
 ##################################################################################
 # Install docker and add bin directory on docker partition to system path
@@ -286,12 +285,12 @@ chmod +x /usr/local/bin/cloudflared
 useradd -s /usr/sbin/nologin -r -M cloudflared
 chown cloudflared:cloudflared /etc/default/cloudflared
 chown cloudflared:cloudflared /usr/local/bin/cloudflared
-systemctl enable cloudflared
-systemctl start cloudflared
+systemctl enable --now cloudflared@1
+systemctl enable --now cloudflared@2
+systemctl enable --now cloudflared@3
 
 ##################################################################################
 # Install & configure unbound:
 ##################################################################################
 apt install -y unbound
-systemctl enable unbound
-systemctl start unbound
+systemctl enable --now unbound
