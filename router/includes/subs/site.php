@@ -25,6 +25,7 @@ $sidebar_menu = array(
 	)),
 	'admin'  => array('Administration', 'fas fa-cog', array(
 		'status'   => menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),
+		'usage'    => menu_link('/admin/bandwidth', 'Bandwidth Usage', 'fas fa-exchange-alt'),
 		'manage'   => menu_link('/admin/management', 'WebUI Management', 'fas fa-server'),
 		'attached' => menu_link('/admin/attached', 'Attached Devices', 'fas fa-link'),
 		'backup'   => menu_link('/admin/backup', 'Backup &amp; Restore', 'fas fa-file-export'),
