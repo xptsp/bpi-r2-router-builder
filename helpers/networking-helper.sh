@@ -67,7 +67,8 @@ if [[ ! -z "${LIST[@]}" ]]; then
 			NEW=mt${DEV}_${POST}
 			ip link set ${IFACE} name ${NEW}
 			iw dev ${NEW} interface add ${NEW}_0 type managed
-			ip link set $(dmesg | grep ${NEW}_0 | awk '{print $5}' | sed 's|:||g') name ${NEW}_0
+			REN=$(dmesg | grep ${NEW}_0 | awk '{print $5}' | sed 's|:||g')
+			[[ "$REN" != "${NEW}_0" ]] && ip link set ${REN} name ${NEW}_0
 		fi
 	done
 fi
