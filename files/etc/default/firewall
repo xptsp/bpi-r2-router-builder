@@ -1,4 +1,10 @@
 ##########################################################################
+# Onboard Wifi setting (no WebUI setting yet)
+##########################################################################
+# Mode the onboard wifi is put into upon booting.  Accepts "1" or "A".  Default: A
+ONBOARD_WIFI=1
+
+##########################################################################
 # WebUI Setup / DNS Settings
 ##########################################################################
 # Use ISP-supplied DNS servers.  Accepts "Y" or "N". Default: N
