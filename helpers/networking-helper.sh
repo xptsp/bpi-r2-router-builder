@@ -28,7 +28,8 @@ sed -i "s|^wpa_passphrase=bananapi$|wpa_passphrase=${WIFI_PASS}|g" /etc/hostapd/
 #############################################################################
 # Bring the "eth0" interface up if not already up:
 #############################################################################
-ifconfig eth0 | grep "UP," &> /dev/null || /sbin/ifup eth0
+ifconfig eth0 2> /dev/null | grep "UP," &> /dev/null || /sbin/ifup eth0 >& /dev/null
+ifconfig eth1 2> /dev/null | grep "UP," &> /dev/null || /sbin/ifup eth1 >& /dev/null
 
 #############################################################################
 # Enable DBDC on any MT76xx wifi card that supports it:
@@ -51,19 +52,22 @@ if [[ -c /dev/stpwmt ]]; then
 	fi
 fi
 modprobe wlan_gen2
-echo $([[ "${ONBOARD_MODE:-"A"}" == "1" ]] && echo 1 || echo A) > /dev/wmtWifi
+echo $([[ "${ONBOARD_MODE:-"A"}" == "A" ]] && echo A || echo 1) > /dev/wmtWifi
 
 #############################################################################
 # Rename the WiFi interfaces on the MT76xx wifi card:
 #############################################################################
 cd /sys/class/net
-for IFACE in $(ls -l | grep pcie | awk '{print $9}'); do
-	DEV="$(lspci -s $(basename $(ls -l ${IFACE}/device | awk '{print $NF}')) | grep MEDIATEK | awk '{print $NF}')"
-	if [[ ! -z "${DEV}" ]]; then
-		[[ -f /sys/kernel/debug/ieee80211/$(basename $(ls -l ${IFACE}/phy80211 | awk '{print $NF}'))/mt76/dbdc ]] && POST=24g || POST=5g
-		ip link set ${IFACE} name mt${DEV}_${POST}
-	fi
-done
+LIST=($(ls -l | grep pcie | awk '{print $9}')
+if [[ -z "${LIST[@]}" ]]; then
+	for IFACE in ${LIST[@]}; do
+		DEV="$(lspci -s $(basename $(ls -l ${IFACE}/device | awk '{print $NF}')) | grep MEDIATEK | awk '{print $NF}')"
+		if [[ ! -z "${DEV}" ]]; then
+			[[ -f /sys/kernel/debug/ieee80211/$(basename $(ls -l ${IFACE}/phy80211 | awk '{print $NF}'))/mt76/dbdc ]] && POST=24g || POST=5g
+			ip link set ${IFACE} name mt${DEV}_${POST}
+		fi
+	done
+fi
 
 #############################################################################
 # Return error code 0 to the caller:

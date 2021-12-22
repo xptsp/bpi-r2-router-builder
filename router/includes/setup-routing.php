@@ -142,7 +142,7 @@ echo '
 							<select class="custom-select" id="iface">';
 foreach (get_network_adapters() as $iface => $ignore)
 {
-	if ($iface != "eth0" && $iface != "lo" && $iface != "sit0")
+	if (!preg_match('/^(lo|sit.+|eth0|eth1|aux)$/', $iface))
 		echo '
 								<option value="' . $iface . '"' . ($iface == 'br0' ? ' selected="selected"' : '') . '>' . $iface . '</option>';
 }

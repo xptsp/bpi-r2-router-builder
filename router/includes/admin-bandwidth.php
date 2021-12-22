@@ -95,7 +95,7 @@ echo '
 			Interface: <select id="interface">';
 foreach (get_network_adapters() as $iface => $dummy)
 {
-	if (!preg_match('/^(docker.+|lo|sit.+|eth0)$/', $iface))
+	if (!preg_match('/^(docker.+|lo|sit.+|eth0|eth1|aux)$/', $iface))
 		echo '
 				<option value="', $iface, '"', $_GET['iface'] == $iface ? ' selected="selected"' : '', '>' . $iface . '</option>';
 }

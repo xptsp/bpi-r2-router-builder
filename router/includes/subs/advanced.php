@@ -3,7 +3,7 @@ $options_changed = false;
 
 function parse_config()
 {
-	$file = '/etc/default/firewall';
+	$file = '/etc/default/router-settings';
 	$options = array();
 	foreach (explode("\n", trim(@file_get_contents($file))) as $line)
 	{
@@ -28,7 +28,7 @@ function apply_config()
 			$text .= (!empty($setting) ? $name . '=' . $setting : $name). "\n";
 	}
 	#echo '<pre>'; echo $text; exit;
-	$handle = fopen("/tmp/firewall", "w");
+	$handle = fopen("/tmp/router-settings", "w");
 	fwrite($handle, $text);
 	fclose($handle);
 	$options['use_isp'] = isset($options['use_isp']) ? $options['use_isp'] : 'N';

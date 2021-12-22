@@ -18,8 +18,8 @@ fi
 #############################################################################
 if [[ "$1" == "reload" ]]; then
 	if test -f /tmp/firewall; then
-		mv /tmp/firewall /etc/default/firewall
-		chown root:root /etc/default/firewall
+		mv /tmp/router-settings /etc/default/router-settings
+		chown root:root /etc/default/router-settings
 	fi
 fi
 [[ -f /etc/default/firewall ]] && source /etc/default/firewall

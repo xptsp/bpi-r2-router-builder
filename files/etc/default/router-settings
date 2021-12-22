@@ -1,8 +1,8 @@
 ##########################################################################
 # Onboard Wifi setting (no WebUI setting yet)
 ##########################################################################
-# Mode the onboard wifi is put into upon booting.  Accepts "1" or "A".  Default: A
-ONBOARD_WIFI=1
+# Onboard Wifi Mode.  Accepts "A" for access point --OR-- "1" (or anything else) for client-mode.  Default: A
+ONBOARD_WIFI=A
 
 ##########################################################################
 # WebUI Setup / DNS Settings

@@ -131,7 +131,7 @@ $adapters = get_network_adapters_list();
 #echo '<pre>'; print_r($adapters); exit();
 $iface = isset($_GET['iface']) ? $_GET['iface'] : 'wan';
 #echo $iface; exit();
-$exclude_regex = '/^(' . implode('|',array_merge(explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'"))), array("docker.+", "lo", "sit.+", "eth0"))) . ')$/';
+$exclude_regex = '/^(' . implode('|',array_merge(explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'"))), array("docker.+", "lo", "sit.+", "eth0", "eth1", "aux"))) . ')$/';
 #echo $exclude_regex; exit;
 $invalid = get_invalid_adapters($iface);
 #echo '<pre>'; print_r($invalid); exit();

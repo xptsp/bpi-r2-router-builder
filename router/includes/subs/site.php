@@ -371,7 +371,7 @@ function checkbox($name, $description, $default = true, $disabled_by = '')
 #######################################################################################################
 function parse_options()
 {
-	$file = '/etc/default/firewall';
+	$file = '/etc/default/router-settings';
 	$options = array();
 	foreach (explode("\n", trim(@file_get_contents($file))) as $line)
 	{
@@ -455,7 +455,7 @@ function apply_options()
 			$text .= (!empty($setting) ? $name . '=' . $setting : $name). "\n";
 	}
 	#echo '<pre>'; echo $text; exit;
-	$handle = fopen("/tmp/firewall", "w");
+	$handle = fopen("/tmp/router-settings", "w");
 	fwrite($handle, $text);
 	fclose($handle);
 	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh firewall reload");
