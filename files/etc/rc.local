@@ -11,15 +11,4 @@
 #
 # By default this script does nothing.
 
-# Start the onboard WiFi software components:
-/opt/bpi-r2-router-builder/helpers/onboard-wifi.sh
-
-# Start and configure the onboard Bluetooth components:
-modprobe stp-chrdev-bt
-systemctl start bluetooth
-sleep 5
-hciconfig hci0 lm master
-hciconfig hci0 up
-hciconfig hci0 class ff0104
-
 exit 0

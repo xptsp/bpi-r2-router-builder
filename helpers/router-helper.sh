@@ -405,7 +405,6 @@ case $CMD in
 
 		# Decompile DTB, then add new MAC address (if not already there), then recompile:
 		FILE=/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
-		[[ ! -f ${FILE}.old ]] && cp ${FILE} ${FILE}.old
 		trap "rm /tmp/dts" EXIT
 		dtc -q -O dts ${FILE} > /tmp/dts
 		MAC=${MAC,,}
@@ -422,6 +421,7 @@ case $CMD in
 		fi
 		RO=$(mount | grep "/boot" | grep "(ro,")
 		[[ ! -z "$RO" ]] && mount -o remount,rw /boot
+		[[ ! -f ${FILE}.old ]] && cp ${FILE} ${FILE}.old
 		echo "MAC=${MAC}" > /boot/eth0.conf
 		dtc -q -O dtb /tmp/dts > ${FILE}
 		[[ ! -z "$RO" ]] && mount -o remount,ro /boot
