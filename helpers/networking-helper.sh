@@ -45,8 +45,10 @@ if [[ ! -e /dev/wmtWifi ]]; then
 	sleep 3
 fi
 if [[ -c /dev/stpwmt ]]; then
-	ps aux | grep stp_uart_launcher | grep -v grep >& /dev/null || /usr/bin/stp_uart_launcher -p /etc/firmware &> /var/log/stp_launcher.log &
-	sleep 5
+	if ! ps aux | grep stp_uart_launcher | grep -v grep >& /dev/null; then
+		/usr/bin/stp_uart_launcher -p /etc/firmware &> /var/log/stp_launcher.log &
+		sleep 5
+	fi
 fi
 modprobe wlan_gen2
 echo $([[ "${ONBOARD_MODE:-"A"}" == "1" ]] && echo 1 || echo A) > /dev/wmtWifi
