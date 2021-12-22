@@ -72,6 +72,7 @@ if (isset($_POST['action']))
 				'</tr>';
 		}
 		//echo '<pre>'; print_r($data); exit;
+		$data['table'] = implode('', $data['table']);
 		header('Content-type: application/json');
 		die(json_encode($data));
 	}
