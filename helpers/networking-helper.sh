@@ -58,7 +58,7 @@ echo $([[ "${ONBOARD_MODE:-"A"}" == "A" ]] && echo A || echo 1) > /dev/wmtWifi
 # Rename the WiFi interfaces on the MT76xx wifi card:
 #############################################################################
 cd /sys/class/net
-LIST=($(ls -l | grep pcie | awk '{print $9}')
+LIST=($(ls -l | grep pcie | awk '{print $9}'))
 if [[ -z "${LIST[@]}" ]]; then
 	for IFACE in ${LIST[@]}; do
 		DEV="$(lspci -s $(basename $(ls -l ${IFACE}/device | awk '{print $NF}')) | grep MEDIATEK | awk '{print $NF}')"
