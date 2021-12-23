@@ -60,7 +60,6 @@ if [[ "$1" == "start" ]]; then
 
 	# Allow any related and established connections on input and forward chains:
 	iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-	iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 	# CTA: This rule blocks all packets that are not a SYN packet and don’t
 	# belong to an established TCP connection.
@@ -93,11 +92,6 @@ if [[ "$1" == "start" ]]; then
 	iptables -A FORWARD -m state --state INVALID -j DROP
 	iptables -A OUTPUT -m state --state INVALID -j DROP
 
-	# CTB: for SMURF attack protection
-	iptables -A INPUT -p icmp -m icmp --icmp-type address-mask-request -j DROP
-	iptables -A INPUT -p icmp -m icmp --icmp-type timestamp-request -j DROP
-	iptables -A INPUT -p icmp -m icmp -m limit --limit 1/second -j ACCEPT
-
 	# CTB: flooding of RST packets, SMURF attack Rejection
 	iptables -A INPUT -p tcp -m tcp --tcp-flags RST RST -m limit --limit 2/second --limit-burst 2 -j ACCEPT
 
@@ -112,17 +106,19 @@ if [[ "$1" == "start" ]]; then
 	for IFACE in ${WAN_IFACES[@]:-"wan"}; do 
 		# Direct interface to check SERVICES chain for further rules:
 		iptables -A INPUT -i ${IFACE} -j SERVICES
+		# Our "intervention" for miniupnpd to work properly:
+		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j MINIUPNPD
 		# Direct interface to check WAN_IN chain for further INPUT rules:
 		iptables -A INPUT -i ${IFACE} -j WAN_IN
 		# Drop any connections coming from the interface:
 		iptables -A INPUT -i ${IFACE} -j DROP
 		# Direct interface to check WAN_OUT chain for further OUTPUT rules:
 		iptables -A OUTPUT -o ${IFACE} -j WAN_OUT
-		# Our "intervention" for miniupnpd to work properly:
-		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j MINIUPNPD
 		# Direct interface to check WAN_FORWARD chain for further FORWARD rules:
 		iptables -A FORWARD -i ${IFACE} -j WAN_FORWARD
-		# Drop any connections being forwarded from the interface to another interface:
+		# Allow related and established connections to be forwarded from the interface to other interfaces:
+		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+		# Drop any connections being forwarded from the interface:
 		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j DROP
 	done
 
@@ -187,6 +183,11 @@ elif [[ "$1" == "dmz" ]]; then
 #   https://vitux.com/how-to-block-allow-ping-using-iptables-in-ubuntu/
 #############################################################################
 elif [[ "$1" == "firewall" ]]; then
+
+	# CTB: for SMURF attack protection
+	iptables -A WAN_IN -p icmp -m icmp --icmp-type address-mask-request -j DROP
+	iptables -A WAN_IN -p icmp -m icmp --icmp-type timestamp-request -j DROP
+	iptables -A WAN_IN -p icmp -m icmp -m limit --limit 1/second -j ACCEPT
 
 	#############################################################################
 	# OPTION "block_dot" => Drop outgoing DoT (DNS-over-TLS port 853) requests:
