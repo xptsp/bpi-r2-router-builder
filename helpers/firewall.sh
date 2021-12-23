@@ -103,7 +103,8 @@ if [[ "$1" == "start" ]]; then
 	iptables -N WAN_IN
 	iptables -N WAN_OUT
 	iptables -N WAN_FORWARD
-	for IFACE in ${WAN_IFACES[@]:-"wan"}; do 
+	[[ -z "${wan_ifaces[@]}" ]] && wan_ifaces=(wan)
+	for IFACE in ${wan_ifaces[@]}; do 
 		# Direct interface to check SERVICES chain for further rules:
 		iptables -A INPUT -i ${IFACE} -j SERVICES
 		# Our "intervention" for miniupnpd to work properly:

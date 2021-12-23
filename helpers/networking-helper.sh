@@ -53,7 +53,7 @@ if [[ -c /dev/stpwmt ]]; then
 fi
 modprobe wlan_gen2
 [[ -f /var/run/wmtWifi ]] && echo 0 > /dev/wmtWifi && sleep 3
-echo $([[ "${ONBOARD_WIFI:-"A"}" == "A" ]] && echo A || echo 1) | tee /var/run/wmtWifi > /dev/wmtWifi
+echo $([[ "${onboard_wifi:-"A"}" == "A" ]] && echo A || echo 1) | tee /var/run/wmtWifi > /dev/wmtWifi
 
 #############################################################################
 # Rename the WiFi interfaces on the MT76xx wifi card:

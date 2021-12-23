@@ -9,8 +9,8 @@ $options = parse_options();
 foreach (explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}' | sort"))) as $tface)
 {
 	$include = $tface != "mt6625_0" && $tface != "ap0";
-	$include |= ($tface == 'mt6625_0' && isset($options['ONBOARD_WIFI']) && $options['ONBOARD_WIFI'] == '1');
-	$include |= ($tface == 'ap0' && isset($options['ONBOARD_WIFI']) && $options['ONBOARD_WIFI'] == 'A');
+	$include |= ($tface == 'mt6625_0' && isset($options['onboard_wifi']) && $options['onboard_wifi'] == '1');
+	$include |= ($tface == 'ap0' && isset($options['onboard_wifi']) && $options['onboard_wifi'] == 'A');
 	if ($include)
 		$ifaces[] = $tface;
 }
