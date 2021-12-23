@@ -58,8 +58,9 @@ if [[ "$1" == "start" ]]; then
 	# CTA: Allow masquerading to the wan port:
 	iptables -t nat -A POSTROUTING -o wan -j MASQUERADE
 
-	# Allow any related and established connections:
+	# Allow any related and established connections on input and forward chains:
 	iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+	iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 	# CTA: This rule blocks all packets that are not a SYN packet and don’t
 	# belong to an established TCP connection.
@@ -111,19 +112,17 @@ if [[ "$1" == "start" ]]; then
 	for IFACE in ${WAN_IFACES[@]:-"wan"}; do 
 		# Direct interface to check SERVICES chain for further rules:
 		iptables -A INPUT -i ${IFACE} -j SERVICES
-		# Our "intervention" for miniupnpd to work properly:
-		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j MINIUPNPD
 		# Direct interface to check WAN_IN chain for further INPUT rules:
 		iptables -A INPUT -i ${IFACE} -j WAN_IN
 		# Drop any connections coming from the interface:
 		iptables -A INPUT -i ${IFACE} -j DROP
 		# Direct interface to check WAN_OUT chain for further OUTPUT rules:
 		iptables -A OUTPUT -o ${IFACE} -j WAN_OUT
+		# Our "intervention" for miniupnpd to work properly:
+		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j MINIUPNPD
 		# Direct interface to check WAN_FORWARD chain for further FORWARD rules:
 		iptables -A FORWARD -i ${IFACE} -j WAN_FORWARD
-		# Allow related and established connections to be forwarded from the interface to other interfaces:
-		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-		# Drop any connections being forwarded from the interface:
+		# Drop any connections being forwarded from the interface to another interface:
 		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j DROP
 	done
 
