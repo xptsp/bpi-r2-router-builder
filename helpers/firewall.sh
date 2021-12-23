@@ -14,6 +14,14 @@ if [[ "${UID}" -ne 0 ]]; then
 fi
 
 #############################################################################
+function create_chain()
+{
+	if ! iptables --list-rules | grep "\-N $1" >& /dev/null; then 
+		iptables -N $1
+	fi
+}
+
+#############################################################################
 # RELOAD => Move the new configuration file into place and reload settings:
 #############################################################################
 if [[ "$1" == "reload" ]]; then
@@ -22,7 +30,7 @@ if [[ "$1" == "reload" ]]; then
 		chown root:root /etc/default/router-settings
 	fi
 fi
-[[ -f /etc/default/firewall ]] && source /etc/default/firewall
+[[ -f /etc/default/router-settings ]] && source /etc/default/router-settings
 
 #############################################################################
 # START => Initializes the optionless base iptable firewall configuration:
@@ -55,9 +63,6 @@ if [[ "$1" == "start" ]]; then
 	#############################################################################
 	# These are global rules that will always be set!
 	#############################################################################
-	# CTA: Allow masquerading to the wan port:
-	iptables -t nat -A POSTROUTING -o wan -j MASQUERADE
-
 	# Allow any related and established connections on input and forward chains:
 	iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
@@ -98,13 +103,15 @@ if [[ "$1" == "start" ]]; then
 	#############################################################################
 	# Rules for input, output and forwarding for internet-facing interfaces:
 	#############################################################################
-	iptables -N SERVICES
-	iptables -N MINIUPNPD
-	iptables -N WAN_IN
-	iptables -N WAN_OUT
-	iptables -N WAN_FORWARD
+	create_chain SERVICES
+	create_chain MINIUPNPD
+	create_chain WAN_IN
+	create_chain WAN_OUT
+	create_chain WAN_FORWARD
 	[[ -z "${wan_ifaces[@]}" ]] && wan_ifaces=(wan)
 	for IFACE in ${wan_ifaces[@]}; do 
+		# CTA: Allow masquerading to the wan port:
+		iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE
 		# Direct interface to check SERVICES chain for further rules:
 		iptables -A INPUT -i ${IFACE} -j SERVICES
 		# Our "intervention" for miniupnpd to work properly:
@@ -188,7 +195,6 @@ elif [[ "$1" == "firewall" ]]; then
 	# CTB: for SMURF attack protection
 	iptables -A WAN_IN -p icmp -m icmp --icmp-type address-mask-request -j DROP
 	iptables -A WAN_IN -p icmp -m icmp --icmp-type timestamp-request -j DROP
-	iptables -A WAN_IN -p icmp -m icmp -m limit --limit 1/second -j ACCEPT
 
 	#############################################################################
 	# OPTION "block_dot" => Drop outgoing DoT (DNS-over-TLS port 853) requests:
@@ -210,12 +216,12 @@ elif [[ "$1" == "firewall" ]]; then
 	#############################################################################
 	if [[ "${drop_port_scan:-"Y"}" == "Y" ]]; then
 		# CTB: Create chain PORTSCAN and add logging to it (if requested) with your preferred prefix
-		iptables -N PORTSCAN
+		create_chain PORTSCAN
 		[[ "${log_port_scan:-"N"}" == "Y" ]] && iptables -A PORTSCAN -j LOG --log-level 4 --log-prefix 'Blocked_scans '
 		iptables -A PORTSCAN -j DROP
 
 		# CTB: Create chain UDP with custom logging (if requested) 
-		iptables -N UDP
+		create_chain UDP
 		[[ "${log_udp_flood:-"N"}" == "Y" ]] && iptables -A UDP -j LOG --log-level 4 --log-prefix 'UDP_FLOOD '
 		iptables -A UDP -p udp -m state --state NEW -m recent --set --name UDP_FLOOD
 		iptables -A UDP -j DROP
