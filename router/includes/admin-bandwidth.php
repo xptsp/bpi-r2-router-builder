@@ -1,6 +1,5 @@
 <?php
 require_once("subs/dhcp.php");
-
 $L['datefmt_days'] = '%d %B';
 $L['datefmt_months'] = '%B %Y';
 $L['datefmt_hours'] = '%l%p';
@@ -83,22 +82,46 @@ if (isset($_POST['action']))
 }
 
 #########################################################################################
-# Create the page to show the data:
+# Get everything we need to show the user:
 #########################################################################################
 site_menu();
 $_GET['iface'] = isset($_GET['iface']) ? $_GET['iface'] : 'wan';
 $_GET['mode'] = isset($_GET['mode']) ? $_GET['mode'] : 'hour';
+$options = parse_options();
+preg_match_all('/[A-Za-z0-9_]+/', $options['WAN_IFACES'], $wan_ifaces, PREG_PATTERN_ORDER);
+#echo '<pre>'; print_r($wan_ifaces[0]); exit;
+
+#########################################################################################
+# Create the page to show the data:
+#########################################################################################
 echo '
 <div class="card card-primary">
 	<div class="card-header">
 		<h3 class="card-title">
 			Interface: <select id="interface">';
+if (count($wan_ifaces[0]) > 0)
+{
+	echo '
+				<optgroup label="Internet Facing">';
+	foreach (get_network_adapters() as $iface => $dummy)
+	{
+		if (!preg_match('/^(docker.+|lo|sit.+|eth0|eth1|aux)$/', $iface) && in_array($iface, $wan_ifaces[0]))
+			echo '
+					<option value="', $iface, '"', $_GET['iface'] == $iface ? ' selected="selected"' : '', '>' . $iface . '</option>';
+	}
+	echo '
+				<optgroup>
+				<optgroup label="Local">';
+}
 foreach (get_network_adapters() as $iface => $dummy)
 {
-	if (!preg_match('/^(docker.+|lo|sit.+|eth0|eth1|aux)$/', $iface))
+	if (!preg_match('/^(docker.+|lo|sit.+|eth0|eth1|aux)$/', $iface) && !in_array($iface, $wan_ifaces[0]))
 		echo '
-				<option value="', $iface, '"', $_GET['iface'] == $iface ? ' selected="selected"' : '', '>' . $iface . '</option>';
+					<option value="', $iface, '"', $_GET['iface'] == $iface ? ' selected="selected"' : '', '>' . $iface . '</option>';
 }
+if (count($wan_ifaces[0]) > 0)
+	echo '
+				<optgroup>';
 echo '
 			</select>
 		</h3>

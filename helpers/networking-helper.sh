@@ -52,7 +52,7 @@ if [[ -c /dev/stpwmt ]]; then
 	fi
 fi
 modprobe wlan_gen2
-echo $([[ "${ONBOARD_MODE:-"A"}" == "A" ]] && echo A || echo 1) > /dev/wmtWifi
+[[ "$(cat /dev/wmtWifi)" == "0" ]] && echo $([[ "${ONBOARD_MODE:-"A"}" == "A" ]] && echo A || echo 1) > /dev/wmtWifi
 
 #############################################################################
 # Rename the WiFi interfaces on the MT76xx wifi card:
@@ -67,7 +67,7 @@ if [[ ! -z "${LIST[@]}" ]]; then
 			NEW=mt${DEV}_${POST}
 			ip link set ${IFACE} name ${NEW}
 			iw dev ${NEW} interface add ${NEW}_0 type managed
-			REN=$(dmesg | grep ${NEW}_0 | awk '{print $5}' | sed 's|:||g')
+			REN=$(dmesg | grep ${NEW}_0 | head -1 | awk '{print $5}' | sed 's|:||g')
 			[[ "$REN" != "${NEW}_0" ]] && ip link set ${REN} name ${NEW}_0
 		fi
 	done

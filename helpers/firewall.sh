@@ -219,9 +219,9 @@ elif [[ "$1" == "firewall" ]]; then
 		iptables -A UDP -p udp -m state --state NEW -m recent --set --name UDP_FLOOD
 		iptables -A UDP -j DROP
 
-		# CTB: Continue processing for all connections for ports from 32768 to 61000.  These are mostly
+		# CTB: Accept all connections for ports from 32768 to 61000.  These are mostly
 		# used in ACK and don’t have too many services hosted here.
-		iptables -A WAN_IN -p tcp -m tcp --destination-port 32768:61000 -j RETURN
+		iptables -A WAN_IN -p tcp -m tcp --destination-port 32768:61000 -j ACCEPT
 
 		# CTB: Anyone who previously tried to portscan or UDP flood us are locked out for an entire day.
 		# Their IP’s are stored in a list called ‘PORTSCAN’:
