@@ -1,0 +1,4 @@
+#!/bin/bash
+if [[ ! -z "${IF_WPA_SSID}" ]]; then
+	iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE
+fi
