@@ -75,6 +75,17 @@ if [[ ! -z "${LIST[@]}" ]]; then
 fi
 
 #############################################################################
+# Make sure all wireless interfaces are brought up:
+#############################################################################
+for IFACE in $(iw dev | grep Interface | awk '{print $NF}'); do
+	FILE=/etc/network/interfaces.d/${IFACE}
+	if ! test -f ${FILE}; then
+		echo "auto ${IFACE}" > ${FILE}
+		echo "iface ${IFACE} inet manual" >> ${FILE}
+	fi
+done
+
+#############################################################################
 # Return error code 0 to the caller:
 #############################################################################
 exit 0
