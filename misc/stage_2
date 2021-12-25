@@ -269,8 +269,6 @@ pihole restartdns
 # NOTE: Add site configuration for "pi.hole":
 ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl restart nginx
-# NOTE: Add our custom script to sudoers.d:
-echo "www-data ALL=NOPASSWD: /usr/local/sbin/pihole" >> /etc/sudoers.d/pihole
 
 ##################################################################################
 # Q: Maybe install these packages?
