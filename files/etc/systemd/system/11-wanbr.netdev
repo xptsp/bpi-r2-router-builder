@@ -1,0 +1,9 @@
+# create a bridge for use for wan
+# Src: https://www.fw-web.de/dokuwiki/doku.php?id=en:bpi-r2:network:start#permanent
+[NetDev]
+Name=wanbr
+Kind=bridge
+
+[Bridge]
+DefaultPVID=0
+VLANFiltering=1

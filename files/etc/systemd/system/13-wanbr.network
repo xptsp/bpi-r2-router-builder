@@ -1,0 +1,8 @@
+# put wanbr up by default
+# Src: https://www.fw-web.de/dokuwiki/doku.php?id=en:bpi-r2:network:start#permanent
+[Match]
+Name=wanbr
+
+[Network]
+BindCarrier=eth0
+ConfigureWithoutCarrier=true

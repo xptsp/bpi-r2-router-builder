@@ -1,0 +1,7 @@
+# configure eth1 as wan
+# src: https://www.fw-web.de/dokuwiki/doku.php?id=en:bpi-r2:network:start#permanent
+[Match]
+Name=eth1
+
+[Network]
+BindCarrier=eth0

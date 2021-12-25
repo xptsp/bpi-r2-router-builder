@@ -1,0 +1,17 @@
+# map aux and wan to vlan-aware bridge
+# traffic will be tagged inside with vlan-id 99
+# Src: https://www.fw-web.de/dokuwiki/doku.php?id=en:bpi-r2:network:start#permanent
+[Match]
+Name=wan aux
+
+[Link]
+RequiredForOnline=no
+
+[Network]
+BindCarrier=eth0
+Bridge=wanbr
+
+[BridgeVLAN]
+VLAN=99
+PVID=99
+EgressUntagged=99

@@ -1,15 +1,16 @@
 # interfaces(5) file used by ifup(8) and ifdown(8)
 # Include files from etc/network/interfaces.d:
 
-# NOTE: Use "hwaddress ether 08:00:00:00:00:01" to represent only onboard 
-#   devices.  Increment last digit as necessary to represent other devices 
-#   you want to change the MAC address for.
 auto lo
 iface lo inet loopback
 
 auto eth0
 iface eth0 inet manual
-    hwaddress ether 08:00:00:00:00:01
+    pre-up ip link set $IFACE up
+    post-down ip link set $IFACE down
+
+auto eth1
+iface eth1 inet manual
     pre-up ip link set $IFACE up
     post-down ip link set $IFACE down
 
