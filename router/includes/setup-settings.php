@@ -38,7 +38,7 @@ if (isset($_POST['action']))
 		if ($tmp != $option['onboard_wifi'])
 		{
 			$option['onboard_wifi'] = $tmp; 
-			apply_options();
+			apply_options(false);
 		}
 
 		// Set the other options:
