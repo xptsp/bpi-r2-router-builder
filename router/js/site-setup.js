@@ -504,7 +504,7 @@ function Settings_Apply()
 		'hostname': $("#hostname").val(),
 		'timezone': $("#timezone").val(),
 		'locale':	$("#locale").val(),
-		'mac':      $("#mac_addr").val()
+		'mac':      $("#mac_addr").val(),
 		'onboard':  $("#onboard_wifi").find("option:selected").val()
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
