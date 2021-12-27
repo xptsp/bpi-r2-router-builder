@@ -372,7 +372,12 @@ echo '
 				</div>
 			</div>
 		</div>
-	</div>
+	</div>';
+
+###################################################################################################
+# Page footer:
+###################################################################################################
+echo '
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" id="apply_reboot" class="btn btn-success float-right hidden" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Apply and Reboot</button></a>
 		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button></a>
@@ -380,92 +385,9 @@ echo '
 	</div>';
 
 ###################################################################################################
-# IP Reservation Confirmation modal:
-###################################################################################################
-echo '
-<div class="modal fade" id="confirm-modal" data-backdrop="static" style="display: none; z-index: 9000;" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content bg-danger">
-			<div class="modal-header">
-				<h4 class="modal-title">Confirm IP Reservation</h4>
-				<a href="javascript:void(0);"><button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button></a>
-			</div>
-			<div class="modal-body" id="confirm-mac"></div>
-			<div class="modal-footer justify-content-between">
-				<a href="javascript:void(0);"><button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button></a>
-				<a href="javascript:void(0);"><button id="confirm-proceed" type="button" class="btn btn-primary">Proceed</button></a>
-			</div>
-		</div>
-	</div>
-</div>';
-
-###################################################################################################
-# DHCP Reservations modal:
-###################################################################################################
-echo '
-<div class="modal fade" id="reservation-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
-	<div class="modal-dialog modal-lg">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h4 class="modal-title">DHCP Reservations</h4>
-				<a href="javascript:void(0);"><button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button></a>
-			</div>
-			<div class="modal-body table-responsive" style="max-height: 300px;">
-				<a href="javascript:void(0);"><button type="button" id="leases_refresh" class="btn btn-sm btn-primary float-right">Refresh</button></a>
-				<h5><center>Select Client from DHCP Tables</center></h5>
-                <table class="table table-sm table-head-fixed text-nowrap table-striped">
-					<thead>
-						<tr>
-							<th width="30%">Client Name</th>
-							<th width="30%">IP Address</th>
-							<th width="30%">MAC Address</th>
-							<th width="10%"></th>
-						</tr>
-					</thead>
-					<tbody id="clients-table">
-						<tr><td colspan="5"><center>Loading...</center></td></tr>
-					</tbody>
-				</table>
-			</div>
-			<div class="modal-body table-responsive">
-				<div class="alert alert-danger hidden" id="dhcp_error_box">
-					<a href="javascript:void(0);"><button type="button" class="close" id="dhcp_error_close">&times;</button></a>
-					<i class="fas fa-ban"></i>&nbsp;<span id="dhcp_error_msg" />
-				</div>
-				<table class="table table-sm table-head-fixed text-nowrap table-striped">
-					<thead>
-						<tr>
-							<th width="30%">Enter Client Name</th>
-							<th width="30%">Assign IP Address</th>
-							<th width="30%">To This MAC Address</th>
-							<th width="10%">&nbsp;</th>
-						</tr>
-					</thead>
-					<tbody id="reservation-table">
-						<tr>
-							<td><input type="text" class="form-control hostname" id="dhcp_client_name" placeholder="Client Name"></td>
-							<td><input type="text" class="form-control ip_address" id="dhcp_ip_addr" placeholder="IP Address"></td>
-							<td><input type="text" class="form-control" id="dhcp_mac_addr" placeholder="MAC Address"></td>
-							<td><a href="javascript:void(0);"><button type="button" id="reservation_remove" class="btn btn-sm btn-primary center">Clear</button></a></td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			<div class="modal-footer justify-content-between alert_control">
-				<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right" data-dismiss="modal">Cancel</button></a>
-				<a href="javascript:void(0);"><button type="button" id="dhcp_add" class="btn btn-success">Add Reservation</button></a>
-			</div>
-		</div>
-	</div>
-</div>';
-
-###################################################################################################
 # Close page
 ###################################################################################################
+dhcp_reservations_modals();
 apply_changes_modal('Please wait while the networking service is restarted....', true);
 reboot_modal();
 site_footer('Init_Wired("' . $iface . '");');

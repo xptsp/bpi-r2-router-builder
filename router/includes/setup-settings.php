@@ -32,11 +32,21 @@ if (isset($_POST['action']))
 	#################################################################################################
 	else if ($_POST['action'] == 'set')
 	{
+		// Set the change to the onboard wifi mode:
+		$option = parse_options();
+		$tmp = option_allowed('onboard_wifi', array('1', 'A'));
+		if ($tmp != $option['onboard_wifi'])
+		{
+			$option['onboard_wifi'] = $tmp; 
+			apply_options();
+		}
+
+		// Set the other options:
 		$mac = option_mac('mac');
 		$timezone = option_allowed('timezone', array_keys(timezone_list()) );
 		$locale = option_allowed('locale', array_keys(get_os_locales()) );
 		$hostname = option('hostname', "/^([0-9a-zA-Z]|[0-9a-zA-Z][0-9a-zA-Z0-9\-]+)$/");
-	
+
 		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh mac " . $mac);
 		die(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh device ' . $hostname . ' ' . $timezone . ' ' . $locale));
 	}
@@ -112,6 +122,23 @@ foreach (get_os_locales() as $id => $text)
 	echo '
 					<option value="', trim($id), '"', $id == $current ? ' selected="selected"' : '', '>[', $id, '] ', $text, '</option>';
 echo '
+				</select>
+			</div>
+		</div>';
+
+###########################################################################################
+# Onboard Wifi Setting:
+###########################################################################################
+$option = parse_options();
+echo '
+		<div class="row" style="margin-top: 10px">
+			<div class="col-6">
+				<label for="onboard_wifi">BPi R2 Onboard Wifi Mode:</label></td>
+			</div>
+			<div class="col-6 input-group">
+				<select class="form-control" id="onboard_wifi">
+					<option value="A"', $option['onboard_wifi'] == 'A' ? ' selected="selected"' : '', '>Access Point Mode Only</option>
+					<option value="1"', $option['onboard_wifi'] == '1' ? ' selected="selected"' : '', '>Client Mode Only</option>
 				</select>
 			</div>
 		</div>

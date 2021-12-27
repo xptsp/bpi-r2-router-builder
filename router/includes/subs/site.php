@@ -441,7 +441,7 @@ function option_mac($name)
 	return $tmp;
 }
 
-function apply_options()
+function apply_options($reload = true)
 {
 	global $options, $options_changed;
 	#if (!$options_changed)
@@ -458,8 +458,11 @@ function apply_options()
 	$handle = fopen("/tmp/router-settings", "w");
 	fwrite($handle, $text);
 	fclose($handle);
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh firewall reload");
-	if (isset($options['use_isp']) && isset($options['dns1']))
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns " . ($options['use_isp'] == 'Y' ? 'config' : $options['dns1'] . ' ' . $options['dns2']));
+	if ($reload)
+	{
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh firewall reload");
+		if (isset($options['use_isp']) && isset($options['dns1']))
+			@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns " . ($options['use_isp'] == 'Y' ? 'config' : $options['dns1'] . ' ' . $options['dns2']));
+	}
 	return "OK";
 }

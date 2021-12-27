@@ -95,11 +95,12 @@ function DNS_Submit()
 }
 
 //======================================================================================================
-// Javascript functions for "Setup / Network Setup"
+// Javascript functions for "Setup / Wired Setup"
 //======================================================================================================
 function Init_Wired(iface)
 {
 	iface_used = iface;
+	page_url = '/setup/wired';
 
 	// Main screen setup and handlers:
 	$("#op_mode").change(function() {
@@ -116,59 +117,12 @@ function Init_Wired(iface)
 			else
 				$("#add_reservation_href").addClass("hidden");
 		}
-	});
-	$('#use_dhcp').click(function() {
-		if ($(this).is(":checked")) {
-			$(".dhcp").removeAttr("disabled");
-			$(".dhcp_div").slideDown(400);
-			$("#add_reservation_href").removeClass("hidden");
-			$("#ip_addr").val( $("#ip_addr").val() );
-		} else {
-			$(".dhcp").attr("disabled", "disabled");
-			$(".dhcp_div").slideUp(400);
-			$("#add_reservation_href").addClass("hidden");
-		}
-	});
+	}).change();
 	$(".bridge").click( function() {
 		$(this).toggleClass("active");
 	});
-	$('.ip_address').inputmask("ip").change(function() {
-		parts = $("#ip_addr").val().substring(0, $("#ip_addr").val().lastIndexOf('.'));
-		$("#dhcp_start").val( parts + $("#dhcp_start").val().substring( $("#dhcp_start").val().lastIndexOf('.')) );
-		$("#dhcp_end").val( parts + $("#dhcp_end").val().substring( $("#dhcp_end").val().lastIndexOf('.')) );
-		$("#dhcp_ip_addr").val( parts + $("#dhcp_ip_addr").val().substring( $("#dhcp_ip_addr").val().lastIndexOf('.')) );
-	});
-	$("#dhcp_lease").inputmask("integer");
-	$("#dhcp_units").change(function() {
-		if ($(this).val() == "infinite")
-			$("#dhcp_lease").attr("disabled", "disabled");
-		else
-			$("#dhcp_lease").removeAttr("disabled");
-	});
 	$("#apply_changes").click(Wired_Submit);
-	$("#reservations-refresh").click(Wired_Refresh_Reservations).click();
-
-	//=========================================================================
-	// IP Reservation modals and handlers:
-	$("#dhcp_mac_addr").inputmask("mac");
-	$("#reservation_remove").click(function() {
-		$("#dhcp_client_name").val("");
-		$("#dhcp_ip_addr").val("");
-		$("#dhcp_mac_addr").val("");
-	});
-	$("#add_reservation").click(function() {
-		$("#dhcp_error_box").addClass("hidden");
-		$("#reservation-modal").modal("show");
-		$("#reservation_remove").click();
-		Wired_Refresh_Leases();
-	});
-	$("#leases_refresh").click(Wired_Refresh_Leases);
-	$("#dhcp_add").click(Wired_Reservation_Add);
-	$("#dhcp_error_close").click(function() {
-		$("#dhcp_error_box").addClass("hidden");
-	});
-	$("#confirm-proceed").click(Wired_Reservation_Confirmed);
-	$("#reboot_yes").click(Reboot_Confirmed);
+	__Init_DHCP();
 }
 
 function Wired_Submit()
@@ -203,7 +157,7 @@ function Wired_Submit()
 		$("#apply-modal").modal("show");
 
 	// Perform our AJAX request to change the WAN settings:
-	$.post("/setup/wired", postdata, function(data) {
+	$.post('setup/wired', postdata, function(data) {
 		if (data == "OK")
 			document.location.reload(true);
 		else if (data == "REBOOT")
@@ -219,11 +173,66 @@ function Wired_Submit()
 	});
 }
 
-function Wired_Refresh_Leases()
+//======================================================================================================
+// Shared Javascript functions for "Setup / Wired Setup" and "Setup / Wireless Setup":
+//======================================================================================================
+function __Init_DHCP()
+{
+	$('#use_dhcp').click(function() {
+		if ($(this).is(":checked")) {
+			$(".dhcp").removeAttr("disabled");
+			$(".dhcp_div").slideDown(400);
+			$("#add_reservation_href").removeClass("hidden");
+			$("#ip_addr").val( $("#ip_addr").val() );
+		} else {
+			$(".dhcp").attr("disabled", "disabled");
+			$(".dhcp_div").slideUp(400);
+			$("#add_reservation_href").addClass("hidden");
+		}
+	});
+	$('.ip_address').inputmask("ip").change(function() {
+		parts = $("#ip_addr").val().substring(0, $("#ip_addr").val().lastIndexOf('.'));
+		$("#dhcp_start").val( parts + $("#dhcp_start").val().substring( $("#dhcp_start").val().lastIndexOf('.')) );
+		$("#dhcp_end").val( parts + $("#dhcp_end").val().substring( $("#dhcp_end").val().lastIndexOf('.')) );
+		$("#dhcp_ip_addr").val( parts + $("#dhcp_ip_addr").val().substring( $("#dhcp_ip_addr").val().lastIndexOf('.')) );
+	});
+	$("#dhcp_lease").inputmask("integer");
+	$("#dhcp_units").change(function() {
+		if ($(this).val() == "infinite")
+			$("#dhcp_lease").attr("disabled", "disabled");
+		else
+			$("#dhcp_lease").removeAttr("disabled");
+	});
+	$("#reservations-refresh").click(DHCP_Refresh_Reservations).click();
+
+	//=========================================================================
+	// IP Reservation modals and handlers:
+	$("#dhcp_mac_addr").inputmask("mac");
+	$("#reservation_remove").click(function() {
+		$("#dhcp_client_name").val("");
+		$("#dhcp_ip_addr").val("");
+		$("#dhcp_mac_addr").val("");
+	});
+	$("#add_reservation").click(function() {
+		$("#dhcp_error_box").addClass("hidden");
+		$("#reservation-modal").modal("show");
+		$("#reservation_remove").click();
+		DHCP_Refresh_Leases();
+	});
+	$("#leases_refresh").click(DHCP_Refresh_Leases);
+	$("#dhcp_add").click(DHCP_Reservation_Add);
+	$("#dhcp_error_close").click(function() {
+		$("#dhcp_error_box").addClass("hidden");
+	});
+	$("#confirm-proceed").click(DHCP_Reservation_Confirmed);
+	$("#reboot_yes").click(Reboot_Confirmed);
+}
+
+function DHCP_Refresh_Leases()
 {
 	// Perform our AJAX request to refresh the LAN leases:
 	$("#clients-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
-	$.post("/setup/wired", __postdata("clients", iface_used), function(data) {
+	$.post(page_url, __postdata("clients", iface_used), function(data) {
 		$("#clients-table").html(data);
 		$(".reservation-option").click(function() {
 			line = $(this).parent();
@@ -232,15 +241,15 @@ function Wired_Refresh_Leases()
 			$("#dhcp_mac_addr").val( line.find(".dhcp_mac_addr").html() );
 		});
 	}).fail(function() {
-		Wired_Error("AJAX call failed!");
+		DHCP_Error("AJAX call failed!");
 	});
 }
 
-function Wired_Refresh_Reservations()
+function DHCP_Refresh_Reservations()
 {
 	// Perform our AJAX request to refresh the reservations:
 	$("#reservations-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
-	$.post("/setup/wired", __postdata("reservations", iface_used), function(data) {
+	$.post(page_url, __postdata("reservations", iface_used), function(data) {
 		$("#reservation-modal").modal("hide");
 		$("#reservations-table").html(data);
 		$(".dhcp_edit").click(function() {
@@ -250,11 +259,11 @@ function Wired_Refresh_Reservations()
 			$("#dhcp_ip_addr").val( line.find(".dhcp_ip_addr").html() );
 			$("#dhcp_mac_addr").val( line.find(".dhcp_mac_addr").html() );
 		});
-		$(".dhcp_delete").click(Wired_Reservation_Remove);
+		$(".dhcp_delete").click(DHCP_Reservation_Remove);
 	});
 }
 
-function Wired_Reservation_Remove()
+function DHCP_Reservation_Remove()
 {
 	// Assemble the post data for the AJAX call:
 	line = $(this).parent();
@@ -269,20 +278,20 @@ function Wired_Reservation_Remove()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to remove the IP reservation:
-	$.post("/setup/wired", postdata, function(data) {
+	$.post(page_url, postdata, function(data) {
 		if (data.trim() == "OK")
 		{
-			Wired_Refresh_Reservations();
+			DHCP_Refresh_Reservations();
 			reboot_suggested = true;
 		}
 		else
-			Wired_Error(data);
+			DHCP_Error(data);
 	}).fail(function() {
-		Wired_Error("AJAX call failed!");
+		DHCP_Error("AJAX call failed!");
 	});
 }
 
-function Wired_Reservation_Add()
+function DHCP_Reservation_Add()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
@@ -297,31 +306,31 @@ function Wired_Reservation_Add()
 
 	// Check to make sure we actually have something to pass to the AJAX call:
 	if (postdata.hostname == "")
-		return Wired_Error("No hostname specified!");
+		return DHCP_Error("No hostname specified!");
 	else if (postdata.ip_addr == "")
-		return Wired_Error("No IP address specified!");
+		return DHCP_Error("No IP address specified!");
 	else if (postdata.mac_addr == "")
-		return Wired_Error("No MAC address specified!");
+		return DHCP_Error("No MAC address specified!");
 
 	// Perform our AJAX request to add the IP reservation:
-	$.post("/setup/wired", postdata, function(data) {
+	$.post(page_url, postdata, function(data) {
 		if (data.trim() == "SAME")
-			Wired_Refresh_Reservations();
+			DHCP_Refresh_Reservations();
 		else if (data.trim() == "OK")
-			Wired_Reservation_Add_Msg();
+			DHCP_Reservation_Add_Msg();
 		else if (data.trim() == "ADD")
-			Wired_Reservation_Confirmed();
+			DHCP_Reservation_Confirmed();
 		else
 		{
 			$("#confirm-mac").html('<p>' + data + '</p><p>Proceed with replacement?</p>');
 			$("#confirm-modal").modal("show");
 		}
 	}).fail(function() {
-		Wired_Error("AJAX call failed!");
+		DHCP_Error("AJAX call failed!");
 	});
 }
 
-function Wired_Reservation_Add_Msg()
+function DHCP_Reservation_Add_Msg()
 {
 	$("#apply_changes").addClass("hidden");
 	$("#apply_reboot").removeClass("hidden");
@@ -331,10 +340,10 @@ function Wired_Reservation_Add_Msg()
 			clearInterval(timer);
 		}, 5000);
 	});
-	Wired_Reservation_Confirmed();
+	DHCP_Reservation_Confirmed();
 }
 
-function Wired_Reservation_Confirmed()
+function DHCP_Reservation_Confirmed()
 {
 	// Hide confirmation dialog if shown:
 	$("#confirm-modal").modal("hide");
@@ -351,17 +360,17 @@ function Wired_Reservation_Confirmed()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to add the IP reservation:
-	$.post("/setup/wired", postdata, function(data) {
+	$.post(page_url, postdata, function(data) {
 		if (data.trim() == "OK")
-			Wired_Refresh_Reservations();
+			DHCP_Refresh_Reservations();
 		else
-			Wired_Error(data);
+			DHCP_Error(data);
 	}).fail(function() {
-		Wired_Error("AJAX call failed!");
+		DHCP_Error("AJAX call failed!");
 	});
 }
 
-function Wired_Error(msg)
+function DHCP_Error(msg)
 {
 	$("#dhcp_error_msg").html(msg);
 	$("#dhcp_error_box").slideDown(400, function() {
@@ -415,11 +424,11 @@ function Routing_Delete()
 	$.post("/setup/routing", postdata, function(data) {
 		Del_Overlay("routing-div");
 		if (data.trim() == "")
-			Wired_Refresh_Reservations();
+			DHCP_Refresh_Reservations();
 		else
-			Wired_Error(data);
+			DHCP_Error(data);
 	}).fail(function() {
-		Wired_Error("AJAX call failed!");
+		DHCP_Error("AJAX call failed!");
 	});
 }
 
@@ -442,11 +451,11 @@ function Routing_Add()
 	$.post("/setup/routing", postdata, function(data) {
 		Del_Overlay("routing-div");
 		if (data.trim() == "OK")
-			Wired_Refresh_Reservations();
+			DHCP_Refresh_Reservations();
 		else
-			Wired_Error(data);
+			DHCP_Error(data);
 	}).fail(function() {
-		Wired_Error("AJAX call failed!");
+		DHCP_Error("AJAX call failed!");
 	});
 }
 
@@ -496,6 +505,7 @@ function Settings_Apply()
 		'timezone': $("#timezone").val(),
 		'locale':	$("#locale").val(),
 		'mac':      $("#mac_addr").val()
+		'onboard':  $("#onboard_wifi").find("option:selected").val()
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
@@ -518,4 +528,50 @@ function Settings_Apply()
 		$("#apply_msg").html("AJAX call failed!");
 		$("#apply_cancel").removeClass("hidden");
 	});
+}
+
+//======================================================================================================
+// Javascript functions for "Setup / Wireless Setup"
+//======================================================================================================
+function Init_Wireless(iface)
+{
+	iface_used = iface;
+	page_url = '/setup/wireless';
+
+	// Main screen setup and handlers:
+	$("#op_mode").change(function() {
+		mode = $(this).find("option:selected").val();
+		if (mode == 'disabled' || mode == "client_dhcp")
+		{
+			$("#static_ip_div").slideUp(400);
+			$("#use_dhcp").slideUp(400);
+			if (mode == "client_dhcp")
+				$("#client_mode_div").slideDown(400);
+			else
+				$("#client_mode_div").slideUp(400);
+		}
+		else if (mode == "client_static" || mode == "ap")
+		{
+			$("#static_ip_div").slideDown(400);
+			if (mode == "ap")
+			{
+				$("#client_mode_div").slideUp(400);
+				$("#use_dhcp").slideDown(400);
+			}
+			else
+			{
+				$("#client_mode_div").slideDown(400);
+				$("#use_dhcp").slideUp(400);
+			}
+		}
+	}).change();
+	$("#wpa_toggle").click(function() {
+		input = $(this).parent().find(".form-control");
+		if (input.attr("type") === "password")
+			input.attr("type", "text");
+		else
+		    input.attr("type", "password");
+		$(this).find(".fas").toggleClass("fa-eye fa-eye-slash");
+	});
+	__Init_DHCP();
 }

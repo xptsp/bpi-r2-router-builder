@@ -1,4 +1,76 @@
 <?php
+require_once("subs/admin.php");
+require_once("subs/setup.php");
+require_once("subs/dhcp.php");
+
+#################################################################################################
+# If we are not doing the submission action, then skip this entire block of code:
+#################################################################################################
+if (isset($_POST['action']))
+{
+	#################################################################################################
+	# If action specified and invalid SID passed, force a reload of the page.  Otherwise:
+	#################################################################################################
+	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
+		die('RELOAD');
+
+	#################################################################################################
+	# Validate the input sent to this script (we paranoid... for the right reasons, of course...):
+	#################################################################################################
+	$action  = option('action', '/^(disabled|client_dhcp|client_status|ap)$/');
+	$iface   = option('iface', '/^(' . implode("|", explode("\n", trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'")))) . ')$/');
+	$ip_addr = option_ip('ip_addr');
+	$ip_mask = option_ip('ip_mask');
+	$ip_gate = option_ip('ip_gate');
+	$reboot  = option('reboot', "/^(true|false)$/");
+
+	#################################################################################################
+	# Output the network adapter configuration to the "/tmp" directory:
+	#################################################################################################
+	$text  = 'auto ' . $iface . "\n";
+	$text .= 'iface ' . $iface . ' inet ' . ($action == "disabled" ? 'manual' : ($action == 'client_static' || $action == 'ap' ? 'static' : 'dhcp')) . "\n";
+	if ($action != "disabled" && $action != 'client_dhcp')
+	{
+		$text .= '    address ' . $ip_addr . "\n";
+		$text .= '    netmask ' . $ip_mask . "\n";
+		if (!empty($ip_gate) && $ip_gate != "0.0.0.0")
+			$text .= '    gateway ' . $ip_gate . "\n";
+	}	
+	if ($action == "client_dhcp" || $action == "client_static")
+	{
+		$text .= '    wpa_ssid "' . $wpa_ssid . '"' . "\n";
+		if (!empty($wpa_psk))
+			$text .= '    wpa_psk "' . $wpa_psk . '"' . "\n";
+	}
+	#echo '<pre>'; echo $text; exit;
+	$handle = fopen("/tmp/" . $iface, "w");
+	fwrite($handle, trim($text) . "\n");
+	fclose($handle);
+	$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface move " . $iface);
+	die($tmp);
+
+	#################################################################################################
+	# Output the DNSMASQ configuration file related to the network adapter:
+	#################################################################################################
+	if ($_POST['action'] == 'disabled' || $_POST['action'] == 'client_static' || $_POST['action'] == 'client_dhcp' || $_POST['use_dhcp'] == "N")
+		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp del " . $_POST['iface']);
+	else
+		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp set " . $_POST['iface'] . " " . $ip_addr . " " . $dhcp_start . " " . $dhcp_end . ' ' . $dhcp_lease);
+	if ($tmp != "")
+		die($tmp);
+
+	#################################################################################################
+	# Restarting networking service:
+	#################################################################################################
+	if ($reboot == "false")
+	{
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart networking");
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole restartdns");
+		die("OK");
+	}
+	else
+		die("REBOOT");
+}
 
 ########################################################################################################
 # Determine what wireless interfaces exist on the system, then remove the AP0 interface if client-mode
@@ -17,6 +89,18 @@ foreach (explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print 
 $iface = isset($_GET['iface']) ? $_GET['iface'] : $ifaces[0];
 #echo '<pre>'; print_r($ifaces); exit;
 #echo '<pre>'; print_r($options); exit;
+$adapters = explode("\n", trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'")));
+#echo '<pre>'; print_r($adapters); exit();
+$netcfg = get_mac_info($iface);
+#echo '<pre>'; print_r($netcfg); exit;
+$wpa_ssid = preg_match('/wpa_ssid\s+\"(.+)\"/', isset($netcfg['wpa_ssid']) ? $netcfg['wpa_ssid'] : '', $regex) ? $regex[1] : '';
+#echo '<pre>'; print_r($wpa_ssid); exit;
+$wpa_psk = preg_match('/wpa_psk\s+\"(.+)\"/', isset($netcfg['wpa_psk']) ? $netcfg['wpa_psk'] : '', $regex) ? $regex[1] : '';
+#echo '<pre>'; print_r($wpa_psk); exit;
+$dhcp = explode(",", explode("=", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep dhcp-range=")) . '=')[1]);
+#echo '<pre>'; print_r($dhcp); exit();
+$use_dhcp = isset($dhcp[1]);
+#echo (int) $use_dhcp; exit;
 
 ########################################################################################################
 # Main code for the page:
@@ -39,11 +123,139 @@ foreach ($ifaces as $tface)
 echo '
 		</ul>
 	</div>
-	<div class="card-body">
+	<div class="card-body">';
+
+###################################################################################################
+# List modes of operation for the interface:
+###################################################################################################
+echo '
+		<div class="row">
+			<div class="col-6">
+				<label for="iface_mode">Mode of Operation:</label>
+			</div>
+			<div class="col-6">
+				<select id="op_mode" class="form-control">
+					<option value="disabled"', $netcfg['op_mode'] == 'manual' ? ' selected="selected"' : '', '>Not Configured</option>';
+if ($iface != 'ap0')
+	echo '
+					<option value="client_dhcp"', $netcfg['op_mode'] == 'dhcp' && isset($netcfg['wpa_ssid']) ? ' selected="selected"' : '', '>Client Mode - Automatic Configuration (DHCP)</option>
+					<option value="client_static"', $netcfg['op_mode'] == 'static' && isset($netcfg['wpa_ssid']) ? ' selected="selected"' : '', '>Client Mode - Static IP Address</option>';
+if ($iface == 'ap0' || ($iface != "ap0" && $iface != "mt6625_0"))
+	echo '
+					<option value="ap"' . ($netcfg['op_mode'] == 'static' && !isset($netcfg['wpa_ssid'])  ? ' selected="selected"' : '') . '>Access Point</option>';
+echo '
+				</select>
+			</div>
+		</div>';
+
+###################################################################################################
+# Interface IP Address section
+###################################################################################################
+echo '
+		<div id="client_mode_div"', ($netcfg['op_mode'] == 'dhcp' && isset($netcfg['wpa_ssid'])) || ($netcfg['op_mode'] == 'static' && !isset($netcfg['wpa_ssid'])) ? '' : ' class="hidden"', '>
+			<hr style="border-width: 2px" />
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_addr">Connect To Wifi SSID:</label>
+				</div>
+				<div class="col-6">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+						</div>
+						<input id="wpa_ssid" type="text" class="form-control" value="', $wpa_ssid, '">
+						<div class="input-group-prepend">
+							<a href="javascript:void(0);"><button type="button" class="btn btn-primary">Scan</button></a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_mask">Wifi Password:</label>
+				</div>
+				<div class="col-6">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+						</div>
+						<input type="password" class="form-control" id="wpa_psk" name="wpa_psk" placeholder="Required" value="', $wpa_psk, '">
+						<div class="input-group-append" id="wpa_toggle">
+							<span class="input-group-text"><a href="javascript:void(0);"><i class="fas fa-eye"></i></a></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>';
+
+###################################################################################################
+# Interface IP Address section
+###################################################################################################
+$subnet = isset($ifcfg['inet']) ? $ifcfg['inet'] : '';
+if (empty($subnet))
+	$subnet = "192.168." . strval( (int) trim(@shell_exec("iw dev " . $iface . " info | grep ifindex | awk '{print \$NF}'")) + 10 ) . ".1";
+echo '
+		<div id="static_ip_div"', ($netcfg['op_mode'] == 'dhcp' && isset($netcfg['wpa_ssid'])) || ($netcfg['op_mode'] == 'static' && !isset($netcfg['wpa_ssid'])) ? '' : ' class="hidden"', '>
+			<hr style="border-width: 2px" />
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_addr">IP Address:</label>
+				</div>
+				<div class="col-6">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+						</div>
+						<input id="ip_addr" type="text" class="ip_address form-control" value="', $subnet, '" data-inputmask="\'alias\': \'ip\'" data-mask>
+					</div>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_mask">IP Subnet Mask:</label>
+				</div>
+				<div class="col-6">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+						</div>
+						<input id="ip_mask" type="text" class="ip_address form-control" value="', isset($ifcfg['netmask']) ? $ifcfg['netmask'] : '255.255.255.0', '" data-inputmask="\'alias\': \'ip\'" data-mask>
+					</div>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_gate">IP Gateway Address:</label>
+				</div>
+				<div class="col-6">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+						</div>
+						<input id="ip_gate" type="text" class="ip_address form-control" value="', isset($netcfg['gateway']) ? $netcfg['gateway'] : '0.0.0.0', '" data-inputmask="\'alias\': \'ip\'" data-mask>
+					</div>
+				</div>
+			</div>';
+
+###################################################################################################
+# DHCP Settings and IP Range, plus IP Address Reservation section
+###################################################################################################
+dhcp_reservations_settings();
+
+###################################################################################################
+# Page footer
+###################################################################################################
+echo '
+		</div>
 	</div>
 	<div class="card-footer">
-		<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-success center_50" id="apply_changes">Apply Changes</button></a>
+		<a href="javascript:void(0);"><button type="button" id="apply_reboot" class="btn btn-success float-right hidden" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Apply and Reboot</button></a>
+		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button></a>
+		<a id="add_reservation_href" href="javascript:void(0);"', !$use_dhcp || $netcfg['op_mode'] == 'dhcp' || isset($netcfg['wpa_ssid']) ? ' class="hidden"' : '', '><button type="button" id="add_reservation" class="dhcp_div btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button></a>
 	</div>
 	<!-- /.card-body -->
 </div>';
-site_footer('Init_Creds();');
+dhcp_reservations_modals();
+apply_changes_modal('Please wait while the networking service is restarted....', true);
+reboot_modal();
+site_footer('Init_Wireless("' . $iface . '");');
