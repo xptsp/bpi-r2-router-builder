@@ -109,32 +109,45 @@ if [[ "$1" == "start" ]]; then
 	create_chain WAN_IN
 	create_chain WAN_OUT
 	create_chain WAN_FORWARD
-	[[ -z "${wan_ifaces[@]}" ]] && wan_ifaces=(wan)
-	for IFACE in ${wan_ifaces[@]}; do 
-		# CTA: Allow masquerading to the wan port:
-		iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE
-		# Direct interface to check SERVICES chain for further rules:
-		iptables -A INPUT -i ${IFACE} -j SERVICES
-		# Our "intervention" for miniupnpd to work properly:
-		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j MINIUPNPD
-		# Direct interface to check WAN_IN chain for further INPUT rules:
-		iptables -A INPUT -i ${IFACE} -j WAN_IN
-		# Drop any connections coming from the interface:
-		iptables -A INPUT -i ${IFACE} -j DROP
-		# Direct interface to check WAN_OUT chain for further OUTPUT rules:
-		iptables -A OUTPUT -o ${IFACE} -j WAN_OUT
-		# Direct interface to check WAN_FORWARD chain for further FORWARD rules:
-		iptables -A FORWARD -i ${IFACE} -j WAN_FORWARD
-		# Allow related and established connections to be forwarded from the interface to other interfaces:
-		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-		# Drop any connections being forwarded from the interface:
-		iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j DROP
-	done
 
 	#############################################################################
 	# We need to call ourselves to complete other tasks:
 	#############################################################################
 	$0 reload
+
+#############################################################################
+# UNFIREWALL => Remove all internet-firewall rules for specified interface:
+#############################################################################
+elif [[ "$1" == "unblock" ]]; then
+	IFACE=$2
+	iptables --list-rules | grep ${IFACE} while IFS= read -r line; do iptables ${line/\-A/\-D}; done
+	iptables --list-rules -t nat | grep ${IFACE} while IFS= read -r line; do iptables ${line/\-A/\-D}; done
+
+#############################################################################
+# FIREWALL => Install internet-firewall rules for specified interface:
+#############################################################################
+elif [[ "$1" == "block" ]]; then
+	IFACE=$2
+	# Remove any existing firewall rules explicit to the specified interface:
+	$0 unblock ${IFACE}
+	# CTA: Allow masquerading to the wan port:
+	iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE
+	# Direct interface to check SERVICES chain for further rules:
+	iptables -A INPUT -i ${IFACE} -j SERVICES
+	# Our "intervention" for miniupnpd to work properly:
+	iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j MINIUPNPD
+	# Direct interface to check WAN_IN chain for further INPUT rules:
+	iptables -A INPUT -i ${IFACE} -j WAN_IN
+	# Drop any connections coming from the interface:
+	iptables -A INPUT -i ${IFACE} -j DROP
+	# Direct interface to check WAN_OUT chain for further OUTPUT rules:
+	iptables -A OUTPUT -o ${IFACE} -j WAN_OUT
+	# Direct interface to check WAN_FORWARD chain for further FORWARD rules:
+	iptables -A FORWARD -i ${IFACE} -j WAN_FORWARD
+	# Allow related and established connections to be forwarded from the interface to other interfaces:
+	iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+	# Drop any connections being forwarded from the interface:
+	iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j DROP
 
 #############################################################################
 # RELOAD => Setup the WebUI customizable firewall rules:

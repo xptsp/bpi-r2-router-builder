@@ -83,6 +83,7 @@ for IFACE in $(iw dev | grep Interface | awk '{print $NF}'); do
 		echo "auto ${IFACE}" > ${FILE}
 		echo "iface ${IFACE} inet manual" >> ${FILE}
 	fi
+	iwconfig ${IFACE} txpower 30
 done
 
 #############################################################################

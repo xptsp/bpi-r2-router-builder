@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Use Receive Packet Steering (RPS) to steer incoming data from "wan" to CPUs 2 and 3:
+[[ "${IFACE}" == "wan" ]] && echo 6 > /sys/class/net/${IFACE}/queues/rx-0/rps_cpus
+
+# Use Receive Packet Steering (RPS) to steer incoming data from "br0" to CPUs 4:
+[[ "${IFACE}" == "br0" ]] && echo 8 > /sys/class/net/${IFACE}/queues/rx-0/rps_cpus
+
+# If we ask for masquerading --OR-- are connecting to a wireless access point, add masquerade rule for the interface:
+[[ ! -z "${IF_MASQUERADE}" || ! -z "${IF_WPA_SSID}" ]] && iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE
+
+# Call the helper script to firewall the interface, if required:
+[[ ! -z "${IF_FIREWALL}" ]] && /opt/bpi-r2-router-builder/helpers/firewall.sh block ${IFACE}
+
+# Exit with a zero error code:
+exit 0

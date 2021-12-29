@@ -4,10 +4,6 @@
 # Onboard Wifi Mode.  Accepts "A" for access point --OR-- "1" (or anything else) for client-mode.  Default: A
 onboard_wifi=A
 
-# Interfaces that are to be treated as internet-facing.  List must be enclosed using quotes and have spaces
-# between each interface in the list, such as: "(wan mt7615_24g)". Default: "wan"
-wan_ifaces=(wan)
-
 ##########################################################################
 # WebUI Setup / DNS Settings
 ##########################################################################

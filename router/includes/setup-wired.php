@@ -23,6 +23,7 @@ if (isset($_POST['action']))
 	$ip_addr = option_ip('ip_addr');
 	$ip_mask = option_ip('ip_mask');
 	$reboot  = option('reboot', "/^(true|false)$/");
+	$firewalled = option("firewalled", "/^(Y|N)$/");
 
 	#################################################################################################
 	# If using DHCP on this interface, make sure addresses are valid:
@@ -57,10 +58,8 @@ if (isset($_POST['action']))
 	$bridged = array_diff( explode(" ", trim($_POST['bridge'])), array("undefined") );
 	if (empty($bridged))
 		die("[BRIDGE] ERROR: No interfaces specified in bridge configuration!");
-	$text = '
-allow-hotplug {iface}
-auto {iface}
-iface {iface} inet manual';
+	$text =  'auto {iface}' . "\n";
+	$text .= 'iface {iface} inet manual' . "\n";
 	if (count($bridged) > 1)
 	{
 		foreach ($bridged as $adapter)
@@ -79,18 +78,31 @@ iface {iface} inet manual';
 		$iface = $bridged[0];
 
 	#################################################################################################
+	# Decide what the interface configuration text will look like:
+	#################################################################################################
+	$text =  'auto ' . $iface . "\n";
+	$text .= 'iface ' . $iface . ' inet ' . ($_POST['action'] == 'dhcp' ? 'dhcp' : 'static') . "\n";
+	if ($_POST['action'] != 'dhcp')
+	{
+		$text .= '    address ' . $ip_addr . "\n";
+		$text .= '    netmask ' . $ip_mask . "\n";
+		if (!empty($_POST['gateway']) && $_POST['gateway'] != "0.0.0.0")
+			$text .= '    gateway ' . $_POST['ip_gate'] . "\n";
+	}
+	if ($_POST['action'] == 'bridged' && count($bridged) > 1)
+	{
+		$text .= '    bridge_ports ' . implode(" ", $bridged) . "\n";
+		$text .= '    bridge_fd 5' . "\n";
+		$text .= '    bridge_stp no' . "\n";
+	}
+	else if ($_POST['action'] != 'bridged')
+		$text .= '    masquerade yes' . "\n";
+	if ($firewalled)
+		$text .= '    firewall yes' . "\n";
+
+	#################################################################################################
 	# Output the network adapter configuration to the "/tmp" directory:
 	#################################################################################################
-	$text = '
-auto ' . $iface . '
-iface ' . $iface . ' inet ' . ($_POST['action'] == 'dhcp' ? 'dhcp' : 'static') . ($_POST['action'] != 'dhcp' ? '
-    address ' . $ip_addr . '
-    netmask ' . $ip_mask . (!empty($_POST['gateway']) && $_POST['gateway'] != "0.0.0.0" ? '
-    gateway ' . $_POST['ip_gate'] : '') : '') . ($_POST['action'] == 'bridged' && count($bridged) > 1 ? '
-    bridge_ports ' . implode(" ", $bridged) . '
-    bridge_fd 5
-    bridge_stp no' : '') . (in_array($iface, array('wan', 'br0')) ? '
-    post-up echo ' . ($iface == 'wan' ? '6' : '8') . ' > /sys/class/net/wan/queues/rx-0/rps_cpus' : '');
 	#echo '<pre>'; echo $text; exit;
 	$handle = fopen("/tmp/" . $iface, "w");
 	fwrite($handle, trim($text) . "\n");
@@ -188,6 +200,7 @@ foreach ($adapters as $tface)
 	if (!preg_match($exclude_regex, $tface) && !in_array($tface, $invalid))
 		$tmp[] = $tface;
 }
+#echo '<pre>'; print_r($tmp); exit;
 echo '
 		<div class="row">
 			<div class="col-6">
@@ -202,8 +215,23 @@ if (count($tmp) > 1)
 					<option value="bridged"', $netcfg['op_mode'] == 'bridged' ? ' selected="selected"' : '', '>Bridged Interfaces</option>';
 echo '
 				</select>
-			</div>
+			</div>';
+if (count($tmp) == 1)
+	echo '
+			<div class="row" style="margin-top: 5px">
+				<div class="col-12">
+					<div class="icheck-primary">
+						<input type="checkbox" id="firewalled"', isset($netcfg['firewalled']) ? ' checked="checked"' : '', '>
+						<label for="firewalled">Firewall Interface from Internet</label>
+					</div>
+				</div>
+			</div>';
+else
+	echo '
+			<input type="hidden" id="firewalled" />';
+echo '
 		</div>
+		<hr style="border-width: 2px" />
 		<div id="static_ip_div"', $netcfg['op_mode'] == 'dhcp' ? ' class="hidden"' : '', '>';
 
 ###################################################################################################

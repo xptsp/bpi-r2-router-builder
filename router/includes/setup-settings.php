@@ -35,11 +35,12 @@ if (isset($_POST['action']))
 		// Set the change to the onboard wifi mode:
 		$option = parse_options();
 		$tmp = option_allowed('onboard_wifi', array('1', 'A'));
-		if ($tmp != $option['onboard_wifi'])
-		{
-			$option['onboard_wifi'] = $tmp; 
-			apply_options(false);
-		}
+		$option['webui_lang'] = option_allowed('ui_lang', array('english'));
+		$restart = ($tmp != $option['onboard_wifi']);
+		$option['onboard_wifi'] = $tmp; 
+		apply_options();
+		if ($restart)
+			@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart networking");
 
 		// Set the other options:
 		$mac = option_mac('mac');
@@ -59,6 +60,7 @@ if (isset($_POST['action']))
 ###########################################################################################
 # Main code for this page:
 ###########################################################################################
+$option = parse_options();
 site_menu();
 #echo '<pre>'; print_r($current); exit;
 echo '
@@ -127,9 +129,23 @@ echo '
 		</div>';
 
 ###########################################################################################
+# WebUI Language Setting:
+###########################################################################################
+echo '
+		<div class="row" style="margin-top: 10px">
+			<div class="col-6">
+				<label for="webui_language">WebUI Language:</label></td>
+			</div>
+			<div class="col-6 input-group">
+				<select class="form-control" id="webui_language" disabled="disabled">
+					<option value="english" selected="selected">English</option>
+				</select>
+			</div>
+		</div>';
+
+###########################################################################################
 # Onboard Wifi Setting:
 ###########################################################################################
-$option = parse_options();
 echo '
 		<div class="row" style="margin-top: 10px">
 			<div class="col-6">

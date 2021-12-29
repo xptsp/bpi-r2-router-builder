@@ -103,6 +103,7 @@ function Init_Wired(iface)
 	page_url = '/setup/wired';
 
 	// Main screen setup and handlers:
+	$(".checkbox").bootstrapSwitch();
 	$("#op_mode").change(function() {
 		if ($(this).find("option:selected").val() == 'dhcp')
 		{
@@ -138,6 +139,7 @@ function Wired_Submit()
 		'dhcp_start': $("#dhcp_start").val(),
 		'dhcp_end':   $("#dhcp_end").val(),
 		'dhcp_lease': $("#dhcp_lease").val() + $("#dhcp_units").val(),
+		'firewalled': $("#firewalled").is(":checked") ? 'Y' : 'N',
 		'reboot':     reboot_suggested,
 	};
 	if ($("#dhcp_units").val() == "infinite")
@@ -157,7 +159,7 @@ function Wired_Submit()
 		$("#apply-modal").modal("show");
 
 	// Perform our AJAX request to change the WAN settings:
-	$.post('setup/wired', postdata, function(data) {
+	$.post('/setup/wired', postdata, function(data) {
 		if (data == "OK")
 			document.location.reload(true);
 		else if (data == "REBOOT")
@@ -505,6 +507,7 @@ function Settings_Apply()
 		'timezone': $("#timezone").val(),
 		'locale':	$("#locale").val(),
 		'mac':      $("#mac_addr").val(),
+		'ui_lang':  $("#webui_language").val(),
 		'onboard':  $("#onboard_wifi").find("option:selected").val()
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
@@ -539,6 +542,7 @@ function Init_Wireless(iface)
 	page_url = '/setup/wireless';
 
 	// Main screen setup and handlers:
+	$(".checkbox").bootstrapSwitch();
 	$("#op_mode").change(function() {
 		mode = $(this).find("option:selected").val();
 		if (mode == 'disabled' || mode == "client_dhcp")

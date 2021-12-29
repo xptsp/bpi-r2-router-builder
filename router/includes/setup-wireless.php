@@ -23,9 +23,10 @@ if (isset($_POST['action']))
 	$ip_mask = option_ip('ip_mask');
 	$ip_gate = option_ip('ip_gate');
 	$reboot  = option('reboot', "/^(true|false)$/");
+	$firewalled = option("firewalled", "/^(Y|N)$/");
 
 	#################################################################################################
-	# Output the network adapter configuration to the "/tmp" directory:
+	# Decide what the interface configuration text will look like:
 	#################################################################################################
 	$text  = 'auto ' . $iface . "\n";
 	$text .= 'iface ' . $iface . ' inet ' . ($action == "disabled" ? 'manual' : ($action == 'client_static' || $action == 'ap' ? 'static' : 'dhcp')) . "\n";
@@ -41,7 +42,14 @@ if (isset($_POST['action']))
 		$text .= '    wpa_ssid "' . $wpa_ssid . '"' . "\n";
 		if (!empty($wpa_psk))
 			$text .= '    wpa_psk "' . $wpa_psk . '"' . "\n";
+		$text .= '    masquerade yes' . "\n";
 	}
+	if ($firewalled)
+		$text .= '    firewall yes' . "\n";
+		
+	#################################################################################################
+	# Output the network adapter configuration to the "/tmp" directory:
+	#################################################################################################
 	#echo '<pre>'; echo $text; exit;
 	$handle = fopen("/tmp/" . $iface, "w");
 	fwrite($handle, trim($text) . "\n");
@@ -78,6 +86,7 @@ if (isset($_POST['action']))
 ########################################################################################################
 $ifaces = array();
 $options = parse_options();
+#echo '<pre>'; print_r($options); exit;
 foreach (explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}' | sort"))) as $tface)
 {
 	$include = $tface != "mt6625_0" && $tface != "ap0";
@@ -88,7 +97,6 @@ foreach (explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print 
 }
 $iface = isset($_GET['iface']) ? $_GET['iface'] : $ifaces[0];
 #echo '<pre>'; print_r($ifaces); exit;
-#echo '<pre>'; print_r($options); exit;
 $adapters = explode("\n", trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'")));
 #echo '<pre>'; print_r($adapters); exit();
 $netcfg = get_mac_info($iface);
@@ -149,7 +157,7 @@ echo '
 		</div>';
 
 ###################################################################################################
-# Interface IP Address section
+# Wifi SSID, password and firewalled setting:
 ###################################################################################################
 echo '
 		<div id="client_mode_div"', ($netcfg['op_mode'] == 'dhcp' && isset($netcfg['wpa_ssid'])) || ($netcfg['op_mode'] == 'static' && !isset($netcfg['wpa_ssid'])) ? '' : ' class="hidden"', '>
@@ -186,6 +194,14 @@ echo '
 					</div>
 				</div>
 			</div>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-12">
+					<div class="icheck-primary">
+						<input type="checkbox" id="firewalled"', isset($netcfg['firewall']) ? ' checked="checked"' : '', '>
+						<label for="firewalled">Firewall Interface from Internet</label>
+					</div>
+				</div>
+			</div>
 		</div>';
 
 ###################################################################################################
@@ -195,7 +211,7 @@ $subnet = isset($ifcfg['inet']) ? $ifcfg['inet'] : '';
 if (empty($subnet))
 	$subnet = "192.168." . strval( (int) trim(@shell_exec("iw dev " . $iface . " info | grep ifindex | awk '{print \$NF}'")) + 10 ) . ".1";
 echo '
-		<div id="static_ip_div"', ($netcfg['op_mode'] == 'dhcp' && isset($netcfg['wpa_ssid'])) || ($netcfg['op_mode'] == 'static' && !isset($netcfg['wpa_ssid'])) ? '' : ' class="hidden"', '>
+		<div id="static_ip_div"', ($netcfg['op_mode'] == 'static' && isset($netcfg['wpa_ssid'])) ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
 			<div class="row" style="margin-top: 5px">
 				<div class="col-6">
