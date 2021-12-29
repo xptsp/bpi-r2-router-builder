@@ -178,7 +178,7 @@ function site_menu($refresh_switch = false)
 	# Write the menu:
 	$dark_mode = !empty($_SESSION['dark_mode']);
 	echo '
-<body class="hold-transition sidebar-mini layout-boxed bodybg', $dark_mode ? ' dark-mode' : '', '">
+<body class="hold-transition sidebar-mini layout-boxed ', $dark_mode ? 'bodybg-dark dark-mode' : 'bodybg', '">
 <div class="wrapper">
 	<!-- Main Sidebar Container -->
 	<aside class="main-sidebar sidebar-dark-primary elevation-4">

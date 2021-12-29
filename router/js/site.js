@@ -16,7 +16,7 @@ function Init_Site(sid)
 
 function Site_DarkMode()
 {
-	$("body").toggleClass("dark-mode");
+	$("body").toggleClass("dark-mode bodybg bodybg-dark");
 	check = $("#dark-mode");
 	check.toggleClass("fa-square fa-check-square");
 	$.get("/home?sid=" + SID + "&dark_mode=" + (check.hasClass("fa-square") ? 'N' : 'Y'));	

@@ -17,7 +17,7 @@ if (!isset($_POST['action']))
 	<link rel="stylesheet" href="/css/adminlte.min.css">
 	<link rel="stylesheet" href="/css/custom.css">
 </head>
-<body class="hold-transition login-page bodybg">
+<body class="hold-transition login-page ', !empty($_SESSION['dark_mode']) ? 'bodybg-dark dark-mode' : 'bodybg', '">
 	<div class="login-box">
 		<div class="card card-outline card-primary">
 			<div class="card-header text-center">
