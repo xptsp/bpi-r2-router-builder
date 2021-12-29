@@ -199,10 +199,12 @@ foreach ($sidebar_menu as $item)
 	echo !is_array($item) ? $item : ((isset($item[2]) & is_array($item[2])) ? menu_submenu($item[0], $item[1], $item[2]) : '');
 echo '
 					', menu_log(), '
-					', menu_link("#", "", ""), '
+					<li><a href="#"><p></p></a></li>
+					<li><a href="#"><p></p></a></li>
+					<li><a href="#"><p></p></a></li>
 				</ul>
 				<span 
-				<ul class="nav nav-pills nav-sidebar flex-column" style="position: absolute; bottom: 0; left: 0; width: 100%;">
+				<ul class="nav nav-pills nav-sidebar flex-column" style="position: absolute; bottom: 0; left: 8;">
 					', menu_link('#', "Dark Mode", !$dark_mode ? 'far fa-square' : 'far fa-check-square', false, 'dark-mode'), '
 				</ul>
 			<!-- /.sidebar-menu -->
