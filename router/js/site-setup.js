@@ -135,6 +135,7 @@ function Wired_Submit()
 		'action':     $("#op_mode option:selected").val(),
 		'ip_addr':    $("#ip_addr").val(),
 		'ip_mask':    $("#ip_mask").val(),
+		'ip_gate':    $("#ip_gate").val(),
 		'use_dhcp':   $("#use_dhcp").is(":checked") ? 1 : 0,
 		'dhcp_start': $("#dhcp_start").val(),
 		'dhcp_end':   $("#dhcp_end").val(),
@@ -577,5 +578,75 @@ function Init_Wireless(iface)
 		    input.attr("type", "password");
 		$(this).find(".fas").toggleClass("fa-eye fa-eye-slash");
 	});
+	$("#apply_changes").click(Wireless_Submit);
+	$("#wifi_encode").click(Wireless_Encode);
 	__Init_DHCP();
+}
+
+function Wireless_Submit()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':        SID,
+		'iface':      iface_used,
+		'action':     $("#op_mode option:selected").val(),
+		'wpa_ssid':   $("#wpa_ssid").val(),
+		'wpa_psk':    $("#wpa_psk").val(),
+		'ip_addr':    $("#ip_addr").val(),
+		'ip_mask':    $("#ip_mask").val(),
+		'ip_gate':    $("#ip_gate").val(),
+		'use_dhcp':   $("#use_dhcp").is(":checked") ? 1 : 0,
+		'dhcp_start': $("#dhcp_start").val(),
+		'dhcp_end':   $("#dhcp_end").val(),
+		'dhcp_lease': $("#dhcp_lease").val() + $("#dhcp_units").val(),
+		'firewalled': $("#firewalled").is(":checked") ? 'Y' : 'N'
+	};
+	if ($("#dhcp_units").val() == "infinite")
+		postdata.dhcp_lease = 'infinite';
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Notify the user what we are doing:
+	$("#apply_msg").html( $("#apply_default").html() );
+	$("#apply_cancel").addClass("hidden");
+	if (reboot_suggested)
+		$("#reboot-modal").modal("show");
+	else
+		$("#apply-modal").modal("show");
+
+	// Perform our AJAX request to change the WAN settings:
+	$.post('/setup/wireless', postdata, function(data) {
+		if (data == "OK")
+			document.location.reload(true);
+		else if (data == "REBOOT")
+			Reboot_Confirmed();
+		else
+		{
+			$("#apply_msg").html(data);
+			$("#apply_cancel").removeClass("hidden");
+		}
+	}).fail(function() {
+		$("#apply_msg").html("AJAX call failed!");
+		$("#apply_cancel").removeClass("hidden");
+	});
+}
+
+function Wireless_Encode()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':        SID,
+		'action':     'encode',
+		'wpa_ssid':   $("#wpa_ssid").val(),
+		'wpa_psk':    $("#wpa_psk").val(),
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to change the WAN settings:
+	$.post('/setup/wireless', postdata, function(data) {
+		$("#wpa_psk").val( data );
+	}).fail(function() {
+		$("#apply-modal").modal("show");
+		$("#apply_msg").html("AJAX call failed!");
+		$("#apply_cancel").removeClass("hidden");
+	});
 }

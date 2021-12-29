@@ -15,14 +15,39 @@ if (isset($_POST['action']))
 		die('RELOAD');
 
 	#################################################################################################
+	# Validate the actions, then do any DHCP actions as requested by the caller:
+	#################################################################################################
+	$action = $_POST['action'] = option_allowed('action', get_dhcp_actions(array('disabled', 'client_dhcp', 'client_static', 'ap', 'encode')));
+	do_dhcp_actions();
+
+	#################################################################################################
+	# Encode the specified credentials:
+	#################################################################################################
+	if ($action == 'encode')
+	{
+		$wpa_ssid = option('wpa_ssid', '/[\w\d\s\_\-]+/');
+		$wpa_psk = option('wpa_psk', '/[\w\d\s\_\-]{8,63}/');
+		foreach (explode("\n", trim(@shell_exec('wpa_passphrase "' . $wpa_ssid . '" "' . $wpa_psk . '"'))) as $line)
+		{
+			$line = explode("=", trim($line . '='));
+			if ($line[0] == "psk")
+				die($line[1]);
+		}
+		die("ERROR");
+	}
+
+	#################################################################################################
 	# Validate the input sent to this script (we paranoid... for the right reasons, of course...):
 	#################################################################################################
-	$action  = option('action', '/^(disabled|client_dhcp|client_status|ap)$/');
 	$iface   = option('iface', '/^(' . implode("|", explode("\n", trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'")))) . ')$/');
-	$ip_addr = option_ip('ip_addr');
-	$ip_mask = option_ip('ip_mask');
-	$ip_gate = option_ip('ip_gate');
-	$reboot  = option('reboot', "/^(true|false)$/");
+	if ($action == 'client_static' || $action == 'ap')
+	{
+		$ip_addr = option_ip('ip_addr');
+		$ip_mask = option_ip('ip_mask');
+		$ip_gate = option_ip('ip_gate');
+		$wpa_ssid = option('wpa_ssid', '/[\w\d\s\_\-]+/');
+		$wpa_psk = option('wpa_psk', '/[\w\d\s\_\-]{8,63}/');
+	}
 	$firewalled = option("firewalled", "/^(Y|N)$/");
 
 	#################################################################################################
@@ -55,7 +80,6 @@ if (isset($_POST['action']))
 	fwrite($handle, trim($text) . "\n");
 	fclose($handle);
 	$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface move " . $iface);
-	die($tmp);
 
 	#################################################################################################
 	# Output the DNSMASQ configuration file related to the network adapter:
@@ -68,16 +92,11 @@ if (isset($_POST['action']))
 		die($tmp);
 
 	#################################################################################################
-	# Restarting networking service:
+	# Restarting wireless interface and pihole-FTL:
 	#################################################################################################
-	if ($reboot == "false")
-	{
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart networking");
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole restartdns");
-		die("OK");
-	}
-	else
-		die("REBOOT");
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface restart " . $iface);
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole restartdns");
+	die("OK");
 }
 
 ########################################################################################################
@@ -164,7 +183,7 @@ echo '
 			<hr style="border-width: 2px" />
 			<div class="row" style="margin-top: 5px">
 				<div class="col-6">
-					<label for="ip_addr">Connect To Wifi SSID:</label>
+					<label for="ip_addr">Network Name (SSID):</label>
 				</div>
 				<div class="col-6">
 					<div class="input-group">
@@ -172,24 +191,24 @@ echo '
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
 						<input id="wpa_ssid" type="text" class="form-control" value="', $wpa_ssid, '">
-						<div class="input-group-prepend">
-							<a href="javascript:void(0);"><button type="button" class="btn btn-primary">Scan</button></a>
+						<div class="input-group-prepend" id="wifi_scan_div">
+							<a href="javascript:void(0);"><button type="button" class="btn btn-primary" id="wifi_scan">Scan</button></a>
 						</div>
 					</div>
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
 				<div class="col-6">
-					<label for="ip_mask">Wifi Password:</label>
+					<label for="ip_mask">Passphrase:</label>
 				</div>
 				<div class="col-6">
 					<div class="input-group">
-						<div class="input-group-prepend">
-							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+						<div class="input-group-prepend" id="wpa_toggle">
+							<span class="input-group-text"><a href="javascript:void(0);"><i class="fas fa-eye"></i></a></span>
 						</div>
 						<input type="password" class="form-control" id="wpa_psk" name="wpa_psk" placeholder="Required" value="', $wpa_psk, '">
-						<div class="input-group-append" id="wpa_toggle">
-							<span class="input-group-text"><a href="javascript:void(0);"><i class="fas fa-eye"></i></a></span>
+						<div class="input-group-prepend" id="wifi_encode_div">
+							<a href="javascript:void(0);"><button type="button" class="btn btn-primary" id="wifi_encode">Encode</button></a>
 						</div>
 					</div>
 				</div>
@@ -272,6 +291,6 @@ echo '
 	<!-- /.card-body -->
 </div>';
 dhcp_reservations_modals();
-apply_changes_modal('Please wait while the networking service is restarted....', true);
+apply_changes_modal('Please wait while the wireless interface is being configured....', true);
 reboot_modal();
 site_footer('Init_Wireless("' . $iface . '");');

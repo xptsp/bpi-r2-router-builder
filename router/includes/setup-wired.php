@@ -17,8 +17,8 @@ if (isset($_POST['action']))
 	#################################################################################################
 	# Validate the input sent to this script (we paranoid... for the right reasons, of course...):
 	#################################################################################################
-	$action  = option('action', '/^(dhcp|static|bridged|reservations|clients|remove|check|add)$/');
-	dhcp_actions();
+	$action = $_POST['action'] = option_allowed('action', get_dhcp_actions(array('dhcp', 'static', 'bridged')));
+	do_dhcp_actions();
 	$iface   = option('iface', '/^(' . implode("|", array_keys(get_network_adapters())) . ')$/');
 	$ip_addr = option_ip('ip_addr');
 	$ip_mask = option_ip('ip_mask');

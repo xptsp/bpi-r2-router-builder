@@ -1,7 +1,12 @@
 <?php
 require_once("admin.php");
 
-function dhcp_actions()
+function get_dhcp_actions($other = array())
+{
+	return array_merge($other, array('reservations', 'clients', 'remove', 'check', 'add'));
+}
+
+function do_dhcp_actions()
 {
 	$reserve = $hostname = $leases = array();
 

@@ -317,11 +317,16 @@ case $CMD in
 		if [[ "$1" == "move" ]]; then
 			if ! test -f /tmp/${2}; then echo "ERROR: Missing Configuration File"; exit; fi
 			mv /tmp/${2} /etc/network/interfaces.d/${2}
-			chroot root:root /etc/network/interfaces.d/${2}
+			chown root:root /etc/network/interfaces.d/${2}
 		#####################################################################
 		# DELETE => Delete specified configuration file from "/etc/network/interfaces.d/":
 		elif [[ "$1" == "delete" ]]; then
-			rm /etc/network/interfaces.d/${1}.conf 2> /dev/null
+			rm /etc/network/interfaces.d/${2} 2> /dev/null
+		#####################################################################
+		# RESTART => Restart the specified interface:
+		elif [[ "$1" == "restart" ]]; then
+			ifdown ${2}
+			ifup ${2}
 		fi
 		;;
 
