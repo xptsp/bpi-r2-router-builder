@@ -100,7 +100,7 @@ function site_header($override_title = "")
 ################################################################################################################
 # Function that returns a menu item:
 ################################################################################################################
-function menu_link($url, $text, $icon = "far fa-circle", $login_required = false)
+function menu_link($url, $text, $icon = "far fa-circle", $login_required = false, $id = false)
 {
 	global $site_title, $logged_in;
 
@@ -112,9 +112,9 @@ function menu_link($url, $text, $icon = "far fa-circle", $login_required = false
 		return '';
 	else
 		return
-		'<li class="nav-item">' .
+		'<li class="nav-item"' . (!empty($id) ? ' id="' . $id . '_label"' : '') . '>' .
 			'<a href="' . $url . '" class="nav-link' . $active . '">' .
-				'<i class="nav-icon ' . $icon . '"></i>' .
+				'<i' . (!empty($id) ? ' id="' . $id . '"' : '') . ' class="nav-icon ' . $icon . '"></i>' .
 				'<p>' . $text . '</p>' .
 			'</a>' .
 		'</li>';
@@ -199,7 +199,10 @@ foreach ($sidebar_menu as $item)
 echo '
 					', menu_log(), '
 				</ul>
-			</nav>
+				<span 
+				<ul class="nav nav-pills nav-sidebar flex-column nav-child-indent nav-collapse-hide-child" data-widget="treeview" role="menu" data-accordion="false" style="position: absolute; bottom: 0; left: 0; width: 100%;">
+					', menu_link('#', "Dark Mode", empty($dark_mode) ? 'far fa-square' : 'far fa-check-square', false, 'dark-mode'), '
+				</ul>
 			<!-- /.sidebar-menu -->
 		</div>
 		<!-- /.sidebar -->

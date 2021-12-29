@@ -11,6 +11,13 @@ var max_timer;
 function Init_Site(sid)
 {
 	SID=sid;
+	$("#dark-mode_label").click(Site_DarkMode);
+}
+
+function Site_DarkMode()
+{
+	$("body").toggleClass("dark-mode");
+	$("#dark-mode").toggleClass("fa-square fa-check-square");
 }
 
 function __postdata(action, misc = '')
@@ -21,6 +28,7 @@ function __postdata(action, misc = '')
 		'misc': misc,
 	};
 }
+
 //======================================================================================================
 // Javascript functions for "Login" page:
 //======================================================================================================
