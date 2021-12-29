@@ -120,8 +120,8 @@ if [[ "$1" == "start" ]]; then
 #############################################################################
 elif [[ "$1" == "unblock" ]]; then
 	IFACE=$2
-	iptables --list-rules | grep ${IFACE} while IFS= read -r line; do iptables ${line/\-A/\-D}; done
-	iptables --list-rules -t nat | grep ${IFACE} while IFS= read -r line; do iptables ${line/\-A/\-D}; done
+	iptables --list-rules | grep ${IFACE} | while IFS= read -r line; do iptables ${line/\-A/\-D}; done
+	iptables --list-rules -t nat | grep ${IFACE} | while IFS= read -r line; do iptables ${line/\-A/\-D}; done
 
 #############################################################################
 # FIREWALL => Install internet-firewall rules for specified interface:
