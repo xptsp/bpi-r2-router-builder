@@ -79,7 +79,11 @@ fi
 #############################################################################
 for IFACE in $(iw dev | grep Interface | awk '{print $NF}'); do
 	FILE=/etc/network/interfaces.d/${IFACE}
-	if ! test -f ${FILE}; then
+	if [[ "${IFACE}" == "ap0" && "${onboard_wifi}" == "1" ]]; then
+		test -f ${FILE} && rm ${FILE}
+	elif [[ "${IFACE}" == "mt6625_0" && "${onboard_wifi}" == "A" ]]; then
+		test -f ${FILE} && rm ${FILE}
+	elif ! test -f ${FILE}; then
 		echo "auto ${IFACE}" > ${FILE}
 		echo "iface ${IFACE} inet manual" >> ${FILE}
 	fi
