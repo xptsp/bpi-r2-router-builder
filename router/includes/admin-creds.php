@@ -64,7 +64,7 @@ echo '
 			<div class="input-group col-sm-10">
 				<input type="password" class="form-control" id="oldPass" name="oldPass"', $debug ? ' value="bananapi"' : '', ' placeholder="Old Password">
 				<div class="input-group-append">
-					<span class="input-group-text"><a href="javascript:void(0);"><i class="fas fa-eye"></i></a></span>
+					<span class="input-group-text"><i class="fas fa-eye"></i></span>
 				</div>
 			</div>
 		</div>
@@ -73,7 +73,7 @@ echo '
 			<div class="input-group col-sm-10">
 				<input type="password" class="form-control" id="newPass" name="newPass"', $debug ? ' value="meh"' : '', ' placeholder="Required">
 				<div class="input-group-append">
-					<span class="input-group-text"><a href="javascript:void(0);"><i class="fas fa-eye"></i></a></span>
+					<span class="input-group-text"><i class="fas fa-eye"></i></span>
 				</div>
 			</div>
 		</div>
@@ -82,7 +82,7 @@ echo '
 			<div class="input-group col-sm-10">
 				<input type="password" class="form-control" id="conPass" name="conPass"', $debug ? ' value="meh"' : '', ' placeholder="Required">
 				<div class="input-group-append">
-					<span class="input-group-text"><a href="javascript:void(0);"><i class="fas fa-eye"></i></a></span>
+					<span class="input-group-text"><i class="fas fa-eye"></i></span>
 				</div>
 			</div>
 		</div>

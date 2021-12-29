@@ -323,10 +323,13 @@ case $CMD in
 		elif [[ "$1" == "delete" ]]; then
 			rm /etc/network/interfaces.d/${2} 2> /dev/null
 		#####################################################################
-		# RESTART => Restart the specified interface:
-		elif [[ "$1" == "restart" ]]; then
-			ifdown ${2}
+		# IFUP => Restart the specified interface:
+		elif [[ "$1" == "ifup" ]]; then
 			ifup ${2}
+		#####################################################################
+		# IFDOWN => Restart the specified interface:
+		elif [[ "$1" == "ifdown" ]]; then
+			ifdown ${2}
 		fi
 		;;
 

@@ -51,6 +51,11 @@ if (isset($_POST['action']))
 	$firewalled = option("firewalled", "/^(Y|N)$/");
 
 	#################################################################################################
+	# Shut down the wireless interface right now, before modifying the configuration:
+	#################################################################################################
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ifdown " . $iface);
+
+	#################################################################################################
 	# Decide what the interface configuration text will look like:
 	#################################################################################################
 	$text  = 'auto ' . $iface . "\n";
@@ -69,7 +74,7 @@ if (isset($_POST['action']))
 			$text .= '    wpa_psk "' . $wpa_psk . '"' . "\n";
 		$text .= '    masquerade yes' . "\n";
 	}
-	if ($firewalled)
+	if ($firewalled && $action != "disabled")
 		$text .= '    firewall yes' . "\n";
 		
 	#################################################################################################
@@ -92,9 +97,9 @@ if (isset($_POST['action']))
 		die($tmp);
 
 	#################################################################################################
-	# Restarting wireless interface and pihole-FTL:
+	# Start the wireless interface and restart pihole-FTL:
 	#################################################################################################
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface restart " . $iface);
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ifup " . $iface);
 	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole restartdns");
 	die("OK");
 }
@@ -204,7 +209,7 @@ echo '
 				<div class="col-6">
 					<div class="input-group">
 						<div class="input-group-prepend" id="wpa_toggle">
-							<span class="input-group-text"><a href="javascript:void(0);"><i class="fas fa-eye"></i></a></span>
+							<span class="input-group-text"><i class="fas fa-eye"></i></span>
 						</div>
 						<input type="password" class="form-control" id="wpa_psk" name="wpa_psk" placeholder="Required" value="', $wpa_psk, '">
 						<div class="input-group-prepend" id="wifi_encode_div">
