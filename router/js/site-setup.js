@@ -537,7 +537,7 @@ function Settings_Apply()
 //======================================================================================================
 // Javascript functions for "Setup / Wireless Setup"
 //======================================================================================================
-function Init_Wireless(iface)
+function Init_Wireless(iface, wifi_net, ap_net)
 {
 	iface_used = iface;
 	page_url = '/setup/wireless';
@@ -560,11 +560,13 @@ function Init_Wireless(iface)
 			$("#static_ip_div").slideDown(400);
 			if (mode == "ap")
 			{
+				$("#ip_addr").val( ap_net );
 				$("#client_mode_div").slideUp(400);
 				$("#use_dhcp").slideDown(400);
 			}
 			else
 			{
+				$("#ip_addr").val( wifi_net );
 				$("#client_mode_div").slideDown(400);
 				$("#use_dhcp").slideUp(400);
 			}

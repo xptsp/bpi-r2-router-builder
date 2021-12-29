@@ -45,6 +45,9 @@ if (isset($_POST['action']))
 		$ip_addr = option_ip('ip_addr');
 		$ip_mask = option_ip('ip_mask');
 		$ip_gate = option_ip('ip_gate');
+	}
+	if ($action == 'client_dhcp' || $action == 'client_static')
+	{
 		$wpa_ssid = option('wpa_ssid', '/[\w\d\s\_\-]+/');
 		$wpa_psk = option('wpa_psk', '/[\w\d\s\_\-]{8,63}/');
 	}
@@ -133,6 +136,8 @@ $dhcp = explode(",", explode("=", trim(@shell_exec("cat /etc/dnsmasq.d/" . $ifac
 #echo '<pre>'; print_r($dhcp); exit();
 $use_dhcp = isset($dhcp[1]);
 #echo (int) $use_dhcp; exit;
+$ifcfg = parse_ifconfig($iface);
+#echo '<pre>'; print_r($ifcfg); echo '</pre>'; exit();
 
 ########################################################################################################
 # Main code for the page:
@@ -232,8 +237,8 @@ echo '
 # Interface IP Address section
 ###################################################################################################
 $subnet = isset($ifcfg['inet']) ? $ifcfg['inet'] : '';
-if (empty($subnet))
-	$subnet = "192.168." . strval( (int) trim(@shell_exec("iw dev " . $iface . " info | grep ifindex | awk '{print \$NF}'")) + 10 ) . ".1";
+$default = "192.168." . strval( (int) trim(@shell_exec("iw dev " . $iface . " info | grep ifindex | awk '{print \$NF}'")) + 10 ) . ".1";
+$subnet = empty($subnet) ? $default : $subnet;
 echo '
 		<div id="static_ip_div"', ($netcfg['op_mode'] == 'static' && isset($netcfg['wpa_ssid'])) ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
@@ -298,4 +303,4 @@ echo '
 dhcp_reservations_modals();
 apply_changes_modal('Please wait while the wireless interface is being configured....', true);
 reboot_modal();
-site_footer('Init_Wireless("' . $iface . '");');
+site_footer('Init_Wireless("' . $iface . '", "' . $subnet . '", "' . $default . '");');
