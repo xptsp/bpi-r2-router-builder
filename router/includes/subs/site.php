@@ -176,8 +176,9 @@ function site_menu($refresh_switch = false)
 		ob_start();
 
 	# Write the menu:
+	$dark_mode = !empty($_SESSION['dark_mode']);
 	echo '
-<body class="hold-transition sidebar-mini layout-boxed bodybg">
+<body class="hold-transition sidebar-mini layout-boxed bodybg', $dark_mode ? ' dark-mode' : '', '">
 <div class="wrapper">
 	<!-- Main Sidebar Container -->
 	<aside class="main-sidebar sidebar-dark-primary elevation-4">
@@ -201,7 +202,7 @@ echo '
 				</ul>
 				<span 
 				<ul class="nav nav-pills nav-sidebar flex-column nav-child-indent nav-collapse-hide-child" data-widget="treeview" role="menu" data-accordion="false" style="position: absolute; bottom: 0; left: 0; width: 100%;">
-					', menu_link('#', "Dark Mode", empty($dark_mode) ? 'far fa-square' : 'far fa-check-square', false, 'dark-mode'), '
+					', menu_link('#', "Dark Mode", !$dark_mode ? 'far fa-square' : 'far fa-check-square', false, 'dark-mode'), '
 				</ul>
 			<!-- /.sidebar-menu -->
 		</div>

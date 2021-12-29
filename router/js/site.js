@@ -17,7 +17,10 @@ function Init_Site(sid)
 function Site_DarkMode()
 {
 	$("body").toggleClass("dark-mode");
-	$("#dark-mode").toggleClass("fa-square fa-check-square");
+	check = $("#dark-mode");
+	check.toggleClass("fa-square fa-check-square");
+	$.get("/home?sid=" + SID + "&dark_mode=" + (check.hasClass("fa-square") ? 'N' : 'Y'));	
+	return false;
 }
 
 function __postdata(action, misc = '')
