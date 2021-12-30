@@ -550,6 +550,7 @@ function Init_Wireless(iface, wifi_net, ap_net)
 		{
 			$("#static_ip_div").slideUp(400);
 			$("#use_dhcp").slideUp(400);
+			$("#wifi_scan").removeClass("hidden");
 			if (mode == "client_dhcp")
 				$("#client_mode_div").slideDown(400);
 			else
@@ -560,12 +561,14 @@ function Init_Wireless(iface, wifi_net, ap_net)
 			$("#static_ip_div").slideDown(400);
 			if (mode == "ap")
 			{
+				$("#wifi_scan").addClass("hidden");
 				$("#ip_addr").val( ap_net );
 				$("#client_mode_div").slideUp(400);
 				$("#use_dhcp").slideDown(400);
 			}
 			else
 			{
+				$("#wifi_scan").removeClass("hidden");
 				$("#ip_addr").val( wifi_net );
 				$("#client_mode_div").slideDown(400);
 				$("#use_dhcp").slideUp(400);
@@ -669,7 +672,8 @@ function Wireless_Scan()
 		'sid':        SID,
 		'action':     'scan',
 		'iface':      iface_used,
-		'all':        'N'
+		'all':        'N',
+		'test':       $('#scan-test').val(),
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
@@ -681,8 +685,16 @@ function Wireless_Scan()
 			document.location.reload(true);
 		Del_Overlay("scan-modal");
 		$("#scan_data").html( data );
+		$(".use_network").click(Wireless_Use_Network);
 	}).fail(function() {
 		Del_Overlay("scan-modal");
 		$("#scan_data").html("AJAX call failed");
 	});
+}
+
+function Wireless_Use_Network()
+{
+	selected = $(this).parent().parent().parent().find(".network_name").html();
+	$("#wpa_ssid").val( selected );
+	$("#scan-modal").modal("hide");
 }

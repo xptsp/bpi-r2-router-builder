@@ -42,10 +42,9 @@ if (isset($_POST['action']))
 	$iface   = option_allowed('iface', explode("\n", trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'"))) );
 	if ($action == 'scan')
 	{
-		$all = option("all") == "Y";
 		$networks = array();
 		$number = 0;
-		$cmd = '/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ' . isset($_POST['test']) ? 'scan ' . $iface : 'scan-test';
+		$cmd = '/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ' . (option("test") == "N" ? 'scan ' . $iface : 'scan-test');
 		#echo '<pre>'; print_r(explode("\n", trim(@shell_exec($cmd)))); exit;
 		foreach (explode("\n", trim(@shell_exec($cmd))) as $id => $line)
 		{
@@ -58,7 +57,7 @@ if (isset($_POST['action']))
 			if (preg_match('/Signal level[:=](-?[0-9]+ dBm)/', $line, $regex))
 				$networks[ $number ]['signal'] = $regex[1];
 			if (preg_match('/Quality=(\d+)\/(\d+)/', $line, $regex))
-				$networks[ $number ]['quality'] = floor((int) $regex[1] / (int) $regex[2] * 100);
+				$networks[ $number ]['quality'] = $regex;
 			if (preg_match('/Frequency:([\d+\.]+)/', $line, $regex))
 				$networks[ $number ]['freq'] = $regex[1];
 		}
@@ -68,23 +67,26 @@ if (isset($_POST['action']))
 			'<thead>',
 				'<tr>',
 					'<th>SSID</th>',
-					'<th width="10%"><center>Channel</center></th>',
-					'<th width="10%"><center>Frequency</center></th>',
-					'<th width="10%"><center>Signal<br />Strength</center></th>',
-					'<th width="10%"><center>Signal<br />Quality</center></th>',
+					'<th width="15%"><center>Channel</center></th>',
+					'<th width="15%"><center>Frequency</center></th>',
+					'<th width="15%"><center>Signal<br />Strength</center></th>',
+					'<th width="15%"><center>Signal<br />Quality</center></th>',
+					'<th>&nbsp;</th>',
 				'</tr>',
 			'</thead>',
 			'<tbody>';
+		$all = option("all") == "Y";
 		foreach ($networks as $network)
 		{
-			if ($_POST['all'] == "Y" || !empty($network['ssid']))
+			if ($all || !empty($network['ssid']))
 				echo 
 				'<tr>',
-					'<td>', empty($network['ssid']) ? '<i>(No SSID broadcast)</i>' : $network['ssid'], '</td>',
-					'<td><span class="float-right">', $network['channel'], '</center></span></td>',
-					'<td><span class="float-right">', $network['freq'], ' GHz</center></span></td>',
-					'<td><center><img src="/img/wifi_', strval(4 - floor((((int) $network['signal']) / -150) * 4)), '.png" title="', $network['signal'], '" /></center></td>',
-					'<td><span class="float-right">', $network['quality'], '%</center></span></td>',
+					'<td class="network_name">', empty($network['ssid']) ? '<i>(No SSID broadcast)</i>' : $network['ssid'], '</td>',
+					'<td><center>', $network['channel'], '</center></center></td>',
+					'<td><center>', $network['freq'], ' GHz</center></center></td>',
+					'<td><center><img src="/img/wifi_', strval(4 - floor((((int) $network['signal']) / -150) * 4)), '.png" width="24" height="24" title="Signal Strength: ', $network['signal'], '" /></center></td>',
+					'<td><center><span title="Quality: ', $network['quality'][1], '/', $network['quality'][2], '">', floor((int) $network['quality'][1] / (int) $network['quality'][2] * 100), '%</center></span></td>',
+					'<td><a href="javascript:void(0);"><button type="button" class="use_network btn btn-sm bg-primary float-right">Use</button></a></td>',
 				 '</tr>';						
 		}
 		echo 
@@ -216,7 +218,8 @@ foreach ($ifaces as $tface)
 echo '
 		</ul>
 	</div>
-	<div class="card-body">';
+	<div class="card-body">
+		<input type="hidden" id="scan-test" value="', isset($_GET['test']) ? 'Y' : 'N', '">';
 
 ###################################################################################################
 # List modes of operation for the interface:
