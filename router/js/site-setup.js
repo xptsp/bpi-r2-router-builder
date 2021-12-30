@@ -582,6 +582,12 @@ function Init_Wireless(iface, wifi_net, ap_net)
 	});
 	$("#apply_changes").click(Wireless_Submit);
 	$("#wifi_encode").click(Wireless_Encode);
+	$("#wifi_scan").click(function() {
+		$("#scan_data").html("");
+		$("#scan-modal").modal("show");
+		Wireless_Scan();
+	});
+	$("#scan_refresh").click(Wireless_Scan);
 	__Init_DHCP();
 }
 
@@ -645,10 +651,38 @@ function Wireless_Encode()
 
 	// Perform our AJAX request to change the WAN settings:
 	$.post('/setup/wireless', postdata, function(data) {
+		data = data.trim();
+		if (data == "RELOAD")
+			document.location.reload(true);
 		$("#wpa_psk").val( data );
 	}).fail(function() {
 		$("#apply-modal").modal("show");
 		$("#apply_msg").html("AJAX call failed!");
 		$("#apply_cancel").removeClass("hidden");
+	});
+}
+
+function Wireless_Scan()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':        SID,
+		'action':     'scan',
+		'iface':      iface_used,
+		'all':        'N'
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to change the WAN settings:
+	Add_Overlay("scan-modal");
+	$.post('/setup/wireless', postdata, function(data) {
+		data = data.trim();
+		if (data == "RELOAD")
+			document.location.reload(true);
+		Del_Overlay("scan-modal");
+		$("#scan_data").html( data );
+	}).fail(function() {
+		Del_Overlay("scan-modal");
+		$("#scan_data").html("AJAX call failed");
 	});
 }

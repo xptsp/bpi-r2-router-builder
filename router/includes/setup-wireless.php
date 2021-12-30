@@ -17,7 +17,7 @@ if (isset($_POST['action']))
 	#################################################################################################
 	# Validate the actions, then do any DHCP actions as requested by the caller:
 	#################################################################################################
-	$action = $_POST['action'] = option_allowed('action', get_dhcp_actions(array('disabled', 'client_dhcp', 'client_static', 'ap', 'encode')));
+	$action = $_POST['action'] = option_allowed('action', get_dhcp_actions(array('disabled', 'client_dhcp', 'client_static', 'ap', 'encode', 'scan')));
 	do_dhcp_actions();
 
 	#################################################################################################
@@ -37,9 +37,65 @@ if (isset($_POST['action']))
 	}
 
 	#################################################################################################
+	# Scan for Wireless Networks using the interface:
+	#################################################################################################
+	$iface   = option_allowed('iface', explode("\n", trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'"))) );
+	if ($action == 'scan')
+	{
+		$all = option("all") == "Y";
+		$networks = array();
+		$number = 0;
+		$cmd = '/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ' . isset($_POST['test']) ? 'scan ' . $iface : 'scan-test';
+		#echo '<pre>'; print_r(explode("\n", trim(@shell_exec($cmd)))); exit;
+		foreach (explode("\n", trim(@shell_exec($cmd))) as $id => $line)
+		{
+			if (preg_match("/Cell \d+/", $line, $regex))
+				$number++;
+			if (preg_match('/ESSID:\"([^\"]*)\"/', $line, $regex))
+				$networks[ $number ]['ssid'] = trim($regex[1]);
+			if (preg_match('/Channel:(\d+)/', $line, $regex))
+				$networks[ $number ]['channel'] = $regex[1];
+			if (preg_match('/Signal level[:=](-?[0-9]+ dBm)/', $line, $regex))
+				$networks[ $number ]['signal'] = $regex[1];
+			if (preg_match('/Quality=(\d+)\/(\d+)/', $line, $regex))
+				$networks[ $number ]['quality'] = floor((int) $regex[1] / (int) $regex[2] * 100);
+			if (preg_match('/Frequency:([\d+\.]+)/', $line, $regex))
+				$networks[ $number ]['freq'] = $regex[1];
+		}
+		#echo '<pre>'; print_r($networks); exit;
+		echo
+		'<table class="table table-striped table-sm">',
+			'<thead>',
+				'<tr>',
+					'<th>SSID</th>',
+					'<th width="10%"><center>Channel</center></th>',
+					'<th width="10%"><center>Frequency</center></th>',
+					'<th width="10%"><center>Signal<br />Strength</center></th>',
+					'<th width="10%"><center>Signal<br />Quality</center></th>',
+				'</tr>',
+			'</thead>',
+			'<tbody>';
+		foreach ($networks as $network)
+		{
+			if ($_POST['all'] == "Y" || !empty($network['ssid']))
+				echo 
+				'<tr>',
+					'<td>', empty($network['ssid']) ? '<i>(No SSID broadcast)</i>' : $network['ssid'], '</td>',
+					'<td><span class="float-right">', $network['channel'], '</center></span></td>',
+					'<td><span class="float-right">', $network['freq'], ' GHz</center></span></td>',
+					'<td><center><img src="/img/wifi_', strval(4 - floor((((int) $network['signal']) / -150) * 4)), '.png" title="', $network['signal'], '" /></center></td>',
+					'<td><span class="float-right">', $network['quality'], '%</center></span></td>',
+				 '</tr>';						
+		}
+		echo 
+			'</tbody>',
+		'</table>';
+		die();
+	}
+
+	#################################################################################################
 	# Validate the input sent to this script (we paranoid... for the right reasons, of course...):
 	#################################################################################################
-	$iface   = option('iface', '/^(' . implode("|", explode("\n", trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'")))) . ')$/');
 	if ($action == 'client_static' || $action == 'ap')
 	{
 		$ip_addr = option_ip('ip_addr');
@@ -173,13 +229,13 @@ echo '
 			<div class="col-6">
 				<select id="op_mode" class="form-control">
 					<option value="disabled"', $netcfg['op_mode'] == 'manual' ? ' selected="selected"' : '', '>Not Configured</option>';
+if ($iface == 'ap0' || ($iface != "ap0" && $iface != "mt6625_0"))
+	echo '
+					<option value="ap"' . ($netcfg['op_mode'] == 'static' && !isset($netcfg['wpa_ssid'])  ? ' selected="selected"' : '') . '>Access Point</option>';
 if ($iface != 'ap0')
 	echo '
 					<option value="client_dhcp"', $netcfg['op_mode'] == 'dhcp' && isset($netcfg['wpa_ssid']) ? ' selected="selected"' : '', '>Client Mode - Automatic Configuration (DHCP)</option>
 					<option value="client_static"', $netcfg['op_mode'] == 'static' && isset($netcfg['wpa_ssid']) ? ' selected="selected"' : '', '>Client Mode - Static IP Address</option>';
-if ($iface == 'ap0' || ($iface != "ap0" && $iface != "mt6625_0"))
-	echo '
-					<option value="ap"' . ($netcfg['op_mode'] == 'static' && !isset($netcfg['wpa_ssid'])  ? ' selected="selected"' : '') . '>Access Point</option>';
 echo '
 				</select>
 			</div>
@@ -300,6 +356,33 @@ echo '
 	</div>
 	<!-- /.card-body -->
 </div>';
+
+#######################################################################################################
+# Scan Wireless Network modal:
+#######################################################################################################
+echo '
+<div class="modal fade" id="scan-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Wireless Networks Found</h4>
+			</div>
+			<div class="modal-body">
+				<p id="scan_data"></p>
+			</div>
+			<div class="modal-footer justify-content-between">
+				<a href="javascript:void(0);"><button type="button" class="btn btn-default bg-primary" id="scan_close" data-dismiss="modal">Close</button></a>
+				<a href="javascript:void(0);"><button type="button" class="btn btn-default bg-primary float-right" id="scan_refresh">Refresh</button></a>
+			</div>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>';
+
+#######################################################################################################
+# Close the page:
+#######################################################################################################
 dhcp_reservations_modals();
 apply_changes_modal('Please wait while the wireless interface is being configured....', true);
 reboot_modal();

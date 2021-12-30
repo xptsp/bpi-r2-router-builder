@@ -330,6 +330,14 @@ case $CMD in
 		# IFDOWN => Restart the specified interface:
 		elif [[ "$1" == "ifdown" ]]; then
 			ifdown ${2}
+		#####################################################################
+		# SCAN => Restart the specified interface:
+		elif [[ "$1" == "scan" ]]; then
+			iwlist ${2} scan
+		#####################################################################
+		# SCAN-TEST => Restart the specified interface:
+		elif [[ "$1" == "scan-test" ]]; then
+			cat /opt/bpi-r2-router-builder/misc/scan-test.txt
 		fi
 		;;
 
