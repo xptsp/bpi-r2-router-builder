@@ -134,6 +134,17 @@ case $CMD in
 
 	###########################################################################
 	reformat)
+		if [[ "$1" == "clear" ]]; then
+			test -d /ro && DIR=/ro
+			source ${DIR}/etc/overlayRoot.conf
+			if [[ "$SECONDARY_REFORMAT" == "yes" ]]; then
+				echo "Yeah"
+				test -d /ro && mount -o remount,rw /ro
+				sed -i "/SECONDARY_REFORMAT=/d" ${DIR}/etc/overlayRoot.conf
+				test -d /ro && mount -o remount,ro /ro
+			fi
+			exit 0
+		fi
 		check_ro
 		if [[ ! -z "$1" && ! "$1" =~ -(y|-yes) ]]; then
 			echo "SYNTAX: $(basename $0) reformat [-y|--yes]"
@@ -144,7 +155,7 @@ case $CMD in
 			askYesNo "Are you SURE you want to do this?" || exit 0
 		fi
 		remount_rw
-		sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=yes|g" /ro/etc/overlayRoot.conf
+		echo "SECONDARY_REFORMAT=yes" >> /ro/etc/overlayRoot.conf
 		reboot now
 		;;
 

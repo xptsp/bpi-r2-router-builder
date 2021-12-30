@@ -277,11 +277,7 @@ if read_fstab_entry $RW; then
 
 			# If reformatting has been requested, change the flag back to "do not reformat":
 			unset RW_FORMAT
-			if [[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]]; then
-				RW_FORMAT="mkfs.$MNT_TYPE -F $DEV -L $RW_NAME"
-				sed -i "s|^SECONDARY_REFORMAT=.*|SECONDARY_REFORMAT=no|g" /etc/overlayRoot.conf
-			fi
-
+			[[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]] && RW_FORMAT="mkfs.$MNT_TYPE -F $DEV -L $RW_NAME"
 	else
 		if ! test -e $DEV; then
 			log_warning "Resolved root to $DEV but can't find the device"
