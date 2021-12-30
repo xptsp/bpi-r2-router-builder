@@ -75,10 +75,10 @@ if (isset($_POST['action']))
 				'</tr>',
 			'</thead>',
 			'<tbody>';
-		$all = option("all") == "Y";
+		$hidden = option("hidden") == "Y";
 		foreach ($networks as $network)
 		{
-			if ($all || !empty($network['ssid']))
+			if ($hidden || !empty($network['ssid']))
 				echo 
 				'<tr>',
 					'<td class="network_name">', empty($network['ssid']) ? '<i>(No SSID broadcast)</i>' : $network['ssid'], '</td>',
@@ -369,6 +369,10 @@ echo '
 		<div class="modal-content">
 			<div class="modal-header">
 				<h4 class="modal-title">Wireless Networks Found</h4>
+				<div class="icheck-primary">
+					<input type="checkbox" id="show_hidden">
+					<label for="show_hidden">Show Hidden</label>
+				</div>
 			</div>
 			<div class="modal-body">
 				<p id="scan_data"></p>

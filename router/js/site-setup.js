@@ -591,6 +591,7 @@ function Init_Wireless(iface, wifi_net, ap_net)
 		Wireless_Scan();
 	});
 	$("#scan_refresh").click(Wireless_Scan);
+	$("#show_hidden").click(Wireless_Scan);
 	__Init_DHCP();
 }
 
@@ -672,7 +673,7 @@ function Wireless_Scan()
 		'sid':        SID,
 		'action':     'scan',
 		'iface':      iface_used,
-		'all':        'N',
+		'hidden':     $("#show_hidden").is(":checked") ? 'Y' : 'N',
 		'test':       $('#scan-test').val(),
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
