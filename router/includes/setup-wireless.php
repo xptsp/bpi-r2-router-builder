@@ -84,7 +84,7 @@ if (isset($_POST['action']))
 					'<td class="network_name">', empty($network['ssid']) ? '<i>(No SSID broadcast)</i>' : $network['ssid'], '</td>',
 					'<td><center>', $network['channel'], '</center></center></td>',
 					'<td><center>', $network['freq'], ' GHz</center></center></td>',
-					'<td><center><img src="/img/wifi_', strval(4 - floor((((int) $network['signal']) / -150) * 4)), '.png" width="24" height="24" title="Signal Strength: ', $network['signal'], '" /></center></td>',
+					'<td><center><img src="/img/wifi_', network_signal_strength($network['signal']), '.png" width="24" height="24" title="Signal Strength: ', $network['signal'], '" /></center></td>',
 					'<td><center><span title="Quality: ', $network['quality'][1], '/', $network['quality'][2], '">', floor((int) $network['quality'][1] / (int) $network['quality'][2] * 100), '%</center></span></td>',
 					'<td><a href="javascript:void(0);"><button type="button" class="use_network btn btn-sm bg-primary float-right">Use</button></a></td>',
 				 '</tr>';						
@@ -180,8 +180,8 @@ foreach (explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print 
 	if ($include)
 		$ifaces[] = $tface;
 }
-$iface = isset($_GET['iface']) ? $_GET['iface'] : $ifaces[0];
 #echo '<pre>'; print_r($ifaces); exit;
+$iface = isset($_GET['iface']) ? $_GET['iface'] : $ifaces[0];
 $adapters = explode("\n", trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'")));
 #echo '<pre>'; print_r($adapters); exit();
 $netcfg = get_mac_info($iface);

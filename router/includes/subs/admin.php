@@ -147,3 +147,17 @@ function get_network_adapters()
 	#echo '<pre>'; print_r($arr); exit;
 	return $arr;
 }
+
+function network_signal_strength($signal)
+{
+	#############################################################################################
+	# Signal strengths as shown by https://cellboosteronline.com/measure-signal-strength/:
+	# 	4: -60 or greater = Excellent
+	#   3: -60 to -75     = Above Average
+	#   2: -76 to -90     = Average
+	#   1: -91 to -100    = Fair
+	#   0: -100 to -110   = Weak
+	#   N: Less than -110 = No Signal
+	#############################################################################################
+	return $signal > -60 ? '4' : ($signal > -75 ? '3' : ($signal > -90 ? '2' : ($signal > -100 ? '1' : ($signal > -110 ? '0' : 'N'))));
+}
