@@ -176,7 +176,7 @@ function site_menu($refresh_switch = false)
 		ob_start();
 
 	# Write the menu:
-	$dark_mode = !empty($_SESSION['dark_mode']);
+	$dark_mode = $_SESSION['dark_mode'] == "Y";
 	echo '
 <body class="hold-transition sidebar-mini layout-boxed ', $dark_mode ? 'bodybg-dark dark-mode' : 'bodybg', '">
 <div class="wrapper">
@@ -389,10 +389,13 @@ function parse_options()
 	return $options;
 }
 
-function option($name, $allowed = "/^[Y|N]$/")
+function option($name, $allowed = "/^[Y|N]$/", $post = true)
 {
 	global $options, $options_changed;
-	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
+	if ($post)
+		$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
+	else
+		$tmp = isset($_GET[$name]) ? $_GET[$name] : '';
 	if (empty($tmp) || empty($allowed) || !preg_match($allowed, $tmp))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
 	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
@@ -448,11 +451,11 @@ function option_mac($name)
 	return $tmp;
 }
 
-function apply_options()
+function apply_options($mode = "reload")
 {
 	global $options, $options_changed;
-	#if (!$options_changed)
-	#	return;
+	if (!$options_changed)
+		return;
 	$text = '';
 	foreach ($options as $name => $setting)
 	{
@@ -465,8 +468,8 @@ function apply_options()
 	$handle = fopen("/tmp/router-settings", "w");
 	fwrite($handle, $text);
 	fclose($handle);
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh firewall reload");
-	if (isset($options['use_isp']) && isset($options['dns1']))
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh firewall " . $mode);
+	if ($mode != "reload" && isset($options['use_isp']) && isset($options['dns1']))
 		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns " . ($options['use_isp'] == 'Y' ? 'config' : $options['dns1'] . ' ' . $options['dns2']));
 	return "OK";
 }

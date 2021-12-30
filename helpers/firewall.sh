@@ -24,12 +24,13 @@ function create_chain()
 #############################################################################
 # RELOAD => Move the new configuration file into place and reload settings:
 #############################################################################
-if [[ "$1" == "reload" || "$1" == "move" ]]; then
-	if test -f /tmp/firewall; then
+if [[ "$1" == "reload" || "$1" == "move" || "$1" == "options" ]]; then
+	if test -f /tmp/router-settings; then
 		mv /tmp/router-settings /etc/default/router-settings
 		chown root:root /etc/default/router-settings
 	fi
 	[[ "$1" == "move" ]] && systemctl restart networking && exit
+	[[ "$1" == "options" ]] && exit
 fi
 [[ -f /etc/default/router-settings ]] && source /etc/default/router-settings
 

@@ -32,6 +32,10 @@ else if (!$logged_in && isset($_COOKIE["remember_me"]))
 	}
 }
 
+# Set dark mode if not already set:
+if (!isset($_SESSION['dark_mode']))
+	$_SESSION['dark_mode'] = parse_options()['dark_mode'] == "Y";
+
 # Remove the session ID if not logged in.  Otherwise, extend the session time for another 10 minutes:
 if (!$logged_in)
 	unset($_SESSION['sid']);

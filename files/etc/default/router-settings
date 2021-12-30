@@ -1,8 +1,11 @@
 ##########################################################################
-# Settings with no WebUI page yet:
+# WebUI Setup / Router Settings
 ##########################################################################
 # Onboard Wifi Mode.  Accepts "A" for access point --OR-- "1" (or anything else) for client-mode.  Default: A
 onboard_wifi=A
+
+# Dark Mode.  Accepts "Y" or "N".  Default: N
+dark_mode=N
 
 ##########################################################################
 # WebUI Setup / DNS Settings

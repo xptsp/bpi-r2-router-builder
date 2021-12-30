@@ -16,7 +16,12 @@ if (isset($_GET['sid']))
 	# Set dark mode setting via toggle checkbox:
 	##########################################################################################
 	if (isset($_GET['dark_mode']))
-		die( $_SESSION['dark_mode'] = $_GET['dark_mode'] == "Y" );
+	{
+		$options = parse_options();
+		$options['dark_mode'] = $_SESSION['dark_mode'] = option("dark_mode", "/^[Y|N]$/", false);
+		apply_options('options');
+		die('OK');
+	}
 
 	##########################################################################################
 	# Get information for the AJAX request:
