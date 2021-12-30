@@ -686,16 +686,13 @@ function Wireless_Scan()
 			document.location.reload(true);
 		Del_Overlay("scan-modal");
 		$("#scan_data").html( data );
-		$(".use_network").click(Wireless_Use_Network);
+		$(".use_network").click(function() {
+			selected = $(this).parent().parent().parent().find(".network_name").html();
+			$("#wpa_ssid").val( selected );
+			$("#scan-modal").modal("hide");
+		});
 	}).fail(function() {
 		Del_Overlay("scan-modal");
 		$("#scan_data").html("AJAX call failed");
 	});
-}
-
-function Wireless_Use_Network()
-{
-	selected = $(this).parent().parent().parent().find(".network_name").html();
-	$("#wpa_ssid").val( selected );
-	$("#scan-modal").modal("hide");
 }

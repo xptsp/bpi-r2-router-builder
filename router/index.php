@@ -33,6 +33,7 @@ else if (!$logged_in && isset($_COOKIE["remember_me"]))
 }
 
 # Set dark mode if not already set:
+require_once('includes/subs/site.php');
 if (!isset($_SESSION['dark_mode']))
 	$_SESSION['dark_mode'] = parse_options()['dark_mode'] == "Y";
 
@@ -61,7 +62,6 @@ if (!isset($_SESSION['sid']))
 #echo $_SESSION['sid']; exit;
 
 # Include the PHP site framework functions from the "includes" directory:
-require_once('includes/subs/site.php');
 foreach (glob('includes/plugins/hook-*.php') as $file)
 	require_once($file);
 
