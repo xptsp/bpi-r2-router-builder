@@ -33,10 +33,12 @@ echo -e "bananapi\nbananapi" | passwd -q root
 # Create a user named "pi", being a member of the "sudo" and "users" group.
 useradd -m -G sudo,users -s /bin/bash pi
 echo -e "bananapi\nbananapi" | passwd -q pi
+chown pi:pi -R /home/pi
 
 # Create a user name "vpn", being a member of the "users" and "pi" group:
 useradd -m -G users -s /usr/sbin/nologin vpn
 usermod -aG vpn pi
+chown vpn:vpn -R /home/vpn
 
 ##############################################################################################
 # Add a script to remove read-write partition reformatting flag if present:
@@ -295,11 +297,17 @@ popd
 ##################################################################################
 # Pull in dependencies to make my SSD1306 front display work:
 ##################################################################################
-#apt install -y --no-install-recommends i2c-tools python3-pip python3-pil python3-venv
-#python3 -m pip install --upgrade pip wheel setuptools virtualenv
-#git clone https://github.com/frank-w/bpi-r2-ssd1306-display /opt/stats
-#ln -sf /opt/stats/stats.service /etc/systemd/system/stats.service
-#systemctl enable stats
-#mkdir /var/lib/stats
-#chown pi:pi /var/lib/stats
-#sudo -u pi -s /opt/bpi-r2-router-builder/misc/build_stats.sh
+# Install support packages:
+apt install -y --no-install-recommends i2c-tools python3-pip python3-pil python3-venv
+python3 -m pip install --upgrade pip wheel setuptools virtualenv
+# Install the stats repo:
+git clone https://github.com/frank-w/bpi-r2-ssd1306-display /opt/stats
+ln -sf /opt/stats/stats.service /etc/systemd/system/stats.service
+systemctl enable --now stats
+# Install the precompiled python packages we need:
+pushd /tmp
+wget https://github.com/frank-w/bpi-r2-ssd1306-display/raw/master/ssd1306_python3.tar.gz
+tar xzvf ssd1306_python3.tar.gz
+python3 -m pip install --no-index --find-links=./whl psutil Adafruit-SSD1306 Adafruit-BBIO
+rm -rf whl
+popd
