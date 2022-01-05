@@ -33,7 +33,6 @@ COPY_ONLY=(
 	/etc/overlayRoot.conf
 	/etc/pihole/
 	/etc/pivpn/
-	/lib/systemd/system/rc-local.service.d
 	/root/
 	/home/pi/
 	/home/vpn/

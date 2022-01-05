@@ -39,6 +39,13 @@ useradd -m -G users -s /usr/sbin/nologin vpn
 usermod -aG vpn pi
 
 ##############################################################################################
+# Add a script to remove read-write partition reformatting flag if present:
+##############################################################################################
+echo "" >> /lib/systemd/system/rc-local.service.d/debian.conf
+echo "# Clear reformatting flag" >> /lib/systemd/system/rc-local.service.d/debian.conf
+echo "ExecStartPre=/opt/bpi-r2-router-builder/helper/router-helper.sh reformat clear" >> /lib/systemd/system/rc-local.service.d/debian.conf
+
+##############################################################################################
 # Do some tasks necessary to make this image work correctly:
 ##############################################################################################
 # Create necessary symlinks for a few commands:

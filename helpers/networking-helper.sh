@@ -39,6 +39,23 @@ for file in /sys/kernel/debug/ieee80211/*; do
 done
 
 #############################################################################
+# Load support files for R2's onboard Wifi/BT hardware and set WiFi mode:
+#############################################################################
+if [[ ! -e /dev/wmtWifi ]]; then
+	/usr/bin/wmt_loader &> /var/log/wmtloader.log
+	sleep 3
+fi
+if [[ -c /dev/stpwmt ]]; then
+	if ! ps aux | grep stp_uart_launcher | grep -v grep >& /dev/null; then
+		/usr/bin/stp_uart_launcher -p /etc/firmware &> /var/log/stp_launcher.log &
+		sleep 5
+	fi
+fi
+modprobe wlan_gen2
+[[ -f /var/run/wmtWifi ]] && echo 0 > /dev/wmtWifi && sleep 3
+echo $([[ "${onboard_wifi:-"A"}" == "A" ]] && echo A || echo 1) | tee /var/run/wmtWifi > /dev/wmtWifi
+
+#############################################################################
 # Rename the WiFi interfaces on the MT76xx wifi card:
 #############################################################################
 cd /sys/class/net
@@ -68,6 +85,11 @@ for IFACE in $(iw dev | grep Interface | awk '{print $NF}'); do
 	fi
 	iwconfig ${IFACE} txpower 30
 done
+
+#############################################################################
+# Load bluetooth-driver (has to be done after stp_uart_launcher)
+#############################################################################
+modprobe stp_chrdev_bt
 
 #############################################################################
 # Return error code 0 to the caller:
