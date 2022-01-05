@@ -1,5 +1,5 @@
 <?php
-require_once("admin.php");
+require_once("manage.php");
 
 function get_dhcp_actions($other = array())
 {
