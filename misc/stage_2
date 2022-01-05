@@ -13,28 +13,16 @@ export LANG=C
 apt install -y apt-transport-https bridge-utils dnsmasq hostapd ca-certificates openssh-server ppp pppoeconf pppoe
 
 ##############################################################################################
+# Use the legacy iptables commands instead of iptables-nft
+##############################################################################################
+update-alternatives --set iptables /usr/sbin/iptables-legacy
+update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+
+##############################################################################################
 # Fix the hung SSH session issue with Debian Buster:
 ##############################################################################################
 ln -sf /usr/share/doc/openssh-client/examples/ssh-session-cleanup.service /etc/systemd/system/
 systemctl enable --now ssh-session-cleanup
-
-##############################################################################################
-# Install files from the GitHub repository:
-##############################################################################################
-/opt/bpi-r2-router-builder/upgrade.sh --force-copy
-systemctl enable --now firewall
-
-##############################################################################################
-# Upgrade any packages needing upgrading:
-##############################################################################################
-apt update
-apt upgrade -y
-systemctl disable hostapd
-
-##############################################################################################
-# Install some necessary packages:
-##############################################################################################
-apt install -y locales wget git apt-transport-https toilet pmount eject lsb-release bash-completion dialog mosquitto-clients sudo
 
 ##############################################################################################
 # Create our default users and assign default passwords to users:
@@ -80,6 +68,24 @@ sed -i "s|# en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen
 locale-gen
 
 ##############################################################################################
+# Install files from the GitHub repository:
+##############################################################################################
+/opt/bpi-r2-router-builder/upgrade.sh --force-copy
+systemctl enable --now firewall
+
+##############################################################################################
+# Upgrade any packages needing upgrading:
+##############################################################################################
+apt update
+apt upgrade -y
+systemctl disable hostapd
+
+##############################################################################################
+# Install some necessary packages:
+##############################################################################################
+apt install -y wget git toilet pmount eject lsb-release dialog mosquitto-clients sudo
+
+##############################################################################################
 # Place a list of english words in "/usr/share/dict/" for our password generator:
 ##############################################################################################
 wget https://github.com/dobsondev/php-password-generator/raw/master/php-password-generator/adjectives.list -O /usr/share/dict/adjectives.list
@@ -106,7 +112,7 @@ ln -s /var/run/motd /etc/motd
 ##################################################################################
 # Install some new utilities
 ##################################################################################
-apt install -y pciutils usbutils iw wireless-tools net-tools curl unzip debconf-utils tree screen parted device-tree-compiler
+apt install -y pciutils usbutils iw wireless-tools net-tools curl unzip debconf-utils tree screen parted device-tree-compiler bluez
 
 ##################################################################################
 # Install avahi utilities
@@ -118,7 +124,7 @@ systemctl enable --now avahi-daemon
 # Install utility to track internet usage by adapter:
 ##################################################################################
 apt install -y vnstat
-systemctl disable vnstat
+systemctl disable --now vnstat
 
 ##################################################################################
 # Install Samba
@@ -136,14 +142,14 @@ systemctl enable --now nmbd
 ##################################################################################
 # Install NGINX and PHP 7.3
 ##################################################################################
-apt install -y nginx php7.3-fpm php7.3-cgi php7.3-xml php7.3-sqlite3 php7.3-intl apache2-utils php7.3-mysql php7.3-sqlite3 sqlite3 php7.3-zip openssl php7.3-curl
+apt install -y nginx php7.3-fpm php7.3-cgi php7.3-xml php7.3-sqlite3 php7.3-intl apache2-utils php7.3-mysql php7.3-sqlite3 sqlite3 php7.3-zip php7.3-curl
 sed -i "s|display_errors = .*|display_errors = On|g" /etc/php/7.3/fpm/php.ini
 rm /etc/nginx/sites-enabled/default
 ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
 usermod -aG systemd-journal www-data
-systemctl enable php7.3-fpm
+systemctl enable --now php7.3-fpm
 apt-mark hold php7.3-fpm
-systemctl enable nginx
+systemctl enable --now nginx
 apt-mark hold nginx
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
@@ -157,7 +163,6 @@ echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
 echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
 apt install -y miniupnpd miniupnpc
 # NOTE: Configure the service:
-sed -i "s|#listening_ip=eth0|listening_ip=br0|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#http_port=0|http_port=5000|g" /etc/miniupnpd/miniupnpd.conf
 sed -i "s|#enable_upnp=no|enable_upnp=yes|g" /etc/miniupnpd/miniupnpd.conf
@@ -174,23 +179,6 @@ echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 # NOTE: Install minissdpd package:
 apt install -y minissdpd
 systemctl enable --now minissdpd
-
-##################################################################################
-# Install docker and add bin directory on docker partition to system path
-##################################################################################
-curl -L https://get.docker.com | bash
-usermod -aG docker pi
-sed -i "s|PATH=\"|PATH=\"/var/lib/docker/bin:|g" /etc/profile
-
-##################################################################################
-# Download docker-compose into the /usr/local/bin directory
-##################################################################################
-wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
-pushd /tmp
-tar xvzf /tmp/docker.tgz
-mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
-ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
-popd
 
 ##################################################################################
 # Install the wireless regulatory table
@@ -233,24 +221,17 @@ sed -i "s|^YDNS_LASTIP_FILE|[[ -f /etc/default/ydns-updater ]] \&\& source /etc/
 chown www-data:www-data /etc/default/ydns-updater
 
 ##################################################################################
-# Pull in dependencies to make the SSD1306 front display work:
+# Install & configure unbound:
 ##################################################################################
-apt install -y --no-install-recommends i2c-tools python3-pip python3-pil python3-venv
-python3 -m pip install --upgrade pip wheel setuptools virtualenv
-git clone https://github.com/frank-w/bpi-r2-ssd1306-display /opt/stats
-ln -sf /opt/stats/stats.service /etc/systemd/system/stats.service
-systemctl enable stats
-mkdir /var/lib/stats
-chown pi:pi /var/lib/stats
-sudo -u pi -s /opt/bpi-r2-router-builder/misc/build_stats.sh
+apt install -y unbound
+systemctl enable --now unbound
 
 ##################################################################################
 # Install PiHole
 ##################################################################################
 curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
 # NOTE: Mask "dnsmasq" package so we don't conflict with it!
-systemctl stop dnsmasq
-systemctl disable dnsmasq
+systemctl disable --now dnsmasq
 systemctl mask dnsmasq
 # NOTE: Configure some things correctly
 chown pihole:pihole /var/lib/misc
@@ -264,16 +245,11 @@ usermod -aG pihole www-data
 pihole -a -p bananapi
 # NOTE: Set default DNS to cloudflare port 5051
 sed -i "/PIHOLE_DNS_.*/d" /etc/pihole/setupVars.conf
-echo "PIHOLE_DNS_1=127.0.0.1#5335" >> /etc/pihole/setupVars.conf
+echo "PIHOLE_DNS_1=127.0.0.1#5051" >> /etc/pihole/setupVars.conf
 pihole restartdns
 # NOTE: Add site configuration for "pi.hole":
 ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl restart nginx
-
-##################################################################################
-# Q: Maybe install these packages?
-##################################################################################
-#apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance 
 
 ##################################################################################
 # Install cloudflared binary:
@@ -288,7 +264,35 @@ systemctl enable --now cloudflared@2
 systemctl enable --now cloudflared@3
 
 ##################################################################################
-# Install & configure unbound:
+# Install docker and add bin directory on docker partition to system path
 ##################################################################################
-apt install -y unbound
-systemctl enable --now unbound
+curl -L https://get.docker.com | bash
+usermod -aG docker pi
+sed -i "s|PATH=\"|PATH=\"/var/lib/docker/bin:|g" /etc/profile
+
+##################################################################################
+# Download docker-compose into the /usr/local/bin directory
+##################################################################################
+wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
+pushd /tmp
+tar xvzf /tmp/docker.tgz
+mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
+ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
+popd
+
+##################################################################################
+# Q: Maybe install these packages?
+##################################################################################
+#apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance 
+
+##################################################################################
+# Pull in dependencies to make my SSD1306 front display work:
+##################################################################################
+#apt install -y --no-install-recommends i2c-tools python3-pip python3-pil python3-venv
+#python3 -m pip install --upgrade pip wheel setuptools virtualenv
+#git clone https://github.com/frank-w/bpi-r2-ssd1306-display /opt/stats
+#ln -sf /opt/stats/stats.service /etc/systemd/system/stats.service
+#systemctl enable stats
+#mkdir /var/lib/stats
+#chown pi:pi /var/lib/stats
+#sudo -u pi -s /opt/bpi-r2-router-builder/misc/build_stats.sh

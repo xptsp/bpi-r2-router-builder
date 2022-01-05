@@ -551,27 +551,40 @@ function Init_Wireless(iface, wifi_net, ap_net)
 			$("#static_ip_div").slideUp(400);
 			$("#use_dhcp").slideUp(400);
 			$("#wifi_scan").removeClass("hidden");
+			$("#wifi_encode").removeClass("hidden");
+			$("#access_div").slideUp(400);
 			if (mode == "client_dhcp")
-				$("#client_mode_div").slideDown(400);
+			{
+				$("#network_div").slideDown(400);
+				$("#client_div").slideDown(400);
+			}
 			else
-				$("#client_mode_div").slideUp(400);
+			{
+				$("#network_div").slideUp(400);
+				$("#client_div").slideUp(400);
+			}
 		}
 		else if (mode == "client_static" || mode == "ap")
 		{
 			$("#static_ip_div").slideDown(400);
+			$("#network_div").slideDown(400);
 			if (mode == "ap")
 			{
 				$("#wifi_scan").addClass("hidden");
+				$("#wifi_encode").addClass("hidden");
 				$("#ip_addr").val( ap_net );
-				$("#client_mode_div").slideUp(400);
+				$("#client_div").slideUp(400);
 				$("#use_dhcp").slideDown(400);
+				$("#access_div").slideDown(400);
 			}
 			else
 			{
 				$("#wifi_scan").removeClass("hidden");
+				$("#wifi_encode").removeClass("hidden");
 				$("#ip_addr").val( wifi_net );
-				$("#client_mode_div").slideDown(400);
+				$("#client_div").slideDown(400);
 				$("#use_dhcp").slideUp(400);
+				$("#access_div").slideUp(400);
 			}
 		}
 	}).change();

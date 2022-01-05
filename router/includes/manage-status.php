@@ -1,5 +1,5 @@
 <?php
-require_once('subs/admin.php');
+require_once("subs/manage.php");
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:

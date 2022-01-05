@@ -2,9 +2,6 @@
 #############################################################################
 # This helper script takes care of copying and linking any files that are
 # in the bpiwrt-builder repo to their respective locations.
-#
-# TODO:
-# * Old files that have disappeared from the repo need to be removed
 #############################################################################
 if [[ "$UID" -ne 0 ]]; then
 	sudo $0 $@
@@ -36,6 +33,7 @@ COPY_ONLY=(
 	/etc/overlayRoot.conf
 	/etc/pihole/
 	/etc/pivpn/
+	/lib/systemd/system/rc-local.service.d
 	/root/
 	/home/pi/
 	/home/vpn/

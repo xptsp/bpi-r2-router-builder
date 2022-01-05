@@ -1,5 +1,5 @@
 <?php
-require_once("subs/admin.php");
+require_once("subs/manage.php");
 require_once("subs/setup.php");
 require_once("subs/dhcp.php");
 

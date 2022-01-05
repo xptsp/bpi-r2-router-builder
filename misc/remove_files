@@ -50,5 +50,8 @@ touch /var/lib/apt/lists/lock
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Repulling BPIWRT builder repo to minimize size..."
-mv /opt/bpi-r2-router-builder /opt/r2-backup && git clone --depth=1 https://github.com/xptsp/bpiwrt-builder /opt/bpi-r2-router-builder && rm -rf /opt/r2-backup
-chown pi:pi -R /opt/bpi-r2-router-builder/router
+GIT=($(whereis git | cut -d":" -f 2))
+if [[ ! -z "${GIT[@]}" ]]; then
+	mv /opt/bpi-r2-router-builder /opt/r2-backup && git clone --depth=1 https://github.com/xptsp/bpiwrt-builder /opt/bpi-r2-router-builder && rm -rf /opt/r2-backup
+	chown pi:pi -R /opt/bpi-r2-router-builder/router
+fi

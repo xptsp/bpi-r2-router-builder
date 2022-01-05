@@ -344,7 +344,7 @@ case $CMD in
 		#####################################################################
 		# SCAN => Restart the specified interface:
 		elif [[ "$1" == "scan" ]]; then
-			iwlist ${2} scan
+			iw ${2} scan
 		#####################################################################
 		# SCAN-TEST => Restart the specified interface:
 		elif [[ "$1" == "scan-test" ]]; then

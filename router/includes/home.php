@@ -1,5 +1,5 @@
 <?php
-require_once('subs/admin.php');
+require_once("subs/manage.php");
 
 #################################################################################################
 # If SID is specified, retrieve the information and statistics for the router's home page:

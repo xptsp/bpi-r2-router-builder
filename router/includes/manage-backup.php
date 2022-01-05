@@ -68,7 +68,7 @@ echo '
 	<div class="card-body">
 		<div class="input-group mb-4">
 			<label class="col-sm-6 col-form-label">Save a copy of current settings</label>
-			<div class="col-sm-6"><a href="/admin/backup?download"><button type="button" class="btn btn-block btn-outline-info">Backup Settings</button></a></div>
+			<div class="col-sm-6"><a href="/manage/backup?download"><button type="button" class="btn btn-block btn-outline-info">Backup Settings</button></a></div>
 		</div>
 	</div>
 </div>';

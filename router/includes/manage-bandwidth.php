@@ -88,7 +88,7 @@ site_menu();
 $_GET['iface'] = isset($_GET['iface']) ? $_GET['iface'] : 'wan';
 $_GET['mode'] = isset($_GET['mode']) ? $_GET['mode'] : 'hour';
 $options = parse_options();
-preg_match_all('/[A-Za-z0-9_]+/', $options['wan_ifaces'], $wan_ifaces, PREG_PATTERN_ORDER);
+$wan_ifaces = array();
 #echo '<pre>'; print_r($wan_ifaces[0]); exit;
 
 #########################################################################################

@@ -23,17 +23,17 @@ $sidebar_menu = array(
 		'firewall'  => menu_link('/advanced/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
 		'dmz'       => menu_link('/advanced/dmz', 'DMZ Setup', 'fas fa-server'),
 	)),
-	'admin'  => array('Administration', 'fas fa-cog', array(
-		'status'   => menu_link('/admin/status', 'Router Status', 'fas fa-ethernet'),
-		'usage'    => menu_link('/admin/bandwidth', 'Bandwidth Usage', 'fas fa-exchange-alt'),
-		'manage'   => menu_link('/admin/management', 'WebUI Management', 'fas fa-server'),
-		'attached' => menu_link('/admin/attached', 'Attached Devices', 'fas fa-link'),
-		'backup'   => menu_link('/admin/backup', 'Backup &amp; Restore', 'fas fa-file-export'),
-		'creds'    => menu_link('/admin/creds', 'Credentials', 'fas fa-user-edit'),
-		'kernel'   => menu_link('/admin/kernel', 'Kernel Logs', 'far fa-list-alt'),
-		'journal'  => menu_link('/admin/journal', 'Journal Logs', 'far fa-list-alt'),
-		'repo'     => menu_link('/admin/repo', 'Repository Updates', 'fab fa-github'),
-		'debian'   => menu_link('/admin/debian', 'Debian Updates', 'fab fa-linux'),
+	'manage'  => array('Management', 'fas fa-cog', array(
+		'status'   => menu_link('/manage/status', 'Router Status', 'fas fa-ethernet'),
+		'usage'    => menu_link('/manage/bandwidth', 'Bandwidth Usage', 'fas fa-exchange-alt'),
+		'manage'   => menu_link('/manage/webui', 'WebUI Management', 'fas fa-server'),
+		'attached' => menu_link('/manage/attached', 'Attached Devices', 'fas fa-link'),
+		'backup'   => menu_link('/manage/backup', 'Backup &amp; Restore', 'fas fa-file-export'),
+		'creds'    => menu_link('/manage/creds', 'Credentials', 'fas fa-user-edit'),
+		'kernel'   => menu_link('/manage/kernel', 'Kernel Logs', 'far fa-list-alt'),
+		'journal'  => menu_link('/manage/journal', 'Journal Logs', 'far fa-list-alt'),
+		'repo'     => menu_link('/manage/repo', 'Repository Updates', 'fab fa-github'),
+		'debian'   => menu_link('/manage/debian', 'Debian Updates', 'fab fa-linux'),
 	)),
 	'plugins' => array('Plug-Ins', 'fas fa-puzzle-piece', array(
 	)),
@@ -376,9 +376,8 @@ function checkbox($name, $description, $default = true, $disabled_by = '')
 #######################################################################################################
 # Functions dealing with passed parameters:
 #######################################################################################################
-function parse_options()
+function parse_options($file = '/etc/default/router-settings')
 {
-	$file = '/etc/default/router-settings';
 	$options = array();
 	foreach (explode("\n", trim(@file_get_contents($file))) as $line)
 	{

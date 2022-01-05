@@ -39,23 +39,6 @@ for file in /sys/kernel/debug/ieee80211/*; do
 done
 
 #############################################################################
-# Load support files for R2's onboard Wifi/BT hardware and set WiFi mode:
-#############################################################################
-if [[ ! -e /dev/wmtWifi ]]; then
-	/usr/bin/wmt_loader &> /var/log/wmtloader.log
-	sleep 3
-fi
-if [[ -c /dev/stpwmt ]]; then
-	if ! ps aux | grep stp_uart_launcher | grep -v grep >& /dev/null; then
-		/usr/bin/stp_uart_launcher -p /etc/firmware &> /var/log/stp_launcher.log &
-		sleep 5
-	fi
-fi
-modprobe wlan_gen2
-[[ -f /var/run/wmtWifi ]] && echo 0 > /dev/wmtWifi && sleep 3
-echo $([[ "${onboard_wifi:-"A"}" == "A" ]] && echo A || echo 1) | tee /var/run/wmtWifi > /dev/wmtWifi
-
-#############################################################################
 # Rename the WiFi interfaces on the MT76xx wifi card:
 #############################################################################
 cd /sys/class/net
@@ -79,11 +62,7 @@ fi
 #############################################################################
 for IFACE in $(iw dev | grep Interface | awk '{print $NF}'); do
 	FILE=/etc/network/interfaces.d/${IFACE}
-	if [[ "${IFACE}" == "ap0" && "${onboard_wifi}" == "1" ]]; then
-		test -f ${FILE} && rm ${FILE}
-	elif [[ "${IFACE}" == "mt6625_0" && "${onboard_wifi}" == "A" ]]; then
-		test -f ${FILE} && rm ${FILE}
-	elif ! test -f ${FILE}; then
+	if ! test -f ${FILE}; then
 		echo "auto ${IFACE}" > ${FILE}
 		echo "iface ${IFACE} inet manual" >> ${FILE}
 	fi

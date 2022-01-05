@@ -16,7 +16,7 @@ function Stats_Update()
 {
 	if ($("#connection_type").html() == "DHCP")
 	{
-		$.post("/admin/status", __postdata("status"), function(data) {
+		$.post("/manage/status", __postdata("status"), function(data) {
 			if (data == "RELOAD")
 				document.location.reload(true);
 			$("#dhcp_server").html( data.dhcp_server );
@@ -54,7 +54,7 @@ function Stats_Power_Button()
 
 function Stats_Network_Get()
 {
-	$.post("/admin/status", __postdata("network"), function(data) {
+	$.post("/manage/status", __postdata("network"), function(data) {
 		if (data == "RELOAD")
 			document.location.reload(true);
 		$("#stats_body").html(data);
@@ -135,7 +135,7 @@ function Creds_Password_Submit()
 		return Creds_Password_Fail("New password does not match Confirm Password!");
 
 	// Perform our AJAX request to change the password:
-	$.post("/admin/creds", postdata, function(data) {
+	$.post("/manage/creds", postdata, function(data) {
 		if (data == "RELOAD")
 			document.location.reload(true);
 		else if (data == "oldPass")
@@ -174,7 +174,7 @@ function Repo_Check()
 {
 	elem = $(this).attr('id').split("_")[0];
 	Add_Overlay(elem + "_div");
-	$.post("/admin/repo", __postdata("check", elem), function(data) {
+	$.post("/manage/repo", __postdata("check", elem), function(data) {
 		if (data == "RELOAD")
 			document.location.reload(true);
 		data = JSON.parse(data);
@@ -198,7 +198,7 @@ function Repo_Pull()
 	$("#apply_msg").html( $("#apply_default").html() );
 	$("#apply_cancel").addClass("hidden");
 	$("#apply-modal").modal("show");
-	$.post("/admin/repo", __postdata("pull", elem), function(data) {
+	$.post("/manage/repo", __postdata("pull", elem), function(data) {
 		data = data.trim();
 		if (data == "RELOAD" || data == "OK")
 			document.location.reload(true);
@@ -235,14 +235,14 @@ function Debian_Check()
 	$("#apply_title").html( "Stage 1" );
 	$("#apply_cancel").addClass("hidden");
 	$("#apply-modal").modal("show");
-	$.post("/admin/debian", __postdata('update'), function(data) {
+	$.post("/manage/debian", __postdata('update'), function(data) {
 		if (data.trim() == "RELOAD")
 			document.location.reload(true);
 		else if (data.trim() == "OK")
 		{
 			$("#apply_msg").html( $("#apply_default2").html() );
 			$("#apply_title").html( "Stage 2" );
-			$.post("/admin/debian", __postdata('parse'), function(data) {
+			$.post("/manage/debian", __postdata('parse'), function(data) {
 				$("#apply-modal").modal("hide");
 				$("#updates-msg").html(data.count[0]);
 				total = Number(data.count[1]) + Number(data.count[2]) + Number(data.count[4]);
@@ -279,7 +279,7 @@ function Debian_Pull(mode, packages = [])
 	$("#modal-close").addClass("disabled");
 	last_response_len = 0;
 	$.ajax({
-		url: '/admin/debian',
+		url: '/manage/debian',
 		dataType: 'text',
 		type: 'post',
 		contentType: 'application/x-www-form-urlencoded',
@@ -389,7 +389,7 @@ function Restore_File()
 	postdata.append('file', $('#restore_file')[0].files[0]);
 	postdata.append('action', 'upload');
 	$.ajax({
-		url: '/admin/backup',
+		url: '/manage/backup',
 		type: 'post',
 		data: postdata,
 		contentType: false,
@@ -425,7 +425,7 @@ function Restore_Alert(msg)
 function Restore_Confirm()
 {
 	// Make the AJAX call to confirm restoration:
-	$.post("/admin/backup", __postdata(restore_type), function(data) {
+	$.post("/manage/backup", __postdata(restore_type), function(data) {
 		if (data == "RELOAD")
 			document.location.reload(true);
 		else if (data.indexOf("ERROR:") > -1)
@@ -461,13 +461,13 @@ function Management_Apply()
 	$("#apply_msg").html( $("#apply_default").html() );
 	$("#apply_cancel").addClass("hidden");
 	$("#apply-modal").modal("show");
-	$.post("/admin/management", postdata, function(data) {
+	$.post("/manage/management", postdata, function(data) {
 		data = data.trim();
 		if (data == "RELOAD")
 			document.location.reload(true);
 		else if (data == "OK")
 		{
-			$.post("/admin/management", __postdata('reboot'));
+			$.post("/manage/management", __postdata('reboot'));
 			$("#apply-modal").modal("hide");
 		}
 		else
@@ -505,7 +505,7 @@ function Bandwidth_Update()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to change the WAN settings:
-	$.post("/admin/bandwidth", postdata, function(data) {
+	$.post("/manage/bandwidth", postdata, function(data) {
 		if (data.reload == true)
 			document.location.reload(true);
 		if (Object.keys(data.rx).length == 0)

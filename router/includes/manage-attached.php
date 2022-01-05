@@ -1,5 +1,5 @@
 <?php
-require_once("subs/admin.php");
+require_once("subs/manage.php");
 
 #########################################################################################
 # Function that displays the leases attached to a particular interface.

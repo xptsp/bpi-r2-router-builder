@@ -1,5 +1,4 @@
 <?php
-require_once("subs/admin.php");
 require_once("subs/setup.php");
 require_once("subs/dhcp.php");
 
@@ -48,17 +47,15 @@ if (isset($_POST['action']))
 		#echo '<pre>'; print_r(explode("\n", trim(@shell_exec($cmd)))); exit;
 		foreach (explode("\n", trim(@shell_exec($cmd))) as $id => $line)
 		{
-			if (preg_match("/Cell \d+/", $line, $regex))
+			if (preg_match("/^BSS ([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})/", $line))
 				$number++;
-			if (preg_match('/ESSID:\"([^\"]*)\"/', $line, $regex))
+			else if (preg_match('/SSID: (.*)/', $line, $regex))
 				$networks[ $number ]['ssid'] = trim($regex[1]);
-			if (preg_match('/Channel:(\d+)/', $line, $regex))
+			else if (preg_match('/DS Parameter set\: channel (\d+)/', $line, $regex))
 				$networks[ $number ]['channel'] = $regex[1];
-			if (preg_match('/Signal level[:=](-?[0-9]+ dBm)/', $line, $regex))
+			else if (preg_match('/signal: (-?[0-9\.]+ dBm)/', $line, $regex))
 				$networks[ $number ]['signal'] = $regex[1];
-			if (preg_match('/Quality=(\d+)\/(\d+)/', $line, $regex))
-				$networks[ $number ]['quality'] = $regex;
-			if (preg_match('/Frequency:([\d+\.]+)/', $line, $regex))
+			else if (preg_match('/freq: ([\d+\.]+)/', $line, $regex))
 				$networks[ $number ]['freq'] = $regex[1];
 		}
 		#echo '<pre>'; print_r($networks); exit;
@@ -70,7 +67,6 @@ if (isset($_POST['action']))
 					'<th width="15%"><center>Channel</center></th>',
 					'<th width="15%"><center>Frequency</center></th>',
 					'<th width="15%"><center>Signal<br />Strength</center></th>',
-					'<th width="15%"><center>Signal<br />Quality</center></th>',
 					'<th>&nbsp;</th>',
 				'</tr>',
 			'</thead>',
@@ -85,7 +81,6 @@ if (isset($_POST['action']))
 					'<td><center>', $network['channel'], '</center></center></td>',
 					'<td><center>', $network['freq'], ' GHz</center></center></td>',
 					'<td><center><img src="/img/wifi_', network_signal_strength($network['signal']), '.png" width="24" height="24" title="Signal Strength: ', $network['signal'], '" /></center></td>',
-					'<td><center><span title="Quality: ', $network['quality'][1], '/', $network['quality'][2], '">', floor((int) $network['quality'][1] / (int) $network['quality'][2] * 100), '%</center></span></td>',
 					'<td><a href="javascript:void(0);"><button type="button" class="use_network btn btn-sm bg-primary float-right">Use</button></a></td>',
 				 '</tr>';						
 		}
@@ -173,15 +168,10 @@ $ifaces = array();
 $options = parse_options();
 #echo '<pre>'; print_r($options); exit;
 foreach (explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}' | sort"))) as $tface)
-{
-	$include = $tface != "mt6625_0" && $tface != "ap0";
-	$include |= ($tface == 'mt6625_0' && isset($options['onboard_wifi']) && $options['onboard_wifi'] == '1');
-	$include |= ($tface == 'ap0' && isset($options['onboard_wifi']) && $options['onboard_wifi'] == 'A');
-	if ($include)
-		$ifaces[] = $tface;
-}
+	$ifaces[] = $tface;
 #echo '<pre>'; print_r($ifaces); exit;
 $iface = isset($_GET['iface']) ? $_GET['iface'] : $ifaces[0];
+#echo $iface; exit;
 $adapters = explode("\n", trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'")));
 #echo '<pre>'; print_r($adapters); exit();
 $netcfg = get_mac_info($iface);
@@ -196,6 +186,8 @@ $use_dhcp = isset($dhcp[1]);
 #echo (int) $use_dhcp; exit;
 $ifcfg = parse_ifconfig($iface);
 #echo '<pre>'; print_r($ifcfg); echo '</pre>'; exit();
+$wifi = get_wifi_capabilities($iface);
+#echo '<pre>'; print_r($wifi); echo '</pre>'; exit();
 
 ########################################################################################################
 # Main code for the page:
@@ -232,10 +224,10 @@ echo '
 			<div class="col-6">
 				<select id="op_mode" class="form-control">
 					<option value="disabled"', $netcfg['op_mode'] == 'manual' ? ' selected="selected"' : '', '>Not Configured</option>';
-if ($iface == 'ap0' || ($iface != "ap0" && $iface != "mt6625_0"))
+if (isset($wifi['supported']['AP']))
 	echo '
 					<option value="ap"' . ($netcfg['op_mode'] == 'static' && !isset($netcfg['wpa_ssid'])  ? ' selected="selected"' : '') . '>Access Point</option>';
-if ($iface != 'ap0')
+if (isset($wifi['supported']['managed']))
 	echo '
 					<option value="client_dhcp"', $netcfg['op_mode'] == 'dhcp' && isset($netcfg['wpa_ssid']) ? ' selected="selected"' : '', '>Client Mode - Automatic Configuration (DHCP)</option>
 					<option value="client_static"', $netcfg['op_mode'] == 'static' && isset($netcfg['wpa_ssid']) ? ' selected="selected"' : '', '>Client Mode - Static IP Address</option>';
