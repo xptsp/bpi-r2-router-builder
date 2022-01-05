@@ -134,7 +134,10 @@ function get_wifi_capabilities($iface)
 		else
 		{
 			if (preg_match('/Wiphy phy(\d+)/', $line))
+			{
+				$found = false;
 				break;
+			}
 			else if (preg_match("/Band (\d+)/", $line, $regex))
 			{
 				$info['band'][$regex[1]] = array();
@@ -146,7 +149,7 @@ function get_wifi_capabilities($iface)
 				$current['channels'][ $regex[2] ] = 'Channel ' . $regex[2] . ' (' . strval($regex[1] / 1000) . ' GHz)';
 			else if (preg_match("/Supported interface modes/", $line))
 				$info['supported'] = array();
-			else if (preg_match('/\* (IBSS|managed|AP\/VLAN|AP|monitor|P2P-client|P2P-GO)/', $line, $regex))
+			else if (preg_match('/\* (IBSS|managed|AP\/VLAN|AP|monitor|P2P-client|P2P-GO)$/', $line, $regex))
 				$info['supported'][$regex[1]] = true;
 			else if (preg_match("/Bitrates \(non-HT\)/", $line))
 				$band['bitrates'] = array();

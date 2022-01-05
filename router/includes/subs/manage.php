@@ -41,7 +41,7 @@ function get_mac_info($interface)
 			$arr[$parts[0] . (!empty($arr[$parts[0]]) ? strval($id) : '') ] = trim($line);
 		}
 	}
-	$tmp = explode(' ', $arr['iface']);
+	$tmp = explode(' ', isset($arr['iface']) ? $arr['iface'] : '');
 	$arr['op_mode'] = $tmp[ count($tmp) - 1 ];
 	if (!empty($arr['bridge_ports']))
 		$arr['op_mode'] = 'bridged';

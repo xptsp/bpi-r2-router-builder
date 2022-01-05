@@ -187,7 +187,7 @@ $use_dhcp = isset($dhcp[1]);
 $ifcfg = parse_ifconfig($iface);
 #echo '<pre>'; print_r($ifcfg); echo '</pre>'; exit();
 $wifi = get_wifi_capabilities($iface);
-#echo '<pre>'; print_r($wifi); echo '</pre>'; exit();
+#echo '<pre>'; echo '$iface = ' . $iface . "\n"; print_r($wifi); echo '</pre>'; exit();
 
 ########################################################################################################
 # Main code for the page:

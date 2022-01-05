@@ -1,5 +1,6 @@
 <?php
 require_once("subs/manage.php");
+#$_GET['sid'] = $_SESSION['sid'];
 
 #################################################################################################
 # If SID is specified, retrieve the information and statistics for the router's home page:
@@ -68,13 +69,52 @@ if (isset($_GET['sid']))
 		$arr['domains_being_blocked'] = $pihole->domains_being_blocked;
 
 	##########################################################################################
-	# Return WAN status:
+	# Return status of internet-facing interfaces:
 	##########################################################################################
-	$wan_if = parse_ifconfig('wan');
-	if (strpos($wan_if['brackets'], 'RUNNING') === false)
-		$arr['wan_status'] = 'Disconnected';
-	else
-		$arr['wan_status'] = strpos(@shell_exec('ping -c 1 -W 1 8.8.8.8'), '1 received') > 0 ? 'Online' : 'Offline';
+	$ifaces = array();
+	$arr['status'] = '';
+	foreach (glob('/etc/network/interfaces.d/*') as $file)
+	{
+		$iface = basename($file);
+		$show = $wifi = false;
+		$ifaces[$iface] = explode("\n", trim(@file_get_contents($file)));
+		foreach ($ifaces[$iface] as $line)
+		{
+			$wifi |= preg_match("/wpa_ssid (.*)/", $line);
+			$show |= preg_match("/masquerade (.*)/", $line);
+		}
+		if ($show || $wifi)
+		{
+			$if = parse_ifconfig($iface);
+			if (strpos($if['brackets'], 'RUNNING') === false)
+				$status = 'Disconnected';
+			else
+				$status = strpos(@shell_exec('ping -I ' . $iface . ' -c 1 -W 1 8.8.8.8'), '1 received') > 0 ? 'Online' : 'Offline';
+			$arr['status'] .= show_interface_status($iface, $status, '/setup/wire' . ($wifi ? 'less' : 'd') . ($iface != 'wan' ? '?iface=' . $iface : ''), $wifi ? 'fa-wifi' : 'fa-ethernet');
+		}
+	}
+
+	##########################################################################################
+	# Return status of access-point interfaces:
+	##########################################################################################
+	foreach (glob('/etc/network/interfaces.d/*') as $file)
+	{
+		$iface = basename($file);
+		$show = false;
+		foreach ($ifaces[$iface] as $line)
+			$show |= preg_match("/accesspoint (.*)/", $line);
+/*
+		if ($show)
+		{
+			$if = parse_ifconfig($iface);
+			if (strpos($if['brackets'], 'RUNNING') === false)
+				$status = 'Disconnected';
+			else
+				$status = strpos(@shell_exec('ping -I ' . $iface . ' -c 1 -W 1 8.8.8.8'), '1 received') > 0 ? 'Online' : 'Offline';
+			$arr['status'] .= show_interface_status($iface, $status, '/setup/wire' . ($wifi ? 'less' : 'd') . ($iface != 'wan' ? '?iface=' . $iface : ''), $wifi ? 'fa-wifi' : 'fa-ethernet');
+		}
+*/
+	}
 
 	##########################################################################################
 	# Parse the dnsmasq.leases file into the "devices" element of the array:
@@ -114,28 +154,11 @@ if (isset($_GET['sid']))
 }
 
 #######################################################################################################
-# Display WAN (internet) connectivity:
+# Start the page:
 #######################################################################################################
 site_menu(true);
 echo '
-<div class="row">
-	<div class="col-md-4">
-		<div id="connectivity-div" class="small-box bg-success">
-			<div class="overlay dark" id="connectivity-spinner">
-				<i class="fas fa-2x fa-sync-alt fa-spin"></i>
-			</div>
-			<div class="inner">
-				<p class="text-lg">Internet Status</p>
-				<h3 id="connectivity-text">&nbsp;</h3>
-			</div>
-			<div class="icon">
-				<i class="fas fa-ethernet"></i>
-			</div>', $logged_in ? '
-			<a href="/admin/status" class="small-box-footer">
-				Detailed Status <i class="fas fa-arrow-circle-right"></i>
-			</a>' : '', '
-		</div>
-	</div>';
+<div class="row">';
 
 #######################################################################################################
 # Display number of attached devices:
@@ -152,10 +175,10 @@ echo '
 			</div>
 			<div class="icon">
 				<i class="fas fa-laptop-house"></i>
-			</div>', $logged_in ? '
-			<a href="/admin/attached" class="small-box-footer">
+			</div>
+			<a href="/manage/attached" class="small-box-footer">
 				Device List <i class="fas fa-arrow-circle-right"></i>
-			</a>' : '', '
+			</a>
 		</div>
 	</div>';
 
@@ -172,48 +195,10 @@ echo '
 			</div>
 			<div class="icon">
 				<i class="fab fa-usb"></i>
-			</div>', $logged_in ? '
+			</div>
 			<a href="#" class="small-box-footer">
 				USB Sharing Settings <i class="fas fa-arrow-circle-right"></i>
-			</a>' : '', '
-		</div>
-	</div>';
-
-#######################################################################################################
-# Display 2.4GHz wireless connectivity:
-#######################################################################################################
-echo '
-	<div class="col-md-4">
-		<div class="small-box bg-primary">
-			<div class="inner">
-				<p class="text-lg">2.4GHz Wireless Status</p>
-				<h3>Meh</h3>
-			</div>
-			<div class="icon">
-				<i class="fas fa-wifi"></i>
-			</div>', $logged_in ? '
-			<a href="#" class="small-box-footer">
-				Wireless Settings <i class="fas fa-arrow-circle-right"></i>
-			</a>' : '', '
-		</div>
-	</div>';
-
-#######################################################################################################
-# Display 5GHz wireless connectivity:
-#######################################################################################################
-echo '
-	<div class="col-md-4">
-		<div class="small-box bg-secondary">
-			<div class="inner">
-				<p class="text-lg">5GHz Wireless Status</p>
-				<h3>Meh</h3>
-			</div>
-			<div class="icon">
-				<i class="fas fa-wifi"></i>
-			</div>', $logged_in ? '
-			<a href="#" class="small-box-footer">
-				Wireless Settings <i class="fas fa-arrow-circle-right"></i>
-			</a>' : '', '
+			</a>
 		</div>
 	</div>';
 
@@ -234,7 +219,14 @@ echo '
 				Pi-Hole Settings <i class="fas fa-arrow-circle-right"></i>
 			</a>
 		</div>
-	</div>
+	</div>';
+
+#######################################################################################################
+# Display any AP and internet-facing interface statuses:
+#######################################################################################################
+echo '
+</div>
+<div class="row mb-2" id="connectivity-text">
 </div>';
 
 #######################################################################################################

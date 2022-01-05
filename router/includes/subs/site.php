@@ -374,6 +374,28 @@ function checkbox($name, $description, $default = true, $disabled_by = '')
 }
 
 #######################################################################################################
+# Function showing interface status:
+#######################################################################################################
+function show_interface_status($iface, $status, $url = '#', $icon = 'fa-ethernet')
+{
+	return 
+	'<div class="col-md-4">' .
+		'<div id="connectivity-div" class="small-box ' . ($status == "Online" ? 'bg-success' : 'bg-danger') . '">' .
+			'<div class="inner">' .
+				'<p class="text-lg">Interface <b>' . $iface . '</b></p>' .
+				'<h3>' . $status . '</h3>' .
+			'</div>' .
+			'<div class="icon">' .
+				'<i class="fas ' . $icon . '"></i>' .
+			'</div>' .
+			'<a href="' . $url . '" class="small-box-footer">' .
+				'Detailed Status <i class="fas fa-arrow-circle-right"></i>' .
+			'</a>' .
+		'</div>' .
+	'</div>';
+}
+
+#######################################################################################################
 # Functions dealing with passed parameters:
 #######################################################################################################
 function parse_options($file = '/etc/default/router-settings')
@@ -472,3 +494,4 @@ function apply_options($mode = "reload")
 		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns " . ($options['use_isp'] == 'Y' ? 'config' : $options['dns1'] . ' ' . $options['dns2']));
 	return "OK";
 }
+

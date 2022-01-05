@@ -88,12 +88,7 @@ function Home_Data()
 {
 	$.getJSON("/home?sid=" + SID, function(results) {
 		// Update internet connectivity status:
-		if (results.wan_status == "Online")
-			$("#connectivity-div").removeClass("bg-danger");
-		else
-			$("#connectivity-div").addClass("bg-danger");
-		$("#connectivity-spinner").remove();
-		$("#connectivity-text").html(results.wan_status);
+		$("#connectivity-text").html(results.status);
 
 		// Update number of attached devices:
 		$("#devices-spinner").remove();

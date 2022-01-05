@@ -166,7 +166,8 @@ case $CMD in
 		if [[ "$1" == "enable" || "$1" == "disable" ]]; then
 			FILE=/boot/bananapi/bpi-r2/linux/uEnv.txt
 			OLD=$(cat ${FILE} | grep bootmenu_default | cut -d= -f 2)
-			NEW=$([[ "$1" == "enable" ]] && echo "2" || echo "3")
+			DIFF=$(( $(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep bootmenu_default | cut -d= -f 2) / 2 * 2 ))
+			NEW=$([[ "$1" == "enable" ]] && echo "$(( 0 + $DIFF ))" || echo "$(( 1 + $DIFF ))")
 			TXT=$([[ "$NEW" == "2" ]] && echo "enabled" || echo "disabled")
 			[[ "$OLD" == "$NEW" ]] && echo "INFO: Overlay script already ${TXT}!" && exit
 			RO=$(mount | grep "/boot" | grep "(ro,")
@@ -177,7 +178,7 @@ case $CMD in
 		#####################################################################
 		# STATUS => Returns status of overlay setting:
 		elif [[ "$1" == "status" ]]; then
-			STAT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "^bootmenu_default=2" >& /dev/null && echo "enabled" || echo "disabled")
+			STAT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "^bootmenu_default=[2|4]" >& /dev/null && echo "enabled" || echo "disabled")
 			IN_USE=$(mount | grep " /ro " >& /dev/null || echo " not")
 			echo "Overlay Root script is ${STAT} for next boot, currently${IN_USE} active."
 		fi
