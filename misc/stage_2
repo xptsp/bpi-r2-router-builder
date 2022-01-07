@@ -13,6 +13,12 @@ export LANG=C
 apt install -y apt-transport-https bridge-utils dnsmasq hostapd ca-certificates openssh-server ppp pppoeconf pppoe
 
 ##############################################################################################
+# Install xptsp's Debian APT repository on GitHub:
+##############################################################################################
+curl -SsL https://xptsp.github.io/ppa/KEY.gpg | sudo apt-key add -
+sudo curl -SsL -o /etc/apt/sources.list.d/bpiwrt_repo.list https://xptsp.github.io/ppa/ppa.list
+
+##############################################################################################
 # Use the legacy iptables commands instead of iptables-nft
 ##############################################################################################
 update-alternatives --set iptables /usr/sbin/iptables-legacy
@@ -163,20 +169,14 @@ apt-mark hold nginx
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
 ##################################################################################
-# Install and configure miniupnp install
+# Install and configure linux-igd install
 ##################################################################################
-# NOTE: Install the miniupnp install quietly
-echo "miniupnpd miniupnpd/start_daemon boolean true" | debconf-set-selections
-echo "miniupnpd miniupnpd/ip6script boolean false" | debconf-set-selections
-echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
-echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
-apt install -y miniupnpd miniupnpc
+apt install -y libupnp6 linux-igd
 # NOTE: Configure the service:
-sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
-sed -i "s|#http_port=0|http_port=5000|g" /etc/miniupnpd/miniupnpd.conf
-sed -i "s|#enable_upnp=no|enable_upnp=yes|g" /etc/miniupnpd/miniupnpd.conf
-sed -i "s|#enable_natpmp=yes|enable_natpmp=yes|g" /etc/miniupnpd/miniupnpd.conf
-systemctl enable --now miniupnpd
+sed -i "s|#EXTIFACE=.*|EXTIFACE=wan|g" /etc/default/linux-igd
+sed -i "s|#INTIFACE=.*|INTIFACE=br0|g" /etc/default/linux-igd
+sed -i "s|#ALLOW_MULTICAST=yes|ALLOW_MULTICAST=yes|g" /etc/default/linux-igd
+systemctl enable --now linux-igd
 
 ##################################################################################
 # Install minissdpd package
@@ -215,12 +215,9 @@ systemctl enable --now transmission-daemon
 ##################################################################################
 # Install TrueCrypt and HD-Idle
 ##################################################################################
-wget https://github.com/stefansundin/truecrypt.deb/releases/download/7.1a-15/truecrypt-cli_7.1a-15_armhf.deb -O /tmp/truecrypt.deb
-wget https://github.com/adelolmo/hd-idle/releases/download/v1.16/hd-idle_1.16_armhf.deb -O /tmp/hdidle.deb
 mv /etc/default/hd-idle /tmp/
-apt install -y /tmp/*.deb
+apt install -y truecrypt-cli hd-idle
 mv /tmp/hd-idle /etc/default/hd-idle
-rm /tmp/*.deb
 
 ##################################################################################
 # Pull ydns's bash-updater repo and modify to pull settings from elsewhere

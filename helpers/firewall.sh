@@ -106,7 +106,6 @@ if [[ "$1" == "start" ]]; then
 	# Rules for input, output and forwarding for internet-facing interfaces:
 	#############################################################################
 	create_chain SERVICES
-	create_chain MINIUPNPD
 	create_chain WAN_IN
 	create_chain WAN_OUT
 	create_chain WAN_FORWARD
@@ -135,8 +134,6 @@ elif [[ "$1" == "block" ]]; then
 	iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE
 	# Direct interface to check SERVICES chain for further rules:
 	iptables -A INPUT -i ${IFACE} -j SERVICES
-	# Our "intervention" for miniupnpd to work properly:
-	iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j MINIUPNPD
 	# Direct interface to check WAN_IN chain for further INPUT rules:
 	iptables -A INPUT -i ${IFACE} -j WAN_IN
 	# Drop any connections coming from the interface:
