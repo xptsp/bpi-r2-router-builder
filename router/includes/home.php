@@ -124,7 +124,7 @@ if (isset($_GET['sid']))
 		{
 			$if = parse_ifconfig($iface);
 			$status = strpos($if['brackets'], 'RUNNING') === false ? 'Down' : access_point_status($iface, $addr, $arr['lan_devices']);
-			$arr['status'] .= show_interface_status($iface, $status, '/setup/wire' . ($wifi ? 'less' : 'd') . ($iface != 'wan' ? '?iface=' . $iface : ''), 'fa-wifi');
+			$arr['status'] .= show_interface_status($iface, $status, '/setup/wireless?iface=' . $iface, 'fa-wifi');
 		}
 	}
 
