@@ -115,6 +115,10 @@ function Home_Data()
 	
 		// Update number of domains blocked:
 		$("#domains-blocked").html(results.domains_being_blocked);
+		if (results.domains_being_blocked == 0)
+			$("#pihole_div").removeClass("bg-info").addClass("bg-danger");
+		else
+			$("#pihole_div").addClass("bg-info").removeClass("bg-danger");
 	});
 }
 

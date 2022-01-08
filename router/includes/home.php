@@ -274,12 +274,12 @@ echo '
 		<div class="small-box bg-info">
 			<div class="inner">
 				<p class="text-lg">Bluetooth Status</p>
-				<h3 id="empty-text">&nbsp;</span></h3>
+				<h3 id="bluetooth-status">&nbsp;</span></h3>
 			</div>
 			<div class="icon">
 				<i class="fab fa-bluetooth"></i>
 			</div>
-			<a href="http://pi.hole/admin/" class="small-box-footer">
+			<a href="#" class="small-box-footer">
 				Bluetooth Settings <i class="fas fa-arrow-circle-right"></i>
 			</a>
 		</div>
@@ -290,7 +290,7 @@ echo '
 #######################################################################################################
 echo '
 	<div class="col-md-3">
-		<div class="small-box bg-info">
+		<div class="small-box bg-info" id="pihole_div">
 			<div class="inner">
 				<p class="text-lg">Domains Blocked</p>
 				<h3 id="domains-blocked">&nbsp;</span></h3>
