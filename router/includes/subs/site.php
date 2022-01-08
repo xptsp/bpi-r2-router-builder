@@ -443,7 +443,7 @@ function option($name, $allowed = "/^[Y|N]$/", $post = true)
 		$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
 	else
 		$tmp = isset($_GET[$name]) ? $_GET[$name] : '';
-	if (empty($tmp) || empty($allowed) || !preg_match($allowed, $tmp))
+	if (empty($allowed) || !preg_match($allowed, $tmp))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
 	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
 	return $tmp;
@@ -452,8 +452,7 @@ function option($name, $allowed = "/^[Y|N]$/", $post = true)
 function option_allowed($name, $allowed = array())
 {
 	global $options, $options_changed;
-	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
-	if (empty($tmp) || !in_array($_POST[$name], $allowed))
+	if (!in_array($tmp = isset($_POST[$name]) ? $_POST[$name] : '', $allowed))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
 	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
 	return $tmp;

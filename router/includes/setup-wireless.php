@@ -2,6 +2,12 @@
 require_once("subs/setup.php");
 require_once("subs/dhcp.php");
 
+#$_POST['action'] = 'scan';
+#$_POST['sid'] = $_SESSION['sid'];
+#$_POST['iface'] = 'mt7615_24g';
+#$_POST['test'] = 'N';
+#$_POST['hidden'] = 'N';
+
 #################################################################################################
 # If we are not doing the submission action, then skip this entire block of code:
 #################################################################################################
@@ -16,24 +22,8 @@ if (isset($_POST['action']))
 	#################################################################################################
 	# Validate the actions, then do any DHCP actions as requested by the caller:
 	#################################################################################################
-	$action = $_POST['action'] = option_allowed('action', get_dhcp_actions(array('disabled', 'client_dhcp', 'client_static', 'ap', 'encode', 'scan')));
+	$action = $_POST['action'] = option_allowed('action', get_dhcp_actions(array('disabled', 'client_dhcp', 'client_static', 'ap', 'scan')));
 	do_dhcp_actions();
-
-	#################################################################################################
-	# Encode the specified credentials:
-	#################################################################################################
-	if ($action == 'encode')
-	{
-		$wpa_ssid = option('wpa_ssid', '/[\w\d\s\_\-]+/');
-		$wpa_psk = option('wpa_psk', '/[\w\d\s\_\-]{8,63}/');
-		foreach (explode("\n", trim(@shell_exec('wpa_passphrase "' . $wpa_ssid . '" "' . $wpa_psk . '"'))) as $line)
-		{
-			$line = explode("=", trim($line . '='));
-			if ($line[0] == "psk")
-				die($line[1]);
-		}
-		die("ERROR");
-	}
 
 	#################################################################################################
 	# Scan for Wireless Networks using the interface:
@@ -56,9 +46,10 @@ if (isset($_POST['action']))
 			else if (preg_match('/signal: (-?[0-9\.]+ dBm)/', $line, $regex))
 				$networks[ $number ]['signal'] = $regex[1];
 			else if (preg_match('/freq: ([\d+\.]+)/', $line, $regex))
-				$networks[ $number ]['freq'] = $regex[1];
+				$networks[ $number ]['freq'] = ((int) $regex[1]) / 1000;
 		}
 		#echo '<pre>'; print_r($networks); exit;
+		$hidden = option("hidden") == "Y";
 		echo
 		'<table class="table table-striped table-sm">',
 			'<thead>',
@@ -71,20 +62,19 @@ if (isset($_POST['action']))
 				'</tr>',
 			'</thead>',
 			'<tbody>';
-		$hidden = option("hidden") == "Y";
 		foreach ($networks as $network)
 		{
 			if ($hidden || !empty($network['ssid']))
-				echo 
+				echo
 				'<tr>',
 					'<td class="network_name">', empty($network['ssid']) ? '<i>(No SSID broadcast)</i>' : $network['ssid'], '</td>',
 					'<td><center>', $network['channel'], '</center></center></td>',
-					'<td><center>', $network['freq'], ' GHz</center></center></td>',
+					'<td><center>', number_format($network['freq'], 3), ' GHz</center></center></td>',
 					'<td><center><img src="/img/wifi_', network_signal_strength($network['signal']), '.png" width="24" height="24" title="Signal Strength: ', $network['signal'], '" /></center></td>',
 					'<td><a href="javascript:void(0);"><button type="button" class="use_network btn btn-sm bg-primary float-right">Use</button></a></td>',
-				 '</tr>';						
+				 '</tr>';
 		}
-		echo 
+		echo
 			'</tbody>',
 		'</table>';
 		die();
@@ -102,7 +92,12 @@ if (isset($_POST['action']))
 	if ($action == 'client_dhcp' || $action == 'client_static')
 	{
 		$wpa_ssid = option('wpa_ssid', '/[\w\d\s\_\-]+/');
-		$wpa_psk = option('wpa_psk', '/[\w\d\s\_\-]{8,63}/');
+		$wpa_psk = option('wpa_psk', '/([\w\d\s\_\-]{8,63}|)/');
+	}
+	if ($action == 'ap')
+	{
+		$ap_ssid = option('ap_ssid', '/[\w\d\s\_\-]+/');
+		$ap_psk = option('ap_psk', '/([\w\d\s\_\-]{8,63}|)/');
 	}
 	$firewalled = option("firewalled", "/^(Y|N)$/");
 
@@ -110,6 +105,26 @@ if (isset($_POST['action']))
 	# Shut down the wireless interface right now, before modifying the configuration:
 	#################################################################################################
 	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ifdown " . $iface);
+
+	if ($action == "ap")
+	{
+		$text  = 'interface=' . $iface . "\n";
+		$text .= 'driver=nl80211' . "\n";
+		$text .= 'ssid=' . $ap_ssid . "\n";
+/*		$text .= 'hw_mode=' . $hw_mode . "\n";
+		$text .= 'channel=' . $channel . "\n";
+		$text 
+#macaddr_acl=0
+auth_algs=1
+#ignore_broadcast_ssid=0
+wpa=2
+wmm_enabled=1
+wpa_passphrase=SaltyCobra81
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP
+rsn_pairwise=CCMP
+*/
+	}
 
 	#################################################################################################
 	# Decide what the interface configuration text will look like:
@@ -122,7 +137,7 @@ if (isset($_POST['action']))
 		$text .= '    netmask ' . $ip_mask . "\n";
 		if (!empty($ip_gate) && $ip_gate != "0.0.0.0")
 			$text .= '    gateway ' . $ip_gate . "\n";
-	}	
+	}
 	if ($action == "client_dhcp" || $action == "client_static")
 	{
 		$text .= '    wpa_ssid "' . $wpa_ssid . '"' . "\n";
@@ -132,7 +147,12 @@ if (isset($_POST['action']))
 	}
 	if ($firewalled && $action != "disabled")
 		$text .= '    firewall yes' . "\n";
-		
+	if ($action == "ap")
+	{
+		$text .= '    post-up systemctl start hostapd@' . $iface . "\n";
+		$text .= '    pre-down systemctl stop hostapd@' . $fiace . "\n";
+	}
+
 	#################################################################################################
 	# Output the network adapter configuration to the "/tmp" directory:
 	#################################################################################################
@@ -188,6 +208,7 @@ $ifcfg = parse_ifconfig($iface);
 #echo '<pre>'; print_r($ifcfg); echo '</pre>'; exit();
 $wifi = get_wifi_capabilities($iface);
 #echo '<pre>'; echo '$iface = ' . $iface . "\n"; print_r($wifi); echo '</pre>'; exit();
+$netcfg['op_mode'] = 'ap';
 
 ########################################################################################################
 # Main code for the page:
@@ -237,10 +258,10 @@ echo '
 		</div>';
 
 ###################################################################################################
-# Wifi SSID, password and firewalled setting:
+# Client SSID, password and firewalled setting:
 ###################################################################################################
 echo '
-		<div id="client_mode_div"', ($netcfg['op_mode'] == 'dhcp' && isset($netcfg['wpa_ssid'])) || ($netcfg['op_mode'] == 'static' && !isset($netcfg['wpa_ssid'])) ? '' : ' class="hidden"', '>
+		<div id="client_mode_div"', ($netcfg['op_mode'] == 'dhcp' && isset($netcfg['wpa_ssid'])) || ($netcfg['op_mode'] == 'static' && isset($netcfg['wpa_ssid'])) ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
 			<div class="row" style="margin-top: 5px">
 				<div class="col-6">
@@ -251,8 +272,8 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-						<input id="wpa_ssid" type="text" class="form-control" value="', $wpa_ssid, '">
-						<div class="input-group-prepend" id="wifi_scan_div">
+						<input id="wpa_ssid" type="text" class="form-control" placeholder="Required" value="', $wpa_ssid, '">
+						<div class="input-group-prepend">
 							<a href="javascript:void(0);"><button type="button" class="btn btn-primary" id="wifi_scan">Scan</button></a>
 						</div>
 					</div>
@@ -264,13 +285,10 @@ echo '
 				</div>
 				<div class="col-6">
 					<div class="input-group">
-						<div class="input-group-prepend" id="wpa_toggle">
+						<div class="input-group-prepend wpa_toggle">
 							<span class="input-group-text"><i class="fas fa-eye"></i></span>
 						</div>
-						<input type="password" class="form-control" id="wpa_psk" name="wpa_psk" placeholder="Required" value="', $wpa_psk, '">
-						<div class="input-group-prepend" id="wifi_encode_div">
-							<a href="javascript:void(0);"><button type="button" class="btn btn-primary" id="wifi_encode">Encode</button></a>
-						</div>
+						<input type="password" class="form-control" id="wpa_psk" name="wpa_psk" value="', $wpa_psk, '">
 					</div>
 				</div>
 			</div>
@@ -280,6 +298,62 @@ echo '
 						<input type="checkbox" id="firewalled"', isset($netcfg['firewall']) ? ' checked="checked"' : '', '>
 						<label for="firewalled">Firewall Interface from Internet</label>
 					</div>
+				</div>
+			</div>
+		</div>';
+
+###################################################################################################
+# Access Point SSID, password and firewalled setting:
+###################################################################################################
+echo '
+		<div id="ap_mode_div"', $netcfg['op_mode'] == 'ap' ? '' : ' class="hidden"', '>
+			<hr style="border-width: 2px" />
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_addr">Network Name (SSID):</label>
+				</div>
+				<div class="col-6">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+						</div>
+						<input id="ap_ssid" type="text" class="form-control" placeholder="Required" value="', $wpa_ssid, '">
+					</div>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_mask">Passphrase:</label>
+				</div>
+				<div class="col-6">
+					<div class="input-group">
+						<div class="input-group-prepend wpa_toggle">
+							<span class="input-group-text"><i class="fas fa-eye"></i></span>
+						</div>
+						<input id="ap_psk" type="password" class="form-control" value="', $wpa_psk, '">
+					</div>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_mask">Channel:</label>
+				</div>
+				<div class="col-6">
+					<select id="op_mode" class="form-control">';
+foreach ($wifi['band'] as $band => $info)
+{
+	if (count($wifi['band']) > 1)
+		echo '
+						<optgroup label="', isset($info['channels'][1]) ? '2.4 GHz' : (isset($info['channels'][36]) ? '5 GHz' : '?'), '">';
+	foreach ($info['channels'] as $channel => $text)
+		echo '
+						<option value="', $channel, '">', $text, '</option>';
+	if (count($wifi['band']) > 1)
+		echo '
+						</optgroup>';
+}
+echo '
+					</select>
 				</div>
 			</div>
 		</div>';
@@ -385,4 +459,4 @@ echo '
 dhcp_reservations_modals();
 apply_changes_modal('Please wait while the wireless interface is being configured....', true);
 reboot_modal();
-site_footer('Init_Wireless("' . $iface . '", "' . $subnet . '", "' . $default . '");');
+site_footer('Init_Wireless("' . $iface . '");');

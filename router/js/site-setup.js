@@ -537,7 +537,7 @@ function Settings_Apply()
 //======================================================================================================
 // Javascript functions for "Setup / Wireless Setup"
 //======================================================================================================
-function Init_Wireless(iface, wifi_net, ap_net)
+function Init_Wireless(iface)
 {
 	iface_used = iface;
 	page_url = '/setup/wireless';
@@ -546,49 +546,44 @@ function Init_Wireless(iface, wifi_net, ap_net)
 	$(".checkbox").bootstrapSwitch();
 	$("#op_mode").change(function() {
 		mode = $(this).find("option:selected").val();
-		if (mode == 'disabled' || mode == "client_dhcp")
+		if (mode == 'disabled')
 		{
+			$("#client_mode_div").slideUp(400);
+			$("#ap_mode_div").slideUp(400);
 			$("#static_ip_div").slideUp(400);
-			$("#use_dhcp").slideUp(400);
-			$("#wifi_scan").removeClass("hidden");
-			$("#wifi_encode").removeClass("hidden");
-			$("#access_div").slideUp(400);
-			if (mode == "client_dhcp")
-			{
-				$("#network_div").slideDown(400);
-				$("#client_div").slideDown(400);
-			}
-			else
-			{
-				$("#network_div").slideUp(400);
-				$("#client_div").slideUp(400);
-			}
+			$("#network_div").slideUp(400);
+			$(".dhcp_div").slideUp(400);
+			$("#add_reservation_href").addClass("hidden");
 		}
-		else if (mode == "client_static" || mode == "ap")
+		else if (mode == "client_dhcp")
 		{
+			$("#client_mode_div").slideDown(400);
+			$("#ap_mode_div").slideUp(400);
+			$("#static_ip_div").slideUp(400);
+			$("#network_div").slideDown(400);
+			$(".dhcp_div").slideUp(400);
+			$("#add_reservation_href").addClass("hidden");
+		}
+		else if (mode == "client_static")
+		{
+			$("#client_mode_div").slideDown(400);
+			$("#ap_mode_div").slideUp(400);
 			$("#static_ip_div").slideDown(400);
 			$("#network_div").slideDown(400);
-			if (mode == "ap")
-			{
-				$("#wifi_scan").addClass("hidden");
-				$("#wifi_encode").addClass("hidden");
-				$("#ip_addr").val( ap_net );
-				$("#client_div").slideUp(400);
-				$("#use_dhcp").slideDown(400);
-				$("#access_div").slideDown(400);
-			}
-			else
-			{
-				$("#wifi_scan").removeClass("hidden");
-				$("#wifi_encode").removeClass("hidden");
-				$("#ip_addr").val( wifi_net );
-				$("#client_div").slideDown(400);
-				$("#use_dhcp").slideUp(400);
-				$("#access_div").slideUp(400);
-			}
+			$(".dhcp_div").slideUp(400);
+			$("#add_reservation_href").addClass("hidden");
+		}
+		else if (mode == "ap")
+		{
+			$("#client_mode_div").slideUp(400);
+			$("#ap_mode_div").slideDown(400);
+			$("#static_ip_div").slideDown(400);
+			$("#network_div").slideDown(400);
+			$(".dhcp_div").slideDown(400);
+			$("#add_reservation_href").removeClass("hidden");
 		}
 	}).change();
-	$("#wpa_toggle").click(function() {
+	$(".wpa_toggle").click(function() {
 		input = $(this).parent().find(".form-control");
 		if (input.attr("type") === "password")
 			input.attr("type", "text");
@@ -624,7 +619,10 @@ function Wireless_Submit()
 		'dhcp_start': $("#dhcp_start").val(),
 		'dhcp_end':   $("#dhcp_end").val(),
 		'dhcp_lease': $("#dhcp_lease").val() + $("#dhcp_units").val(),
-		'firewalled': $("#firewalled").is(":checked") ? 'Y' : 'N'
+		'firewalled': $("#firewalled").is(":checked") ? 'Y' : 'N',
+		'ap_ssid':    $("#ap_ssid").val(),
+		'ap_psk':     $("#ap_psk").val(),
+
 	};
 	if ($("#dhcp_units").val() == "infinite")
 		postdata.dhcp_lease = 'infinite';

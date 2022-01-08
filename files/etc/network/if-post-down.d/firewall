@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Remove masquerading for the interface:
-iptables -t nat -D POSTROUTING -o ${IFACE} -j MASQUERADE >& /dev/null
-
 # Unblock the interface from the iptables firewall, if required:
 /opt/bpi-r2-router-builder/helpers/firewall.sh unblock ${IFACE}
 

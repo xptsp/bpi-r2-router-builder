@@ -48,7 +48,7 @@ function do_dhcp_actions()
 	if (empty($subnet))
 	{
 		$parts = parse_ifconfig($iface);
-		$subnet = substr($parts['inet'], 0, strrpos($parts['inet'], ".") + 1);
+		$subnet = isset($parts['inet']) ? substr($parts['inet'], 0, strrpos($parts['inet'], ".") + 1) : '255.255.255.';
 	}
 	#echo '<pre>$reserve >> '; print_r($reserve); exit();
 	#echo '<pre>$hostname >> '; print_r($hostname); exit();

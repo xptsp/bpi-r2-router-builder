@@ -118,15 +118,16 @@ if [[ "$1" == "start" ]]; then
 #############################################################################
 # UNFIREWALL => Remove all internet-firewall rules for specified interface:
 #############################################################################
-elif [[ "$1" == "unblock" ]]; then
+elif [[ "$1" == "unblock" && ! -z "${2}" ]]; then
 	IFACE=$2
 	iptables --list-rules | grep ${IFACE} | while IFS= read -r line; do iptables ${line/\-A/\-D}; done
-	iptables --list-rules -t nat | grep ${IFACE} | while IFS= read -r line; do iptables ${line/\-A/\-D}; done
+	iptables --list-rules -t nat | grep ${IFACE} | while IFS= read -r line; do iptables -t nat ${line/\-A/\-D}; done
+	iptables --list-rules -t mangle | grep ${IFACE} | while IFS= read -r line; do iptables -t mangle ${line/\-A/\-D}; done
 
 #############################################################################
 # FIREWALL => Install internet-firewall rules for specified interface:
 #############################################################################
-elif [[ "$1" == "block" ]]; then
+elif [[ "$1" == "block" && ! -z "${2}" ]]; then
 	IFACE=$2
 	# Remove any existing firewall rules explicit to the specified interface:
 	$0 unblock ${IFACE}
