@@ -380,7 +380,7 @@ function show_interface_status($iface, $status, $url = '#', $icon = 'fa-ethernet
 {
 	return 
 	'<div class="col-md-4">' .
-		'<div id="connectivity-div" class="small-box ' . ($status == "Online" ? 'bg-success' : 'bg-danger') . '">' .
+		'<div id="connectivity-div" class="small-box ' . ($status == "Offline" || $status == "Not Running" || $status == "Down" ? 'bg-danger' : 'bg-success') . '">' .
 			'<div class="inner">' .
 				'<p class="text-lg">Interface <b>' . $iface . '</b></p>' .
 				'<h3>' . $status . '</h3>' .
@@ -393,6 +393,32 @@ function show_interface_status($iface, $status, $url = '#', $icon = 'fa-ethernet
 			'</a>' .
 		'</div>' .
 	'</div>';
+}
+
+function access_point_status($iface, $subnet, $leases)
+{
+	################################################################################################
+	# Determine which physical wireless interface the specified interface is on:
+	################################################################################################
+	$phys = $num = -1;
+	foreach (explode("\n", trim(@shell_exec("iw dev | egrep 'phy|Interface|ssid'"))) as $line)
+	{
+		if (preg_match("/^phy\#(\d+)/", trim($line), $regex))
+			$num = $regex[1];
+		else if (preg_match("/Interface ([\w\d\_]+)/", trim($line), $regex) && $iface == $regex[1])
+			$phys = $num;
+		else if ($phys != -1 && preg_match("/ssid (.*)/", $line))
+		{
+			$count = 0;
+			foreach ($leases as $lease)
+			{
+				if (preg_match('/' . $subnet .'/', $lease['ip_address']))
+					$count++;
+			}
+			return strval($count) . ' ' . ($count == 1 ? 'Client' : 'Clients');
+		}
+	}
+	return 'Not Running';
 }
 
 #######################################################################################################
@@ -494,4 +520,3 @@ function apply_options($mode = "reload")
 		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns " . ($options['use_isp'] == 'Y' ? 'config' : $options['dns1'] . ' ' . $options['dns2']));
 	return "OK";
 }
-

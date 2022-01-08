@@ -100,7 +100,7 @@ else
 			<div class="col-sm-6"><a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-danger" id="restore_settings">Restore Settings</button></a></div>
 		</div>';
 
-	if (strpos(@file_get_contents("/boot/bananapi/bpi-r2/linux/uEnv.txt"), "bootmenu_default=2") == -1)
+	if (strpos(@file_get_contents("/boot/bananapi/bpi-r2/linux/uEnv.txt"), "bootmenu_default=2") > -1)
 		echo '
 		<hr />
 		<div class="input-group mb-4">

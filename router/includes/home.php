@@ -95,28 +95,6 @@ if (isset($_GET['sid']))
 	}
 
 	##########################################################################################
-	# Return status of access-point interfaces:
-	##########################################################################################
-	foreach (glob('/etc/network/interfaces.d/*') as $file)
-	{
-		$iface = basename($file);
-		$show = false;
-		foreach ($ifaces[$iface] as $line)
-			$show |= preg_match("/accesspoint (.*)/", $line);
-/*
-		if ($show)
-		{
-			$if = parse_ifconfig($iface);
-			if (strpos($if['brackets'], 'RUNNING') === false)
-				$status = 'Disconnected';
-			else
-				$status = strpos(@shell_exec('ping -I ' . $iface . ' -c 1 -W 1 8.8.8.8'), '1 received') > 0 ? 'Online' : 'Offline';
-			$arr['status'] .= show_interface_status($iface, $status, '/setup/wire' . ($wifi ? 'less' : 'd') . ($iface != 'wan' ? '?iface=' . $iface : ''), $wifi ? 'fa-wifi' : 'fa-ethernet');
-		}
-*/
-	}
-
-	##########################################################################################
 	# Parse the dnsmasq.leases file into the "devices" element of the array:
 	##########################################################################################
 	foreach (explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases"))) as $num => $line)
@@ -132,19 +110,36 @@ if (isset($_GET['sid']))
 	$arr['lan_count'] = count($arr['lan_devices']);
 
 	##########################################################################################
-	# Get the number of mounted USB devices:
+	# Return status of access-point interfaces:
 	##########################################################################################
+	foreach ($ifaces as $iface => $config)
+	{
+		$show = $addr = false;
+		foreach ($config as $line)
+		{
+			$addr = preg_match("/address ((\d+)\.(\d+)\.(\d+)\.)/", $line, $regex) ? $regex[1] : $addr;
+			$show |= preg_match("/post-up systemctl start hostapd@(.*)/", $line);
+		}
+		if ($show)
+		{
+			$if = parse_ifconfig($iface);
+			$status = strpos($if['brackets'], 'RUNNING') === false ? 'Down' : access_point_status($iface, $addr, $arr['lan_devices']);
+			$arr['status'] .= show_interface_status($iface, $status, '/setup/wire' . ($wifi ? 'less' : 'd') . ($iface != 'wan' ? '?iface=' . $iface : ''), 'fa-wifi');
+		}
+	}
+
+	##########################################################################################
+	# Get the number of samba shares:
+	##########################################################################################
+	$arr['usb_count'] = 0;
 	foreach (glob('/etc/samba/smb.d/*.conf') as $file)
 	{
 		foreach (explode("\n", trim(@file_get_contents($file))) as $line)
 		{
-			if (preg_match("/path=(\/media\/.*)/", $line, $regex))
-				$arr['usb_devices'][basename($file)]['path'] = $regex[1];
-			if (preg_match("/\#mount_dev=(.*)/", $line, $regex))
-				$arr['usb_devices'][basename($file)]['mount_dev'] = $regex[1];
+			if (preg_match("/path=(.*)/", $line, $regex))
+				$arr['usb_count']++;
 		}
 	}
-	$arr['usb_count'] = count($arr['usb_devices']);
 
 	##########################################################################################
 	# Output the resulting array:
@@ -157,18 +152,87 @@ if (isset($_GET['sid']))
 # Start the page:
 #######################################################################################################
 site_menu(true);
+
+#######################################################################################################
+# Display system temperature:
+#######################################################################################################
 echo '
-<div class="row">';
+<div class="row mb-2">
+	<div class="col-sm-12">
+		<h3>Statistics</h1>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-3">
+		<div class="small-box bg-info" id="temp_div">
+			<div class="inner">
+				<p class="text-lg">Temperature</p>
+				<h4><span id="temp">&nbsp;</span>&deg; C</h4>
+			</div>
+			<div class="icon">
+				<i class="fas fa-thermometer"></i>
+			</div>
+		</div>
+	</div>';
+
+#######################################################################################################
+# Display system load:
+#######################################################################################################
+echo '
+	<div class="col-md-3">
+		<div class="small-box bg-info">
+			<div class="inner">
+				<p class="text-lg">Average Load</p>
+				<h4>
+					<span id="load0">&nbsp;</span>,
+					<span id="load1">&nbsp;</span>,
+					<span id="load2">&nbsp;</span>
+				</h4>
+			</div>
+			<div class="icon">
+				<i class="fas fa-truck-loading"></i>
+			</div>
+		</div>
+	</div>';
+
+#######################################################################################################
+# Display system uptime:
+#######################################################################################################
+echo '
+	<div class="col-md-3">
+		<div class="small-box bg-info">
+			<div class="inner">
+				<p class="text-lg">System Uptime</p>
+				<h4><span id="system_uptime">&nbsp;</span></h4>
+			</div>
+			<div class="icon">
+				<i class="fas fa-stopwatch"></i>
+			</div>
+		</div>
+	</div>';
+
+#######################################################################################################
+# Display system current time:
+#######################################################################################################
+echo '
+	<div class="col-md-3">
+		<div class="small-box bg-info">
+			<div class="inner">
+				<p class="text-lg">System Time</p>
+				<h4><span id="server_time">&nbsp;</span></h4>
+			</div>
+			<div class="icon">
+				<i class="fas fa-clock"></i>
+			</div>
+		</div>
+	</div>';
 
 #######################################################################################################
 # Display number of attached devices:
 #######################################################################################################
 echo '
-	<div class="col-md-4">
-		<div class="small-box bg-indigo">
-			<div class="overlay dark" id="devices-spinner">
-				<i class="fas fa-2x fa-sync-alt fa-spin"></i>
-			</div>
+	<div class="col-md-3">
+		<div class="small-box bg-info">
 			<div class="inner">
 				<p class="text-lg">Attached Devices</p>
 				<h3 id="num_of_devices">&nbsp;</h3>
@@ -183,21 +247,21 @@ echo '
 	</div>';
 
 #######################################################################################################
-# Display USB drive sharing:
+# Display number of samba shares:
 #######################################################################################################
 $sharing = false;
 echo '
-	<div class="col-md-4">
-		<div class="small-box bg-orange">
+	<div class="col-md-3">
+		<div class="small-box bg-info">
 			<div class="inner">
-				<p class="text-lg">USB Drive Sharing</p>
-				<h3 id="usb-sharing">Disabled</span></h3>
+				<p class="text-lg">Samba Shares</p>
+				<h3 id="usb-sharing">&nbsp;</span></h3>
 			</div>
 			<div class="icon">
 				<i class="fab fa-usb"></i>
 			</div>
 			<a href="#" class="small-box-footer">
-				USB Sharing Settings <i class="fas fa-arrow-circle-right"></i>
+				Samba Settings <i class="fas fa-arrow-circle-right"></i>
 			</a>
 		</div>
 	</div>';
@@ -206,7 +270,26 @@ echo '
 # Display number of domains blocked by our adblocking script:
 #######################################################################################################
 echo '
-	<div class="col-md-4">
+	<div class="col-md-3">
+		<div class="small-box bg-info">
+			<div class="inner">
+				<p class="text-lg">Bluetooth Status</p>
+				<h3 id="empty-text">&nbsp;</span></h3>
+			</div>
+			<div class="icon">
+				<i class="fab fa-bluetooth"></i>
+			</div>
+			<a href="http://pi.hole/admin/" class="small-box-footer">
+				Bluetooth Settings <i class="fas fa-arrow-circle-right"></i>
+			</a>
+		</div>
+	</div>';
+
+#######################################################################################################
+# Display number of domains blocked by our adblocking script:
+#######################################################################################################
+echo '
+	<div class="col-md-3">
 		<div class="small-box bg-info">
 			<div class="inner">
 				<p class="text-lg">Domains Blocked</p>
@@ -226,72 +309,12 @@ echo '
 #######################################################################################################
 echo '
 </div>
-<div class="row mb-2" id="connectivity-text">
-</div>';
-
-#######################################################################################################
-# Display system overview
-#######################################################################################################
-echo '
 <div class="row mb-2">
 	<div class="col-sm-12">
-		<h3>Hardware Stats</h1>
+		<h3>Network Interfaces</h1>
 	</div>
 </div>
-<div class="row">
-	<div class="col-md-3">
-		<div class="card card-primary">
-			<div class="card-header">
-				<h3 class="card-title">
-					<i class="fas ', $icon, '"></i>
-					Temperature:
-				</h3>
-			</div>
-			<div class="card-body centered text-lg">
-				<span id="temp"></span>&deg; C
-			</div>
-			<div class="ribbon-wrapper ribbon-lg invisible" id="temp-danger">
-				<div class="ribbon bg-danger text-lg">Danger!</div>
-			</div>
-		</div>
-	</div>
-	<div class="col-md-3">
-		<div class="card card-primary">
-			<div class="card-header">
-				<h3 class="card-title">
-					<i class="fas fa-truck-loading"></i>
-					Average Load:
-				</h3>
-			</div>
-			<div class="card-body centered text-lg">
-					<span id="load0"></span>,
-					<span id="load1"></span>,
-					<span id="load2"></span>
-			</div>
-		</div>
-	</div>
-	<div class="col-md-3">
-		<div class="card card-primary">
-			<div class="card-header">
-				<h3 class="card-title">
-					<i class="fas fa-stopwatch"></i>
-					System Uptime:
-				</h3>
-			</div>
-			<div class="card-body centered text-lg" id="system_uptime">&nbsp;</div>
-		</div>
-	</div>
-	<div class="col-md-3">
-		<div class="card card-primary">
-			<div class="card-header">
-				<h3 class="card-title">
-					<i class="fas fa-clock"></i>
-					System Time:
-				</h3>
-			</div>
-			<div class="card-body centered text-lg" id="server_time">&nbsp;</div>
-		</div>
-	</div>
+<div class="row mb-2" id="connectivity-text">
 </div>';
 
 #######################################################################################################

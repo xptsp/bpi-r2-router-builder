@@ -95,19 +95,14 @@ function Home_Data()
 		$("#num_of_devices").html(results.lan_count);
 
 		// Update number of mounted USB devices:
-		if (results.usb_count == 1)
-			$("#usb-sharing").html(results.usb_count.toString() + " Device");
-		else if (results.usb_count >= 0)
-			$("#usb-sharing").html(results.usb_count.toString() + " Devices");
-		else
-			$("#usb-sharing").html("Disabled");
+		$("#usb-sharing").html(results.usb_count.toString());
 
 		// Update system temperature:
 		$("#temp").html(results.temp);
 		if (results.temp > 60)
-			$("#temp-danger").removeClass("invisible");
+			$("#temp_div").removeClass("bg-info").addClass('bg-danger');
 		else
-			$("#temp-danger").addClass("invisible");
+			$("#temp_div").addClass("bg-info").removeClass('bg-danger');
 
 		// Update system load averages:
 		$("#load0").html(results.load0);
