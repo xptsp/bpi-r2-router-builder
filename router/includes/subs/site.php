@@ -389,7 +389,7 @@ function show_interface_status($iface, $status, $url = '#', $icon = 'fa-ethernet
 				'<i class="fas ' . $icon . '"></i>' .
 			'</div>' .
 			'<a href="' . $url . '" class="small-box-footer">' .
-				'Detailed Status <i class="fas fa-arrow-circle-right"></i>' .
+				'Interface Configuration <i class="fas fa-arrow-circle-right"></i>' .
 			'</a>' .
 		'</div>' .
 	'</div>';
