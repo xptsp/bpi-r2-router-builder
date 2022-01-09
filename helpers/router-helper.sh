@@ -350,6 +350,12 @@ case $CMD in
 		# SCAN-TEST => Restart the specified interface:
 		elif [[ "$1" == "scan-test" ]]; then
 			cat /opt/bpi-r2-router-builder/misc/scan-test.txt
+		#####################################################################
+		# HOSTAPD => Move specified configuration file from "/tmp" to "/etc/network/interfaces.d/":
+		elif [[ "$1" == "hostapd" ]]; then
+			if ! test -f /tmp/${2}; then echo "ERROR: Missing Configuration File"; exit; fi
+			mv /tmp/${2} /etc/hostapd/${2}.conf
+			chown root:root /etc/hostapd/${2}.conf
 		fi
 		;;
 

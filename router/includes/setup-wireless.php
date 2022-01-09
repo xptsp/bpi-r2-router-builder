@@ -9,10 +9,16 @@ require_once("subs/dhcp.php");
 #$_POST['hidden'] = 'N';
 
 #################################################################################################
-# Parse the options in "/etc/default/router-settings":
+# Gather up the information we need to start this page:
 #################################################################################################
+$ifaces = explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}' | sort")));
+#echo '<pre>'; print_r($ifaces); exit;
+$iface = isset($_GET['iface']) ? $_GET['iface'] : $ifaces[0];
+#echo $iface; exit;
 $options = parse_options();
 #echo '<pre>'; print_r($options); exit;
+$wifi = get_wifi_capabilities($iface);
+#echo '<pre>'; print_r($wifi); echo '</pre>'; exit();
 
 #################################################################################################
 # If we are not doing the submission action, then skip this entire block of code:
@@ -34,7 +40,7 @@ if (isset($_POST['action']))
 	#################################################################################################
 	# Scan for Wireless Networks using the interface:
 	#################################################################################################
-	$iface   = option_allowed('iface', explode("\n", trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'"))) );
+	$iface   = option_allowed('iface', $ifaces);
 	if ($action == 'scan')
 	{
 		$networks = array();
@@ -103,12 +109,25 @@ if (isset($_POST['action']))
 	}
 	if ($action == 'ap')
 	{
-		$wifi = get_wifi_capabilities($iface);
-		#echo '<pre>'; print_r($wifi); echo '</pre>'; exit();
 		$ap_ssid = option('ap_ssid', '/[\w\d\s\_\-]+/');
 		$ap_psk = option('ap_psk', '/([\w\d\s\_\-]{8,63}|)/');
 		$ap_band = option_allowed('ap_band', array_keys($wifi['band']));
-		$ap_channel = option_allowed('ap_channel', array_keys($wifi['band'][$ap_band]['channels']));
+		$ap_channel = option_allowed('ap_channel', array_merge(array(0), array_keys($wifi['band'][$ap_band]['channels'])));
+		$ap_hide = option('ap_hide') == "Y" ? 1 : 0;
+		if ($wifi['band'][$ap_band]['channels']['first'] < 36)
+		{
+			$ap_mode = option_allowed('ap_mode', array('b', 'g', 'n'));
+			$n_mode = $ap_mode == 'n';
+			$ac_mode = false;
+			$ap_mode = $ap_mode == 'n' ? 'g' : $ap_mode;
+		}
+		else
+		{
+			$ap_mode = option_allowed('ap_mode', array('a', 'n', 'ac'));
+			$ac_mode = $ap_mode == 'ac';
+			$n_mode = $ap_mode == 'n' || $ap_mode == 'ac';
+			$ap_mode = 'a';
+		}
 	}
 
 	#################################################################################################
@@ -124,8 +143,8 @@ if (isset($_POST['action']))
 		$text  = 'interface=' . $iface . "\n";				# Interface we are using for this access point
 		$text .= 'driver=nl80211' . "\n";					# Driver used (usually "nl80211")
 		$text .= 'ssid=' . $ap_ssid . "\n";					# Name of SSID we are creating
-		$text .= 'ignore_broadcast_ssid=0' . "\n";			# Setting to "1" does not broadcast the SSID.
-//		$text .= 'hw_mode=' . $ap_mode . "\n";				# "b" and "g" mean 2.4GHz.  "a" means 5GHz.
+		$text .= 'ignore_broadcast_ssid=' . $ap_hide . "\n";# Setting to "1" hides the SSID.
+		$text .= 'hw_mode=' . $ap_mode . "\n";				# "b" and "g" mean 2.4GHz.  "a" means 5GHz.
 		$text .= 'channel=' . $ap_channel . "\n";			# Valid 2.4GHz channels range from 1 to 13.  Valid 5GHz range from 136 to 173.
 
 		# Set to 1 to limit the frequencies used to those allowed in the country specified.
@@ -133,9 +152,13 @@ if (isset($_POST['action']))
 		$text .= 'country_code=' . $options['wifi_country'] . "\n";
 
 		# Enable 802.11n/ac support as necessary:
-		//$text .= 'ieee80211n=1' . "\n";					# Set to 1 for 802.11n support
-		//$text .= 'wmm_enabled=1' . "\n";					# QoS support, also required for full speed on 802.11n/ac/ax
-		//$text .= 'ieee80211ac=1' . "\n";					# Set to 1 for 802.11ac support (5GHz only)
+		if ($n_mode)
+		{
+			$text .= 'ieee80211n=1' . "\n";					# Set to 1 for 802.11n support
+			$text .= 'wmm_enabled=1' . "\n";				# QoS support, also required for full speed on 802.11n/ac/ax
+		}
+		if ($ac_mode)
+			$text .= 'ieee80211ac=1' . "\n";				# Set to 1 for 802.11ac support (5GHz only)
 
 		# Enable passphrase support if requested:
 		if (!empty($wpa_psk))
@@ -147,6 +170,13 @@ if (isset($_POST['action']))
 			$text .= 'wpa_pairwise=TKIP' . "\n";
 			$text .= 'rsn_pairwise=CCMP' . "\n";
 		}
+
+		# Write the hostapd configuration file to disk:
+		echo '<pre>'; echo $text; exit;
+		$handle = fopen("/tmp/" . $iface, "w");
+		fwrite($handle, trim($text) . "\n");
+		fclose($handle);
+		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface hostapd " . $iface);
 	}
 
 	#################################################################################################
@@ -193,8 +223,6 @@ if (isset($_POST['action']))
 		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp del " . $_POST['iface']);
 	else
 		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp set " . $_POST['iface'] . " " . $ip_addr . " " . $dhcp_start . " " . $dhcp_end . ' ' . $dhcp_lease);
-	if ($tmp != "")
-		die($tmp);
 
 	#################################################################################################
 	# Start the wireless interface and restart pihole-FTL:
@@ -208,12 +236,6 @@ if (isset($_POST['action']))
 # Determine what wireless interfaces exist on the system, then remove the AP0 interface if client-mode
 #  is specified for the R2's onboard wifi:
 ########################################################################################################
-$ifaces = array();
-foreach (explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}' | sort"))) as $tface)
-	$ifaces[] = $tface;
-#echo '<pre>'; print_r($ifaces); exit;
-$iface = isset($_GET['iface']) ? $_GET['iface'] : $ifaces[0];
-#echo $iface; exit;
 $adapters = explode("\n", trim(@shell_exec("iw dev | grep Interface | awk '{print $2}'")));
 #echo '<pre>'; print_r($adapters); exit();
 $netcfg = get_mac_info($iface);
@@ -224,8 +246,6 @@ $use_dhcp = isset($dhcp[1]);
 #echo (int) $use_dhcp; exit;
 $ifcfg = parse_ifconfig($iface);
 #echo '<pre>'; print_r($ifcfg); echo '</pre>'; exit();
-$wifi = get_wifi_capabilities($iface);
-#echo '<pre>'; echo '$iface = ' . $iface . "\n"; print_r($wifi); echo '</pre>'; exit();
 
 ########################################################################################################
 # Main code for the page:
@@ -333,6 +353,12 @@ $five_ghz = $hw_mode == "a";
 #echo '<pre>'; print_r($five_ghz); exit;
 $channel = isset($host['channel']) ? $host['channel'] : 0;
 #echo '<pre>'; print_r($channel); exit;
+$hw_mode = isset($host['hw_mode']) ? $host['hw_mode'] : '';
+#echo '<pre>'; print_r($channel); exit;
+$n_mode = isset($host['ieee80211n']) ? ($host['ieee80211n'] == 1) : false;
+#echo '<pre>'; print_r($hw_mode); exit;
+$no_broadcast = isset($host['ignore_broadcast_ssid']) ? $host['ignore_broadcast_ssid'] : 0;
+#echo '<pre>'; print_r($no_broadcast); exit;
 echo '
 		<div id="ap_mode_div"', $netcfg['op_mode'] == 'ap' ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
@@ -391,6 +417,39 @@ foreach ($wifi['band'] as $band => $info)
 }
 echo '
 					</select>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_mask">Wifi Network Mode:</label>
+				</div>
+				<div class="col-6">';
+foreach ($wifi['band'] as $band => $info)
+{
+	if ($info['channels']['first'] < 36)
+		echo '
+					<select class="form-control bands band_', $band, '" id="ap_mode_', $band, '">
+						<option value="b"', ($hw_mode == 'b' and !$n_mode) ? ' selected="selected"' : '', '>Wireless-B mode</option>
+						<option value="g"', ($hw_mode == 'g' and !$n_mode) ? ' selected="selected"' : '', '>Wireless-G mode</option>
+						<option value="n"', ($hw_mode == 'g' and  $n_mode) ? ' selected="selected"' : '', '>Wireless-N mode</option>
+					</select>';
+	else
+		echo '
+					<select class="form-control bands band_', $band, '" id="ap_mode_', $band, '">
+						<option value="a"',  ($hw_mode == 'a' and !$n_mode) ? ' selected="selected"' : '', '>Wireless-A mode</option>
+						<option value="n"',  ($hw_mode == 'a' and  $n_mode && !$ac_mode) ? ' selected="selected"' : '', '>Wireless-N mode</option>
+						<option value="ac"', ($hw_mode == 'g' and  $n_mode &&  $ac_mode) ? ' selected="selected"' : '', '>Wireless-AC mode</option>
+					<select>';
+}
+echo '
+				</div>
+			</div>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-12">
+					<div class="icheck-primary">
+						<input type="checkbox" id="ap_hide"', $no_broadcast ? ' checked="checked"' : '', '>
+						<label for="ap_hide">Hide Network SSID</label>
+					</div>
 				</div>
 			</div>
 		</div>';

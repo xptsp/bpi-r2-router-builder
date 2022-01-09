@@ -591,6 +591,7 @@ function Init_Wireless(iface)
 		$("." + band ).removeClass("hidden");
 		if ($("#ap_channel").val() != 0)
 			$("#ap_channel").val( $("." + band ).first().val() ).change();
+		$("#ap_mode_" + band).val( $("#ap_mode_" + band).first().val() ).change();
 	}).change();
 	$(".wpa_toggle").click(function() {
 		input = $(this).parent().find(".form-control");
@@ -615,6 +616,7 @@ function Init_Wireless(iface)
 function Wireless_Submit()
 {
 	// Assemble the post data for the AJAX call:
+	band = $("#ap_band option:selected").val().replace("band_", "");
 	postdata = {
 		'sid':        SID,
 		'iface':      iface_used,
@@ -631,12 +633,14 @@ function Wireless_Submit()
 		'firewalled': $("#firewalled").is(":checked") ? 'Y' : 'N',
 		'ap_ssid':    $("#ap_ssid").val(),
 		'ap_psk':     $("#ap_psk").val(),
-		'ap_band':    $("#ap_band option:selected").val().replace("band_", ""),
+		'ap_band':    band,
 		'ap_channel': $("#ap_channel option:selected").val(),
+		'ap_mode':    $("#ap_mode_" + band + " option:selected").val(),
+		'ap_hide':    $("#ap_hide").is(":checked") ? 'Y' : 'N',
 	};
 	if ($("#dhcp_units").val() == "infinite")
 		postdata.dhcp_lease = 'infinite';
-	alert(JSON.stringify(postdata, null, 5)); return;
+	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Notify the user what we are doing:
 	$("#apply_msg").html( $("#apply_default").html() );
