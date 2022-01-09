@@ -493,6 +493,7 @@ function Settings_Detect()
 	$.post("/setup/settings", __postdata("detect"), function(data) {
 		data = JSON.parse(data);
 		$("#timezone").val(data.timezone).change();
+		$("#wifi_country").val(data.country).change();
 	}).fail(function() {
 		alert("AJAX call failed!");
 	});
@@ -509,9 +510,10 @@ function Settings_Apply()
 		'locale':	$("#locale").val(),
 		'mac':      $("#mac_addr").val(),
 		'ui_lang':  $("#webui_language").val(),
-		'onboard':  $("#onboard_wifi").find("option:selected").val()
+		'onboard':  $("#onboard_wifi").find("option:selected").val(),
+		'country':  $("#wifi_country").val(),
 	};
-	//alert(JSON.stringify(postdata, null, 5)); return;
+	alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to remove the IP reservation:
 	$("#apply_msg").html( $("#apply_default").html() );
@@ -583,6 +585,13 @@ function Init_Wireless(iface)
 			$("#add_reservation_href").removeClass("hidden");
 		}
 	}).change();
+	$("#ap_band").change(function() {
+		$(".bands").addClass("hidden");
+		band = $("#ap_band option:selected").val();
+		$("." + band ).removeClass("hidden");
+		if ($("#ap_channel").val() != 0)
+			$("#ap_channel").val( $("." + band ).first().val() ).change();
+	}).change();
 	$(".wpa_toggle").click(function() {
 		input = $(this).parent().find(".form-control");
 		if (input.attr("type") === "password")
@@ -622,11 +631,12 @@ function Wireless_Submit()
 		'firewalled': $("#firewalled").is(":checked") ? 'Y' : 'N',
 		'ap_ssid':    $("#ap_ssid").val(),
 		'ap_psk':     $("#ap_psk").val(),
-
+		'ap_band':    $("#ap_band option:selected").val().replace("band_", ""),
+		'ap_channel': $("#ap_channel option:selected").val(),
 	};
 	if ($("#dhcp_units").val() == "infinite")
 		postdata.dhcp_lease = 'infinite';
-	//alert(JSON.stringify(postdata, null, 5)); return;
+	alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Notify the user what we are doing:
 	$("#apply_msg").html( $("#apply_default").html() );

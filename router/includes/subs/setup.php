@@ -146,7 +146,10 @@ function get_wifi_capabilities($iface)
 			else if (preg_match("/Frequencies/", $line))
 				$current = &$band;
 			else if (preg_match('/\*\s+(\d+) MHz \[(\d+)\]\s+?\(([\d\.]+ dBm)\)(.*)/', $line, $regex) && trim($regex[4]) == '')
-				$current['channels'][ $regex[2] ] = 'Channel ' . $regex[2] . ' (' . number_format($regex[1] / 1000, 3) . ' GHz)';
+			{
+				$current['channels'][ $regex[2] ] = 'Channel ' . $regex[2] . ' (' . number_format( $regex[1] / 1000 , 3) . ' GHz)';
+				$current['channels']['first'] = isset($current['channels']['first']) ? $current['channels']['first'] : $regex[2];
+			}
 			else if (preg_match("/Supported interface modes/", $line))
 				$info['supported'] = array();
 			else if (preg_match('/\* (IBSS|managed|AP\/VLAN|AP|monitor|P2P-client|P2P-GO)$/', $line, $regex))

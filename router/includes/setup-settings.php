@@ -1,6 +1,7 @@
 <?php
 require_once("subs/manage.php");
 require_once("subs/setup.php");
+require_once("subs/wifi_country.php");
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.
@@ -15,15 +16,11 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'detect')
 	{
-		if (!isset($_SESSION['ipinfo']['time']) || $_SESSION['ipinfo']['time'] > time())
+		$_SESSION['ipinfo']['arr'] = array();
+		foreach (explode("\n", trim(@shell_exec("curl ipinfo.io"))) as $line)
 		{
-			$_SESSION['ipinfo']['arr'] = array();
-			foreach (explode("\n", trim(@shell_exec("curl ipinfo.io"))) as $line)
-			{
-				if (preg_match("/\"(.*)\"\:\s\"(.*)\"/", $line, $matches))
-					$_SESSION['ipinfo']['arr'][$matches[1]] = $matches[2];
-			}
-			$_SESSION['ipinfo']['time'] = time() + 600;
+			if (preg_match("/\"(.*)\"\:\s\"(.*)\"/", $line, $matches))
+				$_SESSION['ipinfo']['arr'][$matches[1]] = $matches[2];
 		}
 		die(json_encode($_SESSION['ipinfo']['arr']));
 	}
@@ -36,6 +33,7 @@ if (isset($_POST['action']))
 		$option = parse_options();
 		$tmp = option_allowed('onboard_wifi', array('1', 'A'));
 		$option['webui_lang'] = option_allowed('ui_lang', array('english'));
+		$option['country'] = option_allowed('country', array_keys($countries));
 		$restart = ($tmp != $option['onboard_wifi']);
 		$option['onboard_wifi'] = $tmp; 
 		apply_options();
@@ -107,6 +105,25 @@ echo '
 				<span class="input-group-append">
 					<button type="button" class="btn btn-info btn-flat" id="tz_detect">Detect</button>
 				</span>
+			</div>
+		</div>';
+
+###########################################################################################
+# Wifi Country Setting:
+###########################################################################################
+$wifi_country = isset($option['wifi_country']) ? $option['wifi_country'] : '';
+echo '
+		<div class="row" style="margin-top: 10px">
+			<div class="col-6">
+				<label for="webui_language">WiFi Country:</label></td>
+			</div>
+			<div class="col-6 input-group">
+				<select class="form-control" id="wifi_country">';
+foreach ($countries as $code => $country)
+	echo '
+					<option value="', $code, '"', $wifi_country == $code ? ' selected="selected"' : '', '>[', $code, '] ', $country, '</option>';
+echo '
+				</select>
 			</div>
 		</div>';
 

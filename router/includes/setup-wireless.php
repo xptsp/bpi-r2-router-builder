@@ -9,6 +9,12 @@ require_once("subs/dhcp.php");
 #$_POST['hidden'] = 'N';
 
 #################################################################################################
+# Parse the options in "/etc/default/router-settings":
+#################################################################################################
+$options = parse_options();
+#echo '<pre>'; print_r($options); exit;
+
+#################################################################################################
 # If we are not doing the submission action, then skip this entire block of code:
 #################################################################################################
 if (isset($_POST['action']))
@@ -93,37 +99,54 @@ if (isset($_POST['action']))
 	{
 		$wpa_ssid = option('wpa_ssid', '/[\w\d\s\_\-]+/');
 		$wpa_psk = option('wpa_psk', '/([\w\d\s\_\-]{8,63}|)/');
+		$firewalled = option("firewalled", "/^(Y|N)$/");
 	}
 	if ($action == 'ap')
 	{
+		$wifi = get_wifi_capabilities($iface);
+		#echo '<pre>'; print_r($wifi); echo '</pre>'; exit();
 		$ap_ssid = option('ap_ssid', '/[\w\d\s\_\-]+/');
 		$ap_psk = option('ap_psk', '/([\w\d\s\_\-]{8,63}|)/');
+		$ap_band = option_allowed('ap_band', array_keys($wifi['band']));
+		$ap_channel = option_allowed('ap_channel', array_keys($wifi['band'][$ap_band]['channels']));
 	}
-	$firewalled = option("firewalled", "/^(Y|N)$/");
 
 	#################################################################################################
 	# Shut down the wireless interface right now, before modifying the configuration:
 	#################################################################################################
 	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ifdown " . $iface);
 
+	#################################################################################################
+	# Validate AP options, then configure the hostapd configuration file for the interface:
+	#################################################################################################
 	if ($action == "ap")
 	{
-		$text  = 'interface=' . $iface . "\n";
-		$text .= 'driver=nl80211' . "\n";
-		$text .= 'ssid=' . $ap_ssid . "\n";
-/*		$text .= 'hw_mode=' . $hw_mode . "\n";
-		$text .= 'channel=' . $channel . "\n";
-		$text 
-#macaddr_acl=0
-auth_algs=1
-#ignore_broadcast_ssid=0
-wpa=2
-wmm_enabled=1
-wpa_passphrase=SaltyCobra81
-wpa_key_mgmt=WPA-PSK
-wpa_pairwise=TKIP
-rsn_pairwise=CCMP
-*/
+		$text  = 'interface=' . $iface . "\n";				# Interface we are using for this access point
+		$text .= 'driver=nl80211' . "\n";					# Driver used (usually "nl80211")
+		$text .= 'ssid=' . $ap_ssid . "\n";					# Name of SSID we are creating
+		$text .= 'ignore_broadcast_ssid=0' . "\n";			# Setting to "1" does not broadcast the SSID.
+//		$text .= 'hw_mode=' . $ap_mode . "\n";				# "b" and "g" mean 2.4GHz.  "a" means 5GHz.
+		$text .= 'channel=' . $ap_channel . "\n";			# Valid 2.4GHz channels range from 1 to 13.  Valid 5GHz range from 136 to 173.
+
+		# Set to 1 to limit the frequencies used to those allowed in the country specified.
+		$text .= 'ieee80211d=1' . "\n";
+		$text .= 'country_code=' . $options['wifi_country'] . "\n";
+
+		# Enable 802.11n/ac support as necessary:
+		//$text .= 'ieee80211n=1' . "\n";					# Set to 1 for 802.11n support
+		//$text .= 'wmm_enabled=1' . "\n";					# QoS support, also required for full speed on 802.11n/ac/ax
+		//$text .= 'ieee80211ac=1' . "\n";					# Set to 1 for 802.11ac support (5GHz only)
+
+		# Enable passphrase support if requested:
+		if (!empty($wpa_psk))
+		{
+			$text .= 'auth_algs=1' . "\n";					# Set to "1" for WPA/WPA2, "2" for WEP, or "3" for both WPA/WPA2 and WEP
+			$text .= 'wpa=2' . "\n";						# 1=WPA, 2=WPA2, 3=both WPA and WPA2
+			$text .= 'wpa_passphrase=' . $wpa_psk . "\n";	# Passphrase for our access point
+			$text .= 'wpa_key_mgmt=WPA-PSK' . "\n";
+			$text .= 'wpa_pairwise=TKIP' . "\n";
+			$text .= 'rsn_pairwise=CCMP' . "\n";
+		}
 	}
 
 	#################################################################################################
@@ -145,12 +168,13 @@ rsn_pairwise=CCMP
 			$text .= '    wpa_psk "' . $wpa_psk . '"' . "\n";
 		$text .= '    masquerade yes' . "\n";
 	}
-	if ($firewalled && $action != "disabled")
+	if (!empty($firewalled) && $action != "disabled")
 		$text .= '    firewall yes' . "\n";
 	if ($action == "ap")
 	{
 		$text .= '    post-up systemctl start hostapd@' . $iface . "\n";
 		$text .= '    pre-down systemctl stop hostapd@' . $fiace . "\n";
+		$text .= '    nohook wpa_supplicant' . "\n";
 	}
 
 	#################################################################################################
@@ -185,8 +209,6 @@ rsn_pairwise=CCMP
 #  is specified for the R2's onboard wifi:
 ########################################################################################################
 $ifaces = array();
-$options = parse_options();
-#echo '<pre>'; print_r($options); exit;
 foreach (explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}' | sort"))) as $tface)
 	$ifaces[] = $tface;
 #echo '<pre>'; print_r($ifaces); exit;
@@ -196,10 +218,6 @@ $adapters = explode("\n", trim(@shell_exec("iw dev | grep Interface | awk '{prin
 #echo '<pre>'; print_r($adapters); exit();
 $netcfg = get_mac_info($iface);
 #echo '<pre>'; print_r($netcfg); exit;
-$wpa_ssid = preg_match('/wpa_ssid\s+\"(.+)\"/', isset($netcfg['wpa_ssid']) ? $netcfg['wpa_ssid'] : '', $regex) ? $regex[1] : '';
-#echo '<pre>'; print_r($wpa_ssid); exit;
-$wpa_psk = preg_match('/wpa_psk\s+\"(.+)\"/', isset($netcfg['wpa_psk']) ? $netcfg['wpa_psk'] : '', $regex) ? $regex[1] : '';
-#echo '<pre>'; print_r($wpa_psk); exit;
 $dhcp = explode(",", explode("=", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep dhcp-range=")) . '=')[1]);
 #echo '<pre>'; print_r($dhcp); exit();
 $use_dhcp = isset($dhcp[1]);
@@ -208,14 +226,12 @@ $ifcfg = parse_ifconfig($iface);
 #echo '<pre>'; print_r($ifcfg); echo '</pre>'; exit();
 $wifi = get_wifi_capabilities($iface);
 #echo '<pre>'; echo '$iface = ' . $iface . "\n"; print_r($wifi); echo '</pre>'; exit();
-$netcfg['op_mode'] = 'ap';
 
 ########################################################################################################
 # Main code for the page:
 ########################################################################################################
 site_menu();
 echo '
-<div class="card card-primary">
 <div class="card card-primary">
     <div class="card-header p-0 pt-1">
 		<ul class="nav nav-tabs">';
@@ -260,8 +276,12 @@ echo '
 ###################################################################################################
 # Client SSID, password and firewalled setting:
 ###################################################################################################
+$wpa_ssid = preg_match('/wpa_ssid\s+\"(.+)\"/', isset($netcfg['wpa_ssid']) ? $netcfg['wpa_ssid'] : '', $regex) ? $regex[1] : '';
+#echo '<pre>'; print_r($wpa_ssid); exit;
+$wpa_psk = preg_match('/wpa_psk\s+\"(.+)\"/', isset($netcfg['wpa_psk']) ? $netcfg['wpa_psk'] : '', $regex) ? $regex[1] : '';
+#echo '<pre>'; print_r($wpa_psk); exit;
 echo '
-		<div id="client_mode_div"', ($netcfg['op_mode'] == 'dhcp' && isset($netcfg['wpa_ssid'])) || ($netcfg['op_mode'] == 'static' && isset($netcfg['wpa_ssid'])) ? '' : ' class="hidden"', '>
+		<div id="client_mode_div"', ($netcfg['op_mode'] == 'dhcp' && !empty($wpa_ssid)) || ($netcfg['op_mode'] == 'static' && !empty($wpa_ssid)) ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
 			<div class="row" style="margin-top: 5px">
 				<div class="col-6">
@@ -305,6 +325,14 @@ echo '
 ###################################################################################################
 # Access Point SSID, password and firewalled setting:
 ###################################################################################################
+$host = parse_options('/etc/hostapd/' . $iface . '.conf');
+#echo '<pre>'; print_r($host); echo '</pre>'; exit();
+$hw_mode = isset($host['hw_mode']) ? $host['hw_mode'] : '';
+#echo '<pre>'; print_r($hw_mode); exit;
+$five_ghz = $hw_mode == "a";
+#echo '<pre>'; print_r($five_ghz); exit;
+$channel = isset($host['channel']) ? $host['channel'] : 0;
+#echo '<pre>'; print_r($channel); exit;
 echo '
 		<div id="ap_mode_div"', $netcfg['op_mode'] == 'ap' ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
@@ -317,7 +345,7 @@ echo '
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
-						<input id="ap_ssid" type="text" class="form-control" placeholder="Required" value="', $wpa_ssid, '">
+						<input id="ap_ssid" type="text" class="form-control" placeholder="Required" value="', isset($host['ssid']) ? $host['ssid'] : '', '">
 					</div>
 				</div>
 			</div>
@@ -330,27 +358,36 @@ echo '
 						<div class="input-group-prepend wpa_toggle">
 							<span class="input-group-text"><i class="fas fa-eye"></i></span>
 						</div>
-						<input id="ap_psk" type="password" class="form-control" value="', $wpa_psk, '">
+						<input id="ap_psk" type="password" class="form-control" value="', isset($host['wpa_passphrase']) ? $host['wpa_passphrase'] : '', '">
 					</div>
+				</div>
+			</div>
+			<div class="row', count($wifi['band']) == 1 ? ' hidden' : '', '" style="margin-top: 5px">
+				<div class="col-6">
+					<label for="ip_mask">Wireless Band:</label>
+				</div>
+				<div class="col-6">
+					<select id="ap_band" class="form-control">';
+foreach ($wifi['band'] as $band => $info)
+	echo '
+						<option value="band_', $band, '"', (count($wifi['band']) == 1 || ($five_ghz && $channel >= 36)) ? 'selected="selected"' : '', '>', $info['channels']['first'] >= 36 ? '5 GHz' : '2.4 GHz', '</option>';
+echo '
+					</select>
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
 				<div class="col-6">
-					<label for="ip_mask">Channel:</label>
+					<label for="ip_mask">Wireless Channel:</label>
 				</div>
 				<div class="col-6">
-					<select id="op_mode" class="form-control">';
+					<select id="ap_channel" class="form-control">
+						<option value="0"', $channel == 0 ? ' selected="selected"' : '', '>Auto-Configure</option>';
 foreach ($wifi['band'] as $band => $info)
 {
-	if (count($wifi['band']) > 1)
-		echo '
-						<optgroup label="', isset($info['channels'][1]) ? '2.4 GHz' : (isset($info['channels'][36]) ? '5 GHz' : '?'), '">';
-	foreach ($info['channels'] as $channel => $text)
-		echo '
-						<option value="', $channel, '">', $text, '</option>';
-	if (count($wifi['band']) > 1)
-		echo '
-						</optgroup>';
+	foreach ($info['channels'] as $ichannel => $text)
+		if ($ichannel != 'first')
+			echo '
+						<option class="', 'bands band_' . $band, ($ichannel != 0 && (($five_ghz && $ichannel < 36) || (!$five_ghz && $ichannel >= 36))) ? ' hidden' : '', '" value="', $ichannel, '"', $ichannel == $channel ? ' selected="selected"' : '', '>', $text, '</option>';
 }
 echo '
 					</select>
@@ -365,7 +402,7 @@ $subnet = isset($ifcfg['inet']) ? $ifcfg['inet'] : '';
 $default = "192.168." . strval( (int) trim(@shell_exec("iw dev " . $iface . " info | grep ifindex | awk '{print \$NF}'")) + 10 ) . ".1";
 $subnet = empty($subnet) ? $default : $subnet;
 echo '
-		<div id="static_ip_div"', ($netcfg['op_mode'] == 'static' && isset($netcfg['wpa_ssid'])) ? '' : ' class="hidden"', '>
+		<div id="static_ip_div"', ($netcfg['op_mode'] == 'ap' || ($netcfg['op_mode'] == 'static' && isset($netcfg['wpa_ssid']))) ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
 			<div class="row" style="margin-top: 5px">
 				<div class="col-6">

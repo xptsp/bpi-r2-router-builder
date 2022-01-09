@@ -7,6 +7,9 @@ onboard_wifi=A
 # Dark Mode.  Accepts "Y" or "N".  Default: N
 dark_mode=N
 
+# Wifi Country code.  Default: US
+wifi_country=UK
+
 ##########################################################################
 # WebUI Setup / DNS Settings
 ##########################################################################
