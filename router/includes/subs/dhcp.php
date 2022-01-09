@@ -145,7 +145,7 @@ function do_dhcp_actions()
 	return;
 }
 
-function dhcp_reservations_settings()
+function dhcp_reservations_settings($ap = false)
 {
 	global $use_dhcp, $dhcp, $iface, $subnet;
 
@@ -163,13 +163,13 @@ function dhcp_reservations_settings()
 	echo '
 				<div class="dhcp_div ', !$use_dhcp ? ' hidden' : '', '">
 					<hr style="border-width: 2px" />
-					<div class="icheck-primary">
+					<div class="icheck-primary', $ap ? ' hidden' : '', '" id="use_dhcp_div">
 						<input type="checkbox" id="use_dhcp"', $use_dhcp ? ' checked="checked"' : '', '>
 						<label for="use_dhcp">Use DHCP on interface ', $iface, '</label>
 					</div>
 					<div class="row">
 						<div class="col-6">
-							<label for="dhcp_start">Starting IP Address:</label>
+							<label for="dhcp_start">DHCP Starting IP Address:</label>
 						</div>
 						<div class="col-6">
 							<div class="input-group">
@@ -182,7 +182,7 @@ function dhcp_reservations_settings()
 					</div>
 					<div class="row" style="margin-top: 5px">
 						<div class="col-6">
-							<label for="dhcp_end">Ending IP Address:</label>
+							<label for="dhcp_end">DHCP Ending IP Address:</label>
 						</div>
 						<div class="col-6">
 							<div class="input-group">

@@ -161,18 +161,18 @@ if (isset($_POST['action']))
 			$text .= 'ieee80211ac=1' . "\n";				# Set to 1 for 802.11ac support (5GHz only)
 
 		# Enable passphrase support if requested:
-		if (!empty($wpa_psk))
+		if (!empty($ap_psk))
 		{
 			$text .= 'auth_algs=1' . "\n";					# Set to "1" for WPA/WPA2, "2" for WEP, or "3" for both WPA/WPA2 and WEP
 			$text .= 'wpa=2' . "\n";						# 1=WPA, 2=WPA2, 3=both WPA and WPA2
-			$text .= 'wpa_passphrase=' . $wpa_psk . "\n";	# Passphrase for our access point
+			$text .= 'wpa_passphrase=' . $ap_psk . "\n";	# Passphrase for our access point
 			$text .= 'wpa_key_mgmt=WPA-PSK' . "\n";
 			$text .= 'wpa_pairwise=TKIP' . "\n";
 			$text .= 'rsn_pairwise=CCMP' . "\n";
 		}
 
 		# Write the hostapd configuration file to disk:
-		echo '<pre>'; echo $text; exit;
+		#echo '<pre>'; echo $text; exit;
 		$handle = fopen("/tmp/" . $iface, "w");
 		fwrite($handle, trim($text) . "\n");
 		fclose($handle);
@@ -201,11 +201,7 @@ if (isset($_POST['action']))
 	if (!empty($firewalled) && $action != "disabled")
 		$text .= '    firewall yes' . "\n";
 	if ($action == "ap")
-	{
-		$text .= '    post-up systemctl start hostapd@' . $iface . "\n";
-		$text .= '    pre-down systemctl stop hostapd@' . $fiace . "\n";
 		$text .= '    nohook wpa_supplicant' . "\n";
-	}
 
 	#################################################################################################
 	# Output the network adapter configuration to the "/tmp" directory:
@@ -357,6 +353,8 @@ $hw_mode = isset($host['hw_mode']) ? $host['hw_mode'] : '';
 #echo '<pre>'; print_r($channel); exit;
 $n_mode = isset($host['ieee80211n']) ? ($host['ieee80211n'] == 1) : false;
 #echo '<pre>'; print_r($hw_mode); exit;
+$ac_mode = isset($host['ieee80211ac']) ? ($host['ieee80211ac'] == 1) : false;
+#echo '<pre>'; print_r($ac_mode); exit;
 $no_broadcast = isset($host['ignore_broadcast_ssid']) ? $host['ignore_broadcast_ssid'] : 0;
 #echo '<pre>'; print_r($no_broadcast); exit;
 echo '
@@ -394,9 +392,13 @@ echo '
 				</div>
 				<div class="col-6">
 					<select id="ap_band" class="form-control">';
+$band_used = false;
 foreach ($wifi['band'] as $band => $info)
+{
+	$band_used = in_array($channel, array_keys($info['channels'])) ? $band : $band_used;
 	echo '
-						<option value="band_', $band, '"', (count($wifi['band']) == 1 || ($five_ghz && $channel >= 36)) ? 'selected="selected"' : '', '>', $info['channels']['first'] >= 36 ? '5 GHz' : '2.4 GHz', '</option>';
+						<option value="', $band, '" ', (count($wifi['band']) == 1 || ($five_ghz && $channel >= 36)) ? ' selected="selected"' : '', '>', $info['channels']['first'] >= 36 ? '5 GHz' : '2.4 GHz', '</option>';
+}
 echo '
 					</select>
 				</div>
@@ -405,18 +407,20 @@ echo '
 				<div class="col-6">
 					<label for="ip_mask">Wireless Channel:</label>
 				</div>
-				<div class="col-6">
-					<select id="ap_channel" class="form-control">
-						<option value="0"', $channel == 0 ? ' selected="selected"' : '', '>Auto-Configure</option>';
+				<div class="col-6">';
 foreach ($wifi['band'] as $band => $info)
 {
+	echo '
+					<select class="form-control bands band_', $band, $band_used == $band ? '' : ' hidden', '" id="ap_channel_', $band, '">
+						<option value="0"', $channel == 0 ? ' selected="selected"' : '', '>Auto-Configure</option>';
 	foreach ($info['channels'] as $ichannel => $text)
 		if ($ichannel != 'first')
 			echo '
-						<option class="', 'bands band_' . $band, ($ichannel != 0 && (($five_ghz && $ichannel < 36) || (!$five_ghz && $ichannel >= 36))) ? ' hidden' : '', '" value="', $ichannel, '"', $ichannel == $channel ? ' selected="selected"' : '', '>', $text, '</option>';
+						<option value="', $ichannel, '"', $ichannel == $channel ? ' selected="selected"' : '', '>', $text, '</option>';
+	echo '
+					</select>';
 }
 echo '
-					</select>
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
@@ -428,17 +432,17 @@ foreach ($wifi['band'] as $band => $info)
 {
 	if ($info['channels']['first'] < 36)
 		echo '
-					<select class="form-control bands band_', $band, '" id="ap_mode_', $band, '">
-						<option value="b"', ($hw_mode == 'b' and !$n_mode) ? ' selected="selected"' : '', '>Wireless-B mode</option>
-						<option value="g"', ($hw_mode == 'g' and !$n_mode) ? ' selected="selected"' : '', '>Wireless-G mode</option>
+					<select class="form-control bands band_', $band, $band_used == $band ? '' : ' hidden', '" id="ap_mode_', $band, '">
 						<option value="n"', ($hw_mode == 'g' and  $n_mode) ? ' selected="selected"' : '', '>Wireless-N mode</option>
+						<option value="g"', ($hw_mode == 'g' and !$n_mode) ? ' selected="selected"' : '', '>Wireless-G mode</option>
+						<option value="b"', ($hw_mode == 'b' and !$n_mode) ? ' selected="selected"' : '', '>Wireless-B mode</option>
 					</select>';
 	else
 		echo '
-					<select class="form-control bands band_', $band, '" id="ap_mode_', $band, '">
-						<option value="a"',  ($hw_mode == 'a' and !$n_mode) ? ' selected="selected"' : '', '>Wireless-A mode</option>
-						<option value="n"',  ($hw_mode == 'a' and  $n_mode && !$ac_mode) ? ' selected="selected"' : '', '>Wireless-N mode</option>
+					<select class="form-control bands band_', $band, $band_used == $band ? '' : ' hidden', '" id="ap_mode_', $band, '">
 						<option value="ac"', ($hw_mode == 'g' and  $n_mode &&  $ac_mode) ? ' selected="selected"' : '', '>Wireless-AC mode</option>
+						<option value="n"',  ($hw_mode == 'a' and  $n_mode && !$ac_mode) ? ' selected="selected"' : '', '>Wireless-N mode</option>
+						<option value="a"',  ($hw_mode == 'a' and !$n_mode) ? ' selected="selected"' : '', '>Wireless-A mode</option>
 					<select>';
 }
 echo '
@@ -506,7 +510,7 @@ echo '
 ###################################################################################################
 # DHCP Settings and IP Range, plus IP Address Reservation section
 ###################################################################################################
-dhcp_reservations_settings();
+dhcp_reservations_settings(true);
 
 ###################################################################################################
 # Page footer

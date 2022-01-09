@@ -55,6 +55,7 @@ bpiwrt()
 		ifconfig enp6s0 | grep "inet " >& /dev/null && break
 		clear
 		echo "count=$count"
+		count=$(( count + 1))
 		ifconfig enp6s0
 		sleep 1
 	done

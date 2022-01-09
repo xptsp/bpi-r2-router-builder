@@ -587,12 +587,8 @@ function Init_Wireless(iface)
 	}).change();
 	$("#ap_band").change(function() {
 		$(".bands").addClass("hidden");
-		band = $("#ap_band option:selected").val();
-		$("." + band ).removeClass("hidden");
-		if ($("#ap_channel").val() != 0)
-			$("#ap_channel").val( $("." + band ).first().val() ).change();
-		$("#ap_mode_" + band).val( $("#ap_mode_" + band).first().val() ).change();
-	}).change();
+		$(".band_" + $("#ap_band option:selected").val()).removeClass("hidden");
+	});
 	$(".wpa_toggle").click(function() {
 		input = $(this).parent().find(".form-control");
 		if (input.attr("type") === "password")
@@ -634,7 +630,7 @@ function Wireless_Submit()
 		'ap_ssid':    $("#ap_ssid").val(),
 		'ap_psk':     $("#ap_psk").val(),
 		'ap_band':    band,
-		'ap_channel': $("#ap_channel option:selected").val(),
+		'ap_channel': $("#ap_channel_" + band + " option:selected").val(),
 		'ap_mode':    $("#ap_mode_" + band + " option:selected").val(),
 		'ap_hide':    $("#ap_hide").is(":checked") ? 'Y' : 'N',
 	};
