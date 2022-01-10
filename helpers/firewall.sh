@@ -108,7 +108,8 @@ if [[ "$1" == "start" ]]; then
 	create_chain SERVICES
 	create_chain WAN_IN
 	create_chain WAN_OUT
-	create_chain WAN_FORWARD
+	create_chain WAN_FORWARD_IN
+	create_chain WAN_FORWARD_OUT
 
 	#############################################################################
 	# We need to call ourselves to complete other tasks:
@@ -141,8 +142,10 @@ elif [[ "$1" == "block" && ! -z "${2}" ]]; then
 	iptables -A INPUT -i ${IFACE} -j DROP
 	# Direct interface to check WAN_OUT chain for further OUTPUT rules:
 	iptables -A OUTPUT -o ${IFACE} -j WAN_OUT
-	# Direct interface to check WAN_FORWARD chain for further FORWARD rules:
-	iptables -A FORWARD -i ${IFACE} -j WAN_FORWARD
+	# Direct interface to check WAN_FORWARD_IN chain for further FORWARD rules:
+	iptables -A FORWARD -i ${IFACE} -j WAN_FORWARD_IN
+	# Direct interface to check WAN_FORWARD_OUT chain for further FORWARD rules:
+	iptables -A FORWARD -o ${IFACE} -j WAN_FORWARD_OUT
 	# Allow related and established connections to be forwarded from the interface to other interfaces:
 	iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 	# Drop any connections being forwarded from the interface:
@@ -154,7 +157,8 @@ elif [[ "$1" == "block" && ! -z "${2}" ]]; then
 elif [[ "$1" == "reload" ]]; then
 	iptables -F WAN_IN
 	iptables -F WAN_OUT
-	iptables -F WAN_FORWARD
+	iptables -F WAN_FORWARD_IN
+	iptables -F WAN_FORWARD_OUT
 	$0 dmz
 	$0 firewall
 

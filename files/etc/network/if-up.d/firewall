@@ -9,6 +9,9 @@
 # If we ask for masquerading --OR-- are connecting to a wireless access point, add masquerade rule for the interface:
 [[ ! -z "${IF_MASQUERADE}" || ! -z "${IF_WPA_SSID}" ]] && iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE
 
+# If we ask for no internet, add no internet rule for the interface:
+[[ ! -z "${IF_NO_INTERNET}" ]] && iptables -A WAN_FORWARD_OUT -i ${IFACE} -j REJECT
+
 # Call the helper script to firewall the interface, if required:
 [[ ! -z "${IF_FIREWALL}" ]] && /opt/bpi-r2-router-builder/helpers/firewall.sh block ${IFACE}
 

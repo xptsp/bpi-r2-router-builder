@@ -23,7 +23,8 @@ if (isset($_POST['action']))
 	$ip_addr = option_ip('ip_addr');
 	$ip_mask = option_ip('ip_mask');
 	$reboot  = option('reboot', "/^(true|false)$/");
-	$firewalled = option("firewalled", "/^(Y|N)$/");
+	$firewalled = option("firewalled");
+	$no_internet = option("no_net");
 
 	#################################################################################################
 	# If using DHCP on this interface, make sure addresses are valid:
@@ -97,8 +98,10 @@ if (isset($_POST['action']))
 	}
 	else if ($_POST['action'] != 'bridged')
 		$text .= '    masquerade yes' . "\n";
-	if ($firewalled)
+	if ($firewalled == "Y")
 		$text .= '    firewall yes' . "\n";
+	if ($no_internet == "Y")
+		$text .= '    no_internet yes' . "\n";
 
 	#################################################################################################
 	# Output the network adapter configuration to the "/tmp" directory:
@@ -159,6 +162,8 @@ $use_dhcp = isset($dhcp[1]);
 #echo (int) $use_dhcp; exit;
 $netcfg = get_mac_info($iface);
 #echo '<pre>'; print_r($netcfg); exit();
+$no_internet = isset($netcfg['no_internet']);
+#echo '<pre>'; print_r($no_internet); exit;
 
 ###################################################################################################
 # Tabbed interface with list of wired adapters:
@@ -215,21 +220,26 @@ if (count($tmp) > 1)
 					<option value="bridged"', $netcfg['op_mode'] == 'bridged' ? ' selected="selected"' : '', '>Bridged Interfaces</option>';
 echo '
 				</select>
-			</div>';
+			</div>
+		</div>';
 if (count($tmp) == 1)
 	echo '
-			<div class="row" style="margin-top: 5px">
-				<div class="col-12">
-					<div class="icheck-primary">
-						<input type="checkbox" id="firewalled"', isset($netcfg['firewalled']) ? ' checked="checked"' : '', '>
-						<label for="firewalled">Firewall Interface from Internet</label>
-					</div>
+		<div class="row" style="margin-top: 5px">
+			<div class="col-12">
+				<div class="icheck-primary">
+					<input type="checkbox" id="firewalled"', isset($netcfg['firewall']) ? ' checked="checked"' : '', '>
+					<label for="firewalled">Firewall Interface from Internet</label>
 				</div>
-			</div>';
-else
-	echo '
-			<input type="hidden" id="firewalled" />';
+			</div>
+		</div>';
 echo '
+		<div class="row" style="margin-top: 5px">
+			<div class="col-12">
+				<div class="icheck-primary">
+					<input type="checkbox" id="if_no_net"', isset($netcfg['no_internet']) ? ' checked="checked"' : '', '>
+					<label for="if_no_net">No Internet Access from interface ', $iface, '</label>
+				</div>
+			</div>
 		</div>
 		<hr style="border-width: 2px" />
 		<div id="static_ip_div"', $netcfg['op_mode'] == 'dhcp' ? ' class="hidden"' : '', '>';

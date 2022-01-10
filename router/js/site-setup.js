@@ -141,6 +141,7 @@ function Wired_Submit()
 		'dhcp_end':   $("#dhcp_end").val(),
 		'dhcp_lease': $("#dhcp_lease").val() + $("#dhcp_units").val(),
 		'firewalled': $("#firewalled").is(":checked") ? 'Y' : 'N',
+		'no_net':     $("#if_no_net").is(":checked") ? 'Y' : 'N',
 		'reboot':     reboot_suggested,
 	};
 	if ($("#dhcp_units").val() == "infinite")
@@ -633,6 +634,7 @@ function Wireless_Submit()
 		'ap_channel': $("#ap_channel_" + band + " option:selected").val(),
 		'ap_mode':    $("#ap_mode_" + band + " option:selected").val(),
 		'ap_hide':    $("#ap_hide").is(":checked") ? 'Y' : 'N',
+		'ap_no_net':  $("#ap_no_net").is(":checked") ? 'Y' : 'N',
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 

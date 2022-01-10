@@ -117,6 +117,7 @@ if (isset($_POST['action']))
 		$ap_band    = option_allowed('ap_band', array_keys($wifi['band']));
 		$ap_channel = option_allowed('ap_channel', array_merge(array(0), array_keys($wifi['band'][$ap_band]['channels'])));
 		$ap_hide    = option('ap_hide') == "Y" ? 1 : 0;
+		$ap_no_net  = option('ap_no_net');
 		if ($wifi['band'][$ap_band]['channels']['first'] < 36)
 		{
 			$ap_mode = option_allowed('ap_mode', array('b', 'g', 'n'));
@@ -201,10 +202,12 @@ if (isset($_POST['action']))
 			$text .= '    wpa_psk "' . $wpa_psk . '"' . "\n";
 		$text .= '    masquerade yes' . "\n";
 	}
-	if (!empty($firewalled) && $action != "disabled")
+	if ($firewalled == "Y" && $action != "disabled")
 		$text .= '    firewall yes' . "\n";
 	if ($action == "ap")
 		$text .= '    nohook wpa_supplicant' . "\n";
+	if ($no_internet == "Y")
+		$text .= '    no_internet yes' . "\n";
 
 	#################################################################################################
 	# Output the network adapter configuration to the "/tmp" directory:
@@ -367,6 +370,9 @@ $ac_mode = isset($host['ieee80211ac']) ? ($host['ieee80211ac'] == 1) : false;
 #echo '<pre>'; print_r($ac_mode); exit;
 $no_broadcast = isset($host['ignore_broadcast_ssid']) ? $host['ignore_broadcast_ssid'] : 0;
 #echo '<pre>'; print_r($no_broadcast); exit;
+$no_internet = isset($netcfg['no_internet']);
+#echo '<pre>'; print_r($no_internet); exit;
+
 echo '
 		<div id="ap_mode_div"', $netcfg['op_mode'] == 'ap' ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
@@ -463,6 +469,14 @@ echo '
 					<div class="icheck-primary">
 						<input type="checkbox" id="ap_hide"', $no_broadcast ? ' checked="checked"' : '', '>
 						<label for="ap_hide">Hide Network SSID</label>
+					</div>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 5px">
+				<div class="col-12">
+					<div class="icheck-primary">
+						<input type="checkbox" id="ap_no_net"', $no_internet ? ' checked="checked"' : '', '>
+						<label for="ap_no_net">No Internet Access from interface ', $iface, '</label>
 					</div>
 				</div>
 			</div>
