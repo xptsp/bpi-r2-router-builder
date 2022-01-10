@@ -159,15 +159,15 @@ function dhcp_reservations_settings($ap = false)
 	#echo '<pre>'; print_r($leases); exit();
 
 	$lease_time = isset($dhcp[4]) ? $dhcp[4] : '48h';
-	$lease_units = substr($lease_time, strlen($lease_time) - 1, 1);
+	$lease_units = $lease_time == 'infinite' ? 'infinite' : substr($lease_time, strlen($lease_time) - 1, 1);
 	$subnet = substr($subnet, 0, strrpos($subnet, '.') + 1);
 	echo '
+				<hr style="border-width: 2px" />
+				<div class="icheck-primary', $ap ? ' hidden' : '', '" id="use_dhcp_div">
+					<input type="checkbox" id="use_dhcp"', $use_dhcp ? ' checked="checked"' : '', '>
+					<label for="use_dhcp">Use DHCP on interface ', $iface, '</label>
+				</div>
 				<div class="dhcp_div ', !$use_dhcp ? ' hidden' : '', '">
-					<hr style="border-width: 2px" />
-					<div class="icheck-primary', $ap ? ' hidden' : '', '" id="use_dhcp_div">
-						<input type="checkbox" id="use_dhcp"', $use_dhcp ? ' checked="checked"' : '', '>
-						<label for="use_dhcp">Use DHCP on interface ', $iface, '</label>
-					</div>
 					<div class="row">
 						<div class="col-6">
 							<label for="dhcp_start">DHCP Starting IP Address:</label>
@@ -177,7 +177,7 @@ function dhcp_reservations_settings($ap = false)
 								<div class="input-group-prepend">
 									<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 								</div>
-								<input id="dhcp_start" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[1]) ? $dhcp[1] : $subnet, '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
+								<input id="dhcp_start" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[1]) ? $dhcp[1] : $subnet . '100', '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
 							</div>
 						</div>
 					</div>
@@ -190,7 +190,7 @@ function dhcp_reservations_settings($ap = false)
 								<div class="input-group-prepend">
 									<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 								</div>
-								<input id="dhcp_end" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[2]) ? $dhcp[2] : $subnet, '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
+								<input id="dhcp_end" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[2]) ? $dhcp[2] : $subnet . '150', '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
 							</div>
 						</div>
 					</div>
@@ -203,7 +203,7 @@ function dhcp_reservations_settings($ap = false)
 								<div class="input-group-prepend">
 									<span class="input-group-text"><i class="far fa-clock"></i></span>
 								</div>
-								<input id="dhcp_lease" type="text" class="dhcp form-control" value="', (int) $lease_time, '"', !$use_dhcp || $lease_time == 'infinite' ? ' disabled="disabled"' : '', '>
+								<input id="dhcp_lease" type="text" class="dhcp form-control" value="', $lease_time == "infinite" ? 48 : (int) $lease_time, '"', !$use_dhcp || $lease_time == 'infinite' ? ' disabled="disabled"' : '', '>
 								<div class="input-group-append">
 									<select class="custom-select form-control" id="dhcp_units">
 										<option value="s">Seconds</option>

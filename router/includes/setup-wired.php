@@ -307,105 +307,15 @@ echo '
 			<hr style="border-width: 2px" />';
 
 ###################################################################################################
-# DHCP Settings and IP Range Section
+# DHCP Settings and IP Range, plus IP Address Reservation section
 ###################################################################################################
-$leases = explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")));
-foreach ($leases as $id => $lease)
-	$leases[$id] = explode(' ', $lease);
-#echo '<pre>'; print_r($leases); exit();
-
-$lease_time = isset($dhcp[4]) ? $dhcp[4] : '48h';
-$lease_units = substr($lease_time, strlen($lease_time) - 1, 1);
-$subnet = substr($subnet, 0, strrpos($subnet, '.') + 1);
-echo '
-			<div class="icheck-primary">
-				<input type="checkbox" id="use_dhcp"', $use_dhcp ? ' checked="checked"' : '', '>
-				<label for="use_dhcp">Use DHCP on interface ', $iface, '</label>
-			</div>
-			<div class="dhcp_div ', !$use_dhcp ? ' hidden' : '', '">
-				<div class="row">
-					<div class="col-6">
-						<label for="dhcp_start">Starting IP Address:</label>
-					</div>
-					<div class="col-6">
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="fas fa-laptop"></i></span>
-							</div>
-							<input id="dhcp_start" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[1]) ? $dhcp[1] : $subnet, '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
-						</div>
-					</div>
-				</div>
-				<div class="row" style="margin-top: 5px">
-					<div class="col-6">
-						<label for="dhcp_end">Ending IP Address:</label>
-					</div>
-					<div class="col-6">
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="fas fa-laptop"></i></span>
-							</div>
-							<input id="dhcp_end" type="text" class="dhcp ip_address form-control" value="', isset($dhcp[2]) ? $dhcp[2] : $subnet, '" data-inputmask="\'alias\': \'ip\'" data-mask', !$use_dhcp ? ' disabled="disabled"' : '', '>
-						</div>
-					</div>
-				</div>
-				<div class="row" style="margin-top: 5px">
-					<div class="col-6">
-						<label for="dhcp_lease">Client Lease Time:</label>
-					</div>
-					<div class="col-6">
-						<div class="input-group col-6 p-0">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="far fa-clock"></i></span>
-							</div>
-							<input id="dhcp_lease" type="text" class="dhcp form-control" value="', (int) $lease_time, '"', !$use_dhcp || $lease_time == 'infinite' ? ' disabled="disabled"' : '', '>
-							<div class="input-group-append">
-								<select class="custom-select form-control" id="dhcp_units">
-									<option value="">Seconds</option>
-									<option value="m"', ($lease_units == "m" ? ' selected="selected"' : ''), '>Minutes</option>
-									<option value="h"', ($lease_units == "h" ? ' selected="selected"' : ''), '>Hours</option>
-									<option value="d"', ($lease_units == "d" ? ' selected="selected"' : ''), '>Days</option>
-									<option value="w"', ($lease_units == "w" ? ' selected="selected"' : ''), '>Weeks</option>
-									<option value="infinite"', ($lease_time == "infinite" ? ' selected="selected"' : ''), '>Infinite</option>
-								</select>
-							</div>
-						</div>
-					</div>';
+dhcp_reservations_settings();
 
 ###################################################################################################
-# IP Address Reservation section
+# Page footer
 ###################################################################################################
 echo '
-					<div class="col-12">
-						<hr style="border-width: 2px" />
-						<h5>
-							<a href="javascript:void(0);"><button type="button" id="reservations-refresh" class="btn btn-sm btn-primary float-right">Refresh</button></a>
-							Address Reservations
-						</h5>
-						<div class="table-responsive p-0">
-							<table class="table table-hover text-nowrap table-sm table-striped">
-								<thead class="bg-primary">
-									<td width="30%">Device Name</td>
-									<td width="30%">IP Address</td>
-									<td width="30%">MAC Address</td>
-									<td width="3%">&nbsp;</td>
-									<td width="3%">&nbsp;</td>
-								</thead>
-								<tbody id="reservations-table">
-									<tr><td colspan="5"><center>Loading...</center></td></tr>
-								</tbody>
-							</table>
-						</div>
-					</div>
-				</div>
-			</div>
 		</div>
-	</div>';
-
-###################################################################################################
-# Page footer:
-###################################################################################################
-echo '
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" id="apply_reboot" class="btn btn-success float-right hidden" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Apply and Reboot</button></a>
 		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button></a>
