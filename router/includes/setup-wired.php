@@ -303,8 +303,7 @@ echo '
 						<input id="ip_gate" type="text" class="ip_address form-control" value="', isset($netcfg['gateway']) ? $netcfg['gateway'] : '0.0.0.0', '" data-inputmask="\'alias\': \'ip\'" data-mask>
 					</div>
 				</div>
-			</div>
-			<hr style="border-width: 2px" />';
+			</div>';
 
 ###################################################################################################
 # DHCP Settings and IP Range, plus IP Address Reservation section
