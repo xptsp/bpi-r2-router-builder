@@ -97,27 +97,30 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($action == 'client_static' || $action == 'ap')
 	{
-		$ip_addr = option_ip('ip_addr');
-		$ip_mask = option_ip('ip_mask');
-		$ip_gate = option_ip('ip_gate');
+		$ip_addr    = option_ip('ip_addr');
+		$ip_mask    = option_ip('ip_mask');
+		$ip_gate    = option_ip('ip_gate');
 	}
 	if ($action == 'client_dhcp' || $action == 'client_static')
 	{
-		$wpa_ssid = option('wpa_ssid', '/[\w\d\s\_\-]+/');
-		$wpa_psk = option('wpa_psk', '/([\w\d\s\_\-]{8,63}|)/');
-		$firewalled = option("firewalled", "/^(Y|N)$/");
+		$wpa_ssid   = option('wpa_ssid', '/[\w\d\s\_\-]+/');
+		$wpa_psk    = option('wpa_psk', '/([\w\d\s\_\-]{8,63}|)/');
+		$firewalled = option("firewalled");
 	}
 	if ($action == 'ap')
 	{
-		$ap_ssid = option('ap_ssid', '/[\w\d\s\_\-]+/');
-		$ap_psk = option('ap_psk', '/([\w\d\s\_\-]{8,63}|)/');
-		$ap_band = option_allowed('ap_band', array_keys($wifi['band']));
+		$dhcp_start = option_ip("dhcp_start");
+		$dhcp_end   = option_ip("dhcp_end");
+		$dhcp_lease = option("dhcp_lease", "/(infinite|(\d+)[m|h|d|w|])/");
+		$ap_ssid    = option('ap_ssid', '/[\w\d\s\_\-]+/');
+		$ap_psk     = option('ap_psk', '/([\w\d\s\_\-]{8,63}|)/');
+		$ap_band    = option_allowed('ap_band', array_keys($wifi['band']));
 		$ap_channel = option_allowed('ap_channel', array_merge(array(0), array_keys($wifi['band'][$ap_band]['channels'])));
-		$ap_hide = option('ap_hide') == "Y" ? 1 : 0;
+		$ap_hide    = option('ap_hide') == "Y" ? 1 : 0;
 		if ($wifi['band'][$ap_band]['channels']['first'] < 36)
 		{
 			$ap_mode = option_allowed('ap_mode', array('b', 'g', 'n'));
-			$n_mode = $ap_mode == 'n';
+			$n_mode  = $ap_mode == 'n';
 			$ac_mode = false;
 			$ap_mode = $ap_mode == 'n' ? 'g' : $ap_mode;
 		}
@@ -125,7 +128,7 @@ if (isset($_POST['action']))
 		{
 			$ap_mode = option_allowed('ap_mode', array('a', 'n', 'ac'));
 			$ac_mode = $ap_mode == 'ac';
-			$n_mode = $ap_mode == 'n' || $ap_mode == 'ac';
+			$n_mode  = $ap_mode == 'n' || $ap_mode == 'ac';
 			$ap_mode = 'a';
 		}
 	}
@@ -176,7 +179,7 @@ if (isset($_POST['action']))
 		$handle = fopen("/tmp/" . $iface, "w");
 		fwrite($handle, trim($text) . "\n");
 		fclose($handle);
-		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface hostapd " . $iface);
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface hostapd " . $iface);
 	}
 
 	#################################################################################################
@@ -215,15 +218,21 @@ if (isset($_POST['action']))
 	#################################################################################################
 	# Output the DNSMASQ configuration file related to the network adapter:
 	#################################################################################################
-	if ($_POST['action'] == 'disabled' || $_POST['action'] == 'client_static' || $_POST['action'] == 'client_dhcp' || $_POST['use_dhcp'] == "N")
+	if ($_POST['action'] == 'disabled' || $_POST['action'] == 'client_static' || $_POST['action'] == 'client_dhcp')
 		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp del " . $_POST['iface']);
 	else
 		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp set " . $_POST['iface'] . " " . $ip_addr . " " . $dhcp_start . " " . $dhcp_end . ' ' . $dhcp_lease);
+	if (!empty($tmp))
+		die($tmp);
 
 	#################################################################################################
 	# Start the wireless interface and restart pihole-FTL:
 	#################################################################################################
 	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ifup " . $iface);
+	if ($action == 'ap')
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl enable --now hostapd@" . $iface);
+	else
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl disable --now hostapd@" . $iface);
 	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole restartdns");
 	die("OK");
 }
@@ -236,9 +245,10 @@ $adapters = explode("\n", trim(@shell_exec("iw dev | grep Interface | awk '{prin
 #echo '<pre>'; print_r($adapters); exit();
 $netcfg = get_mac_info($iface);
 #echo '<pre>'; print_r($netcfg); exit;
-$dhcp = explode(",", explode("=", trim(@shell_exec("cat /etc/dnsmasq.d/" . $iface . ".conf | grep dhcp-range=")) . '=')[1]);
+$dhcp = parse_options('/etc/dnsmasq.d/' . $iface . '.conf');
+$dhcp = explode(",", (isset($dhcp['dhcp-range']) ? $dhcp['dhcp-range'] : ''));
 #echo '<pre>'; print_r($dhcp); exit();
-$use_dhcp = isset($dhcp[1]);
+$use_dhcp = !empty($dhcp[1]);
 #echo (int) $use_dhcp; exit;
 $ifcfg = parse_ifconfig($iface);
 #echo '<pre>'; print_r($ifcfg); echo '</pre>'; exit();

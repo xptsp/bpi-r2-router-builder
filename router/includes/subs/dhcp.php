@@ -155,6 +155,7 @@ function dhcp_reservations_settings($ap = false)
 	$leases = explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")));
 	foreach ($leases as $id => $lease)
 		$leases[$id] = explode(' ', $lease);
+	$use_dhcp = $ap ? true : $use_dhcp;
 	#echo '<pre>'; print_r($leases); exit();
 
 	$lease_time = isset($dhcp[4]) ? $dhcp[4] : '48h';
@@ -205,7 +206,7 @@ function dhcp_reservations_settings($ap = false)
 								<input id="dhcp_lease" type="text" class="dhcp form-control" value="', (int) $lease_time, '"', !$use_dhcp || $lease_time == 'infinite' ? ' disabled="disabled"' : '', '>
 								<div class="input-group-append">
 									<select class="custom-select form-control" id="dhcp_units">
-										<option value="">Seconds</option>
+										<option value="s">Seconds</option>
 										<option value="m"', ($lease_units == "m" ? ' selected="selected"' : ''), '>Minutes</option>
 										<option value="h"', ($lease_units == "h" ? ' selected="selected"' : ''), '>Hours</option>
 										<option value="d"', ($lease_units == "d" ? ' selected="selected"' : ''), '>Days</option>

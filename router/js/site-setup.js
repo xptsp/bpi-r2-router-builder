@@ -622,11 +622,11 @@ function Wireless_Submit()
 		'ip_addr':    $("#ip_addr").val(),
 		'ip_mask':    $("#ip_mask").val(),
 		'ip_gate':    $("#ip_gate").val(),
-		'use_dhcp':   $("#use_dhcp").is(":checked") ? 1 : 0,
+		'use_dhcp':   $("#op_mode option:selected").val() == 'ap' ? 'Y' : ($("#use_dhcp").is(":checked") ? 'Y' : 'N'),
 		'dhcp_start': $("#dhcp_start").val(),
 		'dhcp_end':   $("#dhcp_end").val(),
-		'dhcp_lease': $("#dhcp_lease").val() + $("#dhcp_units").val(),
-		'firewalled': $("#firewalled").is(":checked") ? 'Y' : 'N',
+		'dhcp_lease': ($("#dhcp_units").val() == "infinite") ? 'infinite' : $("#dhcp_lease").val() + $("#dhcp_units").val().replace("s", ""),
+		'firewalled': $("#op_mode option:selected").val() == 'ap' ? 'N' : ($("#firewalled").is(":checked") ? 'Y' : 'N'),
 		'ap_ssid':    $("#ap_ssid").val(),
 		'ap_psk':     $("#ap_psk").val(),
 		'ap_band':    band,
@@ -634,8 +634,6 @@ function Wireless_Submit()
 		'ap_mode':    $("#ap_mode_" + band + " option:selected").val(),
 		'ap_hide':    $("#ap_hide").is(":checked") ? 'Y' : 'N',
 	};
-	if ($("#dhcp_units").val() == "infinite")
-		postdata.dhcp_lease = 'infinite';
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Notify the user what we are doing:

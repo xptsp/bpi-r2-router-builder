@@ -376,24 +376,21 @@ case $CMD in
 			if ! valid_ip $3; then echo "ERROR: Invalid IP Address specified as 3rd param!"; exit; fi
 			if ! valid_ip $4; then echo "ERROR: Invalid IP Address specified as 4th param!"; exit; fi
 			if ! valid_ip $5; then echo "ERROR: Invalid IP Address specified as 5th param!"; exit; fi
-			if [[ ! "$6" =~ [0-9]+[m|h|d|w|] ]]; then echo "ERROR: Invalid time period specified as 6th param!"; exit; fi
+			if [[ ! "$6" =~ [0-9]+[m|h|d|w|] && "$6" != "infinite" ]]; then echo "ERROR: Invalid time period specified as 6th param!"; exit; fi
 			if ! test -f ${FILE}; then
 				echo "interface=$2" > ${FILE}
 				echo "dhcp-range=${2},${4},${5},${6}" >> ${FILE}
 				echo "dhcp-option=${2},3,${3}" >> ${FILE}
 			else
-				# Replace any hostnames with the old IP address with the correct IP address:
-				OLD_IP=$(cat ${FILE} | grep dhcp-option | cut -d"," -f 3)
-				sed -i "s|${OLD_SUB}|${NEW_SUB}|g" /etc/hosts
-
 				# Fix any IP addresses on any dhcp host lines in the configuration file:
+				OLD_IP=$(cat ${FILE} | grep dhcp-option | cut -d"," -f 3)
 				OLD_SUB=$(echo ${OLD_IP} | cut -d"." -f 1-3).
 				NEW_SUB=$(echo $3 | cut -d"." -f 1-3).
-				sed -i "s|${OLD_IP}|${3}|g" ${FILE}
+				sed -i "s|${OLD_SUB}|${NEW_SUB}|g" ${FILE}
 
 				# Replace the DHCP range and option lines with our new configuration:
-				sed -i "s|^dhcp-range=*.|dhcp-range=${2},${4},${5},${6}|g" ${FILE}
-				sed -i "s|^dhcp-option=*.|dhcp-option=${2},3,${3}|g" >> ${FILE}
+				sed -i "s|^dhcp-range=.*|dhcp-range=${2},${4},${5},${6}|g" ${FILE}
+				sed -i "s|^dhcp-option=.*|dhcp-option=${2},3,${3}|g" ${FILE}
 			fi
 		#####################################################################
 		# RM => Remove the specified host from the DHCP configuration file:
