@@ -157,8 +157,6 @@ elif [[ "$1" == "block" && ! -z "${2}" ]]; then
 elif [[ "$1" == "reload" ]]; then
 	iptables -F WAN_IN
 	iptables -F WAN_OUT
-	iptables -F WAN_FORWARD_IN
-	iptables -F WAN_FORWARD_OUT
 	$0 dmz
 	$0 firewall
 
