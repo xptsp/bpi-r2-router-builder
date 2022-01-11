@@ -22,7 +22,7 @@ $sidebar_menu = array(
 	'advanced' => array('Advanced', 'fas fa-shield-alt', array(
 		'firewall'  => menu_link('/advanced/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
 		'dmz'       => menu_link('/advanced/dmz', 'DMZ Setup', 'fas fa-server'),
-		'mosquitto' => menu_link('/advanced/mosquitto', 'Mosquitto Settings', 'fas fa-server'),
+		'mosquitto' => menu_link('/advanced/mosquitto', 'Mosquitto Notifications', 'fas fa-server'),
 	)),
 	'manage'  => array('Management', 'fas fa-cog', array(
 		'status'   => menu_link('/manage/status', 'Router Status', 'fas fa-ethernet'),
