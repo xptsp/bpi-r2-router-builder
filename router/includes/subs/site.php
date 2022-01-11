@@ -201,15 +201,12 @@ echo '
 					', menu_log(), '
 				</ul>
 				<span 
-				<ul class="nav nav-pills nav-sidebar flex-column" style="position: absolute; bottom: 0; left: 8;">
-					
-				</ul>
 			</nav>
 			<!-- /.sidebar-menu -->
 		</div>
 		<!-- /.sidebar -->
 		<div class="sidebar-custom">
-			<ul class="nav nav-pills nav-sidebar flex-column nav-child-indent nav-collapse-hide-child" data-widget="treeview" role="menu" data-accordion="false">
+			<ul class="nav nav-pills nav-sidebar flex-column" style="position: absolute; bottom: 0; left: 8;">
 				', menu_link('#', "Dark Mode", (!$dark_mode ? 'fas' : 'far') . ' fa-lightbulb', false, 'dark-mode'), '
 			</ul>
 		</div>

@@ -19,7 +19,7 @@ function Site_DarkMode()
 	$("body").toggleClass("dark-mode bodybg bodybg-dark");
 	check = $("#dark-mode");
 	check.toggleClass("far fas");
-	$.get("/home?sid=" + SID + "&dark_mode=" + (check.hasClass("far") ? 'N' : 'Y'), function(data) {
+	$.get("/home?sid=" + SID + "&dark_mode=" + (check.hasClass("fas") ? 'N' : 'Y'), function(data) {
 		if (data.trim() != "OK")
 			alert(data);
 	});	
