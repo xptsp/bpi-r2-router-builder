@@ -11,5 +11,5 @@
 [[ ! -z "${mosquitto_user}" ]] && mosquitto_user="-u ${mosquitto_user}"
 [[ ! -z "${mosquitto_pass}" ]] && mosquitto_pass="-P ${mosquitto_pass}"
 [[ ! -z "${mosquitto_port}" ]] && mosquitto_port="-p ${mosquitto_port}"
-mosquitto_pub ${mosquitto_ip} ${mosquitto_user} ${mosquitto_pass} ${mosquitto_port} "network/dhcp/${2:-"mac"}" -m "${1:-"op"} ${3:-"ip"} \(${hostname}\)"
+mosquitto_pub ${mosquitto_ip} ${mosquitto_user} ${mosquitto_pass} ${mosquitto_port} -t "network/dhcp/${2:-"mac"}" -m "${1:-"op"} ${3:-"ip"} \(${hostname}\)"
 exit 0

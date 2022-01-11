@@ -469,7 +469,7 @@ function option_range($name, $min, $max)
 	return $tmp;
 }
 
-function option_ip($name, $empty_allowed = false, $port_allowed = false)
+function option_ip($name, $empty_allowed = false, $port_allowed = false, $local_okay = false)
 {
 	global $options, $options_changed;
 	$parts = explode("#", $tmp = isset($_POST[$name]) ? $_POST[$name] : '');
@@ -477,7 +477,7 @@ function option_ip($name, $empty_allowed = false, $port_allowed = false)
 		return $tmp;
 	else 
 	{
-		if ($tmp == "127.0.0.1")
+		if ($tmp == "127.0.0.1" && !$local_okay)
 			die('ERROR: Invalid value for option "' . $name . '"!');
 		if (!filter_var($parts[0], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
 			die('ERROR: Missing or invalid value for option "' . $name . '"!');

@@ -17,7 +17,7 @@ if (isset($_POST['action']))
 		$options['enable_mosquitto'] = option('enabled');
 		if ($options['enable_mosquitto'] == 'Y')
 		{
-			$options['mosquitto_addr'] = option_ip('ip_addr');
+			$options['mosquitto_addr'] = option_ip('ip_addr', false, false, true);
 			$options['mosquitto_port'] = option_range('ip_port', 0, 65535);
 			$options['mosquitto_user'] = option('username', '/([\w\d\-]|)/');
 			if (empty($options['mosquitto_user']))
