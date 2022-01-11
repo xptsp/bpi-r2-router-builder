@@ -32,6 +32,12 @@ ifconfig eth0 2> /dev/null | grep "UP," &> /dev/null || /sbin/ifup eth0 >& /dev/
 ifconfig eth1 2> /dev/null | grep "UP," &> /dev/null || /sbin/ifup eth1 >& /dev/null
 
 #############################################################################
+# Create our virtual network interface for PiHole:
+#############################################################################
+modprobe dummy
+ifconfig pihole >& /dev/null || ip link add pihole type dummy
+
+#############################################################################
 # Enable DBDC on any MT76xx wifi card that supports it:
 #############################################################################
 for file in /sys/kernel/debug/ieee80211/*; do
