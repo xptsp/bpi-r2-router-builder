@@ -22,6 +22,7 @@ $sidebar_menu = array(
 	'advanced' => array('Advanced', 'fas fa-shield-alt', array(
 		'firewall'  => menu_link('/advanced/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
 		'dmz'       => menu_link('/advanced/dmz', 'DMZ Setup', 'fas fa-server'),
+		'mosquitto' => menu_link('/advanced/mosquitto', 'Mosquitto Settings', 'fas fa-server'),
 	)),
 	'manage'  => array('Management', 'fas fa-cog', array(
 		'status'   => menu_link('/manage/status', 'Router Status', 'fas fa-ethernet'),
@@ -477,7 +478,7 @@ function option_ip($name, $empty_allowed = false, $port_allowed = false)
 	else 
 	{
 		if ($tmp == "127.0.0.1")
-			die('ERROR: Invalid recursion for option "' . $name . '"!');
+			die('ERROR: Invalid value for option "' . $name . '"!');
 		if (!filter_var($parts[0], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
 			die('ERROR: Missing or invalid value for option "' . $name . '"!');
 		if (isset($parts[1]) && (!$port_allowed || !is_numeric($parts[1]) || $parts[1] < 0 || $parts[1] > 65535))

@@ -202,11 +202,11 @@ if (isset($_POST['action']))
 			$text .= '    wpa_psk "' . $wpa_psk . '"' . "\n";
 		$text .= '    masquerade yes' . "\n";
 	}
-	if ($firewalled == "Y" && $action != "disabled")
+	if ($firewall == "Y" && $action != "disabled")
 		$text .= '    firewall yes' . "\n";
 	if ($action == "ap")
 		$text .= '    nohook wpa_supplicant' . "\n";
-	if ($no_internet == "Y")
+	if ($ap_no_net == "Y")
 		$text .= '    no_internet yes' . "\n";
 
 	#################################################################################################
@@ -372,7 +372,8 @@ $no_broadcast = isset($host['ignore_broadcast_ssid']) ? $host['ignore_broadcast_
 #echo '<pre>'; print_r($no_broadcast); exit;
 $no_internet = isset($netcfg['no_internet']);
 #echo '<pre>'; print_r($no_internet); exit;
-
+$wpa_passphrase = isset($host['wpa_passphrase']) ? $host['wpa_passphrase'] : explode("=", trim(@file_get_contents('/boot/wifi.conf')) . '=')[1];
+#echo '<pre>'; print_r($wpa_passphrase); exit;
 echo '
 		<div id="ap_mode_div"', $netcfg['op_mode'] == 'ap' ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
@@ -398,7 +399,7 @@ echo '
 						<div class="input-group-prepend wpa_toggle">
 							<span class="input-group-text"><i class="fas fa-eye"></i></span>
 						</div>
-						<input id="ap_psk" type="password" class="form-control" value="', isset($host['wpa_passphrase']) ? $host['wpa_passphrase'] : '', '">
+						<input id="ap_psk" type="password" class="form-control" value="', $wpa_passphrase, '">
 					</div>
 				</div>
 			</div>

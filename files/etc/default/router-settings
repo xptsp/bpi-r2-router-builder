@@ -8,7 +8,7 @@ onboard_wifi=A
 dark_mode=N
 
 # Wifi Country code.  Default: US
-wifi_country=UK
+wifi_country=US
 
 ##########################################################################
 # WebUI Setup / DNS Settings
@@ -81,3 +81,21 @@ dmz_ip_addr=192.168.2.100
 
 # Allowed DMZ Destination MAC Address.  Accepts an MAC address.  Default: "12:34:56:78:9a:bc"
 dmz_mac_addr=12:34:56:78:9a:bc
+
+##########################################################################
+# WebUI Advanced / Mosquitto Settings
+##########################################################################
+# Is using the mosquitto client enabled?  Accepts: "Y" or "N".  Default: "N"
+enable_mosquitto=N
+
+# Address of the mosquitto server that we will contact.  Accepts an IP address.  Default: 127.0.0.1
+mosquitto_addr=127.0.0.1
+
+# Port that the mosquitto server uses.  Accepts an integer value.  Default: 1883
+mosquitto_port=1883
+
+# Username to pass to the mosquitto server.  Accepts a string.  Default: pi
+mosquitto_user=pi
+
+# Password of the username in the mosquitto server.  Accepts a string.  Default: bananapi
+mosquitto_pass=bananapi
