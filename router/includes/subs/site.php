@@ -178,10 +178,10 @@ function site_menu($refresh_switch = false)
 	# Write the menu:
 	$dark_mode = $_SESSION['dark_mode'] == "Y";
 	echo '
-<body class="hold-transition sidebar-mini layout-boxed ', $dark_mode ? 'bodybg-dark dark-mode' : 'bodybg', '">
+<body class="hold-transition sidebar-mini layout-boxed layout-fixed ', $dark_mode ? 'bodybg-dark dark-mode' : 'bodybg', '">
 <div class="wrapper">
 	<!-- Main Sidebar Container -->
-	<aside class="main-sidebar sidebar-dark-primary elevation-4">
+	<aside class="main-sidebar main-sidebar-custom sidebar-dark-primary elevation-4 ">
 		<!-- Brand Logo -->
 		<a href="/" class="brand-link">
 			<img src="/img/wifi-router.png" width="32" height="32" class="brand-image" style="opacity: .8">
@@ -199,17 +199,20 @@ foreach ($sidebar_menu as $item)
 	echo !is_array($item) ? $item : ((isset($item[2]) & is_array($item[2])) ? menu_submenu($item[0], $item[1], $item[2]) : '');
 echo '
 					', menu_log(), '
-					<li><a href="#"><p></p></a></li>
-					<li><a href="#"><p></p></a></li>
-					<li><a href="#"><p></p></a></li>
 				</ul>
 				<span 
 				<ul class="nav nav-pills nav-sidebar flex-column" style="position: absolute; bottom: 0; left: 8;">
-					', menu_link('#', "Dark Mode", !$dark_mode ? 'far fa-square' : 'far fa-check-square', false, 'dark-mode'), '
+					
 				</ul>
+			</nav>
 			<!-- /.sidebar-menu -->
 		</div>
 		<!-- /.sidebar -->
+		<div class="sidebar-custom">
+			<ul class="nav nav-pills nav-sidebar flex-column nav-child-indent nav-collapse-hide-child" data-widget="treeview" role="menu" data-accordion="false">
+				', menu_link('#', "Dark Mode", (!$dark_mode ? 'fas' : 'far') . ' fa-lightbulb', false, 'dark-mode'), '
+			</ul>
+		</div>
 	</aside>
 
 	<!-- Content Wrapper. Contains page content -->

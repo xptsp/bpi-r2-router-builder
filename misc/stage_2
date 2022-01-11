@@ -169,16 +169,6 @@ apt-mark hold nginx
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
 ##################################################################################
-# Install and configure linux-igd install
-##################################################################################
-apt install -y libupnp6 linux-igd
-# NOTE: Configure the service:
-sed -i "s|#EXTIFACE=.*|EXTIFACE=wan|g" /etc/default/linux-igd
-sed -i "s|#INTIFACE=.*|INTIFACE=br0|g" /etc/default/linux-igd
-sed -i "s|#ALLOW_MULTICAST=yes|ALLOW_MULTICAST=yes|g" /etc/default/linux-igd
-systemctl enable --now linux-igd
-
-##################################################################################
 # Install minissdpd package
 ##################################################################################
 # NOTE: Set some default settings for minissdpd package:
