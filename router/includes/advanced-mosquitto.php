@@ -45,7 +45,7 @@ echo '
 	</div>
 	<div class="card-body">
 		', checkbox("enable_mosquitto", "Notify Mosquitto server when DHCP clients connect or disconnect"), '
-		<div id="mosquitto_options"', $options['enable_mosquitto'] == "Y" ? ' class="hidden"' : '', '>
+		<div id="mosquitto_options"', $options['enable_mosquitto'] == "N" ? ' class="hidden"' : '', '>
 			<hr style="border-width: 2px" />
 			<div class="row">
 				<div class="col-6">
