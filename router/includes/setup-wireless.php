@@ -260,29 +260,31 @@ $ifcfg = parse_ifconfig($iface);
 # Main code for the page:
 ########################################################################################################
 site_menu();
+if (!empty($iface))
+{
 echo '
 <div class="card card-primary">
     <div class="card-header p-0 pt-1">
 		<ul class="nav nav-tabs">';
-$init_list = array();
+	$init_list = array();
 $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
-foreach ($ifaces as $tface)
-{
-	echo '
+	foreach ($ifaces as $tface)
+	{
+		echo '
 			<li class="nav-item">
 				<a class="ifaces nav-link', $iface == $tface ? ' active' : '', '" href="', $URL, $tface == $ifaces[0] ? '' : '?iface=' . $tface, '">', $tface, '</a>
 			</li>';
-}
-echo '
+	}
+	echo '
 		</ul>
 	</div>
 	<div class="card-body">
 		<input type="hidden" id="scan-test" value="', isset($_GET['test']) ? 'Y' : 'N', '">';
 
-###################################################################################################
-# List modes of operation for the interface:
-###################################################################################################
-echo '
+	###################################################################################################
+	# List modes of operation for the interface:
+	###################################################################################################
+	echo '
 		<div class="row">
 			<div class="col-6">
 				<label for="iface_mode">Mode of Operation:</label>
@@ -290,26 +292,26 @@ echo '
 			<div class="col-6">
 				<select id="op_mode" class="form-control">
 					<option value="disabled"', $netcfg['op_mode'] == 'manual' ? ' selected="selected"' : '', '>Not Configured</option>';
-if (isset($wifi['supported']['AP']))
-	echo '
+	if (isset($wifi['supported']['AP']))
+		echo '
 					<option value="ap"' . ($netcfg['op_mode'] == 'static' && !isset($netcfg['wpa_ssid'])  ? ' selected="selected"' : '') . '>Access Point</option>';
-if (isset($wifi['supported']['managed']))
-	echo '
+	if (isset($wifi['supported']['managed']))
+		echo '
 					<option value="client_dhcp"', $netcfg['op_mode'] == 'dhcp' && isset($netcfg['wpa_ssid']) ? ' selected="selected"' : '', '>Client Mode - Automatic Configuration (DHCP)</option>
 					<option value="client_static"', $netcfg['op_mode'] == 'static' && isset($netcfg['wpa_ssid']) ? ' selected="selected"' : '', '>Client Mode - Static IP Address</option>';
-echo '
+	echo '
 				</select>
 			</div>
 		</div>';
 
-###################################################################################################
-# Client SSID, password and firewalled setting:
-###################################################################################################
-$wpa_ssid = preg_match('/wpa_ssid\s+\"(.+)\"/', isset($netcfg['wpa_ssid']) ? $netcfg['wpa_ssid'] : '', $regex) ? $regex[1] : '';
-#echo '<pre>'; print_r($wpa_ssid); exit;
-$wpa_psk = preg_match('/wpa_psk\s+\"(.+)\"/', isset($netcfg['wpa_psk']) ? $netcfg['wpa_psk'] : '', $regex) ? $regex[1] : '';
-#echo '<pre>'; print_r($wpa_psk); exit;
-echo '
+	###################################################################################################
+	# Client SSID, password and firewalled setting:
+	###################################################################################################
+	$wpa_ssid = preg_match('/wpa_ssid\s+\"(.+)\"/', isset($netcfg['wpa_ssid']) ? $netcfg['wpa_ssid'] : '', $regex) ? $regex[1] : '';
+	#echo '<pre>'; print_r($wpa_ssid); exit;
+	$wpa_psk = preg_match('/wpa_psk\s+\"(.+)\"/', isset($netcfg['wpa_psk']) ? $netcfg['wpa_psk'] : '', $regex) ? $regex[1] : '';
+	#echo '<pre>'; print_r($wpa_psk); exit;
+	echo '
 		<div id="client_mode_div"', ($netcfg['op_mode'] == 'dhcp' && !empty($wpa_ssid)) || ($netcfg['op_mode'] == 'static' && !empty($wpa_ssid)) ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
 			<div class="row" style="margin-top: 5px">
@@ -351,30 +353,30 @@ echo '
 			</div>
 		</div>';
 
-###################################################################################################
-# Access Point SSID, password and firewalled setting:
-###################################################################################################
-$host = parse_options('/etc/hostapd/' . $iface . '.conf');
-#echo '<pre>'; print_r($host); echo '</pre>'; exit();
-$hw_mode = isset($host['hw_mode']) ? $host['hw_mode'] : '';
-#echo '<pre>'; print_r($hw_mode); exit;
-$five_ghz = $hw_mode == "a";
-#echo '<pre>'; print_r($five_ghz); exit;
-$channel = isset($host['channel']) ? $host['channel'] : 0;
-#echo '<pre>'; print_r($channel); exit;
-$hw_mode = isset($host['hw_mode']) ? $host['hw_mode'] : '';
-#echo '<pre>'; print_r($channel); exit;
-$n_mode = isset($host['ieee80211n']) ? ($host['ieee80211n'] == 1) : false;
-#echo '<pre>'; print_r($hw_mode); exit;
-$ac_mode = isset($host['ieee80211ac']) ? ($host['ieee80211ac'] == 1) : false;
-#echo '<pre>'; print_r($ac_mode); exit;
-$no_broadcast = isset($host['ignore_broadcast_ssid']) ? $host['ignore_broadcast_ssid'] : 0;
-#echo '<pre>'; print_r($no_broadcast); exit;
-$no_internet = isset($netcfg['no_internet']);
-#echo '<pre>'; print_r($no_internet); exit;
-$wpa_passphrase = isset($host['wpa_passphrase']) ? $host['wpa_passphrase'] : explode("=", trim(@file_get_contents('/boot/wifi.conf')) . '=')[1];
-#echo '<pre>'; print_r($wpa_passphrase); exit;
-echo '
+	###################################################################################################
+	# Access Point SSID, password and firewalled setting:
+	###################################################################################################
+	$host = parse_options('/etc/hostapd/' . $iface . '.conf');
+	#echo '<pre>'; print_r($host); echo '</pre>'; exit();
+	$hw_mode = isset($host['hw_mode']) ? $host['hw_mode'] : '';
+	#echo '<pre>'; print_r($hw_mode); exit;
+	$five_ghz = $hw_mode == "a";
+	#echo '<pre>'; print_r($five_ghz); exit;
+	$channel = isset($host['channel']) ? $host['channel'] : 0;
+	#echo '<pre>'; print_r($channel); exit;
+	$hw_mode = isset($host['hw_mode']) ? $host['hw_mode'] : '';
+	#echo '<pre>'; print_r($channel); exit;
+	$n_mode = isset($host['ieee80211n']) ? ($host['ieee80211n'] == 1) : false;
+	#echo '<pre>'; print_r($hw_mode); exit;
+	$ac_mode = isset($host['ieee80211ac']) ? ($host['ieee80211ac'] == 1) : false;
+	#echo '<pre>'; print_r($ac_mode); exit;
+	$no_broadcast = isset($host['ignore_broadcast_ssid']) ? $host['ignore_broadcast_ssid'] : 0;
+	#echo '<pre>'; print_r($no_broadcast); exit;
+	$no_internet = isset($netcfg['no_internet']);
+	#echo '<pre>'; print_r($no_internet); exit;
+	$wpa_passphrase = isset($host['wpa_passphrase']) ? $host['wpa_passphrase'] : explode("=", trim(@file_get_contents('/boot/wifi.conf')) . '=')[1];
+	#echo '<pre>'; print_r($wpa_passphrase); exit;
+	echo '
 		<div id="ap_mode_div"', $netcfg['op_mode'] == 'ap' ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
 			<div class="row" style="margin-top: 5px">
@@ -409,14 +411,14 @@ echo '
 				</div>
 				<div class="col-6">
 					<select id="ap_band" class="form-control">';
-$band_used = false;
-foreach ($wifi['band'] as $band => $info)
-{
-	$band_used = in_array($channel, array_keys($info['channels'])) ? $band : $band_used;
-	echo '
+	$band_used = false;
+	foreach ($wifi['band'] as $band => $info)
+	{
+		$band_used = in_array($channel, array_keys($info['channels'])) ? $band : $band_used;
+		echo '
 						<option value="', $band, '" ', (count($wifi['band']) == 1 || ($five_ghz && $channel >= 36)) ? ' selected="selected"' : '', '>', $info['channels']['first'] >= 36 ? '5 GHz' : '2.4 GHz', '</option>';
-}
-echo '
+	}
+	echo '
 					</select>
 				</div>
 			</div>
@@ -425,19 +427,19 @@ echo '
 					<label for="ip_mask">Wireless Channel:</label>
 				</div>
 				<div class="col-6">';
-foreach ($wifi['band'] as $band => $info)
-{
-	echo '
+	foreach ($wifi['band'] as $band => $info)
+	{
+		echo '
 					<select class="form-control bands band_', $band, $band_used == $band ? '' : ' hidden', '" id="ap_channel_', $band, '">
 						<option value="0"', $channel == 0 ? ' selected="selected"' : '', '>Auto-Configure</option>';
-	foreach ($info['channels'] as $ichannel => $text)
-		if ($ichannel != 'first')
-			echo '
+		foreach ($info['channels'] as $ichannel => $text)
+			if ($ichannel != 'first')
+				echo '
 						<option value="', $ichannel, '"', $ichannel == $channel ? ' selected="selected"' : '', '>', $text, '</option>';
-	echo '
+		echo '
 					</select>';
-}
-echo '
+	}
+	echo '
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
@@ -445,24 +447,24 @@ echo '
 					<label for="ip_mask">Wifi Network Mode:</label>
 				</div>
 				<div class="col-6">';
-foreach ($wifi['band'] as $band => $info)
-{
-	if ($info['channels']['first'] < 36)
-		echo '
+	foreach ($wifi['band'] as $band => $info)
+	{
+		if ($info['channels']['first'] < 36)
+			echo '
 					<select class="form-control bands band_', $band, $band_used == $band ? '' : ' hidden', '" id="ap_mode_', $band, '">
 						<option value="n"', ($hw_mode == 'g' and  $n_mode) ? ' selected="selected"' : '', '>Wireless-N mode</option>
 						<option value="g"', ($hw_mode == 'g' and !$n_mode) ? ' selected="selected"' : '', '>Wireless-G mode</option>
 						<option value="b"', ($hw_mode == 'b' and !$n_mode) ? ' selected="selected"' : '', '>Wireless-B mode</option>
 					</select>';
-	else
-		echo '
+		else
+			echo '
 					<select class="form-control bands band_', $band, $band_used == $band ? '' : ' hidden', '" id="ap_mode_', $band, '">
 						<option value="ac"', ($hw_mode == 'g' and  $n_mode &&  $ac_mode) ? ' selected="selected"' : '', '>Wireless-AC mode</option>
 						<option value="n"',  ($hw_mode == 'a' and  $n_mode && !$ac_mode) ? ' selected="selected"' : '', '>Wireless-N mode</option>
 						<option value="a"',  ($hw_mode == 'a' and !$n_mode) ? ' selected="selected"' : '', '>Wireless-A mode</option>
 					<select>';
-}
-echo '
+	}
+	echo '
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
@@ -483,13 +485,13 @@ echo '
 			</div>
 		</div>';
 
-###################################################################################################
-# Interface IP Address section
-###################################################################################################
-$subnet = isset($ifcfg['inet']) ? $ifcfg['inet'] : '';
-$default = "192.168." . strval( (int) trim(@shell_exec("iw dev " . $iface . " info | grep ifindex | awk '{print \$NF}'")) + 10 ) . ".1";
-$subnet = empty($subnet) ? $default : $subnet;
-echo '
+	###################################################################################################
+	# Interface IP Address section
+	###################################################################################################
+	$subnet = isset($ifcfg['inet']) ? $ifcfg['inet'] : '';
+	$default = "192.168." . strval( (int) trim(@shell_exec("iw dev " . $iface . " info | grep ifindex | awk '{print \$NF}'")) + 10 ) . ".1";
+	$subnet = empty($subnet) ? $default : $subnet;
+	echo '
 		<div id="static_ip_div"', ($netcfg['op_mode'] == 'ap' || ($netcfg['op_mode'] == 'static' && isset($netcfg['wpa_ssid']))) ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
 			<div class="row" style="margin-top: 5px">
@@ -532,29 +534,28 @@ echo '
 				</div>
 			</div>';
 
-###################################################################################################
-# DHCP Settings and IP Range, plus IP Address Reservation section
-###################################################################################################
-dhcp_reservations_settings(true);
+	###################################################################################################
+	# DHCP Settings and IP Range, plus IP Address Reservation section
+	###################################################################################################
+	dhcp_reservations_settings(true);
 
-###################################################################################################
-# Page footer
-###################################################################################################
-echo '
+	###################################################################################################
+	# Page footer
+	###################################################################################################
+	echo '
 		</div>
 	</div>
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" id="apply_reboot" class="btn btn-success float-right hidden" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Apply and Reboot</button></a>
 		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button></a>
 		<a id="add_reservation_href" href="javascript:void(0);"', !$use_dhcp || $netcfg['op_mode'] == 'dhcp' || isset($netcfg['wpa_ssid']) ? ' class="hidden"' : '', '><button type="button" id="add_reservation" class="dhcp_div btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button></a>
-	</div>
 	<!-- /.card-body -->
 </div>';
 
-#######################################################################################################
-# Scan Wireless Network modal:
-#######################################################################################################
-echo '
+	#######################################################################################################
+	# Scan Wireless Network modal:
+	#######################################################################################################
+	echo '
 <div class="modal fade" id="scan-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered modal-lg">
 		<div class="modal-content">
@@ -578,10 +579,26 @@ echo '
 	<!-- /.modal-dialog -->
 </div>';
 
-#######################################################################################################
-# Close the page:
-#######################################################################################################
-dhcp_reservations_modals();
+	#######################################################################################################
+	# Close the page:
+	#######################################################################################################
+	dhcp_reservations_modals();
+	reboot_modal();
+}
+else
+{
+	#######################################################################################################
+	# Notify the user that we found no wireless interfaces!  Show a button to enable the onboard wifi
+	# service if it was been disabled.
+	#######################################################################################################
+	echo '
+	<div class="alert alert-danger">
+		<h5><i class="icon fas fa-ban"></i> No Wireless Interfaces Found!</h5>';
+	if (trim(@shell_exec("systemctl is-enabled onboard-wifi")) != "enabled")
+		echo '
+		<strong>Issue Found:</strong> The onboard wifi service has been disabled.';
+	echo '
+	</div>';
+}
 apply_changes_modal('Please wait while the wireless interface is being configured....', true);
-reboot_modal();
 site_footer('Init_Wireless("' . $iface . '");');

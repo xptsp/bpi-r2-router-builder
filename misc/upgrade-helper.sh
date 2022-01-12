@@ -145,15 +145,6 @@ for DEST in $(cat $TFL); do
 done
 
 #####################################################################################
-# Enable some services required by the BPiWRT image:
-#####################################################################################
-systemctl daemon-reload
-systemctl is-enabled firewall >& /dev/null || systemctl enable ${NOW} firewall
-systemctl is-enabled cloudflared@1 >& /dev/null || systemctl enable ${NOW} cloudflared@1
-systemctl is-enabled cloudflared@2 >& /dev/null || systemctl enable ${NOW} cloudflared@2
-systemctl is-enabled cloudflared@3 >& /dev/null || systemctl enable ${NOW} cloudflared@3
-
-#####################################################################################
 # Perform same operations in the read-only partition:
 #####################################################################################
 RW=($(mount | grep " /ro " 2> /dev/null))
@@ -161,7 +152,13 @@ if [[ ! -z "${RW[5]}" ]]; then
 	#####################################################################################
 	# Reload the system daemons and enable any services deemed necessary by the script:
 	#####################################################################################
+	systemctl daemon-reload
 	[[ "${RW[5]}" == *ro,* ]] && NOW="--now" && mount -o remount,rw /ro
+	systemctl is-enabled firewall >& /dev/null || systemctl enable ${NOW} firewall
+	systemctl is-enabled cloudflared@1 >& /dev/null || systemctl enable ${NOW} cloudflared@1
+	systemctl is-enabled cloudflared@2 >& /dev/null || systemctl enable ${NOW} cloudflared@2
+	systemctl is-enabled cloudflared@3 >& /dev/null || systemctl enable ${NOW} cloudflared@3
+	systemctl is-enabled clear-reformat-flag >& /dev/null || systemctl enable ${NOW} clear-reformat-flag
 	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /ro
 fi

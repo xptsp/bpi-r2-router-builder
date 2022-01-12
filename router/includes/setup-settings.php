@@ -170,7 +170,7 @@ echo '
 			</div>
 			<div class="col-6 input-group">
 				<select class="form-control" id="onboard_wifi">
-					<option value="A"', $option['onboard_wifi'] == 'A' ? ' selected="selected"' : '', '>Access Point Mode Only</option>
+					<option value="A"', $option['onboard_wifi'] == 'A' ? ' selected="selected"' : '', '>Access Point or Client Mode</option>
 					<option value="1"', $option['onboard_wifi'] == '1' ? ' selected="selected"' : '', '>Client Mode Only</option>
 				</select>
 			</div>

@@ -1,0 +1,1 @@
+This directory contains scripts and files necessary for maintaining the image files I made, as well as testing functionality of the WebUI.

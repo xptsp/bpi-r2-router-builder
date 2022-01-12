@@ -20,7 +20,9 @@ function Site_DarkMode()
 	check = $("#dark-mode");
 	check.toggleClass("far fas");
 	$.get("/home?sid=" + SID + "&dark_mode=" + (check.hasClass("fas") ? 'N' : 'Y'), function(data) {
-		if (data.trim() != "OK")
+		if (data.trim() == "RELOAD")
+			document.location.reload(true);
+		else if (data.trim() != "OK")
 			alert(data);
 	});	
 	return false;
@@ -86,7 +88,10 @@ function Init_Home()
 
 function Home_Data()
 {
-	$.getJSON("/home?sid=" + SID, function(results) {
+	$.get("/home?sid=" + SID, function(results) {
+		if (results == "RELOAD")
+			document.location.reload(true);
+
 		// Update internet connectivity status:
 		$("#connectivity-text").html(results.status);
 

@@ -50,5 +50,5 @@ fi
 #####################################################################################
 # Call rest of upgrade script from "misc" folder:
 #####################################################################################
-source helpers/upgrade-helper.sh
+source misc/upgrade-helper.sh
 echo "OK"

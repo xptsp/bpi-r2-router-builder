@@ -8,6 +8,13 @@
 [[ -f /etc/default/router-settings ]] && source /etc/default/router-settings
 
 #############################################################################
+# Enable DBDC on any MT76xx wifi card that supports it:
+#############################################################################
+for file in /sys/kernel/debug/ieee80211/*; do
+	test -e $file/mt76/dbdc && echo 1 > $file/mt76/dbdc
+done
+
+#############################################################################
 # Determine new default WiFi password and change it in all hostapd configuration files:
 #############################################################################
 [[ -e /boot/wifi.conf ]] && source /boot/wifi.conf
@@ -26,34 +33,15 @@ sed -i "s|^wpa_passphrase=bananapi$|wpa_passphrase=${WIFI_PASS}|g" /etc/hostapd/
 /opt/bpi-r2-router-builder/helpers/router-helper.sh mac saved
 
 #############################################################################
+# Clear the reformatting flag in "/etc/overlayRoot.conf":
+#############################################################################
+/opt/bpi-r2-router-builder/helpers/router-helper.sh reformat clear
+
+#############################################################################
 # Bring the "eth0" interface up if not already up:
 #############################################################################
 ifconfig eth0 2> /dev/null | grep "UP," &> /dev/null || /sbin/ifup eth0 >& /dev/null
 ifconfig eth1 2> /dev/null | grep "UP," &> /dev/null || /sbin/ifup eth1 >& /dev/null
-
-#############################################################################
-# Enable DBDC on any MT76xx wifi card that supports it:
-#############################################################################
-for file in /sys/kernel/debug/ieee80211/*; do
-	test -e $file/mt76/dbdc && echo 1 > $file/mt76/dbdc
-done
-
-#############################################################################
-# Load support files for R2's onboard Wifi/BT hardware and set WiFi mode:
-#############################################################################
-if [[ ! -e /dev/wmtWifi ]]; then
-	/usr/bin/wmt_loader &> /var/log/wmtloader.log
-	sleep 3
-fi
-if [[ -c /dev/stpwmt ]]; then
-	if ! ps aux | grep stp_uart_launcher | grep -v grep >& /dev/null; then
-		/usr/bin/stp_uart_launcher -p /etc/firmware &> /var/log/stp_launcher.log &
-		sleep 5
-	fi
-fi
-modprobe wlan_gen2
-[[ -f /var/run/wmtWifi ]] && echo 0 > /dev/wmtWifi && sleep 3
-echo $([[ "${onboard_wifi:-"A"}" == "A" ]] && echo A || echo 1) | tee /var/run/wmtWifi > /dev/wmtWifi
 
 #############################################################################
 # Rename the WiFi interfaces on the MT76xx wifi card:
@@ -85,11 +73,6 @@ for IFACE in $(iw dev | grep Interface | awk '{print $NF}'); do
 	fi
 	iwconfig ${IFACE} txpower 30
 done
-
-#############################################################################
-# Load bluetooth-driver (has to be done after stp_uart_launcher)
-#############################################################################
-modprobe stp_chrdev_bt
 
 #############################################################################
 # Return error code 0 to the caller:
