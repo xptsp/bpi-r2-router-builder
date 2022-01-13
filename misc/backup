@@ -47,4 +47,6 @@ if [[ ! "${DEV}" =~ "/dev/mmcblk" ]]; then
 	eject ${DEV}
 	echo -e "${GREEN}INFO:${NC} ${BLUE}${DEV}${NC} has been ejected!"
 	$(dirname $0)/cleanup ${FILE} --origin=${DEV}
+else
+	scp ${FILE} doug@doug-pc.local:~/R2/
 fi
