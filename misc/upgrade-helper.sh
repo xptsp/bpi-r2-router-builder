@@ -158,7 +158,7 @@ if [[ ! -z "${RW[5]}" ]]; then
 	systemctl is-enabled cloudflared@1 >& /dev/null || systemctl enable ${NOW} cloudflared@1
 	systemctl is-enabled cloudflared@2 >& /dev/null || systemctl enable ${NOW} cloudflared@2
 	systemctl is-enabled cloudflared@3 >& /dev/null || systemctl enable ${NOW} cloudflared@3
-	systemctl is-enabled clear-reformat-flag >& /dev/null || systemctl enable ${NOW} clear-reformat-flag
+	systemctl is-enabled wifi >& /dev/null || systemctl enable ${NOW} wifi
 	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /ro
 fi

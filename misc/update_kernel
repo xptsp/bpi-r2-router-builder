@@ -8,17 +8,18 @@ if [[ "$1" == "-r" ]]; then
 	umount BPI_*
 	rm -rf BPI_*
 	rm -rf .tmp
+	cd .BPI-R2-4.14
+	git pull
+	cd ..
 fi
 for ver in 5.6 5.7 5.8 5.9 5.10 5.15; do
 	test -d BPI_${ver} && CHECK=n || CHECK=y
 	mkdir -p BPI_${ver}
 	mkdir -p .tmp/${ver}_{upper,work}
-	chown doug:doug BPI_${ver}
-	chown doug:doug .tmp/${ver}_{upper,work}
+	chown doug:doug -R BPI_${ver}
+	chown doug:doug -R .tmp/${ver}_{upper,work}
 	mount -t overlay -o lowerdir=.BPI-R2-4.14,upperdir=.tmp/${ver}_upper,workdir=.tmp/${ver}_work overlay BPI_${ver}
-	if [[ "${CHECK}" == "y" ]]; then
-		pushd BPI_${ver}
-		sudo -u doug git checkout ${ver}-main
-		popd
-	fi
+	cd BPI_${ver}
+	sudo -u doug git checkout ${ver}-main
+	cd ..
 done

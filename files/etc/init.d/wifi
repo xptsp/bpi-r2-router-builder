@@ -8,14 +8,15 @@
 # Description:    Load MediaTek MT6625L firmware
 ### END INIT INFO
 
-# Don't exit on error status
+#==================================================================================
+# Don't exit on error status and load router configuration:
+#==================================================================================
 set +e
+[[ -f /etc/default/router-settings ]] && source /etc/default/router-settings
 
+#==================================================================================
 # If wifidev doesn't exist, sleep for 120 seconds before proceeding:
-if [[ "$1" == "wait" ]]; then
-	[[ ! -f /var/run/wmtloader.tag ]] && sleep 120 && touch /var/run/wmtloader.tag
-fi
-
+#==================================================================================
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DAEMON=/dev/null
 NAME=wifi
@@ -45,13 +46,18 @@ then
   fi
 fi
 
+#==================================================================================
+# Load wifi module if found on the system:
+#==================================================================================
 ismodule=$(find /lib/modules/$(uname -r)/kernel -iname wlan_gen2.ko | wc -l)
 if [[ $ismodule -ne 0 ]];then
         echo "loading wifi driver module"
         modprobe wlan_gen2
 fi
 
+#==================================================================================
 # Check FILE exists and is character special
+#==================================================================================
 if  [[ -c /dev/wmtWifi ]];
 then
 	if [[ -n $(pidof hostapd) ]];
@@ -69,34 +75,23 @@ then
 		echo 0 >/dev/wmtWifi
 		sleep 5
 	fi
-	echo A >/dev/wmtWifi
+	echo ${onboard_wifi:="A"} >/dev/wmtWifi
 	sleep 2
 else
 	echo "Error, wifi device no created, /dev/wmtWifi"
 fi
 
-# Check NIC ap0
-#ifconfig ap0
-ip addr show ap0
-if [[ $? != "0" ]]
-then
-	echo "Error, device no available, ap0"
-else
-#	echo "set MAC"
-#	ip link set ap0 address 01:02:03:04:05:06 up
-	echo "Done, all good, ready to lauch hostapd"
-#	hostapd -dd /etc/hostapd/hostapd_ap0.conf | ts "%Y-%m-%d %H:%M:%S" &> /var/log/hostapd_ap0.log &
-	hostapd -d /etc/hostapd/hostapd_ap0.conf &> /var/log/hostapd_ap0.log &
-	echo "hostapd started...set IP"
-	ip addr add 192.168.10.1/24 dev ap0
-
-	ip -6 addr add fd00:B::10/64 dev ap0
-	#ip -6 addr add 2001:xxx:xxxx:B::10/64 dev ap0
-	echo "restart pihole-FTL..."
-	systemctl is-active pihole-FTL >& /dev/null && pihole restartdns
+#==================================================================================
+# Load bluetooth module, then configure bluetooth interface correctly:
+#==================================================================================
+ismodule=$(find /lib/modules/$(uname -r)/kernel -iname stp_chrdev_bt.ko | wc -l)
+if [[ $ismodule -ne 0 ]];then
+        echo "loading bt driver module"
+        modprobe stp_chrdev_bt
 fi
-#echo "waiting before starting second hostapd..."
-#sleep 30s
-#/usr/local/sbin/hostapd_2.sh
+hciconfig hci0 lm master
+sleep 1
+hciconfig hci0 up
+sleep 1
+hciconfig hci0 class ff0104
 
-modprobe stp_chrdev_bt

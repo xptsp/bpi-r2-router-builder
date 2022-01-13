@@ -1,0 +1,2 @@
+allow-hotplug mt6625_0
+iface mt6625_0 inet manual
