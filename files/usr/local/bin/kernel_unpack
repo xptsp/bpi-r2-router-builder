@@ -13,6 +13,9 @@ if test -d /ro; then
 	mount -o remount,rw /ro
 fi
 
+# Remove the old kernel modules:
+rm -rf ${ROOT}/lib/modules/*
+
 # Unpack the new kernel into the boot partition:
 sudo tar -xzvf ${1} -C /boot/ --strip-components=1 BPI-BOOT
 

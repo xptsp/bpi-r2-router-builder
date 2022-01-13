@@ -112,6 +112,11 @@ if [[ "$1" == "start" ]]; then
 	create_chain WAN_FORWARD_OUT
 
 	#############################################################################
+	# Enable "br0" interface masquerading so port forwarding works:
+	#############################################################################
+	iptables -t nat -A POSTROUTING -o br0 -j MASQUERADE
+
+	#############################################################################
 	# We need to call ourselves to complete other tasks:
 	#############################################################################
 	$0 reload

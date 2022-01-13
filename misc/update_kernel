@@ -7,7 +7,8 @@ RED='\033[1;31m'
 GREEN='\033[1;32m'
 BLUE='\033[1;34m'
 NC='\033[0m'
-cd /home/doug/R2
+mkdir -p ~/R2
+cd ~/R2
 if [[ "$1" == "-r" ]]; then
 	for file in BPI_*; do echo -e "${GREEN}INFO:${NC} Unmounting ${file}..."; umount ${file}; done
 	for file in BPI_*; do echo -e "${GREEN}INFO:${NC} Removing ${file}..."; rm -rf ${file}; done
@@ -30,3 +31,4 @@ for ver in 5.6 5.7 5.8 5.9 5.10 5.15; do
 	sudo -u doug ./build.sh importconfig
 	cd ..
 done
+cp ~/GitHub/bpiwrt-builder/.kernel_config ~/R2/BPI-R2-4.14/

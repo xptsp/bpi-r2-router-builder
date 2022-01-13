@@ -149,6 +149,8 @@ case $CMD in
 		if [[ ! -z "$1" && ! "$1" =~ -(y|-yes) ]]; then
 			echo "SYNTAX: $(basename $0) reformat [-y|--yes]"
 			exit 1
+		else
+			echo "SYNTAX: $(basename $0) reformat [-y|clear]"
 		fi
 		if [[ ! "$1" =~ -(y|-yes) ]]; then
 			echo "WARNING: The router will reboot and persistent storage will be formatted.  This action cannot be undone!"
@@ -181,6 +183,10 @@ case $CMD in
 			STAT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "^bootmenu_default=[2|4]" >& /dev/null && echo "enabled" || echo "disabled")
 			IN_USE=$(mount | grep " /ro " >& /dev/null || echo " not")
 			echo "Overlay Root script is ${STAT} for next boot, currently${IN_USE} active."
+		#####################################################################
+		# Everything else:
+		else
+			echo "SYNTAX: $(basename $0) overlay [enable|disable|status]"
 		fi
 		;;
 
@@ -231,6 +237,10 @@ case $CMD in
 		# COOKIE => Returns hash of shadow password
 		elif [[ "$1" == "cookie" ]]; then
 			getent shadow $(cat /etc/passwd | grep ":1000:" | cut -d: -f1) | sha512sum | awk '{print $1}'
+		#####################################################################
+		# Everything else:
+		else
+			echo "SYNTAX: $(basename $0) login [check|webui|passwd|username|safety-check|cookie]"
 		fi
 		;;
 
@@ -286,6 +296,10 @@ case $CMD in
 			else
 				$PWD/upgrade.sh
 			fi
+		#####################################################################
+		# Everything else:
+		else
+			echo "SYNTAX: $(basename $0) git [current|remove|update]"
 		fi
 		;;
 
@@ -320,6 +334,10 @@ case $CMD in
 			cd /tmp/bpiwrt
 			if md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null; then echo "ERROR: Checksum Failure"; exit; fi
 			while IFS= read -r line; do mv ${line:1} $(dirname $line)/; done < etc/default/backup_file.list
+		#####################################################################
+		# Everything else:
+		else
+			echo "SYNTAX: $(basename $0) git [create|remove|unpack|restore]"
 		fi
 		;;
 
@@ -356,6 +374,10 @@ case $CMD in
 			if ! test -f /tmp/${2}; then echo "ERROR: Missing Configuration File"; exit; fi
 			mv /tmp/${2} /etc/hostapd/${2}.conf
 			chown root:root /etc/hostapd/${2}.conf
+		#####################################################################
+		# Everything else:
+		else
+			echo "SYNTAX: $(basename $0) iface [move|delete|ifup|ifdown|scan|scan-test|hostapd]"
 		fi
 		;;
 
@@ -411,6 +433,10 @@ case $CMD in
 		# DEL => Delete the DHCP configuration file:
 		elif [[ "$1" == "del" ]]; then
 			rm /etc/dnsmasq.d/${2}.conf
+		#####################################################################
+		# Everything else:
+		else
+			echo "SYNTAX: $(basename $0) git [del|add|remove|set|info]"
 		fi
 		;;
 
@@ -536,6 +562,10 @@ case $CMD in
 		elif [[ "$1" == "add" || "$1" == "del" ]]; then
 			ip route $@
 			echo 'OK'
+		#####################################################################
+		# Everything else:
+		else
+			echo "SYNTAX: $(basename $0) route [move|add|del]"
 		fi
 		;;
 
@@ -567,8 +597,39 @@ case $CMD in
 				test -f /etc/nginx/sites-enabled/default-https && rm /etc/nginx/sites-enabled/default-https
 			elif [[ "${action}" == "restart" ]]; then
 				systemctl restart nginx
+			else
+				echo "SYNTAX: $(basename $0) git [http-on|http-off|https-on|https-off|restart]"
 			fi
 		done
+		;;
+
+	###########################################################################
+	forward)
+		if [[ "${1}" == "list" ]]; then
+			iptables -t nat --list-rules | grep "Port Forwarding"
+		else
+			if ! ifconfig ${2} >& /dev/null; then echo "ERROR: Invalid interface specified for 2nd param!"; exit; fi
+			if ! valid_ip $3; then echo "ERROR: Invalid IP Address specified as 3rd param!"; exit; fi
+			if [[ "$4" -lt 0 || "$4" -gt 65535 ]]; then echo "ERROR: Invalid port number for 4th param!"; exit; fi
+			[[ ! -z "${5}" ]] && if [[ "$4" -lt 0 || "$4" -gt 65535 ]]; then echo "ERROR: Invalid port number for 5th param!"; exit; fi
+			#####################################################################
+			# ADD => Add port forwarding rule
+			if [[ "${1}" == "add" ]]; then
+				[[ ! -z "$6" ]] && COMMENT=": ${6}"
+				iptables -t nat -I PREROUTING -i ${1} -p tcp --dport ${5:="${4}"} -j DNAT --to-destination ${3}:${4} -m comment --comment "Port Forwarding${COMMENT}"
+				iptables -I FORWARD -p tcp -d ${3} --dport ${4} -j ACCEPT
+			#####################################################################
+			# REM => Add port forwarding rule
+			elif [[ "${1}" == "del" ]]; then
+				[[ ! -z "$6" ]] && COMMENT=": ${6}"
+				iptables -t nat -D PREROUTING -i ${1} -p tcp --dport ${5:="${4}"} -j DNAT --to-destination ${3}:${4} -m comment --comment "Port Forwarding${COMMENT}"
+				iptables -D FORWARD -p tcp -d ${3} --dport ${4} -j ACCEPT
+			#####################################################################
+			# Everything else:
+			else
+				echo "SYNTAX: $(basename $0) forward [list|add|del]"
+			fi
+		fi
 		;;
 
 	###########################################################################
