@@ -1,9 +1,17 @@
 <?php
 
+$cmds = array(
+	'dmesg' => array('cmd' => 'dmesg', 'header' => 'Kernel Logs'),
+	'journal' => array('cmd' => 'journalctl', 'header' => 'Journal Logs'),
+);
+$_GET['which'] = (!isset($_GET['which']) || !isset($cmds[$_GET['which']])) ? 'dmesg' : $_GET['which'];
+$log = &$cmds[ $_GET['which'] ];
+#echo '<pre>'; print_r($log); exit;
+
 # Divide the program output into pages of specified number of lines:
 $lines = "";
 $per_page = 50;
-foreach (explode("\n", trim(@shell_exec('journalctl'))) as $num => $line)
+foreach (explode("\n", trim(@shell_exec($log['cmd']))) as $num => $line)
 {
 	$pages = floor(($num + $per_page) / $per_page);
 	$lines .= '<div class="everything page_' . $pages . ($pages > 1 ? ' hidden' : '') . '" id="dmesg-' . $num . '">' . htmlspecialchars($line) . "\n" . '</div>';
@@ -34,7 +42,13 @@ echo '
 <div class="col-12 col-sm-12">
 	<div class="card card-tabs card-primary">
 		<div class="card-header">
-			<h3 class="card-title">Journal Logs</h3>
+			Selected Logs: <select id="which">';
+foreach ($cmds as $cmd => $arr)
+{
+	echo '<option value="', $cmd == 'dmesg' ? '' : $cmd, '"', $_GET['which'] == $cmd ? ' selected="selected"' : '', '>' . $arr['header'] . '</option>';
+}
+echo '
+			</select>
         </div>
         <div class="card p-0 pt-1">
 			<div class="card-header">
@@ -61,4 +75,5 @@ echo '
 	</div>';
 
 # Wrap it up:
+apply_changes_modal("Please wait while the logs are being loaded...", true);
 site_footer('Init_Logs(' . $pages . ');');

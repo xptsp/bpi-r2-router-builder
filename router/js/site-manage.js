@@ -312,6 +312,13 @@ function Debian_Pull(mode, packages = [])
 function Init_Logs(pages)
 {
 	MaxPages=pages;
+	$("#which").change(function() {
+		$("#apply_msg").html( $("#apply_default").html() );
+		$("#apply_cancel").addClass("hidden");
+		$("#apply-modal").modal("show");
+		which = $("#which").val();
+		document.location.replace( document.location.href.split("?")[0] + (which != '' ? '?which=' + which : '') );
+	});
 	$("#pages .pagelink").on("click", function() {
 		Logs_Page( $(this).text() );
 	});
