@@ -262,6 +262,12 @@ ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl restart nginx
 
 ##################################################################################
+# Install linux-igd to support UPnP (linux internet gateway device):
+##################################################################################
+apt install -y linux-igd miniupnpc
+systemctl enable --now linux-igd
+
+##################################################################################
 # Pull in dependencies to make my SSD1306 front display work:
 ##################################################################################
 # Install support packages:
