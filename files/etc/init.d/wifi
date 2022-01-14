@@ -22,60 +22,43 @@ DAEMON=/dev/null
 NAME=wifi
 DESC="Load MediaTek MT6625L firmware wifi & BT"
 
-if [[ ! -e /dev/wmtWifi ]];
-then
-  echo "wifidev does not exist...create it..."
-  # Check FILE exists and is executable
-  if [[ -x /usr/bin/wmt_loader ]];
-  then
-	# ??
-	/usr/bin/wmt_loader &> /var/log/wmtloader.log
-	sleep 3
-  else
-	echo "Error, unable to find wmt_loader"
-  fi
+if [[ ! -e /dev/wmtWifi ]]; then
+	echo "wifidev does not exist...create it..."
+	if [[ -x /usr/bin/wmt_loader ]]; then
+		/usr/bin/wmt_loader &> /var/log/wmtloader.log
+		sleep 3
+	else
+		echo "Error, unable to find wmt_loader"
+	fi
 
-  # Check FILE exists and is character special
-  if  [[ -c /dev/stpwmt ]];
-  then
-	# Load firmware
-	/usr/bin/stp_uart_launcher -p /etc/firmware &> /var/log/stp_launcher.log &
-	sleep 5
-  else
-  	echo "Error, device no created, /dev/stpwmt"
-  fi
+	# Check FILE exists and is character special
+	if  [[ -c /dev/stpwmt ]]; then
+		/usr/bin/stp_uart_launcher -p /etc/firmware &> /var/log/stp_launcher.log &
+		sleep 5
+	else
+		echo "Error, device no created, /dev/stpwmt"
+	fi
 fi
 
 #==================================================================================
 # Load wifi module if found on the system:
 #==================================================================================
-ismodule=$(find /lib/modules/$(uname -r)/kernel -iname wlan_gen2.ko | wc -l)
-if [[ $ismodule -ne 0 ]];then
-        echo "loading wifi driver module"
-        modprobe wlan_gen2
-fi
+echo "loading wifi driver module"
+modprobe wlan_gen2
 
 #==================================================================================
 # Check FILE exists and is character special
 #==================================================================================
 if  [[ -c /dev/wmtWifi ]];
 then
-	if [[ -n $(pidof hostapd) ]];
-	then
-		echo "hostapd running...kill it";
-		#killall hostapd
-		pid=$(ps auxf | grep hostapd | grep ap0 | awk '{print $2}')
-		if [[ -n "$pid" ]];then
-			kill $pid
-		fi
-	fi
-	if [[ -n $(ip a|grep ap0) ]];
-	then
+	systemctl is-active hostapd@ap0 >& /dev/null && systemctl stop hostapd@ap0
+	sleep 1
+	if [[ -n $(ip a|grep ap0) ]]; then
 		echo "ap0 exists, reset it";
-		echo 0 >/dev/wmtWifi
+		echo 0 | tee /var/run/wmtWifi > /dev/wmtWifi
 		sleep 5
 	fi
-	echo ${onboard_wifi:="A"} >/dev/wmtWifi
+	echo ${onboard_wifi:="A"} | tee /var/run/wmtWifi > /dev/wmtWifi
 	sleep 2
 else
 	echo "Error, wifi device no created, /dev/wmtWifi"
@@ -84,14 +67,10 @@ fi
 #==================================================================================
 # Load bluetooth module, then configure bluetooth interface correctly:
 #==================================================================================
-ismodule=$(find /lib/modules/$(uname -r)/kernel -iname stp_chrdev_bt.ko | wc -l)
-if [[ $ismodule -ne 0 ]];then
-        echo "loading bt driver module"
-        modprobe stp_chrdev_bt
-fi
+echo "loading bt driver module"
+modprobe stp_chrdev_bt
 hciconfig hci0 lm master
 sleep 1
 hciconfig hci0 up
 sleep 1
 hciconfig hci0 class ff0104
-

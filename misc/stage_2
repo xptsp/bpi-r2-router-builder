@@ -13,12 +13,6 @@ export LANG=C
 apt install -y apt-transport-https bridge-utils dnsmasq hostapd ca-certificates openssh-server ppp pppoeconf pppoe
 
 ##############################################################################################
-# Use the legacy iptables commands instead of iptables-nft
-##############################################################################################
-update-alternatives --set iptables /usr/sbin/iptables-legacy
-update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
-
-##############################################################################################
 # Fix the hung SSH session issue with Debian Buster:
 ##############################################################################################
 ln -sf /usr/share/doc/openssh-client/examples/ssh-session-cleanup.service /etc/systemd/system/
