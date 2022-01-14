@@ -51,11 +51,15 @@ modprobe wlan_gen2
 #==================================================================================
 if  [[ -c /dev/wmtWifi ]];
 then
-	systemctl is-active hostapd@ap0 >& /dev/null && systemctl stop hostapd@ap0
+	if [[ -n $(pidof hostapd) ]]; then
+		echo "hostapd running...kill it";
+		pid=$(ps auxf | grep hostapd | grep ap0 | awk '{print $2}')
+		[[ -n "$pid" ]] && kill $pid
+	fi
 	sleep 1
 	if [[ -n $(ip a|grep ap0) ]]; then
 		echo "ap0 exists, reset it";
-		echo 0 | tee /var/run/wmtWifi > /dev/wmtWifi
+		echo 0 > /dev/wmtWifi
 		sleep 5
 	fi
 	echo ${onboard_wifi:="A"} | tee /var/run/wmtWifi > /dev/wmtWifi
