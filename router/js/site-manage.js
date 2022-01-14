@@ -185,6 +185,7 @@ function Repo_Check()
 		{
 			$("#" + data.elem + "_check_div").addClass("hidden");
 			$("#" + data.elem + "_pull_div").removeClass("hidden");
+			$("#" + data.elem + "_ribbon").removeClass("hidden");
 		}
 	}).fail( function() {
 		Del_Overlay(elem + "_div");

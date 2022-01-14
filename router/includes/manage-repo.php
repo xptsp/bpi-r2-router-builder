@@ -57,6 +57,11 @@ function show_repo($title, $repo, $url, $alt_desc = null)
 	echo '
 		<div class="col-md-6">
 			<div class="card card-primary">
+				<div class="ribbon-wrapper ribbon-xl hidden" id="', $repo, '_ribbon">
+					<div class="ribbon bg-success text-lg">
+						Updated!
+					</div>
+				</div>
 				<div class="card-header">
 					<h3 class="card-title"><i class="fab fa-github"></i> ', $title, '</h3>
 				</div>
