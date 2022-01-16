@@ -323,6 +323,7 @@ dhcp_settings();
 ###################################################################################################
 echo '
 		</div>
+	</div>
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" id="apply_reboot" class="btn btn-success float-right hidden" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Apply and Reboot</button></a>
 		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button></a>
