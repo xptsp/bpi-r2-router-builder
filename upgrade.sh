@@ -27,7 +27,7 @@ touch ${LNEW}
 #####################################################################################
 GIT=($(whereis git | cut -d":" -f 2))
 if [[ ! -z "${GIT[@]}" && -d $(dirname $0)/.git ]]; then
-	git checkout -- .
+	find . -type f | grep -v git | while read file; do rm $file; done
 	git reset --hard
 	if ! git pull; then echo "ERROR"; exit; fi
 	chown pi:pi -R router
