@@ -102,4 +102,4 @@ echo '
 	<!-- /.card-body -->
 </div>';
 apply_changes_modal('Please wait while the settings are updated....', true);
-site_footer('Init_Mosquitto();');
+site_footer('Init_Notify();');

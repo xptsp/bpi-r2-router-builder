@@ -138,7 +138,7 @@ function DMZ_Apply()
 //======================================================================================================
 // Javascript functions for "Advanced / Mosquitto Settings"
 //======================================================================================================
-function Init_Mosquitto()
+function Init_Notify()
 {
 	$(".checkbox").bootstrapSwitch();
 	$("#enable_mosquitto").bootstrapSwitch().on('switchChange.bootstrapSwitch', function(event, state) {
@@ -157,10 +157,10 @@ function Init_Mosquitto()
 		    input.attr("type", "password");
 		$(this).find(".fas").toggleClass("fa-eye fa-eye-slash");
 	});
-	$("#apply_changes").click( Mosquitto_Apply );
+	$("#apply_changes").click( Notify_Apply );
 }
 
-function Mosquitto_Apply()
+function Notify_Apply()
 {
 	// Assemble the post data for the AJAX call:
 	postdata = {
@@ -178,7 +178,7 @@ function Mosquitto_Apply()
 	$("#apply_msg").html( $("#apply_default").html() );
 	$("#apply-modal").modal("show");
 	$("#apply_cancel").addClass("hidden");
-	$.post("/advanced/mosquitto", postdata, function(data) {
+	$.post("/advanced/notify", postdata, function(data) {
 		data = data.trim();
 		if (data == "RELOAD")
 			document.location.reload(true);
@@ -194,3 +194,188 @@ function Mosquitto_Apply()
 		$("#apply_cancel").removeClass("hidden");
 	});
 }
+
+//====================	==================================================================================
+// Javascript functions for "Advanced / DHCP Reservations":
+//======================================================================================================
+function Init_DHCP(iface)
+{
+	iface_used = iface;
+
+	//=========================================================================
+	// IP Reservation modals and handlers:
+	$("#reservations-refresh").click(DHCP_Refresh_Reservations).click();
+	$("#dhcp_mac_addr").inputmask("mac");
+	$("#reservation_remove").click(function() {
+		$("#dhcp_client_name").val("");
+		$("#dhcp_ip_addr").val("");
+		$("#dhcp_mac_addr").val("");
+	});
+	$("#add_reservation").click(function() {
+		$("#dhcp_error_box").addClass("hidden");
+		$("#reservation-modal").modal("show");
+		$("#reservation_remove").click();
+		DHCP_Refresh_Leases();
+	});
+	$("#leases_refresh").click(DHCP_Refresh_Leases);
+	$("#dhcp_add").click(DHCP_Reservation_Add);
+	$("#dhcp_error_close").click(function() {
+		$("#dhcp_error_box").addClass("hidden");
+	});
+	$("#confirm-proceed").click(DHCP_Reservation_Confirmed);
+	$("#reboot_yes").click(Reboot_Confirmed);
+}
+
+function DHCP_Refresh_Leases()
+{
+	// Perform our AJAX request to refresh the LAN leases:
+	$("#clients-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
+	$.post('/advanced/dhcp', __postdata("clients", iface_used), function(data) {
+		$("#clients-table").html(data);
+		$(".reservation-option").click(function() {
+			line = $(this).parent();
+			$("#dhcp_client_name").val( line.find(".dhcp_host").html() );
+			$("#dhcp_ip_addr").val( line.find(".dhcp_ip_addr").html() );
+			$("#dhcp_mac_addr").val( line.find(".dhcp_mac_addr").html() );
+		});
+	}).fail(function() {
+		DHCP_Error("AJAX call failed!");
+	});
+}
+
+function DHCP_Refresh_Reservations()
+{
+	// Perform our AJAX request to refresh the reservations:
+	$("#reservations-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
+	$.post('/advanced/dhcp', __postdata("reservations", iface_used), function(data) {
+		$("#reservation-modal").modal("hide");
+		$("#reservations-table").html(data);
+		$(".dhcp_edit").click(function() {
+			$("#add_reservation").click();
+			line = $(this).parent();
+			$("#dhcp_client_name").val( line.find(".dhcp_host").html() );
+			$("#dhcp_ip_addr").val( line.find(".dhcp_ip_addr").html() );
+			$("#dhcp_mac_addr").val( line.find(".dhcp_mac_addr").html() );
+		});
+		$(".dhcp_delete").click(DHCP_Reservation_Remove);
+	});
+}
+
+function DHCP_Reservation_Remove()
+{
+	// Assemble the post data for the AJAX call:
+	line = $(this).parent();
+	postdata = {
+		'sid':      SID,
+		'action':   'remove',
+		'misc':     iface_used,
+		'hostname': line.find(".dhcp_host").html(),
+		'ip_addr':  line.find(".dhcp_ip_addr").html(),
+		'mac_addr': line.find(".dhcp_mac_addr").html(),
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to remove the IP reservation:
+	$.post('/advanced/dhcp', postdata, function(data) {
+		if (data.trim() == "OK")
+		{
+			DHCP_Refresh_Reservations();
+			reboot_suggested = true;
+		}
+		else
+			DHCP_Error(data);
+	}).fail(function() {
+		DHCP_Error("AJAX call failed!");
+	});
+}
+
+function DHCP_Reservation_Add()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':      SID,
+		'action':   'check',
+		'misc':     iface_used,
+		'hostname': $("#dhcp_client_name").val(),
+		'ip_addr':  $("#dhcp_ip_addr").val(),
+		'mac_addr': $("#dhcp_mac_addr").val(),
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Check to make sure we actually have something to pass to the AJAX call:
+	if (postdata.hostname == "")
+		return DHCP_Error("No hostname specified!");
+	else if (postdata.ip_addr == "")
+		return DHCP_Error("No IP address specified!");
+	else if (postdata.mac_addr == "")
+		return DHCP_Error("No MAC address specified!");
+
+	// Perform our AJAX request to add the IP reservation:
+	$.post('/advanced/dhcp', postdata, function(data) {
+		if (data.trim() == "SAME")
+			DHCP_Refresh_Reservations();
+		else if (data.trim() == "OK")
+			DHCP_Reservation_Add_Msg();
+		else if (data.trim() == "ADD")
+			DHCP_Reservation_Confirmed();
+		else
+		{
+			$("#confirm-mac").html('<p>' + data + '</p><p>Proceed with replacement?</p>');
+			$("#confirm-modal").modal("show");
+		}
+	}).fail(function() {
+		DHCP_Error("AJAX call failed!");
+	});
+}
+
+function DHCP_Reservation_Add_Msg()
+{
+	$("#apply_changes").addClass("hidden");
+	$("#apply_reboot").removeClass("hidden");
+	$("#alert-div").slideDown(400, function() {
+		timer = setInterval(function() {
+			$("#alert-div").slideUp();
+			clearInterval(timer);
+		}, 5000);
+	});
+	DHCP_Reservation_Confirmed();
+}
+
+function DHCP_Reservation_Confirmed()
+{
+	// Hide confirmation dialog if shown:
+	$("#confirm-modal").modal("hide");
+
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':      SID,
+		'action':   'add',
+		'misc':     iface_used,
+		'hostname': $("#dhcp_client_name").val(),
+		'ip_addr':  $("#dhcp_ip_addr").val(),
+		'mac_addr': $("#dhcp_mac_addr").val(),
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to add the IP reservation:
+	$.post('/advanced/dhcp', postdata, function(data) {
+		if (data.trim() == "OK")
+			DHCP_Refresh_Reservations();
+		else
+			DHCP_Error(data);
+	}).fail(function() {
+		DHCP_Error("AJAX call failed!");
+	});
+}
+
+function DHCP_Error(msg)
+{
+	$("#dhcp_error_msg").html(msg);
+	$("#dhcp_error_box").slideDown(400, function() {
+		timer = setInterval(function() {
+			$("#dhcp_error_box").slideUp();
+			clearInterval(timer);
+		}, 5000);
+	});
+}
+

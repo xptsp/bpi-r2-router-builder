@@ -1,7 +1,6 @@
 <?php
 require_once("subs/manage.php");
 require_once("subs/setup.php");
-require_once("subs/dhcp.php");
 
 #################################################################################################
 # If we are not doing the submission action, then skip this entire block of code:
@@ -17,8 +16,7 @@ if (isset($_POST['action']))
 	#################################################################################################
 	# Validate the input sent to this script (we paranoid... for the right reasons, of course...):
 	#################################################################################################
-	$action = $_POST['action'] = option_allowed('action', get_dhcp_actions(array('dhcp', 'static', 'bridged')));
-	do_dhcp_actions();
+	$action = $_POST['action'] = option_allowed('action', array('dhcp', 'static', 'bridged'));
 	$iface   = option('iface', '/^(' . implode("|", array_keys(get_network_adapters())) . ')$/');
 	$ip_addr = option_ip('ip_addr');
 	$ip_mask = option_ip('ip_mask');
@@ -316,9 +314,9 @@ echo '
 			</div>';
 
 ###################################################################################################
-# DHCP Settings and IP Range, plus IP Address Reservation section
+# DHCP Settings and IP Range
 ###################################################################################################
-dhcp_reservations_settings();
+dhcp_settings();
 
 ###################################################################################################
 # Page footer
@@ -328,13 +326,11 @@ echo '
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" id="apply_reboot" class="btn btn-success float-right hidden" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Apply and Reboot</button></a>
 		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button></a>
-		<a id="add_reservation_href" href="javascript:void(0);"', !$use_dhcp || $netcfg['op_mode'] == 'dhcp' ? ' class="hidden"' : '', '><button type="button" id="add_reservation" class="dhcp_div btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button></a>
 	</div>';
 
 ###################################################################################################
 # Close page
 ###################################################################################################
-dhcp_reservations_modals();
 apply_changes_modal('Please wait while the networking service is restarted....', true);
 reboot_modal();
 site_footer('Init_Wired("' . $iface . '");');

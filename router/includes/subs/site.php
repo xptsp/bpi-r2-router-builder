@@ -22,11 +22,12 @@ $sidebar_menu = array(
 	'advanced' => array('Advanced', 'fas fa-shield-alt', array(
 		'firewall'  => menu_link('/advanced/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
 		'dmz'       => menu_link('/advanced/dmz', 'DMZ Setup', 'fas fa-server'),
-		'mosquitto' => menu_link('/advanced/mosquitto', 'Mosquitto Notifications', 'fas fa-server'),
+		'dhcp'      => menu_link('/advanced/dhcp', 'DHCP Reservations', 'fas fa-address-card'),
+		'notify'    => menu_link('/advanced/notify', 'DHCP Notifications', 'fas fa-bullhorn'),
 	)),
 	'manage'  => array('Management', 'fas fa-cog', array(
 		'status'   => menu_link('/manage/status', 'Router Status', 'fas fa-ethernet'),
-		'usage'    => menu_link('/manage/bandwidth', 'Bandwidth Usage', 'fas fa-exchange-alt'),
+		'usage'    => menu_link('/manage/bandwidth', 'Bandwidth Usage', 'fas fa-chart-bar'),
 		'manage'   => menu_link('/manage/webui', 'WebUI Management', 'fas fa-server'),
 		'attached' => menu_link('/manage/attached', 'Attached Devices', 'fas fa-link'),
 		'backup'   => menu_link('/manage/backup', 'Backup &amp; Restore', 'fas fa-file-export'),

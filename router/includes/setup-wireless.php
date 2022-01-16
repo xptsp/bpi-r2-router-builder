@@ -1,6 +1,5 @@
 <?php
 require_once("subs/setup.php");
-require_once("subs/dhcp.php");
 
 #$_POST['action'] = 'scan';
 #$_POST['sid'] = $_SESSION['sid'];
@@ -32,10 +31,9 @@ if (isset($_POST['action']))
 		die('RELOAD');
 
 	#################################################################################################
-	# Validate the actions, then do any DHCP actions as requested by the caller:
+	# Validate the actions:
 	#################################################################################################
-	$action = $_POST['action'] = option_allowed('action', get_dhcp_actions(array('disabled', 'client_dhcp', 'client_static', 'ap', 'scan')));
-	do_dhcp_actions();
+	$action = $_POST['action'] = option_allowed('action', array('disabled', 'client_dhcp', 'client_static', 'ap', 'scan'));
 
 	#################################################################################################
 	# Scan for Wireless Networks using the interface:
@@ -535,9 +533,9 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 			</div>';
 
 	###################################################################################################
-	# DHCP Settings and IP Range, plus IP Address Reservation section
+	# DHCP Settings and IP Range:
 	###################################################################################################
-	dhcp_reservations_settings(true);
+	dhcp_settings(true);
 
 	###################################################################################################
 	# Page footer
@@ -548,7 +546,6 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" id="apply_reboot" class="btn btn-success float-right hidden" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Apply and Reboot</button></a>
 		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-success float-right">Apply Changes</button></a>
-		<a id="add_reservation_href" href="javascript:void(0);"', !$use_dhcp || $netcfg['op_mode'] == 'dhcp' || isset($netcfg['wpa_ssid']) ? ' class="hidden"' : '', '><button type="button" id="add_reservation" class="dhcp_div btn btn-primary"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add</button></a>
 	<!-- /.card-body -->
 </div>';
 
@@ -582,7 +579,6 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 	#######################################################################################################
 	# Close the page:
 	#######################################################################################################
-	dhcp_reservations_modals();
 	reboot_modal();
 }
 else
