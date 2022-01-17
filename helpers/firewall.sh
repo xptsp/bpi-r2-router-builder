@@ -212,10 +212,6 @@ elif [[ "$1" == "dmz" ]]; then
 #############################################################################
 elif [[ "$1" == "firewall" ]]; then
 
-	# CTB: for SMURF attack protection
-	iptables -A WAN_IN -p icmp -m icmp --icmp-type address-mask-request -j DROP
-	iptables -A WAN_IN -p icmp -m icmp --icmp-type timestamp-request -j DROP
-
 	#############################################################################
 	# OPTION "block_dot" => Drop outgoing DoT (DNS-over-TLS port 853) requests:
 	#############################################################################
