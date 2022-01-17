@@ -110,7 +110,6 @@ if [[ "$1" == "start" ]]; then
 	create_chain WAN_OUT
 	create_chain WAN_FORWARD_IN
 	create_chain WAN_FORWARD_OUT
-	create_chain WAN_DROP
 
 	#############################################################################
 	# Enable "br0" interface masquerading so port forwarding works:
@@ -155,9 +154,7 @@ elif [[ "$1" == "block" && ! -z "${2}" ]]; then
 	# Allow related and established connections to be forwarded from the interface to other interfaces:
 	iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 	# Drop any connections being forwarded from the interface:
-	iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j WAN_DROP
-	# Drop any connections being forwarded from the interface:
-	iptables -A WAN_DROP -o ${IFACE} -j DROP
+	iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j DROP
 
 #############################################################################
 # RELOAD => Setup the WebUI customizable firewall rules:

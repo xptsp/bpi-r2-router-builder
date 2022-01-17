@@ -256,25 +256,11 @@ ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl restart nginx
 
 ##################################################################################
-# Install linux-igd to support UPnP (linux internet gateway device):
-##################################################################################
-apt install -y linux-igd miniupnpc
-systemctl enable --now linux-igd
-
-##################################################################################
 # Pull in dependencies to make my SSD1306 front display work:
 ##################################################################################
 # Install support packages:
-apt install -y --no-install-recommends i2c-tools python3-pip python3-pil python3-venv
-python3 -m pip install --upgrade pip wheel setuptools virtualenv
+apt install -y i2c-tools python3-pil python3-adafruit-pureio python3-adafruit-gpio python3-adafruit-ssd1306 python3-adafruit-bbio python3-psutil python3-spidev
 # Install the stats repo:
 git clone https://github.com/frank-w/bpi-r2-ssd1306-display /opt/stats
 ln -sf /opt/stats/stats.service /etc/systemd/system/stats.service
 systemctl enable --now stats
-# Install the precompiled python packages we need:
-pushd /tmp
-wget https://github.com/frank-w/bpi-r2-ssd1306-display/raw/master/ssd1306_python3.tar.gz
-tar xzvf ssd1306_python3.tar.gz
-python3 -m pip install --no-index --find-links=./whl psutil Adafruit-SSD1306 Adafruit-BBIO
-rm -rf whl
-popd

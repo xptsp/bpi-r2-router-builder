@@ -19,16 +19,19 @@ if [[ "$1" == "-r" ]]; then
 	cd ..
 fi
 for ver in 5.6 5.7 5.8 5.9 5.10 5.15; do
-	echo -e "${GREEN}INFO:${NC} Checking out branch ${BLUE}${ver}-main${NC}...."
-	test -d BPI_${ver} && CHECK=n || CHECK=y
+	echo -e "${GREEN}INFO:${NC} Mounting branch ${BLUE}${ver}-main${NC}...."
+	test -d .tmp/${ver}_upper && CHECK=N || CHECK=Y
 	mkdir -p BPI_${ver}
 	mkdir -p .tmp/${ver}_{upper,work}
 	chown doug:doug -R BPI_${ver}
 	chown doug:doug -R .tmp/${ver}_{upper,work}
 	mount -t overlay -o lowerdir=.BPI-R2-4.14,upperdir=.tmp/${ver}_upper,workdir=.tmp/${ver}_work overlay BPI_${ver}
-	cd BPI_${ver}
-	sudo -u doug git checkout ${ver}-main
-	sudo -u doug ./build.sh importconfig
-	cd ..
+	if [[ "$CHECK" == "Y" ]]; then
+		echo -e "${GREEN}INFO:${NC} Checking out branch ${BLUE}${ver}-main${NC}...."
+		cd BPI_${ver}
+		sudo -u doug git checkout ${ver}-main
+		sudo -u doug ./build.sh importconfig
+		cd ..
+	fi
 done
 cp ~/GitHub/bpiwrt-builder/.kernel_config ~/R2/BPI-R2-4.14/
