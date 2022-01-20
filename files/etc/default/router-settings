@@ -83,7 +83,7 @@ dmz_ip_addr=192.168.2.100
 dmz_mac_addr=12:34:56:78:9a:bc
 
 ##########################################################################
-# WebUI Advanced / Mosquitto Settings
+# WebUI Advanced / DHCP Notifications
 ##########################################################################
 # Is using the mosquitto client enabled?  Accepts: "Y" or "N".  Default: "N"
 enable_mosquitto=N
@@ -99,3 +99,18 @@ mosquitto_user=pi
 
 # Password of the username in the mosquitto server.  Accepts a string.  Default: bananapi
 mosquitto_pass=bananapi
+
+##########################################################################
+# WebUI Manage / WebUI Management
+##########################################################################
+# Remote management mode.  Can be "disabled", "http", or "https".  Default: "disabled"
+remote_mode=disabled
+
+# Remote management port to access from outside the network.  Accepts an integer value.  Default: 8080
+remote_port=8080
+
+# Interface to accept remote management port from.  Default: "wan"
+remote_iface=wan
+
+# IP Address/Range --OR-- MAC address to allow to use Remote WebUI Management.  Defaults: "all"
+remote_source=all

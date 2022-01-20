@@ -608,22 +608,31 @@ case $CMD in
 		if [[ "${1}" == "list" ]]; then
 			iptables -t nat --list-rules | grep "Port Forwarding"
 		else
-			if ! ifconfig ${2} >& /dev/null; then echo "ERROR: Invalid interface specified for 2nd param!"; exit; fi
-			if ! valid_ip $3; then echo "ERROR: Invalid IP Address specified as 3rd param!"; exit; fi
-			if [[ "$4" -lt 0 || "$4" -gt 65535 ]]; then echo "ERROR: Invalid port number for 4th param!"; exit; fi
-			[[ ! -z "${5}" ]] && if [[ "$4" -lt 0 || "$4" -gt 65535 ]]; then echo "ERROR: Invalid port number for 5th param!"; exit; fi
+			#####################################################################
+			# Gather the parameters:
+			IFACE=${2}
+			IP_ADDR=${3}
+			SRC_PORT=${4}
+			METHOD=${5}
+			DST_PORT=${6:-"${SRC_PORT}"}
+			COMMENT=${7}
+			#####################################################################
+			# Validate the parameters:
+			if ! ifconfig ${IFACE} >& /dev/null; then echo "ERROR: Invalid interface specified for 2nd param!"; exit; fi
+			if ! valid_ip ${IP_ADDR}; then echo "ERROR: Invalid IP Address specified as 3rd param!"; exit; fi
+			if [[ -z "${SRC_PORT}" || "${SRC_PORT}" -lt 0 || "${SRC_PORT}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 4th param!"; exit; fi
+			if [[ "${METHOD}" != "tcp" && "${METHOD}" != "udp" ]]; then echo "ERROR: Must be either tcp or udp for 5th param!"; exit; fi
+			if [[ -z "${DST_PORT}" || "${DST_PORT}" -lt 0 || "${6}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 6th param!"; exit; fi
 			#####################################################################
 			# ADD => Add port forwarding rule
 			if [[ "${1}" == "add" ]]; then
-				[[ ! -z "$6" ]] && COMMENT=": ${6}"
-				iptables -t nat -I PREROUTING -i ${1} -p tcp --dport ${5:="${4}"} -j DNAT --to-destination ${3}:${4} -m comment --comment "Port Forwarding${COMMENT}"
-				iptables -I FORWARD -p tcp -d ${3} --dport ${4} -j ACCEPT
+				iptables -t nat -I PORT_FORWARD -i ${IFACE} -p ${METHOD} --dport ${DST_PORT} -j DNAT --to-destination ${IP_ADDR}:${SRC_PORT} $([[ ! -z "${COMMENT}" ]] && echo "-m comment --comment \"${COMMENT}\"")
+				iptables -I PORT_FORWARD -p ${METHOD} -d ${IP_ADDR} --dport ${SRC_PORT} -j ACCEPT $([[ ! -z "${COMMENT}" ]] && echo "-m comment --comment \"${COMMENT}\"")
 			#####################################################################
 			# REM => Add port forwarding rule
 			elif [[ "${1}" == "del" ]]; then
-				[[ ! -z "$6" ]] && COMMENT=": ${6}"
-				iptables -t nat -D PREROUTING -i ${1} -p tcp --dport ${5:="${4}"} -j DNAT --to-destination ${3}:${4} -m comment --comment "Port Forwarding${COMMENT}"
-				iptables -D FORWARD -p tcp -d ${3} --dport ${4} -j ACCEPT
+				iptables -t nat -D PORT_FORWARD -i ${IFACE} -p ${METHOD} --dport ${DST_PORT} -j DNAT --to-destination ${IP_ADDR}:${SRC_PORT} $([[ ! -z "${COMMENT}" ]] && echo "-m comment --comment \"${COMMENT}\"")
+				iptables -D PORT_FORWARD -p ${METHOD} -d ${IP_ADDR} --dport ${SRC_PORT} -j ACCEPT $([[ ! -z "${COMMENT}" ]] && echo "-m comment --comment \"${COMMENT}\"")
 			#####################################################################
 			# Everything else:
 			else

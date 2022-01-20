@@ -16,9 +16,7 @@ fi
 #############################################################################
 function create_chain()
 {
-	if ! iptables --list-rules | grep "\-N $1" >& /dev/null; then 
-		iptables -N $1
-	fi
+	iptables -N $1 $([[ ! -z "$2" ]] && echo "-t $2") > /dev/null 2>& 1
 }
 
 #############################################################################
@@ -103,9 +101,24 @@ if [[ "$1" == "start" ]]; then
 	iptables -A INPUT -p tcp -m tcp --tcp-flags RST RST -m limit --limit 2/second --limit-burst 2 -j ACCEPT
 
 	#############################################################################
+	# Create chains to make WebUI remote management easier to detect in PHP:
+	#############################################################################
+	create_chain REMOTE
+	create_chain REMOTE nat
+	iptables -A FORWARD -j REMOTE
+	iptables -t nat -A PREROUTING -j REMOTE
+
+	#############################################################################
+	# Create chains to make port forwards easier to detect in PHP:
+	#############################################################################
+	create_chain PORT_FORWARD
+	create_chain PORT_FORWARD nat
+	iptables -A FORWARD -j PORT_FORWARD
+	iptables -t nat -A PREROUTING -j PORT_FORWARD
+
+	#############################################################################
 	# Rules for input, output and forwarding for internet-facing interfaces:
 	#############################################################################
-	create_chain SERVICES
 	create_chain WAN_IN
 	create_chain WAN_OUT
 	create_chain WAN_FORWARD_IN
@@ -164,6 +177,7 @@ elif [[ "$1" == "reload" ]]; then
 	iptables -F WAN_OUT
 	$0 dmz
 	$0 firewall
+	$0 remote
 
 #############################################################################
 # DMZ => Setup the DMZ server rule:
@@ -277,4 +291,19 @@ elif [[ "$1" == "firewall" ]]; then
 		iptables -A WAN_OUT -o wan -m pkttype --pkt-type multicast -j DROP
 		iptables -A WAN_IN -i wan -m pkttype --pkt-type multicast -j DROP
 	fi
+
+#############################################################################
+# REMOTE => Setup the WebUI customizable firewall rules:
+#############################################################################
+elif [[ "$1" == "remote" ]]; then
+	# Remove existing Remote Management Port firewall rules and exit if disabled:
+	iptables -t nat -F REMOTE
+	iptables -F REMOTE
+	[[ "${remote_mode}" == "disabled" ]] && exit 0
+
+	# Set firewall rule to port forward WebUI to specified external port:
+	IP_ADDR=$(cat /etc/network/interfaces/br0 | grep address | awk '{print $2}')
+	[[ "${remote_mode}" == "https" ]] && PORT=80 || PORT=443
+	iptables -t nat -I REMOTE -i ${remote_iface} -p tcp --dport ${remote_port} -j DNAT --to-destination ${IP_ADDR}:${PORT}
+	iptables -I REMOTE -p tcp -d ${IP_ADDR} --dport ${PORT} -j ACCEPT
 fi
