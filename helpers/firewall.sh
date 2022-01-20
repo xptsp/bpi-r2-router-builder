@@ -307,3 +307,4 @@ elif [[ "$1" == "remote" ]]; then
 	iptables -t nat -I REMOTE -i ${remote_iface} -p tcp --dport ${remote_port} -j DNAT --to-destination ${IP_ADDR}:${PORT}
 	iptables -I REMOTE -p tcp -d ${IP_ADDR} --dport ${PORT} -j ACCEPT
 fi
+exit 0

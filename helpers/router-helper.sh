@@ -448,7 +448,7 @@ case $CMD in
 	###########################################################################
 	mac)
 		MAC=$1
-		[[ "$MAC" == "saved" && -f /boot/eth0.conf ]] && source /boot/eth0.conf
+		[[ "$MAC" == "saved" && -f /boot/persistent.conf ]] && source /boot/persistent.conf
 		if [[ -z "$MAC" || "$MAC" == "saved" || "$MAC" == "current" ]]; then
 			MAC=$(ifconfig wan | grep ether | awk '{print $2}')
 			echo "INFO: Using MAC Address: $MAC"
@@ -479,7 +479,8 @@ case $CMD in
 		RO=$(mount | grep "/boot" | grep "(ro,")
 		[[ ! -z "$RO" ]] && mount -o remount,rw /boot
 		[[ ! -f ${FILE}.old ]] && cp ${FILE} ${FILE}.old
-		echo "MAC=${MAC}" > /boot/eth0.conf
+		[[ -f /boot/persistent.conf ]] && sed -i "/^MAC=/d" > /boot/persistent.conf
+		echo "MAC=${MAC}" >> /boot/persistent.conf
 		dtc -q -O dtb /tmp/dts > ${FILE}
 		[[ ! -z "$RO" ]] && mount -o remount,ro /boot
 

@@ -17,11 +17,12 @@ done
 #############################################################################
 # Determine new default WiFi password and change it in all hostapd configuration files:
 #############################################################################
-[[ -e /boot/wifi.conf ]] && source /boot/wifi.conf
+[[ -e /boot/persistent.conf ]] && source /boot/persistent.conf
 [[ -z "${WIFI_PASS}" ]] && WIFI_PASS=$(php /opt/bpi-r2-router-builder/router/includes/subs/newpass.php)
 if [[ ! -e /boot/wifi.conf ]]; then
 	mount -o remount,rw /boot
-	echo "WIFI_PASS=${WIFI_PASS}" > /boot/wifi.conf
+	[[ -f /boot/persistent.conf ]] && sed -i "/^WIFI_PASS=/d" /boot/persistent.conf
+	echo "WIFI_PASS=${WIFI_PASS}" >> /boot/persistent.conf
 	mount -o remount,ro /boot
 fi
 sed -i "s|^wpa_passphrase=bananapi$|wpa_passphrase=${WIFI_PASS}|g" /etc/hostapd/*.conf

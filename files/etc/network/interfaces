@@ -9,7 +9,7 @@ iface eth0 inet manual
     pre-up ip link set $IFACE up
     post-down ip link set $IFACE down
 
-auto eth1
+allow-hotplug eth1
 iface eth1 inet manual
     pre-up ip link set $IFACE up
     post-down ip link set $IFACE down

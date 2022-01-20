@@ -13,6 +13,12 @@ if [[ "$(fdisk -l /dev/mmcblk0 | grep p2 | awk '{print $3}')" -eq "4261887" ]]; 
 	########################################################################################
 	# Create empty image on the root partition:
 	########################################################################################
-	fallocate -l $(( $(df -BM /dev/mmcblk0p2 | tail -1 | awk '{print $4}' | sed "s|M||g") - $FREE ))m /persistent.img
+	test -f /boot/persistent.conf && source /boot/persistent.conf
+	if [[ -z "${PERSISTENT_SIZE}" ]]; then
+		PERSISTENT_SIZE=$(( $(df -BM /dev/mmcblk0p2 | tail -1 | awk '{print $4}' | sed "s|M||g") - $FREE ))m
+		sed -i '/^PERSISTENT_SIZE=/d' /boot/persistent.conf
+		echo "PERSISTENT_SIZE=$PERSISTENT_SIZE" >> /boot/persistent.conf
+	fi
+	fallocate -l ${PERSISTENT_SIZE} /persistent.img
 	mkfs.ext4 /persistent.img
 fi
