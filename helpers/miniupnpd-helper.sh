@@ -1,12 +1,15 @@
 #!/bin/bash
 
 # Flush the rules in MINIUPNPD chains:
+iptables -t nat -N MINIUPNPD >& /dev/null
 iptables -t nat -F MINIUPNPD
+iptables -N MINIUPNPD >& /dev/null
 iptables -F MINIUPNPD
+ip6tables -N MINIUPNPD >& /dev/null
 ip6tables -F MINIUPNPD
 
 # If we are starting the service, we need to put the IP address of WAN interface in the config file:
-if [[ "1" == "start" ]]; then
+if [[ "$1" == "start" ]]; then
 	FILE=/etc/miniupnpd/miniupnpd.conf
 	IFACE=$(cat ${FILE} | grep "^ext_ifname=" | head -1 | cut -d= -f 2)
 	sed -i "/^ext_ip=/d" ${FILE}
