@@ -24,6 +24,7 @@ $sidebar_menu = array(
 		'dmz'       => menu_link('/advanced/dmz', 'DMZ Setup', 'fas fa-server'),
 		'dhcp'      => menu_link('/advanced/dhcp', 'DHCP Reservations', 'fas fa-address-card'),
 		'notify'    => menu_link('/advanced/notify', 'DHCP Notifications', 'fas fa-bullhorn'),
+		'upnp'      => menu_link('/advanced/upnp', 'UPnP Setup', 'fas fa-plug'),
 	)),
 	'manage'  => array('Management', 'fas fa-cog', array(
 		'status'   => menu_link('/manage/status', 'Router Status', 'fas fa-ethernet'),
@@ -366,10 +367,10 @@ function apply_changes_modal($text = 'Please wait while the firewall service is 
 function checkbox($name, $description, $default = true, $disabled_by = '')
 {
 	global $options;
-	$checked = (!isset($options[$name]) ? $default : ($options[$name] == "Y"));
+	$checked = (!isset($options[$name]) ? $default : ($options[$name] != "N"));
 	$enabled = (!empty($disabled_by) ? $options[$disabled_by] : true);
 	return '<div class="icheck-primary">' .
-				'<input type="checkbox" id="' . $name . '"' . ($checked == 'Y' ? ' checked="checked"' : '') . ($enabled ? '' : ' disabled="disabled"') . '>' .
+				'<input type="checkbox" id="' . $name . '"' . ($checked ? ' checked="checked"' : '') . ($enabled ? '' : ' disabled="disabled"') . '>' .
 				'<label for="' . $name . '">' . $description . '</label>' .
 			'</div>';
 }

@@ -149,14 +149,6 @@ function Init_Notify()
 	});
 	$('.ip_address').inputmask("ip");
 	$(".ip_port").inputmask("integer", {min:0, max:65535});
-	$(".pass_toggle").click(function() {
-		input = $(this).parent().find(".form-control");
-		if (input.attr("type") === "password")
-			input.attr("type", "text");
-		else
-		    input.attr("type", "password");
-		$(this).find(".fas").toggleClass("fa-eye fa-eye-slash");
-	});
 	$("#apply_changes").click( Notify_Apply );
 }
 

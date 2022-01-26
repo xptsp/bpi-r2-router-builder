@@ -112,5 +112,14 @@ remote_port=8080
 # Interface to accept remote management port from.  Default: "wan"
 remote_iface=wan
 
-# IP Address/Range --OR-- MAC address to allow to use Remote WebUI Management.  Defaults: "all"
-remote_source=all
++# Limit remote management access.  Accepts "all", "mac", "ip", "range".  Default: "all"
+remote_limit_by=all
+
+# When "remote_limit_by" is "mac", restrict access to this MAC address.  Default: "AA:BB:CC:DD:EE:FF"
+remote_mac=AA:BB:CC:DD:EE:FF
+
+# When "remote_limit_by" is "ip", restrict access to this IP address.  Default: "192.168.0.0/32"
+remote_ip=192.168.0.0/32
+
+# When "remote_limit_by" is "range", restrict access to this IP address.  Default: "192.168.0.0-192.168.0.0"
+remote_range=192.168.0.0-192.168.0.0

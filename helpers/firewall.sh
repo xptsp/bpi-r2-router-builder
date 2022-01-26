@@ -125,6 +125,12 @@ if [[ "$1" == "start" ]]; then
 	create_chain WAN_FORWARD_OUT
 
 	#############################################################################
+	# Rules for miniupnpd port forwards:
+	#############################################################################
+	create_chain MINIUPNPD
+	create_chain MINIUPNPD nat
+
+	#############################################################################
 	# Enable "br0" interface masquerading so port forwarding works:
 	#############################################################################
 	iptables -t nat -A POSTROUTING -o br0 -j MASQUERADE
@@ -166,7 +172,12 @@ elif [[ "$1" == "block" && ! -z "${2}" ]]; then
 	iptables -A FORWARD -o ${IFACE} -j WAN_FORWARD_OUT
 	# Allow related and established connections to be forwarded from the interface to other interfaces:
 	iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-	# Drop any connections being forwarded from the interface:
+	# Add a rule for miniupnpd if we are using that connection:
+	if [[ "${IFACE}" == "$(cat /etc/miniupnpd/miniupnpd.conf | grep "^ext_ifname=" | cut -d= -f 2)" ]]; then
+		iptables -A FORWARD -i ${IFACE} -j MINIUPNPD
+		iptables -t nat -A PREROUTING -i ${IFACE} -j MINIUPNPD
+	fi
+	# Drop all other connections being forwarded from the interface:
 	iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j DROP
 
 #############################################################################
@@ -299,12 +310,22 @@ elif [[ "$1" == "remote" ]]; then
 	# Remove existing Remote Management Port firewall rules and exit if disabled:
 	iptables -t nat -F REMOTE
 	iptables -F REMOTE
-	[[ "${remote_mode}" == "disabled" ]] && exit 0
+	[[ "${enable_remote:-"N"}" == "N" ]] && exit 0
 
-	# Set firewall rule to port forward WebUI to specified external port:
+	# Decide how we are going to limit access to the WebUI:
 	IP_ADDR=$(cat /etc/network/interfaces/br0 | grep address | awk '{print $2}')
-	[[ "${remote_mode}" == "https" ]] && PORT=80 || PORT=443
-	iptables -t nat -I REMOTE -i ${remote_iface} -p tcp --dport ${remote_port} -j DNAT --to-destination ${IP_ADDR}:${PORT}
-	iptables -I REMOTE -p tcp -d ${IP_ADDR} --dport ${PORT} -j ACCEPT
+	LIMIT=
+	if [[ "${remote_limit_by:-"all"}" == "mac" ]]; then
+		LIMIT="-m mac --mac-source ${remote_mac}"
+	elif [[ "${remote_limit_by:-"all"}" == "ip" ]]; then
+		LIMIT="--source ${remote_ip}"
+	elif [[ "${remote_limit_by:-"all"}" == "range" ]]; then
+		LIMIT="-m iprange --src-range ${remote_range}"
+	fi
+	[[ "${remote_mode}" == "http" ]] && remote_src_port=80 || remote_src_port=443
+
+	# Set WebUI port forwarding rule according to user request:
+	iptables -t nat -I REMOTE -i ${remote_iface} -p tcp --dport ${remote_src_port} -j DNAT --to-destination ${IP_ADDR}:${remote_dst_port}
+	iptables -I REMOTE -p tcp -d ${IP_ADDR} --dport ${remote_dst_port} ${LIMIT} -j ACCEPT
 fi
 exit 0

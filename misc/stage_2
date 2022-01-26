@@ -265,8 +265,28 @@ git clone https://github.com/frank-w/bpi-r2-ssd1306-display /opt/stats
 ln -sf /opt/stats/stats.service /etc/systemd/system/stats.service
 systemctl enable --now stats
 
+################################################################################
+# Install and configure miniupnp install
 ##################################################################################
-# Install and configure linux-igd for onboard UPnP support:
+# NOTE: Install the miniupnp install quietly
+echo "miniupnpd miniupnpd/start_daemon boolean true" | debconf-set-selections
+echo "miniupnpd miniupnpd/ip6script boolean false" | debconf-set-selections
+echo "miniupnpd miniupnpd/listen string br0" | debconf-set-selections
+echo "miniupnpd miniupnpd/iface string wan" | debconf-set-selections
+apt install -y miniupnpd miniupnpc
+# NOTE: Configure the service:
+sed -i "s|#secure_mode=|secure_mode=|g" /etc/miniupnpd/miniupnpd.conf
+sed -i "s|#enable_upnp=no|enable_upnp=yes|g" /etc/miniupnpd/miniupnpd.conf
+sed -i "s|#enable_natpmp=yes|enable_natpmp=yes|g" /etc/miniupnpd/miniupnpd.conf
+systemctl enable --now miniupnpd
+
 ##################################################################################
-apt install -y linux-igd libupnp6
-systemctl enable --now linux-igd
+# Install minissdpd package
+##################################################################################
+# NOTE: Set some default settings for minissdpd package:
+echo "minissdpd minissdpd/listen string br0" | debconf-set-selections
+echo "minissdpd minissdpd/ip6 boolean false" | debconf-set-selections
+echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
+# NOTE: Install minissdpd package:
+apt install -y minissdpd
+systemctl enable --now minissdpd

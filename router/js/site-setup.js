@@ -406,14 +406,6 @@ function Init_Wireless(iface)
 		$(".bands").addClass("hidden");
 		$(".band_" + $("#ap_band option:selected").val()).removeClass("hidden");
 	});
-	$(".wpa_toggle").click(function() {
-		input = $(this).parent().find(".form-control");
-		if (input.attr("type") === "password")
-			input.attr("type", "text");
-		else
-		    input.attr("type", "password");
-		$(this).find(".fas").toggleClass("fa-eye fa-eye-slash");
-	});
 	$("#apply_changes").click(Wireless_Submit);
 	$("#wifi_encode").click(Wireless_Encode);
 	$("#wifi_scan").click(function() {

@@ -337,7 +337,7 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 						<div class="input-group-prepend wpa_toggle">
 							<span class="input-group-text"><i class="fas fa-eye"></i></span>
 						</div>
-						<input type="password" class="form-control" id="wpa_psk" name="wpa_psk" value="', $wpa_psk, '">
+						<input type="text" class="form-control" id="wpa_psk" name="wpa_psk" value="', $wpa_psk, '">
 					</div>
 				</div>
 			</div>
@@ -399,7 +399,7 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 						<div class="input-group-prepend wpa_toggle">
 							<span class="input-group-text"><i class="fas fa-eye"></i></span>
 						</div>
-						<input id="ap_psk" type="password" class="form-control" value="', $wpa_passphrase, '">
+						<input id="ap_psk" type="text" class="form-control" value="', $wpa_passphrase, '">
 					</div>
 				</div>
 			</div>

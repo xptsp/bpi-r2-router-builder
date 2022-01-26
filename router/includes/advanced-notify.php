@@ -90,7 +90,7 @@ echo '
 						<div class="input-group-prepend pass_toggle">
 							<span class="input-group-text"><i class="fas fa-eye"></i></span>
 						</div>
-						<input id="password" type="password" class="form-control" value="', $options['mosquitto_pass'], '">
+						<input id="password" type="text" class="form-control" value="', $options['mosquitto_pass'], '">
 					</div>
 				</div>
 			</div>

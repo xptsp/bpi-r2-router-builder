@@ -128,7 +128,10 @@ case $CMD in
 		elif [[ "$1" == "ro" ]]; then
 			remount_ro
 		else
-			echo "SYNTAX: $(basename $0) remount [ro|rw]"
+			echo "Usage: $(basename $0) remount [ro|rw]"
+			echo "Where:"
+			echo "     ro  -  Readonly Access"
+			echo "     rw  -  Read/Wrie Access"
 		fi
 		;;
 
@@ -146,11 +149,11 @@ case $CMD in
 			exit 0
 		fi
 		check_ro
-		if [[ ! -z "$1" && ! "$1" =~ -(y|-yes) ]]; then
-			echo "SYNTAX: $(basename $0) reformat [-y|--yes]"
-			exit 1
-		else
-			echo "SYNTAX: $(basename $0) reformat [-y|clear]"
+		if [[ ! "$1" =~ -(h|y|-yes) ]]; then
+			echo "Usage: $(basename $0) reformat [-y]"
+			echo "Where:"
+			echo "    -y   Do not prompt to confirm and reboot system."
+			exit 0
 		fi
 		if [[ ! "$1" =~ -(y|-yes) ]]; then
 			echo "WARNING: The router will reboot and persistent storage will be formatted.  This action cannot be undone!"
@@ -186,7 +189,12 @@ case $CMD in
 		#####################################################################
 		# Everything else:
 		else
-			echo "SYNTAX: $(basename $0) overlay [enable|disable|status]"
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "Usage: $(basename $0) overlay [enable|disable|status]"
+			echo "Where:"
+			echo "    enable    Enables overlay script upon next boot"
+			echo "    disable   Disables overlay script upon next boot"
+			echo "    status    Displays current status and next boot status of overlay script"
 		fi
 		;;
 
@@ -240,7 +248,13 @@ case $CMD in
 		#####################################################################
 		# Everything else:
 		else
-			echo "SYNTAX: $(basename $0) login [check|webui|passwd|username|safety-check|cookie]"
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "Usage: $(basename $0) login [check|webui|passwd|username|safety-check|cookie]"
+			echo "Where:"
+			echo "    check [username] [password]   - Verifies that supplied credentials are correct"
+			echo "    webui                         - Returns username of user 1000"
+			echo "    passwd [password]             - Changes password of user 1000 to [password]"
+			echo "    username [username]           - Changes username of user 1000 to [username]"
 		fi
 		;;
 
@@ -278,7 +292,7 @@ case $CMD in
 
 	###########################################################################
 	git)
-		cd /opt/${2:-"bpi-r2-router-builder"}
+		if ! cd /opt/${2:-"bpi-r2-router-builder"} >& /dev/null; then echo "ERROR: Invalid repository specified!"; exit; fi
 		#####################################################################
 		# CURRENT => Return current repo time as version number (vYYYY.MMDD.HHMM)
 		if [[ "$1" == "current" ]]; then
@@ -291,15 +305,22 @@ case $CMD in
 		#####################################################################
 		# UPDATE => Return current repo time as version number (vYYYY.MMDD.HHMM)
 		elif [[ "$1" == "update" ]]; then
-			if [[ "$2" == "wireless-regdb" ]]; then
-				/opt/bpi-r2-router-builder/misc/wireless-regdb.sh
-			else
+			if [[ "$2" == "bpi-r2-router-builder" ]]; then
 				$PWD/upgrade.sh
+			else
+				/opt/bpi-r2-router-builder/misc/wireless-regdb.sh
 			fi
 		#####################################################################
 		# Everything else:
 		else
-			echo "SYNTAX: $(basename $0) git [current|remove|update]"
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "Usage: $(basename $0) git [current|remove|update]"
+			echo "Where:"
+			echo "    current [subdir]  - Returns current version number of [subdir] repository under /opt"
+			echo "    remote [subdir]   - Returns remote version number of [subdir] repository under /opt"
+			echo "    update [subdir]   - Pulls the current version of the [subdir] repository under /opt"
+			echo ""
+			echo "NOTE: Version numbers are expressed as \"vYYYY.MMDD.HHMM\"."
 		fi
 		;;
 
@@ -337,7 +358,13 @@ case $CMD in
 		#####################################################################
 		# Everything else:
 		else
-			echo "SYNTAX: $(basename $0) git [create|remove|unpack|restore]"
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "Usage: $(basename $0) backup [create|remove|unpack|restore]"
+			echo "Where:"
+			echo "    create  - Creates a backup in /tmp/bpiwrt.cfg of critical settings"
+			echo "    remote  - Removes temporary file /tmp/bpiwrt.cfg"
+			echo "    unpack  - Unpacks the uploaded configuration backup found in /tmp/bpiwrt.cfg"
+			echo "    restore - Actually move the files from the uploaded configuration backup into place"
 		fi
 		;;
 
@@ -377,7 +404,16 @@ case $CMD in
 		#####################################################################
 		# Everything else:
 		else
-			echo "SYNTAX: $(basename $0) iface [move|delete|ifup|ifdown|scan|scan-test|hostapd]"
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "Usage: $(basename $0) iface [move|delete|ifup|ifdown|scan|scan-test|hostapd]"
+			echo "Where:"
+			echo "    move [file]       - Moves specified file from /tmp/ to /etc/network/interfaces.d/"
+			echo "    delete [iface]    - Deletes specified interface configuration file"
+			echo "    ifup [iface]      - Brings specified interface up"
+			echo "    ifdown [iface]    - Brings specified interface down"
+			echo "    scan [iface]      - Perform a wifi scan on the specified interface"
+			echo "    scan-test [iface] - Returns test scan data instead of performing a wifi scan."
+			echo "    hostapd [iface]   - Moves specified file from /tmp/ to /etc/hostapd/"
 		fi
 		;;
 
@@ -436,7 +472,14 @@ case $CMD in
 		#####################################################################
 		# Everything else:
 		else
-			echo "SYNTAX: $(basename $0) git [del|add|remove|set|info]"
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "Usage: $(basename $0) dhcp [del|add|remove|set|info]"
+			echo "Where:"
+			echo "    info                                 - Returns DHCP information"
+			echo "    set [iface] [ip] [ip] [ip] [expires] - Sets DHCP configuration for interface"
+			echo "    remove [iface] [mac] [ip]            - Remove the specified host from interface\'s DHCP configuration"
+			echo "    add [iface] [mac] [ip] [?]           - Adds specified host to interface\'s DHCP configuration"
+			echo "    del [iface]                          - Deletes DHCP configuration for interface"
 		fi
 		;;
 
@@ -456,8 +499,14 @@ case $CMD in
 			MAC=$(printf '%01X2:%02X:%02X:%02X:%02X:%02X\n' $[RANDOM%16] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256])
 			echo "INFO: Using MAC Address: $MAC"
 		elif [[ ! "$MAC" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then
-			echo "ERROR: Invalid MAC address specified!"
-			exit 1
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "Usage: $(basename $0) mac [option]"
+			echo "Where \"option\" is:"
+			echo "    saved         - Use the saved MAC address from /boot/persistent.conf"
+			echo "    current       - Use the current MAC address"
+			echo "    random        - Generate a random MAC address"
+			echo "    [mac address] - Use specified MAC address"
+			exit 0
 		fi
 
 		# Decompile DTB, then add new MAC address (if not already there), then recompile:
@@ -517,8 +566,6 @@ case $CMD in
 				IP=($(cat /etc/resolv.conf | grep "nameserver" | head -2 | awk '{print $2}'))
 				DNS1=${IP[0]}
 				DNS2=${IP[1]}
-			else
-				echo "ERROR: Invalid action specified!" && exit
 			fi
 		else
 			# Validate first IP address passed as parameter:
@@ -536,16 +583,23 @@ case $CMD in
 		fi
 
 		# Remove existing IP addresses and add the included ones:
-		sed -i "/^PIHOLE_DNS_/d" /etc/pihole/setupVars.conf
-		echo "PIHOLE_DNS_1=${DNS1}" >> /etc/pihole/setupVars.conf
-		[[ ! -z "${DNS2}" ]] && echo "PIHOLE_DNS_2=${DNS2}" >> /etc/pihole/setupVars.conf
-		sed -i "/^server=/d" /etc/dnsmasq.d/01-pihole.conf
-		echo "server=${DNS1}" >> /etc/dnsmasq.d/01-pihole.conf
-		[[ ! -z "${DNS2}" ]] && echo "server=${DNS2}" >> /etc/dnsmasq.d/01-pihole.conf
+		if [[ ! -z "${DNS1}" ]]; then
+			sed -i "/^PIHOLE_DNS_/d" /etc/pihole/setupVars.conf
+			echo "PIHOLE_DNS_1=${DNS1}" >> /etc/pihole/setupVars.conf
+			[[ ! -z "${DNS2}" ]] && echo "PIHOLE_DNS_2=${DNS2}" >> /etc/pihole/setupVars.conf
+			sed -i "/^server=/d" /etc/dnsmasq.d/01-pihole.conf
+			echo "server=${DNS1}" >> /etc/dnsmasq.d/01-pihole.conf
+			[[ ! -z "${DNS2}" ]] && echo "server=${DNS2}" >> /etc/dnsmasq.d/01-pihole.conf
 
-		# Restart the PiHole FTL service if running:
-		if [[ "$3" != "norestart" ]]; then if systemctl is-active pihole-FTL >& /dev/null; then pihole restartdns; else true; fi; fi
-		[[ $? -eq 0 ]] && echo "OK"
+			# Restart the PiHole FTL service if running:
+			if [[ "$3" != "norestart" ]]; then if systemctl is-active pihole-FTL >& /dev/null; then pihole restartdns; else true; fi; fi
+			[[ $? -eq 0 ]] && echo "OK"
+		else
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "Syntax: $(basename $0) dns [DNS #1] [DNS #2]"
+			echo ""
+			echo "NOTE: Using a port with the IP Address is expressed as \"127.0.0.1#5335\"!"
+		fi
 		;;
 
 	###########################################################################
@@ -566,7 +620,12 @@ case $CMD in
 		#####################################################################
 		# Everything else:
 		else
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
 			echo "SYNTAX: $(basename $0) route [move|add|del]"
+			echo "Where:"
+			echo "    move [filename]     - Moves file from temporary folder to /etc/network/if-up.d"
+			echo "    add [parameters]    - Adds routing with specified parameters to the network routing table"
+			echo "    del [parameters]    - Removes routing with specified parameters from network routing table"
 		fi
 		;;
 
@@ -599,7 +658,8 @@ case $CMD in
 			elif [[ "${action}" == "restart" ]]; then
 				systemctl restart nginx
 			else
-				echo "SYNTAX: $(basename $0) git [http-on|http-off|https-on|https-off|restart]"
+				[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+				echo "SYNTAX: $(basename $0) git [http-on|http-off|https-on|https-off|restart]" && exit 0
 			fi
 		done
 		;;
@@ -607,7 +667,7 @@ case $CMD in
 	###########################################################################
 	forward)
 		if [[ "${1}" == "list" ]]; then
-			iptables -t nat --list-rules | grep "Port Forwarding"
+			iptables --list-rules | grep "^\-A PORT_FORWARD"
 		else
 			#####################################################################
 			# Gather the parameters:
@@ -637,13 +697,42 @@ case $CMD in
 			#####################################################################
 			# Everything else:
 			else
+				[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
 				echo "SYNTAX: $(basename $0) forward [list|add|del]"
+				echo "Where:"
+				echo "    add [iface] [src-ip] [src-port] [method] [ex-port] [comment]  - Insert specified port-forwarding rule"
+				echo "    del [iface] [src-ip] [src-port] [method] [ex-port] [comment]  - Remove specified port-forwarding rule"
+				echo "    list                                                          - List all port-forwarding rules"
 			fi
 		fi
 		;;
 
 	###########################################################################
 	*)
+		[[ "$1" != "-h" ]] && echo "ERROR: Invalid command passed!"
 		echo "Syntax: $(basename $0) [command] [options]"
+		echo "Where:"
+		echo "    chroot       - Enters chroot environment in readonly partition"
+		echo "    remount      - Remounts readonly partition as read-only or writable"
+		echo "    reformat     - Reformats persistent storage"
+		echo "    overlay      - Enables or Disables overlay script"
+		echo "    apt          - Debian package installer"
+		echo "    login        - Login actions"
+		echo "    device       - Device Setings actions"
+		echo "    backup       - Settings Backup and Restore actions"
+		echo "    git          - Repository actions"
+		echo "    iface        - Network Interface Setup actions"
+		echo "    dhcp         - DHCP actions"
+		echo "    systemctl    - System Services Control actions"
+		echo "    mac          - Onboard Ethernet MAC address actions"
+		echo "    firewall     - Firewall actions"
+		echo "    dns          - Domain Name Server actions"
+		echo "    route        - Network Routing actions"
+		echo "    upgrade      - Pulls the lastest version of WebUI from GitHub"
+		echo "    remove_files - Removes unnecessary files from root partition"
+		echo "    webui        - WebUI actions"
+		echo "    forward      - Port forwarding actions"
+		echo ""
+		echo "NOTE: Use \"-h\" after the command to see what options are available for that command."
 		;;
 esac
