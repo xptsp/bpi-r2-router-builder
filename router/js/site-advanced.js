@@ -187,7 +187,7 @@ function Notify_Apply()
 	});
 }
 
-//====================	==================================================================================
+//======================================================================================================
 // Javascript functions for "Advanced / DHCP Reservations":
 //======================================================================================================
 function Init_DHCP(iface)
@@ -371,3 +371,53 @@ function DHCP_Error(msg)
 	});
 }
 
+//======================================================================================================
+// Javascript functions for "Advanced / UPnP Setup":
+//======================================================================================================
+function Init_UPnP()
+{
+	$("#upnp_refresh").click(function() {
+		$.post('/advanced/upnp', __postdata("list"), function(data) {
+			if (data == "RELOAD")
+				document.location.reload(true);
+			else
+				$("#upnp-table").html(data);
+		});
+	}).click();
+	$("#upnp_submit").click(UPnP_Submit);
+}
+
+function UPnP_Submit()
+{
+	// Hide confirmation dialog if shown:
+	$("#confirm-modal").modal("hide");
+
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':      SID,
+		'action':   'submit',
+		'enabled':  $("#upnp_enable").prop("checked") ? "Y" : "N",
+		'secured':  $("#upnp_secure").prop("checked") ? "Y" : "N",
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to change the WAN settings:
+	$("#apply_msg").html( $("#apply_default").html() );
+	$("#apply-modal").modal("show");
+	$("#apply_cancel").addClass("hidden");
+	$.post("/advanced/upnp", postdata, function(data) {
+		data = data.trim();
+		if (data == "RELOAD")
+			document.location.reload(true);
+		else if (data == "OK")
+			$("#apply-modal").modal("hide");
+		else
+		{
+			$("#apply_msg").html(data);
+			$(".alert_control").removeClass("hidden");
+		}
+	}).fail(function() {
+		$("#apply_msg").html("AJAX call failed!");
+		$("#apply_cancel").removeClass("hidden");
+	});
+}

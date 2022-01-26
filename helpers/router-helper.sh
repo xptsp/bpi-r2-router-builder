@@ -708,12 +708,35 @@ case $CMD in
 		;;
 
 	###########################################################################
+	upnp)
+		for action in $@; do
+			if [[ "${action}" == "list" ]]; then
+				PORT=$(cat /etc/miniupnpd/miniupnpd.conf | grep '^http_port=' | cut -d= -f 2)
+				IP=$(ifconfig br0 | grep 'inet ' | awk '{print $2}')
+				upnpc -u http://${IP}:${PORT}/rootDesc.xml -L
+			elif [[ "${action}" == "enable" ]]; then
+				systemctl enable miniupnpd
+				systemctl restart miniupnpd
+			elif [[ "${action}" == "disable" ]]; then
+				systemctl disable --now miniupnpd
+			elif [[ "${action}" == "secure-on" ]]; then
+				sed -i "s|^secure_mode=.*|secure_mode=yes|g" /etc/miniupnpd/miniupnpd.conf
+			elif [[ "${action}" == "secure-off" ]]; then
+				sed -i "s|^secure_mode=.*|secure_mode=no|g" /etc/miniupnpd/miniupnpd.conf
+			else
+				[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+				echo "SYNTAX: $(basename $0) miniupnpd [enable|disable|secure-on|secure-off|restart]" && exit 0
+			fi
+		done
+		;;
+
+	###########################################################################
 	*)
 		[[ "$1" != "-h" ]] && echo "ERROR: Invalid command passed!"
 		echo "Syntax: $(basename $0) [command] [options]"
 		echo "Where:"
-		echo "    chroot       - Enters chroot environment in readonly partition"
-		echo "    remount      - Remounts readonly partition as read-only or writable"
+		echo "    chroot       - Enters chroot environment in system partition"
+		echo "    remount      - Remounts system partition as read-only or writable"
 		echo "    reformat     - Reformats persistent storage"
 		echo "    overlay      - Enables or Disables overlay script"
 		echo "    apt          - Debian package installer"
@@ -729,9 +752,10 @@ case $CMD in
 		echo "    dns          - Domain Name Server actions"
 		echo "    route        - Network Routing actions"
 		echo "    upgrade      - Pulls the lastest version of WebUI from GitHub"
-		echo "    remove_files - Removes unnecessary files from root partition"
+		echo "    remove_files - Removes unnecessary files from system partition"
 		echo "    webui        - WebUI actions"
 		echo "    forward      - Port forwarding actions"
+		echo "    upnp         - UPnP actions"
 		echo ""
 		echo "NOTE: Use \"-h\" after the command to see what options are available for that command."
 		;;
