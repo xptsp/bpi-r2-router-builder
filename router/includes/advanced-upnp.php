@@ -14,24 +14,24 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'list')
 	{
-		$str = '';
+		$str = array();
 		foreach (explode("\n", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh upnp list'))) as $line)
 		{
 			if (preg_match("/(\d+)\s+(TCP|UDP)\s+(\d+)\-\>(\d+\.\d+\.\d+\.\d+):(\d+)\s+\'([^\']*)\'\s+\'([^\']*)\' (\d+)/", $line, $regex))
 			{
-				$str .=
+				$str[(int) $regex[3]] =
 					'<tr>' .
+						'<td><center>' . strval(((int) $regex[1]) + 1) . '</center></td>' .	// ID
 						'<td><center>' . $regex[2] . '</center></td>' .	// UDP or TCP
 						'<td><span class="float-right">' . $regex[3] . '</span></td>' .	// External Port
 						'<td><span class="float-right">' . $regex[4] . '</span></td>' .	// IP Address
 						'<td><span class="float-right">' . $regex[5] . '</span></td>' .	// External Port
 						'<td>' . $regex[6] . '</td>' .	// Description
-						'<td>' . $regex[7] . '</td>' .	// Remote Host (?)
-						'<td>' . $regex[8] . '</td>' .	// Lease Time
 					'</tr>';
 			}
 		}
-		die( !empty($str) ? $str : '<tr><td colspan="7"><center>No UPnP Port Mappings</center></td></tr>' );
+		ksort($str);
+		die( !empty($str) ? implode("", $str) : '<tr><td colspan="7"><center>No UPnP Port Mappings</center></td></tr>' );
 	}
 	#################################################################################################
 	# ACTION: SUBMIT ==> Update the UPnP configuration, per user settings:
@@ -71,13 +71,12 @@ echo '
 		<div class="table-responsive p-0">
 			<table class="table table-hover text-nowrap table-sm table-striped table-bordered">
 				<thead class="bg-primary">
+					<td width="10%"><center>ID</center></td>
 					<td width="10%"><center>Protocol</center></td>
 					<td width="10%"><center>Ext. Port</center></td>
 					<td width="10%"><center>IP Address</center></td>
 					<td width="10%"><center>Int. Port</center></td>
-					<td width="30%"><center>Description</center></td>
-					<td width="10%"><center>Remote Host</center></td>
-					<td width="10%"><center>Lease Time</center></td>
+					<td width="50%">Description</td>
 				</thead>
 				<tbody id="upnp-table">
 					<tr><td colspan="7"><center>Loading...</center></td></tr>

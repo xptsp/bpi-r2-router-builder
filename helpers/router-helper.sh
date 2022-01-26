@@ -726,6 +726,11 @@ case $CMD in
 			else
 				[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
 				echo "SYNTAX: $(basename $0) miniupnpd [enable|disable|secure-on|secure-off|restart]" && exit 0
+				echo "Where:"
+				echo "    enable     - Enables and (re)starts the miniupnpd service"
+				echo "    disable    - Disables and stops the miniupnpd service if running"
+				echo "    secure-on  - Enables Secure Mode in the miniupnpd daemon"
+				echo "    secure-off - Disables Secure Mode in the miniupnpd daemon"
 			fi
 		done
 		;;

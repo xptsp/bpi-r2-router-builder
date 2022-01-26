@@ -410,7 +410,10 @@ function UPnP_Submit()
 		if (data == "RELOAD")
 			document.location.reload(true);
 		else if (data == "OK")
+		{
 			$("#apply-modal").modal("hide");
+			$("#upnp_refresh").click();
+		}
 		else
 		{
 			$("#apply_msg").html(data);
