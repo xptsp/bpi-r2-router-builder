@@ -1,6 +1,4 @@
 <?php
-$options = parse_options();
-
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
 #################################################################################################
@@ -38,10 +36,12 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'submit')
 	{
-		$enabled = option("enabled");
-		$secured = option("secured");
-		shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh upnp ' . ($secured ? 'secure-on' : 'secure-off') . ' ' . ($enabled ? 'enable' : 'disable'));
-		echo "OK";
+		$enable = option("enable");
+		$secure = option("secure");
+		$natpmp = option("natpmp");
+		$params = ($natpmp ? 'natpmp-on' : 'natpmp-off') . ' ' . ($secure ? 'secure-on' : 'secure-off') . ' ' . ($enable ? 'enable' : 'disable');
+		shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh upnp ' . $params);
+		die("OK");
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
@@ -52,36 +52,44 @@ if (isset($_POST['action']))
 #################################################################################################
 # Output the UPnP Settings page:
 #################################################################################################
-$options['upnp-enable'] = trim(@shell_exec("systemctl is-enabled miniupnpd")) == "enabled" ? "Y" : "N";
-$options['upnp-secure'] = trim(@shell_exec("cat /etc/miniupnpd/miniupnpd.conf | grep '^secure_mode' | cut -d= -f 2")) == "yes" ? "Y" : "N";
+$options['upnp_enable'] = trim(@shell_exec("systemctl is-enabled miniupnpd")) == "enabled" ? "Y" : "N";
+$options['upnp_secure'] = trim(@shell_exec("cat /etc/miniupnpd/miniupnpd.conf | grep '^secure_mode' | cut -d= -f 2")) == "yes" ? "Y" : "N";
+$options['upnp_natpmp'] = trim(@shell_exec("cat /etc/miniupnpd/miniupnpd.conf | grep '^enable_natpmp' | cut -d= -f 2")) == "yes" ? "Y" : "N";
 site_menu();
 echo '
 <div class="card card-primary">
 	<div class="card-header">
-		<h3 class="card-title">Universal Plug and Play (UPnP) Settings</h3>
+		<h3 class="card-title">Universal Plug and Play Settings</h3>
 	</div>
 	<div class="card-body">
-		', checkbox("upnp_enable", "Enable UPnP (Universal Plug and Play) on this router"), '
-		', checkbox("upnp_secure", "UPnP clients can only add mappings to their own IP"), '
-		<hr style="border-width: 2px" />
-		<h5>
-			<a href="javascript:void(0);"><button type="button" id="upnp_refresh" class="btn btn-sm btn-primary float-right">Refresh</button></a>
-			Current UPnP Port Mappings
-		</h5>
-		<div class="table-responsive p-0">
-			<table class="table table-hover text-nowrap table-sm table-striped table-bordered">
-				<thead class="bg-primary">
-					<td width="10%"><center>ID</center></td>
-					<td width="10%"><center>Protocol</center></td>
-					<td width="10%"><center>Ext. Port</center></td>
-					<td width="10%"><center>IP Address</center></td>
-					<td width="10%"><center>Int. Port</center></td>
-					<td width="50%">Description</td>
-				</thead>
-				<tbody id="upnp-table">
-					<tr><td colspan="7"><center>Loading...</center></td></tr>
-				</tbody>
-			</table>
+		', checkbox("upnp_enable", "Enable UPnP (Universal Plug and Play)"), '
+		<div id="upnp_div"', $options['upnp_enable'] == "N" ? ' class="hidden"' : '', '>
+			<hr style="border-width: 2px" />
+			<h5>
+				UPnP Daemon Settings
+			</h5>
+			', checkbox("upnp_secure", "Enable Secure Mode (UPnP clients can only add mappings to their own IP)"), '
+			', checkbox("upnp_natpmp", "Enable NAT Port Mapping Protocol"), '
+			<hr style="border-width: 2px" />
+			<h5>
+				<a href="javascript:void(0);"><button type="button" id="upnp_refresh" class="btn btn-sm btn-primary float-right">Refresh</button></a>
+				Current UPnP Port Mappings
+			</h5>
+			<div class="table-responsive p-0">
+				<table class="table table-hover text-nowrap table-sm table-striped table-bordered">
+					<thead class="bg-primary">
+						<td width="10%"><center>ID</center></td>
+						<td width="10%"><center>Protocol</center></td>
+						<td width="10%"><center>Ext. Port</center></td>
+						<td width="10%"><center>IP Address</center></td>
+						<td width="10%"><center>Int. Port</center></td>
+						<td width="50%">Description</td>
+					</thead>
+					<tbody id="upnp-table">
+						<tr><td colspan="7"><center>Loading...</center></td></tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
 	</div>
 	<div class="card-footer">

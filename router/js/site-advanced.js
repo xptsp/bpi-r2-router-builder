@@ -376,6 +376,12 @@ function DHCP_Error(msg)
 //======================================================================================================
 function Init_UPnP()
 {
+	$("#upnp_enable").bootstrapSwitch().on('switchChange.bootstrapSwitch', function(event, state) {
+		if (state == true)
+			$("#upnp_div").slideDown(400);
+		else
+			$("#upnp_div").slideUp(400);
+	});
 	$("#upnp_refresh").click(function() {
 		$.post('/advanced/upnp', __postdata("list"), function(data) {
 			if (data == "RELOAD")
@@ -396,8 +402,9 @@ function UPnP_Submit()
 	postdata = {
 		'sid':      SID,
 		'action':   'submit',
-		'enabled':  $("#upnp_enable").prop("checked") ? "Y" : "N",
-		'secured':  $("#upnp_secure").prop("checked") ? "Y" : "N",
+		'enable':   $("#upnp_enable").prop("checked") ? "Y" : "N",
+		'secure':   $("#upnp_secure").prop("checked") ? "Y" : "N",
+		'natpmp':   $("#upnp_natpmp").prop("checked") ? "Y" : "N",
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
@@ -407,13 +414,8 @@ function UPnP_Submit()
 	$("#apply_cancel").addClass("hidden");
 	$.post("/advanced/upnp", postdata, function(data) {
 		data = data.trim();
-		if (data == "RELOAD")
+		if (data == "RELOAD" || data == "OK")
 			document.location.reload(true);
-		else if (data == "OK")
-		{
-			$("#apply-modal").modal("hide");
-			$("#upnp_refresh").click();
-		}
 		else
 		{
 			$("#apply_msg").html(data);
