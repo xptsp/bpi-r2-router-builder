@@ -1,7 +1,0 @@
-#!/bin/bash
-if [[ "${IFACE}" == "wan" ]]; then
-	IFACE=$(cat /etc/miniupnpd/miniupnpd.conf | grep "^ext_ifname=" | cut -d= -f 2)
-	IP_ADDR=$(ifconfig ${IFACE} | grep "inet " | awk '{print $2}')"
-	sed -i "s|^ext_ip=.*|ext_ip=${IP_ADDR}|g" /etc/miniupnpd/miniupnpd.conf
-fi
-exit 0
