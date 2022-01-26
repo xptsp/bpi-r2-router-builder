@@ -189,6 +189,7 @@ elif [[ "$1" == "reload" ]]; then
 	$0 dmz
 	$0 firewall
 	$0 remote
+	$0 forward
 
 #############################################################################
 # DMZ => Setup the DMZ server rule:
@@ -331,5 +332,13 @@ elif [[ "$1" == "remote" ]]; then
 	# Set WebUI port forwarding rule according to user request:
 	iptables -t nat -I REMOTE -i ${remote_iface} -p tcp --dport ${remote_src_port} -j DNAT --to-destination ${IP_ADDR}:${remote_dst_port}
 	iptables -I REMOTE -p tcp -d ${IP_ADDR} --dport ${remote_dst_port} ${LIMIT} -j ACCEPT
+
+#############################################################################
+# FORWARD => Setup the port forwarding rules the user defined:
+#############################################################################
+elif [[ "$1" == "forward" ]]; then
+	iptables -F PORT_FORWARD
+	iptables -t nat -F PORT_FORWARD
+	test -f /etc/network/port_forwarding.rules && cat /etc/network/port_forwarding.rules | iptables-restore --noflush
 fi
 exit 0

@@ -10,12 +10,6 @@ $_GET['action'] = ltrim(preg_replace('/[\s\W]+/', '-', $_GET['action']), '-');
 $include_js = $_GET['action']  == 'home' ? '' : 'site-' . explode('-', $_GET['action'])[0];
 $include_js = $include_js == 'site-ajax' ? '' : $include_js;
 
-# If SID is passed but is wrong, return "RELOAD" to the caller:
-if (isset($_GET['sid']) && ((!isset($_SESSION['sid']) || $_SESSION['sid'] != $_GET['sid'])))
-	die("RELOAD");
-if (isset($_POST['sid']) && ((!isset($_SESSION['sid']) || $_SESSION['sid'] != $_POST['sid'])))
-	die("RELOAD");
-
 # Decide whether the user is logged in or not:
 $logged_in = isset($_SESSION['login_valid_until']) && $_SESSION['login_valid_until'] >= time();
 

@@ -25,6 +25,7 @@ $sidebar_menu = array(
 		'dhcp'      => menu_link('/advanced/dhcp', 'DHCP Reservations', 'fas fa-address-card'),
 		'notify'    => menu_link('/advanced/notify', 'DHCP Notifications', 'fas fa-bullhorn'),
 		'upnp'      => menu_link('/advanced/upnp', 'UPnP Setup', 'fas fa-plug'),
+		'forward'   => menu_link('/advanced/forward', 'Port Forwarding', 'fas fa-forward'),
 	)),
 	'manage'  => array('Management', 'fas fa-cog', array(
 		'status'   => menu_link('/manage/status', 'Router Status', 'fas fa-ethernet'),

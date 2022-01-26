@@ -426,3 +426,20 @@ function UPnP_Submit()
 		$("#apply_cancel").removeClass("hidden");
 	});
 }
+
+//======================================================================================================
+// Javascript functions for "Advanced / UPnP Setup":
+//======================================================================================================
+function Init_PortForward()
+{
+	alert("Got Here");
+	$("#forward_refresh").click(function() {
+		$.post('/advanced/forward', __postdata("list"), function(data) {
+			if (data == "RELOAD")
+				document.location.reload(true);
+			else
+				$("#forward_table").html(data);
+		});
+	}).click();
+	//$("#forward_submit").click(PortForward_Submit);
+}

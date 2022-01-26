@@ -666,8 +666,9 @@ case $CMD in
 
 	###########################################################################
 	forward)
+		FAIL=N
 		if [[ "${1}" == "list" ]]; then
-			iptables --list-rules | grep "^\-A PORT_FORWARD"
+			iptables --list-rules -t nat | grep "^\-A PORT_FORWARD"
 		else
 			#####################################################################
 			# Gather the parameters:
@@ -679,31 +680,33 @@ case $CMD in
 			COMMENT=${7}
 			#####################################################################
 			# Validate the parameters:
-			if ! ifconfig ${IFACE} >& /dev/null; then echo "ERROR: Invalid interface specified for 2nd param!"; exit; fi
-			if ! valid_ip ${IP_ADDR}; then echo "ERROR: Invalid IP Address specified as 3rd param!"; exit; fi
-			if [[ -z "${SRC_PORT}" || "${SRC_PORT}" -lt 0 || "${SRC_PORT}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 4th param!"; exit; fi
-			if [[ "${METHOD}" != "tcp" && "${METHOD}" != "udp" ]]; then echo "ERROR: Must be either tcp or udp for 5th param!"; exit; fi
-			if [[ -z "${DST_PORT}" || "${DST_PORT}" -lt 0 || "${6}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 6th param!"; exit; fi
-			#####################################################################
-			# ADD => Add port forwarding rule
-			if [[ "${1}" == "add" ]]; then
-				iptables -t nat -I PORT_FORWARD -i ${IFACE} -p ${METHOD} --dport ${DST_PORT} -j DNAT --to-destination ${IP_ADDR}:${SRC_PORT} $([[ ! -z "${COMMENT}" ]] && echo "-m comment --comment \"${COMMENT}\"")
-				iptables -I PORT_FORWARD -p ${METHOD} -d ${IP_ADDR} --dport ${SRC_PORT} -j ACCEPT $([[ ! -z "${COMMENT}" ]] && echo "-m comment --comment \"${COMMENT}\"")
-			#####################################################################
-			# REM => Add port forwarding rule
-			elif [[ "${1}" == "del" ]]; then
-				iptables -t nat -D PORT_FORWARD -i ${IFACE} -p ${METHOD} --dport ${DST_PORT} -j DNAT --to-destination ${IP_ADDR}:${SRC_PORT} $([[ ! -z "${COMMENT}" ]] && echo "-m comment --comment \"${COMMENT}\"")
-				iptables -D PORT_FORWARD -p ${METHOD} -d ${IP_ADDR} --dport ${SRC_PORT} -j ACCEPT $([[ ! -z "${COMMENT}" ]] && echo "-m comment --comment \"${COMMENT}\"")
-			#####################################################################
-			# Everything else:
-			else
-				[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-				echo "SYNTAX: $(basename $0) forward [list|add|del]"
-				echo "Where:"
-				echo "    add [iface] [src-ip] [src-port] [method] [ex-port] [comment]  - Insert specified port-forwarding rule"
-				echo "    del [iface] [src-ip] [src-port] [method] [ex-port] [comment]  - Remove specified port-forwarding rule"
-				echo "    list                                                          - List all port-forwarding rules"
-			fi
+			if ! ifconfig ${IFACE} >& /dev/null; then FAIL=Y; echo "ERROR: Invalid interface specified for 2nd param!"; exit; fi
+			if ! valid_ip ${IP_ADDR}; then FAIL=Y; echo "ERROR: Invalid IP Address specified as 3rd param!"; exit; fi
+			if [[ -z "${SRC_PORT}" || "${SRC_PORT}" -lt 0 || "${SRC_PORT}" -gt 65535 ]]; then FAIL=Y; echo "ERROR: Invalid port number for 4th param!"; exit; fi
+			if [[ "${METHOD}" != "tcp" && "${METHOD}" != "udp" ]]; then FAIL=Y; echo "ERROR: Must be either tcp or udp for 5th param!"; exit; fi
+			if [[ -z "${DST_PORT}" || "${DST_PORT}" -lt 0 || "${6}" -gt 65535 ]]; then FAIL=Y; echo "ERROR: Invalid port number for 6th param!"; exit; fi
+		fi
+		#####################################################################
+		# ADD => Add port forwarding rule
+		if [[ "${1}" == "add" ]]; then
+			iptables -t nat -I PORT_FORWARD -i ${IFACE} -p ${METHOD} --dport ${DST_PORT} -j DNAT --to-destination ${IP_ADDR}:${SRC_PORT} $([[ ! -z "${COMMENT}" ]] && echo "-m comment --comment \"${COMMENT}\"")
+			iptables -I PORT_FORWARD -p ${METHOD} -d ${IP_ADDR} --dport ${SRC_PORT} -j ACCEPT $([[ ! -z "${COMMENT}" ]] && echo "-m comment --comment \"${COMMENT}\"")
+			iptables-save | egrep -e "^(COMMIT|\-A PORT_FORWARD|\*.*)" > /etc/network/port_forwarding.rules
+		#####################################################################
+		# REM => Add port forwarding rule
+		elif [[ "${1}" == "del" ]]; then
+			iptables -t nat -D PORT_FORWARD -i ${IFACE} -p ${METHOD} --dport ${DST_PORT} -j DNAT --to-destination ${IP_ADDR}:${SRC_PORT} $([[ ! -z "${COMMENT}" ]] && echo "-m comment --comment \"${COMMENT}\"")
+			iptables -D PORT_FORWARD -p ${METHOD} -d ${IP_ADDR} --dport ${SRC_PORT} -j ACCEPT $([[ ! -z "${COMMENT}" ]] && echo "-m comment --comment \"${COMMENT}\"")
+			iptables-save | egrep -e "^(COMMIT|\-A PORT_FORWARD|\*.*)" > /etc/network/port_forwarding.rules
+		#####################################################################
+		# Everything else:
+		elif [[ "${FAIL}" == "Y" ]]; then
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "SYNTAX: $(basename $0) forward [list|add|del]"
+			echo "Where:"
+			echo "    add [iface] [src-ip] [src-port] [method] [ex-port] [comment]  - Insert specified port-forwarding rule"
+			echo "    del [iface] [src-ip] [src-port] [method] [ex-port] [comment]  - Remove specified port-forwarding rule"
+			echo "    list                                                          - List all port-forwarding rules"
 		fi
 		;;
 
