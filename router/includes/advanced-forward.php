@@ -1,6 +1,4 @@
 <?php
-$_POST['action'] = 'list';
-$_POST['sid'] = $_SESSION['sid'];
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
@@ -15,15 +13,26 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'list')
 	{
-		$rules = array();
+		$str = '';
 		foreach (explode("\n", trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh forward list"))) as $id => $line)
 		{
-			$rules[$id]['port']  = preg_match('/\--dport (\d+)/', $line, $regex) ? $regex[1] : 'ERROR';
-			$rules[$id]['to']    = preg_match('/\--to-destination (\d+\.\d+\.\d+\.\d+\:\d+)/', $line, $regex) ? $regex[1] : 'ERROR';
-			$rules[$id]['proto'] = preg_match('/\-p (tcp|udp)/', $line, $regex) ? $regex[1] : 'both';
+			$ext_port = preg_match('/--(dport|dports) (\d+\:\d+|\d+)/', $line, $regex) ? $regex[2] : 'ERROR';
+			$ip_addr  = preg_match('/--to-destination (\d+\.\d+\.\d+\.\d+\:\d+|\d+\.\d+\.\d+\.\d+)/', $line, $regex) ? $regex[1] : 'ERROR';
+			$int_port = preg_match('/\:(\d+)/', $ip_addr, $regex) ? $regex[1] : $ext_port;
+			$proto    = preg_match('/-p (tcp|udp)/', $line, $regex) ? $regex[1] : 'both';
+			$comment  = preg_match('/--comment (".*?"|\'.*?\'|[^\s+])/', $line, $regex) ? str_replace('"', '', str_replace("\'", "", $regex[1])) : '';
+			$enabled  = preg_match('/-j ([^\s]+)/', $line, $regex);
+			$str .=
+				'<tr>' .
+					'<td><center>' . ($enabled ? 'Y' : 'N') . '</center></td>' .
+					'<td><center>' . $proto . '</center></td>' .
+					'<td><span class="float-right" style="margin-right: 10px">' . $ext_port . '</span></td>' .
+					'<td>' . explode(":", $ip_addr)[0] . '</td>' .
+					'<td><span class="float-right" style="margin-right: 10px">' . $int_port . '</span></td>' .
+					'<td>' . $comment . '</td>' .
+				'</tr>';
 		}
-		echo '<pre>'; print_r($rules); exit;
-		die();
+		die( !empty($str) ? $str : '<tr><td colspan="7"><center>No Ports Forwarded</center></td></tr>' );
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
@@ -48,7 +57,7 @@ echo '
 		<div class="table-responsive p-0">
 			<table class="table table-hover text-nowrap table-sm table-striped table-bordered">
 				<thead class="bg-primary">
-					<td width="10%"><center>ID</center></td>
+					<td width="10%"><center>Enabled</center></td>
 					<td width="10%"><center>Protocol</center></td>
 					<td width="10%"><center>Ext. Port</center></td>
 					<td width="10%"><center>IP Address</center></td>
@@ -62,7 +71,7 @@ echo '
 		</div>
 	</div>
 	<div class="card-footer">
-		<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-success center_50" id="forward_submit">Apply Changes</button></a>
+		<a id="add_reservation_href" href="javascript:void(0);"', '><button type="button" id="add_forward" class="btn btn-success float-right"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add Port Forward</button></a>
 	</div>
 	<!-- /.card-body -->
 </div>';

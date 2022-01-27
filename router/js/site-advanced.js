@@ -432,7 +432,6 @@ function UPnP_Submit()
 //======================================================================================================
 function Init_PortForward()
 {
-	alert("Got Here");
 	$("#forward_refresh").click(function() {
 		$.post('/advanced/forward', __postdata("list"), function(data) {
 			if (data == "RELOAD")
@@ -441,5 +440,4 @@ function Init_PortForward()
 				$("#forward_table").html(data);
 		});
 	}).click();
-	//$("#forward_submit").click(PortForward_Submit);
 }
