@@ -1,4 +1,6 @@
 <?php
+// Detect which interfaces have the masquerade option set in it's configuration file:
+$ifaces = explode("\n", trim(@shell_exec("grep masquerade /etc/network/interfaces.d/* | cut -d: -f 1 | cut -d/ -f 5")));
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
@@ -16,23 +18,45 @@ if (isset($_POST['action']))
 		$str = '';
 		foreach (explode("\n", trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh forward list"))) as $id => $line)
 		{
-			$ext_port = preg_match('/--(dport|dports) (\d+\:\d+|\d+)/', $line, $regex) ? $regex[2] : 'ERROR';
-			$ip_addr  = preg_match('/--to-destination (\d+\.\d+\.\d+\.\d+\:\d+|\d+\.\d+\.\d+\.\d+)/', $line, $regex) ? $regex[1] : 'ERROR';
-			$int_port = preg_match('/\:(\d+)/', $ip_addr, $regex) ? $regex[1] : $ext_port;
-			$proto    = preg_match('/-p (tcp|udp)/', $line, $regex) ? $regex[1] : 'both';
-			$comment  = preg_match('/--comment (".*?"|\'.*?\'|[^\s+])/', $line, $regex) ? str_replace('"', '', str_replace("\'", "", $regex[1])) : '';
-			$enabled  = preg_match('/-j ([^\s]+)/', $line, $regex);
-			$str .=
-				'<tr>' .
-					'<td><center>' . ($enabled ? 'Y' : 'N') . '</center></td>' .
-					'<td><center>' . $proto . '</center></td>' .
-					'<td><span class="float-right" style="margin-right: 10px">' . $ext_port . '</span></td>' .
-					'<td>' . explode(":", $ip_addr)[0] . '</td>' .
-					'<td><span class="float-right" style="margin-right: 10px">' . $int_port . '</span></td>' .
-					'<td>' . $comment . '</td>' .
-				'</tr>';
+			if (!empty($line))
+			{
+				$iface    = preg_match('/-i ([^\s]+)/', $line, $regex) ? $regex[1] : 'ERROR';
+				$ext_port = preg_match('/--(dport|dports) (\d+\:\d+|\d+)/', $line, $regex) ? $regex[2] : 'ERROR';
+				$ip_addr  = preg_match('/--to-destination (\d+\.\d+\.\d+\.\d+\:\d+|\d+\.\d+\.\d+\.\d+)/', $line, $regex) ? $regex[1] : 'ERROR';
+				$int_port = preg_match('/\:(\d+)/', $ip_addr, $regex) ? $regex[1] : $ext_port;
+				$proto    = preg_match('/-p (tcp|udp)/', $line, $regex) ? $regex[1] : 'both';
+				$comment  = preg_match('/--comment (".*?"|.*) -j/', $line, $regex) ? str_replace('"', '', str_replace("\'", "", $regex[1])) : '';
+				$enabled  = preg_match('/-j ([^\s]+)/', $line, $regex);
+				$str .=
+					'<tr>' .
+						'<td><center>' . $iface . '</center></td>' .
+						'<td><center>' . $proto . '</center></td>' .
+						'<td><span class="float-right" style="margin-right: 10px">' . $ext_port . '</span></td>' .
+						'<td>' . explode(":", $ip_addr)[0] . '</td>' .
+						'<td><span class="float-right" style="margin-right: 10px">' . $int_port . '</span></td>' .
+						'<td>' . $comment . '</td>' .
+						'<td><center>' . ($enabled ? 'Y' : 'N') . '</center></td>' .
+					'</tr>';
+			}
 		}
 		die( !empty($str) ? $str : '<tr><td colspan="7"><center>No Ports Forwarded</center></td></tr>' );
+	}
+	#################################################################################################
+	# ACTION: ADD => Add the new port forwarding rule
+	#################################################################################################
+	if ($_POST['action'] == 'add')
+	{
+		$param = array();
+		$param[2] = option_allowed("iface", $ifaces);
+		$param[3] = option_ip("ip_addr");
+		$param[4] = option_range("ext_min", 0, 65535);
+		$param[5] = option_range("ext_max", (int) $options['ext_min'], 65535);
+		$param[6] = option_range("int_port", 0, 65535);
+		$param[7] = option("protocol", "/^(tcp|udp|both)/");
+		$param[8]  = option("enabled");
+		$param[9] = '"' . option("comment", "/^([^\"\']*)$/") . '"';
+		echo '<pre>'; print_r($_POST); exit;
+		die(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh forward add " . implode(" ", $param)));
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
@@ -57,12 +81,13 @@ echo '
 		<div class="table-responsive p-0">
 			<table class="table table-hover text-nowrap table-sm table-striped table-bordered">
 				<thead class="bg-primary">
-					<td width="10%"><center>Enabled</center></td>
+					<td width="10%"><center>Interface</center></td>
 					<td width="10%"><center>Protocol</center></td>
 					<td width="10%"><center>Ext. Port</center></td>
 					<td width="10%"><center>IP Address</center></td>
 					<td width="10%"><center>Int. Port</center></td>
 					<td width="50%">Description</td>
+					<td width="10%"><center>Enabled</center></td>
 				</thead>
 				<tbody id="forward_table">
 					<tr><td colspan="7"><center>Loading...</center></td></tr>
@@ -71,9 +96,163 @@ echo '
 		</div>
 	</div>
 	<div class="card-footer">
-		<a id="add_reservation_href" href="javascript:void(0);"', '><button type="button" id="add_forward" class="btn btn-success float-right"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add Port Forward</button></a>
-	</div>
+		<a href="javascript:void(0);"><button type="button" id="add_forward" class="btn btn-success float-right" data-toggle="modal" data-target="#forward-modal"><i class="fas fa-plus"></i>&nbsp;&nbsp;Add Port Forward</button></a>
+	</div>';
+
+###################################################################################################
+# Port Forwarding modal:
+###################################################################################################
+$subnet = trim(@shell_exec("ifconfig br0 | grep 'inet ' | awk '{print $2}'"));
+$subnet = substr($subnet, 0, strrpos($subnet, '.') + 1);
+echo '
+	<div class="modal fade" id="forward-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title" id="add_port">Add A New Port Forwarding</h4>
+					<h4 class="modal-title hidden" id="edit_port">Edit Port Forwarding</h4>
+					<a href="javascript:void(0);"><button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button></a>
+				</div>
+				<div class="modal-body">
+					<div class="row', count($ifaces) == 1 ? ' hidden' : '', '" style="margin-top: 5px">
+						<div class="col-6">
+							<label for="iface">Interface:</label>
+						</div>
+						<div class="col-6">
+							<select id="iface" class="form-control">';
+foreach ($ifaces as $iface)
+	echo '
+								<option value="', $iface, '">', $iface, '</option>';
+echo '
+							</select>
+						</div>
+					</div>
+					<div class="row" style="margin-top: 5px">
+						<div class="col-6">
+							<label for="app_select">Application:</label>
+						</div>
+						<div class="col-6">
+							<select id="app_select" class="form-control">
+								<option value=",,tcp" selected="selected">Manual</option>
+								<option value="FTP,21,tcp">FTP</option>
+								<option value="Telnet,23,tcp">Telnet</option>
+								<option value="SMTP,25,tcp">SMTP</option>
+								<option value="DNS,53,udp">DNS</option>
+								<option value="TFTP,69,udp">TFTP</option>
+								<option value="Finger,79,tcp">Finger</option>
+								<option value="HTTP,80,tcp">HTTP</option>
+								<option value="POP3,110,tcp">POP3</option>
+								<option value="NNTP,119,tcp">NNTP</option>
+								<option value="SNMP,161,tcp">SNMP</option>
+								<option value="PPTP,1723,tcp">PPTP</option>
+							</select>
+						</div>
+					</div>
+					<div class="row" style="margin-top: 5px">
+						<div class="col-6">
+							<label for="comment">Application Name:</label>
+						</div>
+						<div class="col-6">
+							<div class="input-group">
+								<input id="comment" type="text" class="form-control" value="">
+							</div>
+						</div>
+					</div>
+					<hr style="border-width: 2px" />
+					<div class="row" style="margin-top: 5px">
+						<div class="col-6">
+							<label for="ext_min">Min External Port:</label>
+						</div>
+						<div class="col-3">
+							<div class="input-group">
+								<div class="input-group-prepend">
+									<span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+								</div>
+								<input id="ext_min" type="text" class="form-control port_number" value="">
+							</div>
+						</div>
+					</div>
+					<div class="row" style="margin-top: 5px">
+						<div class="col-6">
+							<label for="ext_max">Max External Port:</label>
+						</div>
+						<div class="col-3">
+							<div class="input-group">
+								<div class="input-group-prepend">
+									<span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+								</div>
+								<input id="ext_max" type="text" class="form-control port_number" value="">
+							</div>
+						</div>
+					</div>
+					<hr style="border-width: 2px" />
+					<div class="row" style="margin-top: 5px">
+						<div class="col-6">
+							<label for="int_port">Internal Port:</label>
+						</div>
+						<div class="col-3">
+							<div class="input-group">
+								<div class="input-group-prepend">
+									<span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+								</div>
+								<input id="int_port" type="text" class="form-control port_number" value="">
+							</div>
+						</div>
+					</div>
+					<div class="row" style="margin-top: 5px">
+						<div class="col-6">
+							<label for="protocol">Protocol:</label>
+						</div>
+						<div class="col-6">
+							<div class="input-group">
+								<div class="input-group-prepend">
+									<span class="input-group-text"><i class="fas fa-caret-down"></i></span>
+								</div>
+								<select id="protocol" class="form-control">
+									<option value="tcp">TCP</option>
+									<option value="udp">UDP</option>
+									<option value="both">Both</option>
+								</select>
+							</div>
+						</div>
+					</div>
+					<div class="row" style="margin-top: 5px">
+						<div class="col-6">
+							<label for="ip_addr">IP Address:</label>
+						</div>
+						<div class="col-6">
+							<div class="input-group">
+								<div class="input-group-prepend">
+									<span class="input-group-text"><i class="fas fa-laptop"></i></span>
+								</div>
+								<input id="ip_addr" type="text" class="ip_address form-control" value="', $subnet, '" data-inputmask="\'alias\': \'ip\'" data-mask>
+							</div>
+						</div>
+					</div>
+					<div class="row" style="margin-top: 5px">
+						<div class="col-6">
+							<label for="int_port">Enabled:</label>
+						</div>
+						<div class="col-6">
+							', checkbox("enabled", ""), '
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer justify-content-between alert_control">
+					<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right" data-dismiss="modal">Cancel</button></a>
+					<a href="javascript:void(0);"><button type="button" id="submit_forward" class="btn btn-success">Add Port Forward</button></a>
+				</div>
+			</div>
+		</div>
+	</div>';
+
+###################################################################################################
+# Close page
+###################################################################################################
+echo '
 	<!-- /.card-body -->
 </div>';
-apply_changes_modal('Please wait while the UPnP settings are managed....', true);
-site_footer('Init_PortForward();');
+apply_changes_modal('Please wait....', true);
+site_footer('Init_PortForward("' . $subnet . '");');

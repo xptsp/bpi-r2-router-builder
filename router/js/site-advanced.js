@@ -430,7 +430,7 @@ function UPnP_Submit()
 //======================================================================================================
 // Javascript functions for "Advanced / UPnP Setup":
 //======================================================================================================
-function Init_PortForward()
+function Init_PortForward(ip)
 {
 	$("#forward_refresh").click(function() {
 		$.post('/advanced/forward', __postdata("list"), function(data) {
@@ -440,4 +440,67 @@ function Init_PortForward()
 				$("#forward_table").html(data);
 		});
 	}).click();
+	$("#add_forward").click(function() {
+		$('#app_select').val(",,tcp").change();
+		$("#ip_addr").val(ip);
+	}).click();
+	$("#app_select").change(function() {
+		val = $("#app_select").val();
+		arr = val.split(',');
+		$("#protcol").val(arr[2]);
+		if (arr[0] != "") {
+			$("#comment").val(arr[0]);
+			$("#ext_min").val(arr[1]);
+			$("#ext_max").val(arr[1]);
+			$("#int_port").val(arr[1]);
+			$("#ext_min").attr("disabled", "disabled");
+			$("#ext_max").attr("disabled", "disabled");
+			$("#int_port").attr("disabled", "disabled");
+			$("#protcol").attr("disabled", "disabled");
+		} else {
+			$("#ext_min").removeAttr("disabled");
+			$("#ext_max").removeAttr("disabled");
+			$("#int_port").removeAttr("disabled");
+			$("#protcol").removeAttr("disabled");
+		}
+	});
+	$(".port_number").inputmask("integer", {min:0, max:65535});
+	$('#ip_addr').inputmask("ip");
+	$("#submit_forward").click(PortForward_Add);
+}
+
+function PortForward_Add()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':      SID,
+		'action':   'add',
+		'iface':    $("#iface").val(),
+		'ext_min':  $("#ext_min").val(),
+		'ext_max':  $("#ext_max").val(),
+		'ip_addr':  $("#ip_addr").val(),
+		'int_port': $("#int_port").val(),
+		'protocol': $("#protocol").val(),
+		'comment':  $("#comment").val(),
+		'enabled':  $("#enabled").prop("checked") ? "Y" : "N",
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to change the WAN settings:
+	$("#apply_msg").html( $("#apply_default").html() );
+	$("#apply-modal").modal("show");
+	$("#apply_cancel").addClass("hidden");
+	$.post("/advanced/forward", postdata, function(data) {
+		data = data.trim();
+		if (data == "RELOAD" || data == "OK")
+			document.location.reload(true);
+		else
+		{
+			$("#apply_msg").html(data);
+			$(".alert_control").removeClass("hidden");
+		}
+	}).fail(function() {
+		$("#apply_msg").html("AJAX call failed!");
+		$("#apply_cancel").removeClass("hidden");
+	});
 }

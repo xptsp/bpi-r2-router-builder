@@ -558,9 +558,7 @@ case $CMD in
 		unset DNS1 DNS2
 		if [[ "$1" == "config" ]]; then
 			test -f /etc/default/router-settings && source /etc/default/router-settings
-			if [[ "${use_unbound:-"N"}" == "Y" ]]; then
-				DNS1=127.0.0.1#5335
-			elif [[ "${use_cloudflared:="N"}" == "Y" ]]; then
+			if [[ "${use_cloudflared:="N"}" == "Y" ]]; then
 				DNS1=127.0.0.1#5051
 			elif [[ "${use_isp:="N"}" == "Y" ]]; then 
 				IP=($(cat /etc/resolv.conf | grep "nameserver" | head -2 | awk '{print $2}'))
@@ -669,24 +667,27 @@ case $CMD in
 		FAIL=N
 		if [[ "${1}" == "list" ]]; then
 			iptables --list-rules -t nat | grep "^\-A PORT_FORWARD"
+			FAIL=OK
 		else
 			#####################################################################
 			# Gather the parameters:
 			IFACE=${2}
 			IP_ADDR=${3}
-			SRC_PORT=${4}
-			DST_PORT=${5:-"${SRC_PORT}"}
-			METHOD=${6}
-			ENABLE=${7}
-			COMMENT=${8}
+			DST_MIN=${4}
+			DST_MAX=${5:-"${DST_MIN}"}
+			SRC_PORT=${6:-"${DST_MIN}"}
+			METHOD=${7:-"both"}
+			ENABLE=${8:="Y"}
+			COMMENT=${9}
 			#####################################################################
 			# Validate the parameters:
 			if ! ifconfig ${IFACE} >& /dev/null; then FAIL=Y; echo "ERROR: Invalid interface specified for 2nd param!"; fi
 			if ! valid_ip ${IP_ADDR}; then FAIL=Y; echo "ERROR: Invalid IP Address specified as 3rd param!"; fi
-			if [[ -z "${SRC_PORT}" || "${SRC_PORT}" -lt 0 || "${SRC_PORT}" -gt 65535 ]]; then FAIL=Y; echo "ERROR: Invalid port number for 4th param!"; fi
-			if [[ -z "${DST_PORT}" || "${DST_PORT}" -lt 0 || "${DST_PORT}" -gt 65535 ]]; then FAIL=Y; echo "ERROR: Invalid port number for 5th param!"; fi
-			if [[ "${METHOD}" != "tcp" && "${METHOD}" != "udp" && "${METHOD}" != "both" ]]; then FAIL=Y; echo "ERROR: Must be either tcp, udp or both for 6th param!"; fi
-			if [[ "${ENABLE}" != "Y" && "${ENABLE}" != "N" ]]; then FAIL=Y; echo "ERROR: Must be either Y or N for 7th param!"; fi
+			if [[ -z "${DST_MIN}" || "${DST_MIN}" -lt 0 || "${DST_MIN}" -gt 65535 ]]; then FAIL=Y; echo "ERROR: Invalid port number for 4th param!"; fi
+			if [[ -z "${DST_MAX}" || "${DST_MAX}" -lt "${DST_MIN}" || "${DST_MAX}" -gt 65535 ]]; then FAIL=Y; echo "ERROR: Invalid port number for 5th param!"; fi
+			if [[ -z "${SRC_PORT}" || "${SRC_PORT}" -lt 0 || "${SRC_PORT}" -gt 65535 ]]; then FAIL=Y; echo "ERROR: Invalid port number for 6th param!"; fi
+			if [[ "${METHOD}" != "tcp" && "${METHOD}" != "udp" && "${METHOD}" != "both" ]]; then FAIL=Y; echo "ERROR: Must be either tcp, udp or both for 7th param!"; fi
+			if [[ "${ENABLE}" != "Y" && "${ENABLE}" != "N" ]]; then FAIL=Y; echo "ERROR: Must be either Y or N for 8th param!"; fi
 		fi
 		#####################################################################
 		# If we haven't failed out yet, perform the actions:
@@ -694,18 +695,21 @@ case $CMD in
 		if [[ "${FAIL}" == "N" ]]; then
 			[[ "${METHOD:="both"}" != "both" ]] && METHOD="-p ${METHOD}" || unset METHOD
 			[[ "${ENABLE:="Y"}" == "Y" ]] && ACTION="-j ACCEPT" || unset ACTION
+			[[ "${DST_MIN}" == "${DST_MAX}" ]] && DST_PORT="--dport ${DST_MIN}" || DST_PORT="-m multiport --dports ${DST_MIN}:${DST_MAX}"
 			#####################################################################
 			# ADD => Add port forwarding rule
 			if [[ "${1}" == "add" ]]; then
-				iptables -t nat -I PORT_FORWARD -i ${IFACE} ${METHOD} --dport ${DST_PORT} -j DNAT --to-destination ${IP_ADDR}:${SRC_PORT} -m comment --comment "${COMMENT:-" "}"
-				iptables -I PORT_FORWARD ${METHOD} -d ${IP_ADDR} --dport ${SRC_PORT} ${ACTION} -m comment --comment "${COMMENT:-" "}"
+				iptables -t nat -A PORT_FORWARD -i ${IFACE} ${METHOD} ${DST_PORT} -j DNAT --to-destination ${IP_ADDR}$([[ "${DST_MIN}" == "${DST_MAX}" ]] && echo ":${SRC_PORT}") -m comment --comment "${COMMENT:-" "}"
+				iptables -A PORT_FORWARD ${METHOD} -d ${IP_ADDR} $([[ "${DST_MIN}" == "${DST_MAX}" ]] && echo "--dport ${SRC_PORT}") ${ACTION} -m comment --comment "${COMMENT:-" "}"
 				iptables-save | egrep -e "^(COMMIT|\-A PORT_FORWARD|\*)" > /etc/network/port_forwarding.rules
+				echo "OK"
 			#####################################################################
 			# REM => Add port forwarding rule
 			elif [[ "${1}" == "del" ]]; then
-				iptables -t nat -D PORT_FORWARD -i ${IFACE} ${METHOD} --dport ${DST_PORT} -j DNAT --to-destination ${IP_ADDR}:${SRC_PORT} -m comment --comment "${COMMENT:-" "}"
-				iptables -D PORT_FORWARD ${METHOD} -d ${IP_ADDR} --dport ${SRC_PORT} ${ACTION} -m comment --comment "${COMMENT:-" "}"
+				iptables -t nat -D PORT_FORWARD -i ${IFACE} ${METHOD} ${DST_PORT} -j DNAT --to-destination ${IP_ADDR}$([[ "${DST_MIN}" == "${DST_MAX}" ]] && echo ":${SRC_PORT}") -m comment --comment "${COMMENT:-" "}"
+				iptables -D PORT_FORWARD ${METHOD} -d ${IP_ADDR} $([[ "${DST_MIN}" == "${DST_MAX}" ]] && echo "--dport ${SRC_PORT}") ${ACTION} -m comment --comment "${COMMENT:-" "}"
 				iptables-save | egrep -e "^(COMMIT|\-A PORT_FORWARD|\*)" > /etc/network/port_forwarding.rules
+				echo "OK"
 			#####################################################################
 			# Everything else: Set fail flag
 			else
@@ -719,9 +723,9 @@ case $CMD in
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
 			echo "SYNTAX: $(basename $0) forward [list|add|del]"
 			echo "Where:"
-			echo "    add [iface] [ip] [port] [ext-port] [method] [enable] [comment] - Insert specified port-forwarding rule"
-			echo "    del [iface] [ip] [port] [ext-port] [method] [enable] [comment] - Remove specified port-forwarding rule"
-			echo "    list                                                           - List all port-forwarding rules"
+			echo "    add [iface] [ip] [port] [min] [max] [method] [enable] [comment] - Insert specified port-forwarding rule"
+			echo "    del [iface] [ip] [port] [min] [max] [method] [enable] [comment] - Remove specified port-forwarding rule"
+			echo "    list                                                            - List all port-forwarding rules"
 		fi
 		;;
 

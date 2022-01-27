@@ -36,14 +36,6 @@ function Init_DNS(dns1, dns2)
 		$("#dns1").val("127.0.0.1");
 		$("#dns2").val("");
 	});
-	$("#dns_unbound").click(function() {
-		$(".provider").addClass("hidden");
-		$(".dns_address").attr("disabled", "disabled");
-		$(".dns_port").attr("disabled", "disabled").val("");
-		$("#dns_port1").val("5335");
-		$("#dns1").val("127.0.0.1");
-		$("#dns2").val("");
-	});
 	$(".provider").change(function() {
 		dns = $(this).find("option:selected").val().split('/');
 		$("#dns_port").attr("disabled", "disabled");
@@ -65,7 +57,6 @@ function DNS_Submit()
 		'action':          'submit',
 		'use_isp':         ($("[name=dns_server_opt]:checked").val()) == "isp" ? 'Y' : 'N',
 		'use_cloudflared': ($("[name=dns_server_opt]:checked").val()) == "cloudflared" ? $('#select_cloudflared').find("option:selected").val().slice(-1) : 'N',
-		'use_unbound':     ($("[name=dns_server_opt]:checked").val()) == "unbound" ? 'Y' : 'N',
 		'dns1':            $("#dns1").val() + (($("#dns_port1").val() != "53" && $("#dns_port1").val() != "") ? "#" + $("#dns_port1").val() : ''),
 		'dns2':            $("#dns2").val() + (($("#dns_port2").val() != "53" && $("#dns_port2").val() != "") ? "#" + $("#dns_port2").val() : ''),
 		'redirect_dns':    $("#redirect_dns").prop("checked") ? "Y" : "N",

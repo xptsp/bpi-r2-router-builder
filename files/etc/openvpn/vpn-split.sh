@@ -28,8 +28,8 @@ route-noexec
 
 #up and down scripts to be executed when VPN starts or stops
 script-security 2
-up /opt/openvpn/vpn-split.sh
-down /opt/openvpn/vpn-down.sh
+up /etc/openvpn/vpn-split.sh
+down /etc/openvpn/vpn-down.sh
 down-pre
 
 # prevent DNS leakage

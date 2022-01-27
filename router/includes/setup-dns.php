@@ -18,7 +18,6 @@ if (isset($_POST['action']))
 		// Apply configuration file changes:
 		$options['use_isp']         = option('use_isp');
 		$options['use_cloudflared'] = option_allowed('use_cloudflared', array("N", "1", "2", "3"));
-		$options['use_unbound']     = option('use_unbound');
 		$options['dns1']            = option_ip('dns1', false, true);
 		$options['dns2']            = option_ip('dns2', true, true);
 		$options['redirect_dns']    = option('redirect_dns');
@@ -52,7 +51,6 @@ foreach (@file("/etc/resolv.conf") as $line)
 }
 $use_isp = (empty($isp[0]) || $primary == $isp[0]) && (empty($isp[1]) ? true : ($secondary == $isp[1]));
 $cloudflared_mode = preg_match('/^127\.0\.0\.1\#505(\d)$/', $primary, $regex) ? $regex[1] : 'N';
-$use_unbound = (empty($isp[0]) || $primary == "127.0.0.1#5335");
 $providers = array(
 	array('Google', '8.8.8.8', '8.8.4.4'),
 	array('OpenDNS', '208.67.222.222', '208.67.220.220'),
@@ -73,8 +71,8 @@ $providers = array(
 $use_provider = false;
 foreach ($providers as $provider)
 	$use_provider |= ($primary == $provider[1] && $secondary == $provider[2]);
-$use_custom = !($use_isp || $cloudflared_mode != "N" || $use_unbound || $use_provider);
-#echo '<pre>$current = '; print_r($current); echo '$primary = ' . $primary . "\n" . '$secondary = ' . $secondary . "\n" . '$isp = '; print_r($isp); echo '$use_isp = ' . ($use_isp ? 'Y' : 'N') . "\n"; echo '$cloudflared_mode = ' . ($cloudflared_mode ? 'Y' : 'N') . "\n"; echo '$use_unbound = ' . ($use_unbound ? 'Y' : 'N') . "\n"; echo '$use_provider = ' . ($use_provider ? 'Y' : 'N') . "\n"; echo '$use_custom = ' . ($use_custom ? 'Y' : 'N') . "\n"; exit;
+$use_custom = !($use_isp || $cloudflared_mode != "N"  || $use_provider);
+#echo '<pre>$current = '; print_r($current); echo '$primary = ' . $primary . "\n" . '$secondary = ' . $secondary . "\n" . '$isp = '; print_r($isp); echo '$use_isp = ' . ($use_isp ? 'Y' : 'N') . "\n"; echo '$cloudflared_mode = ' . ($cloudflared_mode ? 'Y' : 'N') . "\n"; echo '$use_provider = ' . ($use_provider ? 'Y' : 'N') . "\n"; echo '$use_custom = ' . ($use_custom ? 'Y' : 'N') . "\n"; exit;
 
 ###################################################################################################
 # Output the DNS Settings page:
@@ -95,10 +93,6 @@ echo '
 					<div class="icheck-primary">
 						<input type="radio" id="dns_cloud" value="cloudflared" name="dns_server_opt"', $cloudflared_mode != "N" ? ' checked="checked"' : '', '>
 						<label for="dns_cloud">Use Cloudflare DNS Servers (DoH)</label>
-					</div>
-					<div class="icheck-primary">
-						<input type="radio" id="dns_unbound" value="unbound" name="dns_server_opt"', $use_unbound ? ' checked="checked"' : '', '>
-						<label for="dns_unbound">Use integrated Unbound DNS Server</label>
 					</div>
 					<div class="icheck-primary">
 						<input type="radio" id="dns_isp" value="isp" name="dns_server_opt"', $use_isp ? ' checked="checked"' : '', '>
