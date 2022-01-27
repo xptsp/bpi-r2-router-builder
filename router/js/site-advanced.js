@@ -467,16 +467,24 @@ function Init_PortForward(ip)
 	$(".port_number").inputmask("integer", {min:0, max:65535});
 	$("#ext_min").change(function() {
 		val = $(this).val();
-		$("#ext_max").val( val );
-		$("#int_port").val( val );
+		$("#ext_max").val( val ).change();
+		$("#int_port").val( val ).change();
 	});
-	$(".ext-port").change(function() {
+	$("#ext_max").change(function() {
 		min = $("#ext_min").val();
-		max = $("#ext_max").val();
+		max = $(this).val();
 		if (min != max)
 			$("#int_port").val(min).attr("disabled", "disabled");
 		else
 			$("#int_port").removeAttr("disabled");
+	});
+	$("#int_port").change(function() {
+		src = $("#ext_min").val();
+		dst = $("#int_port").val();
+		if (src != dst)
+			$("#ext_max").val(min).attr("disabled", "disabled");
+		else
+			$("#ext_max").removeAttr("disabled");
 	});
 	$('#ip_addr').inputmask("ip");
 	$("#submit_forward").click(PortForward_Add);
