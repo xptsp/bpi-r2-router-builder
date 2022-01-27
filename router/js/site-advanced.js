@@ -443,7 +443,7 @@ function Init_PortForward(ip)
 	$("#add_forward").click(function() {
 		$('#app_select').val(",,tcp").change();
 		$("#ip_addr").val(ip);
-	}).click();
+	});
 	$("#app_select").change(function() {
 		val = $("#app_select").val();
 		arr = val.split(',');
@@ -465,6 +465,19 @@ function Init_PortForward(ip)
 		}
 	});
 	$(".port_number").inputmask("integer", {min:0, max:65535});
+	$("#ext_min").change(function() {
+		val = $(this).val();
+		$("#ext_max").val( val );
+		$("#int_port").val( val );
+	});
+	$(".ext-port").change(function() {
+		min = $("#ext_min").val();
+		max = $("#ext_max").val();
+		if (min != max)
+			$("#int_port").val(min).attr("disabled", "disabled");
+		else
+			$("#int_port").removeAttr("disabled");
+	});
 	$('#ip_addr').inputmask("ip");
 	$("#submit_forward").click(PortForward_Add);
 }
@@ -489,14 +502,13 @@ function PortForward_Add()
 	// Perform our AJAX request to change the WAN settings:
 	$("#apply_msg").html( $("#apply_default").html() );
 	$("#apply-modal").modal("show");
-	$("#apply_cancel").addClass("hidden");
 	$.post("/advanced/forward", postdata, function(data) {
 		data = data.trim();
 		if (data == "RELOAD" || data == "OK")
 			document.location.reload(true);
 		else
 		{
-			$("#apply_msg").html(data);
+			$("#apply_msg").html('<pre>' + data + '</pre>');
 			$(".alert_control").removeClass("hidden");
 		}
 	}).fail(function() {

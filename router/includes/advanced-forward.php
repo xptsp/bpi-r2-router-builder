@@ -47,15 +47,15 @@ if (isset($_POST['action']))
 	if ($_POST['action'] == 'add')
 	{
 		$param = array();
-		$param[2] = option_allowed("iface", $ifaces);
-		$param[3] = option_ip("ip_addr");
-		$param[4] = option_range("ext_min", 0, 65535);
-		$param[5] = option_range("ext_max", (int) $options['ext_min'], 65535);
-		$param[6] = option_range("int_port", 0, 65535);
-		$param[7] = option("protocol", "/^(tcp|udp|both)/");
-		$param[8]  = option("enabled");
-		$param[9] = '"' . option("comment", "/^([^\"\']*)$/") . '"';
-		echo '<pre>'; print_r($_POST); exit;
+		$param['iface']    = option_allowed("iface", $ifaces);
+		$param['ip_addr']  = option_ip("ip_addr");
+		$param['ext_min']  = option_range("ext_min", 0, 65535);
+		$param['ext_max']  = option_range("ext_max", (int) $options['ext_min'], 65535);
+		$param['int_port'] = option_range("int_port", 0, 65535);
+		$param['protocol'] = option("protocol", "/^(tcp|udp|both)/");
+		$param['enabled']  = option("enabled");
+		$param['comment']  = '"' . option("comment", "/^([^\"\']*)$/") . '"';
+		//echo '<pre>'; print_r($param); exit;
 		die(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh forward add " . implode(" ", $param)));
 	}
 	#################################################################################################
@@ -170,7 +170,7 @@ echo '
 								<div class="input-group-prepend">
 									<span class="input-group-text"><i class="fas fa-hashtag"></i></span>
 								</div>
-								<input id="ext_min" type="text" class="form-control port_number" value="">
+								<input id="ext_min" type="text" class="ext-port form-control port_number" value="">
 							</div>
 						</div>
 					</div>
@@ -183,7 +183,7 @@ echo '
 								<div class="input-group-prepend">
 									<span class="input-group-text"><i class="fas fa-hashtag"></i></span>
 								</div>
-								<input id="ext_max" type="text" class="form-control port_number" value="">
+								<input id="ext_max" type="text" class="ext-port form-control port_number" value="">
 							</div>
 						</div>
 					</div>
