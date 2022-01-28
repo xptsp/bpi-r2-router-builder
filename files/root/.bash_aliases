@@ -1,3 +1,7 @@
+mksquashfs()
+{
+	/usr/bin/mksquashfs $@ -b 1048576 -comp xz -Xdict-size 100%
+}
 alias losl='losetup -l'
 los()
 {
@@ -8,7 +12,8 @@ los()
 		dev="$(sudo losetup --show -f -P "$img")"
 		dest=${dev/dev/mnt}
 		echo $dest
-		if [[ ! "$(basename $1)" =~ "bpiwrt_" ]]; then
+		base=$(basename $1)
+		if [[ ! "${base}" =~ "bpiwrt_" && ! $"{base}" =~ "bpi-r2" ]]; then
 			for part in ${dev}p*; do
 				sudo mkdir -p ${dest} && sudo mount ${part} ${dest}
 			done

@@ -146,6 +146,7 @@ echo '
 								<option value="POP3,110,tcp">POP3</option>
 								<option value="NNTP,119,tcp">NNTP</option>
 								<option value="SNMP,161,tcp">SNMP</option>
+								<option value="HTTPS,443,tcp">HTTPS</option>
 								<option value="PPTP,1723,tcp">PPTP</option>
 							</select>
 						</div>
