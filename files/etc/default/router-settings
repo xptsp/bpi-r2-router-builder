@@ -112,7 +112,7 @@ remote_port=8080
 # Interface to accept remote management port from.  Default: "wan"
 remote_iface=wan
 
-+# Limit remote management access.  Accepts "all", "mac", "ip", "range".  Default: "all"
+# Limit remote management access.  Accepts "all", "mac", "ip", "range".  Default: "all"
 remote_limit_by=all
 
 # When "remote_limit_by" is "mac", restrict access to this MAC address.  Default: "AA:BB:CC:DD:EE:FF"
