@@ -436,8 +436,8 @@ function Init_PortForward(ip)
 		$.post('/advanced/forward', __postdata("list"), function(data) {
 			if (data == "RELOAD")
 				document.location.reload(true);
-			else
-				$("#forward_table").html(data);
+			$("#forward_table").html(data);
+			$(".fa-trash-alt").click(PortForward_Delete);
 		});
 	}).click();
 	$("#add_forward").click(function() {
@@ -504,6 +504,37 @@ function PortForward_Add()
 		'protocol': $("#protocol").val(),
 		'comment':  $("#comment").val(),
 		'enabled':  $("#enabled").prop("checked") ? "Y" : "N",
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to change the WAN settings:
+	$("#apply_msg").html( $("#apply_default").html() );
+	$("#apply-modal").modal("show");
+	$.post("/advanced/forward", postdata, function(data) {
+		data = data.trim();
+		if (data == "RELOAD" || data == "OK")
+			document.location.reload(true);
+		else
+		{
+			$("#apply_msg").html('<pre>' + data + '</pre>');
+			$(".alert_control").removeClass("hidden");
+		}
+	}).fail(function() {
+		$("#apply_msg").html("AJAX call failed!");
+		$("#apply_cancel").removeClass("hidden");
+	});
+}
+
+function PortForward_Delete()
+{
+	// Assemble the post data for the AJAX call:
+	parent = $(this).parent().parent().parent().parent();
+	postdata = {
+		'sid':      SID,
+		'action':   'del',
+		'iface':    parent.find(".iface").text(),
+		'protocol': parent.find(".proto").text(),
+		'ext_min':  parent.find(".ext_port").text(),
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 

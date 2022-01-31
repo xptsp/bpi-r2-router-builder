@@ -101,6 +101,17 @@ function valid_ip()
     return $stat
 }
 
+function forward_help()
+{
+	if [[ ! -z "${1}" ]]; then echo $@; fi
+	echo "SYNTAX: $(basename $0) forward [list|add|del]"
+	echo "Where:"
+	echo "    add [iface] [method] [min] [max] [ip] [port] [enable] [comment] - Insert specified port-forwarding rule"
+	echo "    del [iface] [method] [min] [max] [ip] [port] [enable] [comment] - Remove specified port-forwarding rule"
+	echo "    list                                                            - List all port-forwarding rules"
+	exit 1
+}
+
 ###########################################################################
 # Main code
 ###########################################################################
@@ -664,68 +675,65 @@ case $CMD in
 
 	###########################################################################
 	forward)
-		FAIL=N
+		#####################################################################
+		# ACTION: LIST ==> List all port-forwarding rules
+		#####################################################################
 		if [[ "${1}" == "list" ]]; then
 			iptables --list-rules -t nat | grep "^\-A PORT_FORWARD"
-			FAIL=OK
-		else
-			#####################################################################
-			# Gather the parameters:
-			IFACE=${2}
-			IP_ADDR=${3}
-			DST_MIN=${4}
-			DST_MAX=${5:-"${DST_MIN}"}
-			SRC_PORT=${6:-"${DST_MIN}"}
-			METHOD=${7:-"both"}
-			ENABLE=${8:="Y"}
-			COMMENT=${9}
+
+		#####################################################################
+		# ACTION: ADD/DEL ==> Adds or deletes specified port-forward rule
+		#####################################################################
+		elif [[ "${1}" == "add" || "${1}" == "del" ]]; then
 			#####################################################################
 			# Validate the parameters:
-			if ! ifconfig ${IFACE} >& /dev/null; then FAIL=Y; echo "ERROR: Invalid interface specified for 2nd param!"; fi
-			if ! valid_ip ${IP_ADDR}; then FAIL=Y; echo "ERROR: Invalid IP Address specified as 3rd param!"; fi
-			if [[ -z "${DST_MIN}" || "${DST_MIN}" -lt 0 || "${DST_MIN}" -gt 65535 ]]; then FAIL=Y; echo "ERROR: Invalid port number for 4th param!"; fi
-			if [[ -z "${DST_MAX}" || "${DST_MAX}" -lt "${DST_MIN}" || "${DST_MAX}" -gt 65535 ]]; then FAIL=Y; echo "ERROR: Invalid port number for 5th param!"; fi
-			if [[ -z "${SRC_PORT}" || "${SRC_PORT}" -lt 0 || "${SRC_PORT}" -gt 65535 ]]; then FAIL=Y; echo "ERROR: Invalid port number for 6th param!"; fi
-			if [[ "${METHOD}" != "tcp" && "${METHOD}" != "udp" && "${METHOD}" != "both" ]]; then FAIL=Y; echo "ERROR: Must be either tcp, udp or both for 7th param!"; fi
-			if [[ "${ENABLE}" != "Y" && "${ENABLE}" != "N" ]]; then FAIL=Y; echo "ERROR: Must be either Y or N for 8th param!"; fi
-		fi
-		#####################################################################
-		# If we haven't failed out yet, perform the actions:
-		#####################################################################
-		if [[ "${FAIL}" == "N" ]]; then
-			[[ "${METHOD:="both"}" != "both" ]] && METHOD="-p ${METHOD}" || unset METHOD
+			IFACE=${2}
+			METHOD=${3}
+			DST_MIN=${4}
+			DST_MAX=${5:-"${DST_MIN}"}
+			if ! ifconfig ${IFACE} >& /dev/null; then forward_help "ERROR: Invalid interface specified for 2nd param!"; fi
+			if [[ "${METHOD}" != "tcp" && "${METHOD}" != "udp" && "${METHOD}" != "both" ]]; then forward_help "ERROR: Must be either tcp, udp or both for 3rd param!"; fi
+			if [[ -z "${DST_MIN}" || "${DST_MIN}" -lt 0 || "${DST_MIN}" -gt 65535 ]]; then forward_help "ERROR: Invalid port number for 4th param!"; fi
+			if [[ -z "${DST_MAX}" || "${DST_MAX}" -lt "${DST_MIN}" || "${DST_MAX}" -gt 65535 ]]; then forward_help "ERROR: Invalid port number for 5th param!"; fi
+
+			if [[ "${1}" == "add" ]]; then
+				IP_ADDR=${6}
+				SRC_PORT=${7}
+				ENABLE=${8:="Y"}
+				COMMENT=${9}
+				if ! valid_ip ${IP_ADDR}; then forward_help "ERROR: Invalid IP Address specified as 5th param!"; fi
+				if [[ -z "${SRC_PORT}" || "${SRC_PORT}" -lt 0 || "${SRC_PORT}" -gt 65535 ]]; then forward_help "ERROR: Invalid port number for 6th param!"; fi
+				if [[ "${ENABLE}" != "Y" && "${ENABLE}" != "N" ]]; then forward_help "ERROR: Must be either Y or N for 8th param!"; fi
+			fi
+
+			#####################################################################
+			# If we haven't failed out yet, perform the actions:
+			#####################################################################
 			[[ "${ENABLE:="Y"}" == "Y" ]] && ACTION="-j ACCEPT" || unset ACTION
 			[[ "${DST_MIN}" == "${DST_MAX}" ]] && DST_PORT="--dport ${DST_MIN}" || DST_PORT="-m multiport --dports ${DST_MIN}:${DST_MAX}"
+
 			#####################################################################
 			# ADD => Add port forwarding rule
 			if [[ "${1}" == "add" ]]; then
+				[[ "${METHOD:="both"}" != "both" ]] && METHOD="-p ${METHOD}" || unset METHOD
 				iptables -t nat -A PORT_FORWARD -i ${IFACE} ${METHOD} ${DST_PORT} -j DNAT --to-destination ${IP_ADDR}$([[ "${DST_MIN}" == "${DST_MAX}" ]] && echo ":${SRC_PORT}") -m comment --comment "${COMMENT:-" "}"
-				iptables -A PORT_FORWARD ${METHOD} -d ${IP_ADDR} $([[ "${DST_MIN}" == "${DST_MAX}" ]] && echo "--dport ${SRC_PORT}") ${ACTION} -m comment --comment "${COMMENT:-" "}"
+				iptables -A PORT_FORWARD ${METHOD} -d ${IP_ADDR} $([[ "${DST_MIN}" == "${DST_MAX}" ]] && echo "--dport ${SRC_PORT}") ${ACTION} -m comment --comment "${COMMENT:-""}"
 				iptables-save | egrep -e "^(COMMIT|\-A PORT_FORWARD|\*)" > /etc/network/port_forwarding.rules
 				echo "OK"
 			#####################################################################
 			# REM => Add port forwarding rule
-			elif [[ "${1}" == "del" ]]; then
-				iptables -t nat -D PORT_FORWARD -i ${IFACE} ${METHOD} ${DST_PORT} -j DNAT --to-destination ${IP_ADDR}$([[ "${DST_MIN}" == "${DST_MAX}" ]] && echo ":${SRC_PORT}") -m comment --comment "${COMMENT:-" "}"
-				iptables -D PORT_FORWARD ${METHOD} -d ${IP_ADDR} $([[ "${DST_MIN}" == "${DST_MAX}" ]] && echo "--dport ${SRC_PORT}") ${ACTION} -m comment --comment "${COMMENT:-" "}"
+			else
+				iptables --list-rules | grep PORT_FORWARD | grep "\-(dports|dport) ${DST_MIN}" | grep "${METHOD:-" "}" | while read line; do iptables ${line/^\-A/\-D}; done
+				iptables -t nat --list-rules | grep PORT_FORWARD | grep ${IFACE} | egrep "\-(dports|dport) ${DST_MIN}" | grep ${METHOD:-" "} | while read line; do iptables -t nat ${line/\-A/\-D}; done
 				iptables-save | egrep -e "^(COMMIT|\-A PORT_FORWARD|\*)" > /etc/network/port_forwarding.rules
 				echo "OK"
-			#####################################################################
-			# Everything else: Set fail flag
-			else
-				FAIL=Y
 			fi
-		fi
+
 		#####################################################################
-		# Did we fail out sometime during the run?  If so, show user the syntax:
+		# Everything else: Set fail flag
 		#####################################################################
-		if [[ "${FAIL}" == "Y" ]]; then
-			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-			echo "SYNTAX: $(basename $0) forward [list|add|del]"
-			echo "Where:"
-			echo "    add [iface] [ip] [port] [min] [max] [method] [enable] [comment] - Insert specified port-forwarding rule"
-			echo "    del [iface] [ip] [port] [min] [max] [method] [enable] [comment] - Remove specified port-forwarding rule"
-			echo "    list                                                            - List all port-forwarding rules"
+		else
+			forward_help $@
 		fi
 		;;
 
@@ -793,3 +801,5 @@ case $CMD in
 		echo "NOTE: Use \"-h\" after the command to see what options are available for that command."
 		;;
 esac
+
+

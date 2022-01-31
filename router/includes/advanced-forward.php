@@ -29,34 +29,48 @@ if (isset($_POST['action']))
 				$enabled  = preg_match('/-j ([^\s]+)/', $line, $regex);
 				$str .=
 					'<tr>' .
-						'<td><center>' . $iface . '</center></td>' .
-						'<td><center>' . $proto . '</center></td>' .
-						'<td><span class="float-right" style="margin-right: 10px">' . $ext_port . '</span></td>' .
+						'<td class="iface"><center>' . $iface . '</center></td>' .
+						'<td class="proto"><center>' . $proto . '</center></td>' .
+						'<td class="ext_port"><span class="float-right" style="margin-right: 10px">' . $ext_port . '</span></td>' .
 						'<td>' . explode(":", $ip_addr)[0] . '</td>' .
 						'<td><span class="float-right" style="margin-right: 10px">' . $int_port . '</span></td>' .
 						'<td>' . $comment . '</td>' .
 						'<td><center>' . ($enabled ? 'Y' : 'N') . '</center></td>' .
+						'<td><center><a href="javascript:void(0);" title="Edit Rule"><i class="fas fa-pencil-alt"></i></a></center></td>' .
+						'<td><center><a href="javascript:void(0);" title="Delete Rule"><i class="fas fa-trash-alt"></i></a></center></td>' .
 					'</tr>';
 			}
 		}
-		die( !empty($str) ? $str : '<tr><td colspan="7"><center>No Ports Forwarded</center></td></tr>' );
+		die( !empty($str) ? $str : '<tr><td colspan="9"><center>No Ports Forwarded</center></td></tr>' );
 	}
 	#################################################################################################
 	# ACTION: ADD => Add the new port forwarding rule
 	#################################################################################################
-	if ($_POST['action'] == 'add')
+	else if ($_POST['action'] == 'add')
 	{
 		$param = array();
 		$param['iface']    = option_allowed("iface", $ifaces);
-		$param['ip_addr']  = option_ip("ip_addr");
+		$param['protocol'] = option("protocol", "/^(tcp|udp|both)/");
 		$param['ext_min']  = option_range("ext_min", 0, 65535);
 		$param['ext_max']  = option_range("ext_max", (int) $options['ext_min'], 65535);
+		$param['ip_addr']  = option_ip("ip_addr");
 		$param['int_port'] = option_range("int_port", 0, 65535);
-		$param['protocol'] = option("protocol", "/^(tcp|udp|both)/");
 		$param['enabled']  = option("enabled");
 		$param['comment']  = '"' . option("comment", "/^([^\"\']*)$/") . '"';
 		//echo '<pre>'; print_r($param); exit;
 		die(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh forward add " . implode(" ", $param)));
+	}
+	#################################################################################################
+	# ACTION: ADD => Delete the specified port forwarding rule
+	#################################################################################################
+	else if ($_POST['action'] == 'del')
+	{
+		$param = array();
+		$param['iface']    = option_allowed("iface", $ifaces);
+		$param['protocol'] = option("protocol", "/^(tcp|udp|both)/");
+		$param['ext_min']  = option_range("ext_min", 0, 65535);
+		//echo '<pre>'; print_r($param); exit;
+		die(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh forward del " . implode(" ", $param)));
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
@@ -86,11 +100,13 @@ echo '
 					<td width="10%"><center>Ext. Port</center></td>
 					<td width="10%"><center>IP Address</center></td>
 					<td width="10%"><center>Int. Port</center></td>
-					<td width="50%">Description</td>
+					<td width="35%">Description</td>
 					<td width="10%"><center>Enabled</center></td>
+					<td width="3%">&nbsp;</td>
+					<td width="3%">&nbsp;</td>
 				</thead>
 				<tbody id="forward_table">
-					<tr><td colspan="7"><center>Loading...</center></td></tr>
+					<tr><td colspan="9"><center>Loading...</center></td></tr>
 				</tbody>
 			</table>
 		</div>

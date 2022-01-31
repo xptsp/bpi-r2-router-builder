@@ -30,6 +30,7 @@ done
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Removing unnecessary files from root partition..."
+rm /etc/network/port_forwarding.rules >& /dev/null
 rm -rf /tmp/* >& /dev/null
 rm -rf /root/.config >& /dev/null
 rm -rf /root/.local >& /dev/null
