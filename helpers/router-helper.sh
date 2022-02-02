@@ -743,7 +743,7 @@ case $CMD in
 			if [[ "${action}" == "list" ]]; then
 				PORT=$(cat /etc/miniupnpd/miniupnpd.conf | grep '^http_port=' | cut -d= -f 2)
 				[[ ! -z "${PORT}" ]] && PORT="-u http://${PORT}:$(ifconfig br0 | grep 'inet ' | awk '{print $2}')/rootDesc.xml"
-				upnpc ${PORT} -L
+				upnpc -L ${PORT}
 			elif [[ "${action}" == "enable" ]]; then
 				systemctl enable miniupnpd
 				systemctl restart miniupnpd
@@ -759,8 +759,9 @@ case $CMD in
 				sed -i "s|^enable_natpmp=.*|enable_natpmp=no|g" /etc/miniupnpd/miniupnpd.conf
 			else
 				[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-				echo "SYNTAX: $(basename $0) miniupnpd [enable|disable|secure-on|secure-off|natpmp-on|natpmp-off|restart]" && exit 0
+				echo "SYNTAX: $(basename $0) upnp [list|enable|disable|secure-on|secure-off|natpmp-on|natpmp-off|restart]" && exit 0
 				echo "Where:"
+				echo "    list       - Lists current UPnP port mappings"
 				echo "    enable     - Enables and (re)starts the miniupnpd service"
 				echo "    disable    - Disables and stops the miniupnpd service if running"
 				echo "    secure-on  - Enables Secure Mode"
