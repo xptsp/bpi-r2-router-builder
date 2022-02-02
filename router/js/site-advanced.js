@@ -458,11 +458,11 @@ function Init_PortForward(ip)
 		val = $("#app_select").val();
 		arr = val.split(',');
 		$("#protcol").val(arr[2]);
+		$("#comment").val(arr[0]);
+		$("#ext_min").val(arr[1]);
+		$("#ext_max").val(arr[1]);
+		$("#int_port").val(arr[1]);
 		if (arr[0] != "") {
-			$("#comment").val(arr[0]);
-			$("#ext_min").val(arr[1]);
-			$("#ext_max").val(arr[1]);
-			$("#int_port").val(arr[1]);
 			$("#ext_min").attr("disabled", "disabled");
 			$("#ext_max").attr("disabled", "disabled");
 			$("#int_port").attr("disabled", "disabled");

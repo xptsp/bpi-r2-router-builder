@@ -25,8 +25,8 @@ if (isset($_POST['action']))
 # Show the WebUI management page:
 #################################################################################################
 $options = parse_options();
-$options['allow_local_http']  = file_exists("/etc/nginx/sites-enabled/default");
-$options['allow_local_https'] = file_exists("/etc/nginx/sites-enabled/default-https");
+$options['allow_local_http']  = file_exists("/etc/nginx/sites-enabled/default") ? "Y" : "N";
+$options['allow_local_https'] = file_exists("/etc/nginx/sites-enabled/default-https") ? "Y" : "N";
 site_menu();
 echo '
 <div class="card card-primary">

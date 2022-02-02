@@ -9,15 +9,13 @@ BLUE='\033[1;34m'
 NC='\033[0m'
 mkdir -p ~/R2
 cd ~/R2
-if [[ "$1" == "-r" ]]; then
-	for file in BPI_*; do echo -e "${GREEN}INFO:${NC} Unmounting ${file}..."; umount ${file}; done
-	for file in BPI_*; do echo -e "${GREEN}INFO:${NC} Removing ${file}..."; rm -rf ${file}; done
-	for file in .tmp/*; do echo -e "${GREEN}INFO:${NC} Removing ${file}..."; rm -rf ${file}; done
-	echo -e "${GREEN}INFO:${NC} Updated local BPI-R2-4.14 repository..."
-	cd .BPI-R2-4.14
-	git pull
-	cd ..
-fi
+for file in BPI_*; do if test -d ${file}; then echo -e "${GREEN}INFO:${NC} Unmounting ${file}..."; umount ${file}; fi; done
+for file in BPI_*; do echo -e "${GREEN}INFO:${NC} Removing ${file}..."; rm -rf ${file}; done
+for file in .tmp/*; do echo -e "${GREEN}INFO:${NC} Removing ${file}..."; rm -rf ${file}; done
+echo -e "${GREEN}INFO:${NC} Updated local BPI-R2-4.14 repository..."
+cd .BPI-R2-4.14
+git pull
+cd ..
 for ver in 5.4 5.6 5.7 5.8 5.9 5.10 5.15; do
 	echo -e "${GREEN}INFO:${NC} Mounting branch ${BLUE}${ver}-main${NC}...."
 	test -d .tmp/${ver}_upper && CHECK=N || CHECK=Y
@@ -34,4 +32,4 @@ for ver in 5.4 5.6 5.7 5.8 5.9 5.10 5.15; do
 		cd ..
 	fi
 done
-cp ~/GitHub/bpiwrt-builder/.kernel_config ~/R2/BPI-R2-4.14/
+cp /home/doug/GitHub/bpiwrt-builder/.kernel_config ~/R2/BPI-R2-4.14/

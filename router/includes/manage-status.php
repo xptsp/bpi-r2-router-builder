@@ -44,7 +44,7 @@ if (isset($_POST['action']))
 	###################################################################################################
 	else if ($_POST['action'] == 'network')
 	{
-		require_once("subs/admin.php");
+		require_once("subs/manage.php");
 		$ifaces = get_network_adapters();
 		$SYS = '/sys/class/net/';
 
