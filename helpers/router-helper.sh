@@ -723,8 +723,8 @@ case $CMD in
 			#####################################################################
 			# REM => Add port forwarding rule
 			else
-				iptables --list-rules | grep PORT_FORWARD | grep "\-(dports|dport) ${DST_MIN}" | grep "${METHOD:-" "}" | while read line; do iptables ${line/^\-A/\-D}; done
-				iptables -t nat --list-rules | grep PORT_FORWARD | grep ${IFACE} | egrep "\-(dports|dport) ${DST_MIN}" | grep ${METHOD:-" "} | while read line; do iptables -t nat ${line/\-A/\-D}; done
+				iptables --list-rules | grep PORT_FORWARD | egrep "\-(dports|dport) ${DST_MIN}" | grep "${METHOD:-" "}" | while read line; do iptables ${line/\-A/\-D}; done
+				iptables -t nat --list-rules | grep PORT_FORWARD | grep ${IFACE} | egrep "\-(dports|dport) ${DST_MIN}" | grep "${METHOD:-" "}" | while read line; do iptables -t nat ${line/\-A/\-D}; done
 				iptables-save | egrep -e "^(COMMIT|\-A PORT_FORWARD|\*)" > /etc/network/port_forwarding.rules
 				echo "OK"
 			fi

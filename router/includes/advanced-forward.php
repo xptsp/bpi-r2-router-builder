@@ -32,10 +32,10 @@ if (isset($_POST['action']))
 						'<td class="iface"><center>' . $iface . '</center></td>' .
 						'<td class="proto"><center>' . $proto . '</center></td>' .
 						'<td class="ext_port"><span class="float-right" style="margin-right: 10px">' . $ext_port . '</span></td>' .
-						'<td>' . explode(":", $ip_addr)[0] . '</td>' .
-						'<td><span class="float-right" style="margin-right: 10px">' . $int_port . '</span></td>' .
-						'<td>' . $comment . '</td>' .
-						'<td><center>' . ($enabled ? 'Y' : 'N') . '</center></td>' .
+						'<td class="ip_addr">' . explode(":", $ip_addr)[0] . '</td>' .
+						'<td class="int_port"><span class="float-right" style="margin-right: 10px">' . $int_port . '</span></td>' .
+						'<td class="comment">' . $comment . '</td>' .
+						'<td class="enabled"><center>' . ($enabled ? 'Y' : 'N') . '</center></td>' .
 						'<td><center><a href="javascript:void(0);" title="Edit Rule"><i class="fas fa-pencil-alt"></i></a></center></td>' .
 						'<td><center><a href="javascript:void(0);" title="Delete Rule"><i class="fas fa-trash-alt"></i></a></center></td>' .
 					'</tr>';
@@ -254,12 +254,15 @@ echo '
 						</div>
 						<div class="col-6">
 							', checkbox("enabled", ""), '
+							<input type="hidden" id="old_iface" value="" />
+							<input type="hidden" id="old_proto" value="" />
+							<input type="hidden" id="old_ext_port" value="" />
 						</div>
 					</div>
 				</div>
 				<div class="modal-footer justify-content-between alert_control">
 					<a href="javascript:void(0);"><button type="button" class="btn btn-primary float-right" data-dismiss="modal">Cancel</button></a>
-					<a href="javascript:void(0);"><button type="button" id="submit_forward" class="btn btn-success">Add Port Forward</button></a>
+					<a href="javascript:void(0);"><button type="button" id="submit_forward" class="btn btn-success">Submit</button></a>
 				</div>
 			</div>
 		</div>

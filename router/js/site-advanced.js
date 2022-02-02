@@ -1,3 +1,5 @@
+var parent;
+
 //======================================================================================================
 // Javascript functions for "Advanced / Firewall Settings"
 //======================================================================================================
@@ -437,12 +439,20 @@ function Init_PortForward(ip)
 			if (data == "RELOAD")
 				document.location.reload(true);
 			$("#forward_table").html(data);
-			$(".fa-trash-alt").click(PortForward_Delete);
+			$(".fa-trash-alt").click(function() {
+				PortForward_Delete( $(this).parent().parent().parent().parent() );
+			});
+			$(".fa-pencil-alt").click(function() {
+				PortForward_Edit( $(this).parent().parent().parent().parent() );
+			});
 		});
 	}).click();
 	$("#add_forward").click(function() {
+		parent = null;
 		$('#app_select').val(",,tcp").change();
+		$("#enabled").prop("checked", true);
 		$("#ip_addr").val(ip);
+		$("#comment").val("");
 	});
 	$("#app_select").change(function() {
 		val = $("#app_select").val();
@@ -492,6 +502,10 @@ function Init_PortForward(ip)
 
 function PortForward_Add()
 {
+	// If "parent" is not null, then delete the port forwarding rule that we are editing:
+	if (parent != null)
+		PortForward_Delete( parent );
+
 	// Assemble the post data for the AJAX call:
 	postdata = {
 		'sid':      SID,
@@ -512,8 +526,14 @@ function PortForward_Add()
 	$("#apply-modal").modal("show");
 	$.post("/advanced/forward", postdata, function(data) {
 		data = data.trim();
-		if (data == "RELOAD" || data == "OK")
+		if (data == "RELOAD")
 			document.location.reload(true);
+		else if (data == "OK")
+		{
+			$("#apply-modal").modal("hide");
+			$("#forward-modal").modal("hide");
+			$("#forward_refresh").click();
+		}
 		else
 		{
 			$("#apply_msg").html('<pre>' + data + '</pre>');
@@ -525,16 +545,15 @@ function PortForward_Add()
 	});
 }
 
-function PortForward_Delete()
+function PortForward_Delete(line)
 {
 	// Assemble the post data for the AJAX call:
-	parent = $(this).parent().parent().parent().parent();
 	postdata = {
 		'sid':      SID,
 		'action':   'del',
-		'iface':    parent.find(".iface").text(),
-		'protocol': parent.find(".proto").text(),
-		'ext_min':  parent.find(".ext_port").text(),
+		'iface':    line.find(".iface").text(),
+		'protocol': line.find(".proto").text(),
+		'ext_min':  line.find(".ext_port").text(),
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
@@ -543,8 +562,13 @@ function PortForward_Delete()
 	$("#apply-modal").modal("show");
 	$.post("/advanced/forward", postdata, function(data) {
 		data = data.trim();
-		if (data == "RELOAD" || data == "OK")
+		if (data == "RELOAD")
 			document.location.reload(true);
+		else if (data == "OK")
+		{
+			$("#forward_refresh").click();
+			$("#apply-modal").modal("hide");
+		}			
 		else
 		{
 			$("#apply_msg").html('<pre>' + data + '</pre>');
@@ -554,4 +578,23 @@ function PortForward_Delete()
 		$("#apply_msg").html("AJAX call failed!");
 		$("#apply_cancel").removeClass("hidden");
 	});
+}
+
+function PortForward_Edit(line)
+{
+	// Populate the port forward modal with the settings from the selected line:
+	parent = line;
+	$('#app_select').val(",,tcp").change();
+	$("#iface").val( parent.find(".iface").text() );
+	parts = parent.find(".ext_port").text().split(":");
+	$("#ext_min").val( parts[0] );
+	$("#ext_max").val( parts.length == 1 ? parts[0] : parts[1] );
+	$("#ip_addr").val( parent.find(".ip_addr").text() );
+	$("#int_port").val( parent.find(".int_port").text() );
+	$("#protocol").val( parent.find(".proto").text() );
+	$("#comment").val( parent.find(".comment").text() );
+	$("#enabled").prop("checked", parent.find(".enabled").text() == "Y" );
+
+	// Now that the fields are set, show the modal to the user:
+	$("#forward-modal").modal("show");
 }
