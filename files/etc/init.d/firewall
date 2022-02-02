@@ -158,8 +158,6 @@ elif [[ "$1" == "block" && ! -z "${2}" ]]; then
 	$0 unblock ${IFACE}
 	# CTA: Allow masquerading to the wan port:
 	iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE
-	# Direct interface to check SERVICES chain for further rules:
-	iptables -A INPUT -i ${IFACE} -j SERVICES
 	# Direct interface to check WAN_IN chain for further INPUT rules:
 	iptables -A INPUT -i ${IFACE} -j WAN_IN
 	# Drop any connections coming from the interface:

@@ -46,8 +46,8 @@ echo "bpiwrt" > /etc/hostname
 hostname bpiwrt
 
 # Set IP address of both hostname and pi.hole
-echo "192.168.2.1     bpiwrt" >> /etc/hosts
 echo "192.168.2.1     pi.hole" >> /etc/hosts
+echo "192.168.2.1     bpiwrt" >> /etc/hosts
 
 # Refreshes the certificates:
 update-ca-certificates -f
@@ -176,7 +176,7 @@ chown -R vpn:vpn /etc/transmission-daemon/
 chown -R vpn:vpn /var/lib/transmission-daemon/
 chmod -R 775 /etc/transmission-daemon/
 chmod -R 775 /var/lib/transmission-daemon/
-mkdir /home/vpn/{Incomplete,Download}
+mkdir -p /home/vpn/{Incomplete,Download}
 chown -R vpn:vpn /home/vpn/{Incomplete,Download}
 chmod -R 775 /home/vpn/{Incomplete,Download}
 systemctl enable --now transmission-daemon
@@ -211,12 +211,6 @@ tar xvzf /tmp/docker.tgz
 mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
 ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
 popd
-
-##################################################################################
-# Install & configure unbound:
-##################################################################################
-apt install -y unbound
-systemctl enable --now unbound
 
 ##################################################################################
 # Install cloudflared binary:

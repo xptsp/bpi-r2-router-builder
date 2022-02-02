@@ -13,7 +13,7 @@
 [[ ! -z "${IF_NO_INTERNET}" ]] && iptables -A WAN_FORWARD_OUT -i ${IFACE} -j REJECT
 
 # Call the helper script to firewall the interface, if required:
-[[ ! -z "${IF_FIREWALL}" ]] && /opt/bpi-r2-router-builder/helpers/firewall.sh block ${IFACE}
+[[ ! -z "${IF_FIREWALL}" ]] && /etc/init.d/firewall block ${IFACE}
 
 # Exit with a zero error code:
 exit 0

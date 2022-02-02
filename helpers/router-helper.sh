@@ -741,9 +741,10 @@ case $CMD in
 	upnp)
 		for action in $@; do
 			if [[ "${action}" == "list" ]]; then
+				if ! systemctl is-active miniupnpd >& /dev/null; then echo "Not Active"; exit; fi
 				PORT=$(cat /etc/miniupnpd/miniupnpd.conf | grep '^http_port=' | cut -d= -f 2)
-				[[ ! -z "${PORT}" ]] && PORT="-u http://${PORT}:$(ifconfig br0 | grep 'inet ' | awk '{print $2}')/rootDesc.xml"
-				upnpc -L ${PORT}
+				[[ ! -z "${PORT}" ]] && PORT="-u http://$(ifconfig br0 | grep 'inet ' | awk '{print $2}'):${PORT}/rootDesc.xml"
+				upnpc ${PORT} -L
 			elif [[ "${action}" == "enable" ]]; then
 				systemctl enable miniupnpd
 				systemctl restart miniupnpd
@@ -802,5 +803,3 @@ case $CMD in
 		echo "NOTE: Use \"-h\" after the command to see what options are available for that command."
 		;;
 esac
-
-
