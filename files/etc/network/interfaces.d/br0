@@ -1,3 +1,19 @@
+allow-hotplug lan0
+auto lan0
+iface lan0 inet manual
+
+allow-hotplug lan1
+auto lan1
+iface lan1 inet manual
+
+allow-hotplug lan2
+auto lan2
+iface lan2 inet manual
+
+allow-hotplug lan3
+auto lan3
+iface lan3 inet manual
+
 auto br0
 iface br0 inet static
     address 192.168.2.1
@@ -5,4 +21,3 @@ iface br0 inet static
     bridge_ports lan0 lan1 lan2 lan3
     bridge_fd 5
     bridge_stp no
-    post-up echo 8 > /sys/class/net/br0/queues/rx-0/rps_cpus

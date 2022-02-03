@@ -1,3 +1,0 @@
-allow-hotplug lan1
-auto lan1
-iface lan1 inet manual

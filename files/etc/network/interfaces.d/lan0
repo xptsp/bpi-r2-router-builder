@@ -1,3 +1,0 @@
-allow-hotplug lan0
-auto lan0
-iface lan0 inet manual
