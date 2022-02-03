@@ -559,7 +559,7 @@ case $CMD in
 
 	###########################################################################
 	firewall)
-		/opt/bpi-r2-router-builder/helpers/firewall.sh $@
+		/etc/init.d/firewall $@
 		echo "OK"
 		;;
 

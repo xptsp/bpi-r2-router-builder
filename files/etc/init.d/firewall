@@ -58,7 +58,11 @@ if [[ "$1" == "start" ]]; then
 	#############################################################################
 	# Block user "vpn" from accessing anything other than the "lo" interface:
 	#############################################################################
-	iptables -A OUTPUT ! -o lo -m owner --uid-owner vpn -j DROP
+	create_chain VPN
+	create_chain VPN mangle
+	iptables -A OUTPUT -j VPN
+	iptables -t mangle -A OUTPUT -j VPN
+	iptables -A VPN ! -o lo -m owner --uid-owner vpn -j DROP
 
 	#############################################################################
 	# These are global rules that will always be set!

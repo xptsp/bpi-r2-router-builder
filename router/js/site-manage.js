@@ -500,6 +500,25 @@ function Init_Bandwidth(tx, rx)
 	$("#update_chart").click(Bandwidth_Update).click();
 	$("#interface").change(Bandwidth_Update);
 	$("#mode").change(Bandwidth_Update);
+	$("#refresh_switch").bootstrapSwitch();
+	$("#refresh_switch").on('switchChange.bootstrapSwitch', function(event, state) {
+		$("#apply_msg").html( $("#apply_default").html() );
+		$("#apply_cancel").addClass("hidden");
+		$("#apply-modal").modal("show");
+		$.post("/manage/bandwidth", __postdata(state ? 'enable' : 'disable'), function(data) {
+			$("#apply-modal").modal("hide");
+			data = data.trim();
+			if (data == "RELOAD")
+				document.location.reload(true);
+			else if (data == "disable")
+				$("#disabled_div").slideDown(400);
+			else if (data == "enable")
+				$("#disabled_div").slideUp(400);
+		});
+	});
+	$("#toggle_service").click(function() {
+		$("#refresh_switch").bootstrapSwitch('state', true);
+	});
 }
 
 function Bandwidth_Update()
