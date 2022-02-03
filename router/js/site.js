@@ -62,7 +62,7 @@ function Login_Submit()
 		if (data.trim() == "OK")
 			document.location.reload(true);
 		else
-			Wired_Error();
+			DHCP_Error();
 	});
 	return false;
 }

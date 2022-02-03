@@ -1,10 +1,36 @@
 <?php
+if (isset($_POST['action']))
+{
+	#################################################################################################
+	# Validate the credentials sent:
+	#################################################################################################
+	if ($_POST['action'] == 'submit')
+	{
+		// Is the username correct?  If not, abort with error:
+		$username = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['username']) ? $_POST['username'] : '');
+		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login webui')) != $username)
+			die("Invalid");
+
+		// Is the password correct?  If not, abort with error:
+		$password = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['password']) ? $_POST['password'] : '');
+		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check ' . $username . ' ' . $password)) != "Match")
+			die("Invalid");
+
+		// If "Remember Me" is checked, set a cookie with the hash of the hash of the password:
+		if (isset($_POST['remember']) && $_POST['remember'] == "Y")
+			setcookie("remember_me", @trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh login cookie")), time() + 60*60*24*365 );
+
+		// Set "login_valid_until" session variable, then return "OK" to the caller:
+		$_SESSION['login_valid_until'] = time() + 600;
+		die("OK");
+	}
+	die("Invalid action");
+}
+
 #################################################################################################
 # Output the Router Login page if no action was specified:
 #################################################################################################
-if (!isset($_POST['action']))
-{
-	echo '
+echo '
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,33 +92,9 @@ if (!isset($_POST['action']))
 	<script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 	<script src="/js/adminlte.min.js"></script>
 	<script src="/js/site.js"></script>
-	<script src="/js/site-setup.js"></script>
+	<script src="/js/site-advanced.js"></script>
 	<script>
 		Init_Login();
 	</script>
 </body>
 </html>';
-}
-#################################################################################################
-# Output the Router Login page if no action was specified:
-#################################################################################################
-else if ($_POST['action'] == 'submit')
-{
-	// Is the username correct?  If not, abort with error:
-	$username = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['username']) ? $_POST['username'] : '');
-	if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login webui')) != $username)
-		die("Invalid");
-
-	// Is the password correct?  If not, abort with error:
-	$password = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['password']) ? $_POST['password'] : '');
-	if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check ' . $username . ' ' . $password)) != "Match")
-		die("Invalid");
-
-	// If "Remember Me" is checked, set a cookie with the hash of the hash of the password:
-	if (isset($_POST['remember']) && $_POST['remember'] == "Y")
-		setcookie("remember_me", @trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh login cookie")), time() + 60*60*24*365 );
-
-	// Set "login_valid_until" session variable, then return "OK" to the caller:
-	$_SESSION['login_valid_until'] = time() + 600;
-	die("OK");
-}

@@ -240,6 +240,17 @@ pihole restartdns
 # NOTE: Add site configuration for "pi.hole":
 ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl restart nginx
+echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+
+##################################################################################
+# Install the wireless regulatory table
+##################################################################################
+apt install -y wireless-regdb crda
+git clone --depth=1 https://git.kernel.org/pub/scm/linux/kernel/git/sforshee/wireless-regdb.git/ /opt/wireless-regdb
+test -f /lib/firmware/regulatory.db && unlink /lib/firmware/regulatory.db
+ln -sf /opt/wireless-regdb/regulatory.db /lib/firmware/
+test -f /lib/firmware/regulatory.db.p7s && unlink /lib/firmware/regulatory.db.p7s
+ln -sf /opt/wireless-regdb/regulatory.db.p7s /lib/firmware/
 
 ##################################################################################
 # Pull in dependencies to make my SSD1306 front display work:

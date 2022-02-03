@@ -154,7 +154,6 @@ if [[ ! -z "${RW[5]}" ]]; then
 	#####################################################################################
 	systemctl daemon-reload
 	[[ "${RW[5]}" == *ro,* ]] && NOW="--now" && mount -o remount,rw /ro
-	systemctl is-enabled firewall >& /dev/null || systemctl enable ${NOW} firewall
 	systemctl is-enabled cloudflared@1 >& /dev/null || systemctl enable ${NOW} cloudflared@1
 	systemctl is-enabled cloudflared@2 >& /dev/null || systemctl enable ${NOW} cloudflared@2
 	systemctl is-enabled cloudflared@3 >& /dev/null || systemctl enable ${NOW} cloudflared@3

@@ -230,8 +230,8 @@ case $CMD in
 			[[ "${2}" != "$($0 login webui)" ]] && echo "No match" && exit 1
 			[[ -z "${3}" ]] && echo "No match" && exit 1
 			pwd=$(getent shadow ${2} | cut -d: -f2)
-			salt=\$$(echo $pwd | cut -d$ -f2)\$$(echo $pwd | cut -d$ -f3)
-			[ "$(python -c 'import crypt; print crypt.crypt("'"${3}"'", "'${salt}'")')" == "${pwd}" ] && echo "Match" || echo "No match"
+			gen=$(openssl passwd -$(echo ${pwd} | cut -d"\$" -f 2) -salt $(echo ${pwd} | cut -d"\$" -f 3) $3)
+			[[ "${gen}" == "${pwd}" ]] && echo "Match" || echo "No match"
 		#####################################################################
 		# WEBUI => Returns the username for user 1000:
 		elif [[ "$1" == "webui" ]]; then
