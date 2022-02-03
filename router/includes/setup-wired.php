@@ -50,16 +50,26 @@ if (isset($_POST['action']))
 	}
 
 	#################################################################################################
-	# Remove any stand-alone interface configuration files for the bridge configuration:
+	# Create the network configuration for each of the bound network adapters:
 	#################################################################################################
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface delete " . $iface);
 	$_POST['bridge'] = isset($_POST['bridge']) ? $_POST['bridge'] : '';
 	$bridged = array_diff( explode(" ", trim($_POST['bridge'])), array("undefined") );
 	if (empty($bridged))
 		die("[BRIDGE] ERROR: No interfaces specified in bridge configuration!");
+	$text =  'auto {iface}' . "\n";
+	$text .= 'iface {iface} inet manual' . "\n";
 	if (count($bridged) > 1)
 	{
 		foreach ($bridged as $adapter)
-			@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface delete " . $adapter);
+		{
+			$handle = fopen("/tmp/" . $adapter, "w");
+			fwrite($handle, str_replace('{iface}', $adapter, trim($text)) . "\n");
+			fclose($handle);
+			$tmp = trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface move " . $adapter));
+			if ($tmp != "")
+				die($tmp);
+		}
 		if (substr($iface, 0, 2) != "br")
 			$iface = 'br' . strval( intval(str_replace("/etc/network/interfaces.d/br", "", trim(@shell_exec("ls /etc/network/interfaces.d/br* | sort | tail -1")))) + 1 );
 	}
@@ -69,17 +79,7 @@ if (isset($_POST['action']))
 	#################################################################################################
 	# Decide what the interface configuration text will look like:
 	#################################################################################################
-	$text = '';
-	if (count($bridged) > 1)
-	{
-		foreach ($bridged as $adapter)
-		{
-			$text .= 'allow-hotplug ' . $adapter . "\n";
-			$text .= 'auto '. $adapter . "\n";
-			$text .= 'iface ' . $adapter . ' inet manual' . "\n\n";
-		}
-	}
-	$text .= 'auto ' . $iface . "\n";
+	$text =  'auto ' . $iface . "\n";
 	$text .= 'iface ' . $iface . ' inet ' . ($_POST['action'] == 'dhcp' ? 'dhcp' : 'static') . "\n";
 	if ($_POST['action'] != 'dhcp')
 	{

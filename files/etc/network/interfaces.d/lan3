@@ -1,0 +1,3 @@
+allow-hotplug lan3
+auto lan3
+iface lan3 inet manual

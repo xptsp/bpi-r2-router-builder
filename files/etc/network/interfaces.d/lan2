@@ -1,0 +1,3 @@
+allow-hotplug lan2
+auto lan2
+iface lan2 inet manual
