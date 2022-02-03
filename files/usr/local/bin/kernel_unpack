@@ -23,8 +23,7 @@ sudo tar -xzvf ${1} -C /boot/ --strip-components=1 BPI-BOOT
 sudo tar -xzvf ${1} -C ${ROOT} --strip-components=1 BPI-ROOT
 
 # Write the current MAC address to the DTB file:
-CUR=($(ifconfig wan | grep ether))
-router-helper mac ${CUR[1]}
+router-helper mac saved
 
 # Remount root and boot partitons as read-only if they are before we started:
 [[ ! -z "$RO" ]] && mount -o remount,ro /boot

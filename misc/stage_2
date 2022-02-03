@@ -74,7 +74,7 @@ systemctl disable --now hostapd
 # Install some necessary packages:
 ##############################################################################################
 apt install -y wget git toilet pmount eject lsb-release dialog mosquitto-clients sudo gnupg curl gnupg
-apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance 
+apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance wireless-regdb crda
 
 ##############################################################################################
 # Install files from the GitHub repository to build this image:
@@ -145,26 +145,18 @@ systemctl enable --now smbd
 systemctl enable --now nmbd
 
 ##################################################################################
-# Install NGINX and PHP 7.3
+# Install NGINX and PHP 7.4
 ##################################################################################
-apt install -y nginx php7.3-fpm php7.3-cgi php7.3-xml php7.3-sqlite3 php7.3-intl apache2-utils php7.3-mysql php7.3-sqlite3 sqlite3 php7.3-zip php7.3-curl
-sed -i "s|display_errors = .*|display_errors = On|g" /etc/php/7.3/fpm/php.ini
+apt install -y nginx php7.4-fpm php7.4-cgi php7.4-xml php7.4-sqlite3 php7.4-intl apache2-utils php7.4-mysql php7.4-sqlite3 sqlite3 php7.4-zip php7.4-curl
+sed -i "s|display_errors = .*|display_errors = On|g" /etc/php/7.4/fpm/php.ini
 rm /etc/nginx/sites-enabled/default
 ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
 usermod -aG systemd-journal www-data
-systemctl enable --now php7.3-fpm
-apt-mark hold php7.3-fpm
+systemctl enable --now php7.4-fpm
+apt-mark hold php7.4-fpm
 systemctl enable --now nginx
 apt-mark hold nginx
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
-
-##################################################################################
-# Install the wireless regulatory table
-##################################################################################
-apt install -y wireless-regdb crda
-git clone --depth=1 https://git.kernel.org/pub/scm/linux/kernel/git/sforshee/wireless-regdb.git/ /opt/wireless-regdb
-ln -sf /opt/wireless-regdb/regulatory.db /lib/firmware/
-ln -sf /opt/wireless-regdb/regulatory.db.p7s /lib/firmware/
 
 ##################################################################################
 # Install Transmission-BT program
@@ -285,3 +277,8 @@ echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 # NOTE: Install minissdpd package:
 apt install -y minissdpd
 systemctl enable --now minissdpd
+
+##################################################################################
+# Install ulogd2 package
+##################################################################################
+apt install -y ulogd2

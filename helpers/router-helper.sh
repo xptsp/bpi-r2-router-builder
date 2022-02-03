@@ -575,6 +575,8 @@ case $CMD in
 				IP=($(cat /etc/resolv.conf | grep "nameserver" | head -2 | awk '{print $2}'))
 				DNS1=${IP[0]}
 				DNS2=${IP[1]}
+			else
+				exit 0
 			fi
 		else
 			# Validate first IP address passed as parameter:
