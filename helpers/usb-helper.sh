@@ -109,6 +109,16 @@ case "$1" in
 	"prep")
 		remove_shares
 		add_shares
+		test -f /boot/persistent.conf && source /boot/persistent.conf
+		if ! test -f /etc/samba/smb.d/webui.conf; then
+			if [[ "${WEBUI_SHARE:=n}" == "y" ]]; then
+				sed "s|\[pi\]|\[router\]|g" /etc/samba/smb.d/pi.conf > /etc/samba/smb.d/webui.conf
+				sed -i "s|comment=.*|comment=WebUI folder|g" /etc/samba/smb.d/webui.conf
+				sed -i "s|/home/pi|/opt/bpi-r2-router-builder/router|g" /etc/samba/smb.d/webui.conf
+			fi
+		elif [[ "${WEBUI_SHARE:=n}" == "n" ]]; then
+			rm /etc/samba/smb.d/webui.conf
+		fi
 		;;
 	*)
 		echo "Syntax: usb-helper.sh [start|stop|prep]"

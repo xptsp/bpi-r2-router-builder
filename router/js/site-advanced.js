@@ -225,6 +225,8 @@ function DHCP_Refresh_Leases()
 	// Perform our AJAX request to refresh the LAN leases:
 	$("#clients-table").html('<tr><td colspan="5"><center>Loading...</center></td></tr>');
 	$.post('/advanced/dhcp', __postdata("clients", iface_used), function(data) {
+		if (data == "RELOAD")
+			document.location.reload(true);
 		$("#clients-table").html(data);
 		$(".reservation-option").click(function() {
 			line = $(this).parent();

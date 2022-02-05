@@ -19,7 +19,7 @@ done
 #############################################################################
 [[ -e /boot/persistent.conf ]] && source /boot/persistent.conf
 [[ -z "${WIFI_PASS}" ]] && WIFI_PASS=$(php /opt/bpi-r2-router-builder/router/includes/subs/newpass.php)
-if [[ ! -e /boot/wifi.conf ]]; then
+if ! test -f /boot/persistent.conf; then
 	mount -o remount,rw /boot
 	[[ -f /boot/persistent.conf ]] && sed -i "/^WIFI_PASS=/d" /boot/persistent.conf
 	echo "WIFI_PASS=${WIFI_PASS}" >> /boot/persistent.conf

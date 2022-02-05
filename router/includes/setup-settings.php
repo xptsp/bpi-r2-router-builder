@@ -183,8 +183,9 @@ echo '
 $wan = parse_ifconfig('wan');
 #echo '<pre>'; print_r($wan); exit();
 $mac = trim($wan['ether']);
-$parts = explode("=", trim(@file_get_contents("/boot/eth0.conf")));
-$def = isset($parts[1]) ? $parts[1] : $mac;
+$option = parse_options("/boot/persistent.conf");
+#echo '<pre>'; print_r($option); exit;
+$def = isset($option['MAC']) ? $option['MAC'] : $mac;
 $mac_com = trim(@shell_exec("arp -n | grep " . $_SERVER['REMOTE_ADDR'] . " | awk '{print $3}'"));
 $mac_chk = ($mac == $def || $mac == $mac_com);
 echo '

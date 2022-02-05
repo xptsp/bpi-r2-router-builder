@@ -46,8 +46,9 @@ for file in $(find /var/log -type f | grep -v /var/log/apt/history.log); do echo
 cat /var/log/apt/history.log | tail -3 > /tmp/history.log
 mv /tmp/history.log /var/log/apt/history.log
 rm /var/lib/apt/lists/* >& /dev/null
-rm /etc/samba/smb.d/router >& /dev/null
+rm /etc/samba/smb.d/webui >& /dev/null
 touch /var/lib/apt/lists/lock
+sed -i "s|WEBUI_SHARE=.*|WEBUI_SHARE=n|g" /boot/persistent.conf
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Repulling BPIWRT builder repo to minimize size..."

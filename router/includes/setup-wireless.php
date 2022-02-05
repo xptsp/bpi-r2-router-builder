@@ -372,7 +372,9 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 	#echo '<pre>'; print_r($no_broadcast); exit;
 	$no_internet = isset($netcfg['no_internet']);
 	#echo '<pre>'; print_r($no_internet); exit;
-	$wpa_passphrase = isset($host['wpa_passphrase']) ? $host['wpa_passphrase'] : explode("=", trim(@file_get_contents('/boot/wifi.conf')) . '=')[1];
+	$persistent = parse_options("/boot/persistent.conf");
+	#echo '<pre>'; print_r($persistent); exit;
+	$wpa_passphrase = isset($host['wpa_passphrase']) ? $host['wpa_passphrase'] : (isset($persistent['WIFI']) ? $persistent['WIFI'] : '');
 	#echo '<pre>'; print_r($wpa_passphrase); exit;
 	echo '
 		<div id="ap_mode_div"', $netcfg['op_mode'] == 'ap' ? '' : ' class="hidden"', '>

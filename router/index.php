@@ -4,6 +4,10 @@ ini_set('display_errors',1);
 error_reporting(E_ALL);
 session_start();
 
+# If SID is passed and not equal to session variable SID, return "RELOAD" to caller:
+if (isset($_POST['sid']) && (empty($_SESSION['sid']) || $_POST['sid'] != $_SESSION['sid']))
+	die("RELOAD");
+
 # If no action has been passed, assume we want the basic router status:
 $_GET['action'] = empty($_GET['action']) ? 'home' : ($_GET['action'] != '/' ? $_GET['action'] : 'home');
 $_GET['action'] = ltrim(preg_replace('/[\s\W]+/', '-', $_GET['action']), '-');
@@ -12,24 +16,15 @@ $include_js = $include_js == 'site-ajax' ? '' : $include_js;
 
 # Decide whether the user is logged in or not:
 $logged_in = isset($_SESSION['login_valid_until']) && $_SESSION['login_valid_until'] >= time();
+if (!$logged_in && isset($_COOKIE['remember_me']))
+	$logged_in = $_COOKIE["remember_me"] == @trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh login cookie"));
 
 # If user is logging out OR if the "sid" session variable isn't set, do the logout routine:
-if ($_GET['action'] == 'logout')
+if (!$logged_in || $_GET['action'] == 'logout')
 {
 	$logged_in = ($_SESSION['login_valid_until'] = 0) != 0;
 	setcookie("remember_me", false, time() - 3600);
 	unset($_COOKIE["remember_me"]);
-}
-
-# Otherwise, if we are not logged and not using the login page, check to see if the "remember_me" cookie is valid:
-else if (!$logged_in && isset($_COOKIE["remember_me"]))
-{
-	$hash = @trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh login cookie"));
-	if ($logged_in = ($_COOKIE["remember_me"] == $hash))
-	{
-		$_SESSION['login_valid_until'] = time() + 600;
-		setcookie("remember_me", $_COOKIE["remember_me"] = $hash, time() + 60*60*24*365);			
-	}
 }
 
 # Set dark mode if not already set:
