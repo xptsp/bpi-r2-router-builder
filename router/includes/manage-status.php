@@ -64,7 +64,7 @@ if (isset($_POST['action']))
 			'<tbody>';
 		foreach ($ifaces as $name => $bridged)
 		{
-			if (!preg_match('/^(lo|sit.+|eth0|eth1|aux)$/', $name))
+			if (!preg_match('/^(lo|sit.*|eth0|eth1|aux|docker.*)$/', $name))
 			{
 				$status = trim(@file_get_contents($SYS . $name . '/speed'));
 				if ($status == '-1' || empty($status))

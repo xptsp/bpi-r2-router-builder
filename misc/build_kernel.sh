@@ -129,7 +129,7 @@ EOF
 ###############################################################################################
 # Update the kernel source, compile it, then pack as if we will be using the archive:
 ###############################################################################################
-cd ~/R2/BPI-R2-4.14
+cd ~/R2/.BPI-R2-4.14
 BIN=/tmp/kernel_build.sh
 cp build.sh ${BIN}
 sed -i "s|			installchoice|			custom_deb|g" ${BIN}

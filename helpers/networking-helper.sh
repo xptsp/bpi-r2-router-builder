@@ -18,14 +18,17 @@ done
 # Determine new default WiFi password and change it in all hostapd configuration files:
 #############################################################################
 [[ -e /boot/persistent.conf ]] && source /boot/persistent.conf
-[[ -z "${WIFI_PASS}" ]] && WIFI_PASS=$(php /opt/bpi-r2-router-builder/router/includes/subs/newpass.php)
-if ! test -f /boot/persistent.conf; then
+if [[ -z "${WIFI_PASS}" ]]; then
+	# Generate new default password and replace "bananapi" with new pass:
+	WIFI_PASS=$(php /opt/bpi-r2-router-builder/router/includes/subs/newpass.php)
+	sed -i "s|^wpa_passphrase=bananapi$|wpa_passphrase=${WIFI_PASS}|g" /etc/hostapd/*.conf
+
+	# Write the new password to the persistent configuration file:
 	mount -o remount,rw /boot
 	[[ -f /boot/persistent.conf ]] && sed -i "/^WIFI_PASS=/d" /boot/persistent.conf
 	echo "WIFI_PASS=${WIFI_PASS}" >> /boot/persistent.conf
 	mount -o remount,ro /boot
 fi
-sed -i "s|^wpa_passphrase=bananapi$|wpa_passphrase=${WIFI_PASS}|g" /etc/hostapd/*.conf
 
 #############################################################################
 # Use the saved MAC address from the boot partition if one is available.
