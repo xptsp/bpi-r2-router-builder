@@ -122,7 +122,7 @@ function Init_Bandwidth(tx, rx)
 		$("#apply_msg").html( $("#apply_default").html() );
 		$("#apply_cancel").addClass("hidden");
 		$("#apply-modal").modal("show");
-		$.post("services/bandwidth", __postdata(state ? 'enable' : 'disable'), function(data) {
+		$.post("/services/bandwidth", __postdata(state ? 'enable' : 'disable'), function(data) {
 			$("#apply-modal").modal("hide");
 			data = data.trim();
 			if (data == "RELOAD")
@@ -149,7 +149,7 @@ function Bandwidth_Update()
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to change the WAN settings:
-	$.post("services/bandwidth", postdata, function(data) {
+	$.post("/services/bandwidth", postdata, function(data) {
 		if (data.reload == true)
 			document.location.reload(true);
 		if (Object.keys(data.rx).length == 0)
