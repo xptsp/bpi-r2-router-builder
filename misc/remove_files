@@ -61,7 +61,7 @@ if [[ ! -z "${GIT[@]}" ]]; then
 
 	echo -e "${GREEN}NOTE:${NC} Repulling SSD1306 Stats repo to minimize size..."
 	rm -rf /opt/stats
-	git clone --depth=1 https://github.com/xptsp/stats /opt/stats
+	git clone --depth=1 https://github.com/xptsp/bpi-r2-ssd1306-display /opt/stats
 	rm /opt/stats/ssd1306_python3.tar.gz
 
 	echo -e "${GREEN}NOTE:${NC} Repulling wireless-regdb repo to minimize size..."
