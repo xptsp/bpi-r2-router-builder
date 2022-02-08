@@ -55,14 +55,16 @@ losd()
 }
 bpiwrt()
 {
-	count=0
+	XasBvxdfsF=0
 	while :; do
 		ifconfig enp6s0 | grep "inet " >& /dev/null && break
 		clear
-		echo "count=$count"
-		count=$(( count + 1))
+		echo -e "\033[1;32m============ Waiting $(printf "%3d" ${XasBvxdfsF}) seconds ============\033[0m"
+		XasBvxdfsF=$(( XasBvxdfsF + 1))
 		ifconfig enp6s0
+		echo -e "\033[1;32m=============================================\033[0m"
 		sleep 1
 	done
+	unset XasBvxdfsF
 	ssh root@192.168.2.1
 }
