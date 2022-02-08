@@ -105,7 +105,7 @@ function site_header($override_title = "")
 ################################################################################################################
 # Function that returns a menu item:
 ################################################################################################################
-function menu_link($url, $text, $icon = "far fa-circle", $enabled = false, $id = false)
+function menu_link($url, $text, $icon = "far fa-circle", $enabled = true, $id = false)
 {
 	global $site_title, $logged_in;
 
@@ -127,14 +127,13 @@ function menu_link($url, $text, $icon = "far fa-circle", $enabled = false, $id =
 ################################################################################################################
 # Function that returns a menu with submenu items in it:
 ################################################################################################################
-function menu_submenu($text, $icon = "far fa-circle", $items = array(), $login_required = true)
+function menu_submenu($text, $icon = "far fa-circle", $items = array())
 {
 	global $logged_in;
 	$items = (is_array($items) ? implode('', $items) : $items);
-	if (($login_required && !$logged_in) || empty($items))
+	if (empty($items))
 		return '';
-	else
-		return
+	return
 		'<li class="nav-item' . (strrpos($items, 'class="nav-link active">') > 0 ? ' menu-open' : '') . '">' .
 			'<a href="#" class="nav-link' . (strrpos($items, 'class="nav-link active">') > 0 ? ' active' : '') . '">' .
 				'<i class="nav-icon ' . $icon . '"></i>' .
