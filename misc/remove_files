@@ -48,9 +48,7 @@ mv /tmp/history.log /var/log/apt/history.log
 rm /var/lib/apt/lists/* >& /dev/null
 rm /etc/samba/smb.d/webui >& /dev/null
 touch /var/lib/apt/lists/lock
-sed -i "s|^WEBUI_SHARE=.*|WEBUI_SHARE=n|g" /boot/persistent.conf
-sed -i "/^MAC=/d" /boot/persistent.conf
-sed -i "/^WIFI_PASS=/d" /boot/persistent.conf
+echo "WEBUI_SHARE=n" > /boot/persistent.conf
 
 ####################################################################################################
 GIT=($(whereis git | cut -d":" -f 2))

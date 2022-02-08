@@ -138,58 +138,6 @@ function DMZ_Apply()
 }
 
 //======================================================================================================
-// Javascript functions for "Advanced / Mosquitto Settings"
-//======================================================================================================
-function Init_Notify()
-{
-	$(".checkbox").bootstrapSwitch();
-	$("#enable_mosquitto").bootstrapSwitch().on('switchChange.bootstrapSwitch', function(event, state) {
-		if (state == true)
-			$("#mosquitto_options").slideDown(400);
-		else
-			$("#mosquitto_options").slideUp(400);
-	});
-	$('.ip_address').inputmask("ip");
-	$(".ip_port").inputmask("integer", {min:0, max:65535});
-	$("#apply_changes").click( Notify_Apply );
-}
-
-function Notify_Apply()
-{
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid':        SID,
-		'action':     'submit',
-		'enabled':    $("#enable_mosquitto").prop("checked") ? "Y" : "N",
-		'ip_addr':    $("#ip_addr").val(),
-		'ip_port':    $("#ip_port").val(),
-		'username':   $("#username").val(),
-		'password':   $("#password").val(),
-	};
-	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Perform our AJAX request to change the WAN settings:
-	$("#apply_msg").html( $("#apply_default").html() );
-	$("#apply-modal").modal("show");
-	$("#apply_cancel").addClass("hidden");
-	$.post("/advanced/notify", postdata, function(data) {
-		data = data.trim();
-		if (data == "RELOAD")
-			document.location.reload(true);
-		else if (data == "OK")
-			$("#apply-modal").modal("hide");
-		else
-		{
-			$("#apply_msg").html(data);
-			$(".alert_control").removeClass("hidden");
-		}
-	}).fail(function() {
-		$("#apply_msg").html("AJAX call failed!");
-		$("#apply_cancel").removeClass("hidden");
-	});
-}
-
-//======================================================================================================
 // Javascript functions for "Advanced / DHCP Reservations":
 //======================================================================================================
 function Init_DHCP(iface)

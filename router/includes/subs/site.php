@@ -23,13 +23,15 @@ $sidebar_menu = array(
 		'firewall'  => menu_link('/advanced/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
 		'dmz'       => menu_link('/advanced/dmz', 'DMZ Setup', 'fas fa-server'),
 		'dhcp'      => menu_link('/advanced/dhcp', 'DHCP Reservations', 'fas fa-address-card'),
-		'notify'    => menu_link('/advanced/notify', 'DHCP Notifications', 'fas fa-bullhorn'),
-		'upnp'      => menu_link('/advanced/upnp', 'UPnP Setup', 'fas fa-plug'),
 		'forward'   => menu_link('/advanced/forward', 'Port Forwarding', 'fas fa-forward'),
+	)),
+	'services'  => array('Services', 'fas fa-concierge-bell', array(
+		'upnp'      => menu_link('/services/upnp', 'UPnP Setup', 'fas fa-plug', file_exists("/lib/systemd/system/miniupnpd.service")),
+		'notify'    => menu_link('/services/notify', 'DHCP Notifications', 'fas fa-bullhorn', file_exists("/usr/bin/mosquitto_pub")),
+		'usage'    => menu_link('/services/bandwidth', 'Bandwidth Usage', 'fas fa-chart-bar', file_exists("/lib/systemd/system/vnstat.service")),
 	)),
 	'manage'  => array('Management', 'fas fa-cog', array(
 		'status'   => menu_link('/manage/status', 'Router Status', 'fas fa-ethernet'),
-		'usage'    => menu_link('/manage/bandwidth', 'Bandwidth Usage', 'fas fa-chart-bar'),
 		'manage'   => menu_link('/manage/webui', 'WebUI Management', 'fas fa-server'),
 		'attached' => menu_link('/manage/attached', 'Attached Devices', 'fas fa-link'),
 		'backup'   => menu_link('/manage/backup', 'Backup &amp; Restore', 'fas fa-file-export'),
@@ -103,18 +105,17 @@ function site_header($override_title = "")
 ################################################################################################################
 # Function that returns a menu item:
 ################################################################################################################
-function menu_link($url, $text, $icon = "far fa-circle", $login_required = false, $id = false)
+function menu_link($url, $text, $icon = "far fa-circle", $enabled = false, $id = false)
 {
 	global $site_title, $logged_in;
 
 	$test_url = ltrim(preg_replace('/[\s\W]+/', '-', $url), '-');
 	$active = ($test_url == $_GET['action'] || ($url == '/' && $_GET['action'] == 'home')) ? ' active' : '';
+	if (!$enabled)
+		return '';
 	if (!empty($active))
 		$site_title = $text;
-	if ($login_required && !$logged_in)
-		return '';
-	else
-		return
+	return
 		'<li class="nav-item"' . (!empty($id) ? ' id="' . $id . '_label"' : '') . '>' .
 			'<a href="' . $url . '" class="nav-link' . $active . '">' .
 				'<i' . (!empty($id) ? ' id="' . $id . '"' : '') . ' class="nav-icon ' . $icon . '"></i>' .

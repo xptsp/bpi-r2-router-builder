@@ -539,7 +539,7 @@ case $CMD in
 		RO=$(mount | grep "/boot" | grep "(ro,")
 		[[ ! -z "$RO" ]] && mount -o remount,rw /boot
 		[[ ! -f ${FILE}.old ]] && cp ${FILE} ${FILE}.old
-		[[ -f /boot/persistent.conf ]] && sed -i "/^MAC=/d" > /boot/persistent.conf
+		[[ -f /boot/persistent.conf ]] && sed -i "/^MAC=/d" /boot/persistent.conf
 		echo "MAC=${MAC}" >> /boot/persistent.conf
 		dtc -q -O dtb /tmp/dts > ${FILE}
 		[[ ! -z "$RO" ]] && mount -o remount,ro /boot

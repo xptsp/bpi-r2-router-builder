@@ -75,6 +75,7 @@ systemctl disable --now hostapd
 ##############################################################################################
 apt install -y wget git toilet pmount eject lsb-release dialog mosquitto-clients sudo gnupg curl gnupg
 apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance wireless-regdb crda
+git config --global pull.rebase false
 
 ##############################################################################################
 # Install files from the GitHub repository to build this image:
@@ -106,6 +107,7 @@ chmod +x /usr/local/bin/mmc
 # Get the file we'll need to flash during SD->EMMC copies:
 ##############################################################################################
 wget https://github.com/BPI-SINOVOIP/BPI-files/raw/master/SD/100MB/BPI-R2-EMMC-boot0-DDR1600-0k-0905.img.gz -O /boot/BPI-R2-EMMC-boot0-DDR1600-0k-0905.img.gz
+echo "WEBUI_SHARE=y" >> /boot/persistent.conf
 
 ##################################################################################
 # Create our custom login message:
