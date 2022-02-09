@@ -7,9 +7,6 @@ $ifaces = explode("\n", trim(@shell_exec("grep masquerade /etc/network/interface
 #################################################################################################
 if (isset($_POST['action']))
 {
-	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
-		die('RELOAD');
-
 	#################################################################################################
 	# ACTION: LIST => List current ports being forwarded through the router:
 	#################################################################################################

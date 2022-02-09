@@ -3,11 +3,33 @@
 //======================================================================================================
 function Init_UPnP()
 {
-	$("#upnp_enable").bootstrapSwitch().on('switchChange.bootstrapSwitch', function(event, state) {
-		if (state == true)
-			$("#upnp_div").slideDown(400);
-		else
-			$("#upnp_div").slideUp(400);
+	$("#refresh_switch").bootstrapSwitch();
+	$("#refresh_switch").on('switchChange.bootstrapSwitch', function(event, state) {
+		$("#apply_msg").html( $("#apply_default").html() );
+		$("#apply_cancel").addClass("hidden");
+		$("#apply-modal").modal("show");
+		$.post("/services/upnp", __postdata(state ? 'enable' : 'disable'), function(data) {
+			$("#apply-modal").modal("hide");
+			data = data.trim();
+			if (data == "RELOAD")
+				document.location.reload(true);
+			else if (data == "disable")
+				$("#disabled_div").slideDown(400);
+			else if (data == "enable")
+				$("#disabled_div").slideUp(400);
+			else
+			{
+				$("#apply_msg").html(data);
+				$(".alert_control").removeClass("hidden");
+			}
+		}).fail(function() {
+			$("#apply_msg").html("AJAX call failed");
+			$(".alert_control").removeClass("hidden");
+			$("#refresh_switch").bootstrapSwitch('state', !state, true);
+		});
+	});
+	$("#toggle_service").click(function() {
+		$("#refresh_switch").bootstrapSwitch('state', true);
 	});
 	$("#upnp_refresh").click(function() {
 		$.post('/services/upnp', __postdata("list"), function(data) {
@@ -29,7 +51,6 @@ function UPnP_Submit()
 	postdata = {
 		'sid':      SID,
 		'action':   'submit',
-		'enable':   $("#upnp_enable").prop("checked") ? "Y" : "N",
 		'secure':   $("#upnp_secure").prop("checked") ? "Y" : "N",
 		'natpmp':   $("#upnp_natpmp").prop("checked") ? "Y" : "N",
 	};
@@ -131,6 +152,15 @@ function Init_Bandwidth(tx, rx)
 				$("#disabled_div").slideDown(400);
 			else if (data == "enable")
 				$("#disabled_div").slideUp(400);
+			else
+			{
+				$("#apply_msg").html(data);
+				$(".alert_control").removeClass("hidden");
+			}
+		}).fail(function() {
+			$("#apply_msg").html("AJAX call failed");
+			$(".alert_control").removeClass("hidden");
+			$("#refresh_switch").bootstrapSwitch('state', !state, true);
 		});
 	});
 	$("#toggle_service").click(function() {

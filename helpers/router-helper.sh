@@ -778,13 +778,21 @@ case $CMD in
 
 	###########################################################################
 	# Code adapted from https://andrewwippler.com/2016/03/11/wifi-captive-portal/
-	rmtrack)
-		IP=${2}
-		if ! valid_ip ${IP}; then echo "ERROR: Invalid IP Address specified as 2rd param!"; exit 1; fi
-		ADDR=($(arp -a ${IP} | grep -o '..:..:..:..:..:..'))
-		if [[ -z "${ADDR[@]}" ]]; then echo "ERROR: No MAC address found for specified IP address!"; exit 1; fi
-		conntrack -L | grep ${IP} | grep ESTAB | grep 'dport=80' | awk "{ system(\"conntrack -D --orig-src $1 --orig-dst \" substr(\$6,5) \" -p tcp --orig-port-src \" substr(\$7,7) \" --orig-port-dst 80\"); }"
-		for MAC in ${ADDR[@]}; do iptables -t mangle -A PORTAL -m mac --mac-source ${MAC} -j MARK --set-mark 0x2; done
+	portal)
+		if [[ "$1" == "allow" ]]; then
+			IP=${2}
+			if ! valid_ip ${IP}; then echo "ERROR: Invalid IP Address specified as 2rd param!"; exit 1; fi
+			ADDR=($(arp -a ${IP} | grep -o '..:..:..:..:..:..'))
+			if [[ -z "${ADDR[@]}" ]]; then echo "ERROR: No MAC address found for specified IP address!"; exit 1; fi
+			conntrack -L | grep ${IP} | grep ESTAB | grep 'dport=80' | awk "{ system(\"conntrack -D --orig-src $1 --orig-dst \" substr(\$6,5) \" -p tcp --orig-port-src \" substr(\$7,7) \" --orig-port-dst 80\"); }"
+			for MAC in ${ADDR[@]}; do iptables -t mangle -A PORTAL -m mac --mac-source ${MAC} -j MARK --set-mark 0x2; done
+			echo "OK"
+		else
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "SYNTAX: $(basename $0) portal [allow] (options)" && exit 0
+			echo "Where:"
+			echo "    allow [ip]  - Allows IP address access to the network"
+		fi
 		;;
 
 	###########################################################################

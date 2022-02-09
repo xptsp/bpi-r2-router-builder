@@ -25,12 +25,6 @@ $wifi = get_wifi_capabilities($iface);
 if (isset($_POST['action']))
 {
 	#################################################################################################
-	# If action specified and invalid SID passed, force a reload of the page.  Otherwise:
-	#################################################################################################
-	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
-		die('RELOAD');
-
-	#################################################################################################
 	# Validate the actions:
 	#################################################################################################
 	$action = $_POST['action'] = option_allowed('action', array('disabled', 'client_dhcp', 'client_static', 'ap', 'scan'));

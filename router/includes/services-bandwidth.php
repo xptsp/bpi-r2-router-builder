@@ -10,9 +10,6 @@ $L['datefmt_hours'] = '%l%p';
 #$_POST['action'] = 'hour';
 if (isset($_POST['action']))
 {
-	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
-		die(json_encode(array('reload' => true)));
-
 	####################################################################################
 	# ACTION: RETRIEVE ==> Process the raw data dump sent from the VNSTAT program and
 	#     return it as a JSON array for the JavaScript to deal with.

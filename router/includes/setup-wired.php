@@ -8,12 +8,6 @@ require_once("subs/setup.php");
 if (isset($_POST['action']))
 {
 	#################################################################################################
-	# If action specified and invalid SID passed, force a reload of the page.  Otherwise:
-	#################################################################################################
-	if (!isset($_POST['sid']) || $_POST['sid'] != $_SESSION['sid'])
-		die('RELOAD');
-
-	#################################################################################################
 	# Validate the input sent to this script (we paranoid... for the right reasons, of course...):
 	#################################################################################################
 	$action = $_POST['action'] = option_allowed('action', array('dhcp', 'static', 'bridged'));
