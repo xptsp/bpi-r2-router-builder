@@ -151,23 +151,21 @@ if [[ "$1" == "start" ]]; then
 	IP=$(if test -f ${FILE}; then cat ${FILE} | grep address | awk '{print $2}'; fi)
 	if [[ ! -z "${IP}" ]]; then
 		# User-defined chain in "mangle" table:
-		create_chain PORTAL_OUT mangle
+		create_chain PORTAL mangle
 
 		# User-defined chain and rules in "nat" table:
-		create_chain PORTAL_OUT nat
-		iptables -t nat -A PORTAL_OUT -d ${IP} -j ACCEPT
-		iptables -t nat -A PORTAL_OUT -m mark --mark 0x2 -j ACCEPT
-		iptables -t nat -A PORTAL_OUT -p tcp --dport 80 -j DNAT --to-destination ${IP}:81
+		create_chain PORTAL nat
+		iptables -t nat -A PORTAL -d ${IP} -j ACCEPT
+		iptables -t nat -A PORTAL -m mark --mark 0x2 -j ACCEPT
+		iptables -t nat -A PORTAL -p tcp --dport 80 -j DNAT --to-destination ${IP}:81
 
 		# User-defined chain and rules in "filter" table:
-		create_chain PORTAL_OUT
-		iptables -A PORTAL_OUT -d ${IP} -p tcp --dport 81 -j ACCEPT
-		iptables -A PORTAL_OUT -m mark --mark 0x2 -j ACCEPT
-		iptables -A PORTAL_OUT -p udp --dport 53 -j ACCEPT
-		iptables -A PORTAL_OUT -p tcp --dport 53 -j ACCEPT
-		iptables -A PORTAL_OUT -p udp --dport 67 -j ACCEPT
-		iptables -A PORTAL_OUT -p tcp --dport 67 -j ACCEPT
-		iptables -A PORTAL_OUT -j REJECT --reject-with icmp-port-unreachable
+		create_chain PORTAL
+		iptables -A PORTAL -m mark --mark 0x2 -j ACCEPT
+		iptables -A PORTAL -d ${IP} -p tcp --match multiport --dports 80:81 -j ACCEPT
+		iptables -A PORTAL -p udp --match multiport --dport 53,67 -j ACCEPT
+		iptables -A PORTAL -p tcp --match multiport --dport 53,67 -j ACCEPT
+		iptables -A PORTAL -j REJECT --reject-with icmp-port-unreachable
 	fi
 
 	#############################################################################
@@ -180,18 +178,18 @@ if [[ "$1" == "start" ]]; then
 #############################################################################
 elif [[ "$1" == "add_portal" ]]; then
 	IFACE=${2}
-	iptables -t mangle -A PREROUTING -i ${IFACE} -j PORTAL_OUT
-	iptables -t nat -A PREROUTING -i ${IFACE} -j PORTAL_OUT
-	iptables -A FORWARD -i ${IFACE} -j PORTAL_OUT
+	iptables -t mangle -A PREROUTING -i ${IFACE} -j PORTAL
+	iptables -t nat -A PREROUTING -i ${IFACE} -j PORTAL
+	iptables -A FORWARD -i ${IFACE} -j PORTAL
 
 #############################################################################
 # DEL_PORTAL => Remove all internet-firewall rules for specified interface:
 #############################################################################
 elif [[ "$1" == "del_portal" ]]; then
 	IFACE=${2}
-	iptables -t mangle -D PREROUTING -i ${IFACE} -j PORTAL_OUT
-	iptables -t nat -D PREROUTING -i ${IFACE} -j PORTAL_OUT
-	iptables -D FORWARD -i ${IFACE} -j PORTAL_OUT
+	iptables -t mangle -D PREROUTING -i ${IFACE} -j PORTAL
+	iptables -t nat -D PREROUTING -i ${IFACE} -j PORTAL
+	iptables -D FORWARD -i ${IFACE} -j PORTAL
 
 #############################################################################
 # UNBLOCK => Remove all internet-firewall rules for specified interface:

@@ -1,14 +1,14 @@
 server {
 	listen 192.168.2.1:81 default_server;
-	root   /opt/bpi-r2-router-builder/hotspot;
+	root   /opt/bpi-r2-router-builder/router/hotspot;
 
 	# For iOS
 	if ($http_user_agent ~* (CaptiveNetworkSupport) ) {
-		return 302 http://192.168.2.1:81/hotspot.html;
+		return 302 http://bpiwrt.local:81/hotspot.html;
 	}
 	# For others
 	location / {
-		return 302 http://192.168.2.1:81/login.php;
+		return 302 http://bpiwrt.local:81/login.php;
 	}
 
 	location ~ \.php$ {
