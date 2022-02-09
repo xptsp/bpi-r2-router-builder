@@ -123,3 +123,9 @@ remote_ip=192.168.0.0/32
 
 # When "remote_limit_by" is "range", restrict access to this IP address.  Default: "192.168.0.0-192.168.0.0"
 remote_range=192.168.0.0-192.168.0.0
+
+##########################################################################
+# WebUI captive portal settings
+##########################################################################
+# Interface to pull the captive portal address from.  Default: "br0"
+captive_portal_iface=br0

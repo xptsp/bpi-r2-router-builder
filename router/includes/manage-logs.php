@@ -4,6 +4,10 @@ $cmds = array(
 	'dmesg' => array('cmd' => 'dmesg', 'header' => 'Kernel Logs'),
 	'journal' => array('cmd' => 'journalctl', 'header' => 'Journal Logs'),
 );
+if (file_exists('/var/log/ulog/port_scans.log'))
+	$cmds['portscan'] = array('header' => 'Port Scan Logs',  'cmd' => 'cat /var/log/ulog/port_scans.log');
+if (file_exists('/var/log/ulog/udp_floods.log'))
+	$cmds['udp_flood'] = array('header' => 'UDP Floods Logs', 'cmd' => 'cat /var/log/ulog/udp_floods.log');
 $_GET['which'] = (!isset($_GET['which']) || !isset($cmds[$_GET['which']])) ? 'dmesg' : $_GET['which'];
 $log = &$cmds[ $_GET['which'] ];
 #echo '<pre>'; print_r($log); exit;

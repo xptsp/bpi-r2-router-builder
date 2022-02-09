@@ -144,12 +144,57 @@ if [[ "$1" == "start" ]]; then
 	iptables -t nat -A POSTROUTING -o br0 -j MASQUERADE
 
 	#############################################################################
+	# Create chains for our integrated captive WiFi portal:
+	#############################################################################
+	# Get address of the "br0" interface:
+	FILE=/etc/network/interfaces.d/${captive_portal_iface}
+	IP=$(if test -f ${FILE}; then cat ${FILE} | grep address | awk '{print $2}'; fi)
+	if [[ ! -z "${IP}" ]]; then
+		# User-defined chain in "mangle" table:
+		create_chain PORTAL_OUT mangle
+
+		# User-defined chain and rules in "nat" table:
+		create_chain PORTAL_OUT nat
+		iptables -t nat -A PORTAL_OUT -d ${IP} -j ACCEPT
+		iptables -t nat -A PORTAL_OUT -m mark --mark 0x2 -j ACCEPT
+		iptables -t nat -A PORTAL_OUT -p tcp --dport 80 -j DNAT --to-destination ${IP}
+
+		# User-defined chain and rules in "filter" table:
+		create_chain PORTAL_OUT
+		iptables -A PORTAL_OUT -d ${IP} -j ACCEPT
+		iptables -A PORTAL_OUT -m mark --mark 0x2 -j ACCEPT
+		iptables -A PORTAL_OUT -p udp --dport 53 -j ACCEPT
+		iptables -A PORTAL_OUT -p tcp --dport 53 -j ACCEPT
+		iptables -A PORTAL_OUT -p udp --dport 67 -j ACCEPT
+		iptables -A PORTAL_OUT -p tcp --dport 67 -j ACCEPT
+		iptables -A PORTAL_OUT -j REJECT --reject-with icmp-port-unreachable
+	fi
+
+	#############################################################################
 	# We need to call ourselves to complete other tasks:
 	#############################################################################
 	$0 reload
 
 #############################################################################
-# UNFIREWALL => Remove all internet-firewall rules for specified interface:
+# ADD_PORTAL => Remove all internet-firewall rules for specified interface:
+#############################################################################
+elif [[ "$1" == "add_portal" ]]; then
+	IFACE=${2}
+	iptables -t mangle -A PREROUTING -i ${IFACE} -j PORTAL_OUT
+	iptables -t nat -A PREROUTING -i ${IFACE} -j PORTAL_OUT
+	iptables -A FORWARD -i ${IFACE} -j PORTAL_OUT
+
+#############################################################################
+# DEL_PORTAL => Remove all internet-firewall rules for specified interface:
+#############################################################################
+elif [[ "$1" == "del_portal" ]]; then
+	IFACE=${2}
+	iptables -t mangle -D PREROUTING -i ${IFACE} -j PORTAL_OUT
+	iptables -t nat -D PREROUTING -i ${IFACE} -j PORTAL_OUT
+	iptables -D FORWARD -i ${IFACE} -j PORTAL_OUT
+
+#############################################################################
+# UNBLOCK => Remove all internet-firewall rules for specified interface:
 #############################################################################
 elif [[ "$1" == "unblock" && ! -z "${2}" ]]; then
 	IFACE=$2
@@ -158,7 +203,7 @@ elif [[ "$1" == "unblock" && ! -z "${2}" ]]; then
 	iptables --list-rules -t mangle | grep ${IFACE} | while IFS= read -r line; do iptables -t mangle ${line/\-A/\-D}; done
 
 #############################################################################
-# FIREWALL => Install internet-firewall rules for specified interface:
+# BLOCK => Install internet-firewall rules for specified interface:
 #############################################################################
 elif [[ "$1" == "block" && ! -z "${2}" ]]; then
 	IFACE=$2
@@ -265,12 +310,12 @@ elif [[ "$1" == "firewall" ]]; then
 	if [[ "${drop_port_scan:-"Y"}" == "Y" ]]; then
 		# CTB: Create chain PORTSCAN and add logging to it (if requested) with your preferred prefix
 		create_chain PORTSCAN
-		[[ "${log_port_scan:-"N"}" == "Y" ]] && iptables -A PORTSCAN -j LOG --log-level 4 --log-prefix 'Blocked_scans '
+		[[ "${log_port_scan:-"N"}" == "Y" ]] && iptables -A PORTSCAN -j NFLOG --nflog-group 1  --nflog-prefix 'Blocked_scans: '
 		iptables -A PORTSCAN -j DROP
 
-		# CTB: Create chain UDP with custom logging (if requested) 
+		# CTB: Create chain UDP with custom logging (if requested)
 		create_chain UDP
-		[[ "${log_udp_flood:-"N"}" == "Y" ]] && iptables -A UDP -j LOG --log-level 4 --log-prefix 'UDP_FLOOD '
+		[[ "${log_udp_flood:-"N"}" == "Y" ]] && iptables -A UDP  -j NFLOG --nflog-group 2  --nflog-prefix 'UDP_FLOOD: '
 		iptables -A UDP -p udp -m state --state NEW -m recent --set --name UDP_FLOOD
 		iptables -A UDP -j DROP
 

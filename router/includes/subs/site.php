@@ -26,8 +26,8 @@ $sidebar_menu = array(
 		'forward'   => menu_link('/advanced/forward', 'Port Forwarding', 'fas fa-forward'),
 	)),
 	'services'  => array('Services', 'fas fa-concierge-bell', array(
-		'upnp'      => menu_link('/services/upnp', 'UPnP Setup', 'fas fa-plug', file_exists("/lib/systemd/system/miniupnpd.service")),
 		'notify'    => menu_link('/services/notify', 'DHCP Notifications', 'fas fa-bullhorn', file_exists("/usr/bin/mosquitto_pub")),
+		'upnp'      => menu_link('/services/upnp', 'UPnP Setup', 'fas fa-plug', file_exists("/lib/systemd/system/miniupnpd.service")),
 		'usage'    => menu_link('/services/bandwidth', 'Bandwidth Usage', 'fas fa-chart-bar', file_exists("/lib/systemd/system/vnstat.service")),
 	)),
 	'manage'  => array('Management', 'fas fa-cog', array(
