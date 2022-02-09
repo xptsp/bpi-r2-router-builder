@@ -157,11 +157,11 @@ if [[ "$1" == "start" ]]; then
 		create_chain PORTAL_OUT nat
 		iptables -t nat -A PORTAL_OUT -d ${IP} -j ACCEPT
 		iptables -t nat -A PORTAL_OUT -m mark --mark 0x2 -j ACCEPT
-		iptables -t nat -A PORTAL_OUT -p tcp --dport 80 -j DNAT --to-destination ${IP}
+		iptables -t nat -A PORTAL_OUT -p tcp --dport 80 -j DNAT --to-destination ${IP}:81
 
 		# User-defined chain and rules in "filter" table:
 		create_chain PORTAL_OUT
-		iptables -A PORTAL_OUT -d ${IP} -j ACCEPT
+		iptables -A PORTAL_OUT -d ${IP} -p tcp --dport 81 -j ACCEPT
 		iptables -A PORTAL_OUT -m mark --mark 0x2 -j ACCEPT
 		iptables -A PORTAL_OUT -p udp --dport 53 -j ACCEPT
 		iptables -A PORTAL_OUT -p tcp --dport 53 -j ACCEPT

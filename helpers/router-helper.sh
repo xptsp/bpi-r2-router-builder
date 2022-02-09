@@ -780,10 +780,10 @@ case $CMD in
 	rmtrack)
 		IP=${2}
 		if ! valid_ip ${IP}; then echo "ERROR: Invalid IP Address specified as 2rd param!"; exit 1; fi
-		MAC=$(arp -a ${IP} | head -1 | grep -o '..:..:..:..:..:..')
-		if [[ -z "${MAC}" ]]; then echo "ERROR: No MAC address found for specified IP address!"; exit 1; fi
+		ADDR=($(arp -a ${IP} | grep -o '..:..:..:..:..:..'))
+		if [[ -z "${ADDR[@]}" ]]; then echo "ERROR: No MAC address found for specified IP address!"; exit 1; fi
 		conntrack -L | grep ${IP} | grep ESTAB | grep 'dport=80' | awk "{ system(\"conntrack -D --orig-src $1 --orig-dst \" substr(\$6,5) \" -p tcp --orig-port-src \" substr(\$7,7) \" --orig-port-dst 80\"); }"
-		iptables -t mangle -A PORTAL_OUT -m mac --mac-source ${MAC} -j MARK --set-mark 0x2
+		for MAC in ${ADDR[@]}; do iptables -t mangle -A PORTAL -m mac --mac-source ${MAC} -j MARK --set-mark 0x2; done
 		;;
 
 	###########################################################################

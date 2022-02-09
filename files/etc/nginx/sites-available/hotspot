@@ -1,0 +1,20 @@
+server {
+	listen 192.168.2.1:81 default_server;
+	root   /opt/bpi-r2-router-builder/hotspot;
+
+	# For iOS
+	if ($http_user_agent ~* (CaptiveNetworkSupport) ) {
+		return 302 http://192.168.2.1:81/hotspot.html;
+	}
+	# For others
+	location / {
+		return 302 http://192.168.2.1:81/login.php;
+	}
+
+	location ~ \.php$ {
+		include fastcgi_params;
+		fastcgi_param SCRIPT_FILENAME $document_root/$fastcgi_script_name;
+		fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+		fastcgi_param FQDN true;
+	}
+}
