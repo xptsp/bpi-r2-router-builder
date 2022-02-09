@@ -1,31 +1,35 @@
 <?php
+require_once("../includes/subs/site.php");
+$mode = !empty($option['captive_portal_mode']) ? $option['captive_portal_mode'] : 'accept';
+$mode = in_array($mode, array('accept', 'username', 'password')) ? $mode : 'accept';
+
+#################################################################################################
+# Validate the credentials sent:
+#################################################################################################
 if (isset($_POST['action']))
 {
-	#################################################################################################
-	# Validate the credentials sent:
-	#################################################################################################
-	if ($_POST['action'] == 'submit')
-	{
-		// Is the username correct?  If not, abort with error:
-		$username = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['username']) ? $_POST['username'] : '');
-		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login webui')) != $username)
-			die("Invalid");
+	if ($_POST['action'] != $mode)
+		die("Invalid action");
 
-		// Is the password correct?  If not, abort with error:
+	if ($_POST['action'] == 'username')
+	{
+		// Is the specified username/password combo valid?
+		$username = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['username']) ? $_POST['username'] : '');
 		$password = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['password']) ? $_POST['password'] : '');
 		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check ' . $username . ' ' . $password)) != "Match")
 			die("Invalid");
-
-		// If "Remember Me" is checked, set a cookie with the hash of the hash of the password:
-		if (isset($_POST['remember']) && $_POST['remember'] == "Y")
-			setcookie("remember_me", @trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh login cookie")), time() + 60*60*24*365 );
-
-		// Set "login_valid_until" session variable, then return "OK" to the caller:
-		$_SESSION['login_valid_until'] = time() + 600;
-		die("OK");
 	}
-	die("Invalid action");
+	die("OK");
 }
+
+#################################################################################################
+# Figure out the settings needed:
+#################################################################################################
+#echo $mode; exit;
+$option = parse_options();
+#echo '<pre>'; print_r($option); exit;
+$URL = (file_exists('/etc/nginx/sites-enabled/router-https') ? 'https://' : 'http://') . explode(":", $_SERVER['HTTP_HOST'])[0];
+#echo $URL; exit;
 
 #################################################################################################
 # Output the Router Login page if no action was specified:
@@ -37,63 +41,97 @@ echo '
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>BPiWRT | Captive Portal</title>
-	<link rel="stylesheet" href="http://192.168.2.1/css/fonts.googleapis.com.css">
-	<link rel="stylesheet" href="http://192.168.2.1/plugins/fontawesome-free/css/all.min.css">
-	<link rel="stylesheet" href="http://192.168.2.1/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
-	<link rel="stylesheet" href="http://192.168.2.1/css/adminlte.min.css">
-	<link rel="stylesheet" href="http://192.168.2.1/css/custom.css">
+	<link rel="stylesheet" href="', $URL, '/css/fonts.googleapis.com.css">
+	<link rel="stylesheet" href="', $URL, '/plugins/fontawesome-free/css/all.min.css">
+	<link rel="stylesheet" href="', $URL, '/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+	<link rel="stylesheet" href="', $URL, '/css/adminlte.min.css">
+	<link rel="stylesheet" href="', $URL, '/css/custom.css">
 </head>
 <body class="hold-transition login-page ', !empty($_SESSION['dark_mode']) ? 'bodybg-dark dark-mode' : 'bodybg', '">
 	<div class="login-box">
 		<div class="card card-outline card-primary">
 			<div class="card-header text-center">
-				<img src="/img/wifi-router-large.png"><br />
+				<img src="', $URL, '/img/wifi-router-large.png"><br />
 				<a href="/" class="h1"><b>BPi</b>WRT</a>
+				<h4>Captive Portal</h4>
 			</div>
 			<div class="card-body">
-				<form>
-					<div class="alert alert-danger hidden" id="dhcp_error_box">
-						<a href="javascript:void(0);"><button type="button" class="close" id="dhcp_error_close">&times;</button></a>
-						<i class="fas fa-ban"></i> Invalid Username and/or Password!
-					</div>
-					<div class="input-group mb-3">
-						<input type="username" id="username" class="form-control" placeholder="Username">
-						<div class="input-group-append">
-							<div class="input-group-text">
-								<span class="fas fa-user"></span>
-							</div>
+				<p>
+					Before continuing, you must first agree to the <a href="#">Terms of Service</a> and 
+					be of the legal age to do that in your selective country or have Parental Consent.
+				</p>';
+
+#################################################################################################
+# PORTAL MODE: ACCEPT ==> Requires user to press "Accept" before allowing them to continue...
+#################################################################################################
+if ($mode == 'accept')
+	echo '
+				<hr>
+				<button type="submit" id="accept" class="btn btn-success btn-block">Accept</button>';
+
+#################################################################################################
+# PORTAL MODE: USERNAME ==> Requires a valid username and password before continuing..
+#################################################################################################
+else if ($mode == 'username')
+	echo '
+				<div class="alert alert-danger hidden" id="dhcp_error_box">
+					<a href="javascript:void(0);"><button type="button" class="close" id="dhcp_error_close">&times;</button></a>
+					<i class="fas fa-ban"></i> Invalid Username and/or Password!
+				</div>
+				<div class="input-group mb-3" style="margin-top: 5px">
+					<input type="username" id="username" class="form-control" placeholder="Username">
+					<div class="input-group-append">
+						<div class="input-group-text">
+							<span class="fas fa-user"></span>
 						</div>
 					</div>
-					<div class="input-group mb-3">
-						<input type="password" id="password" class="form-control" placeholder="Password">
-						<div class="input-group-append">
-							<div class="input-group-text">
-								<span class="fas fa-lock"></span>
-							</div>
+				</div>
+				<div class="input-group mb-3" style="margin-top: 5px">
+					<input type="password" id="password" class="form-control" placeholder="Password">
+					<div class="input-group-append">
+						<div class="input-group-text">
+							<span class="fas fa-lock"></span>
 						</div>
 					</div>
-					<div class="row">
-						<div class="col-8">
-							<div class="icheck-primary">
-								<input type="checkbox" id="remember">
-								<label for="remember">Remember Me</label>
-							</div>
-						</div>
-						<div class="col-4">
-							<button type="submit" id="login_button" class="btn btn-primary btn-block">Sign In</button>
+				</div>
+				<div class="row">
+					<button type="submit" id="login" class="btn btn-primary btn-block">Sign In</button>
+				</div>';
+
+#################################################################################################
+# PORTAL MODE: PASSWORD ==> Requires a valid password before continuing...
+#################################################################################################
+else if ($mode == 'password')
+	echo '
+				<div class="alert alert-danger hidden" id="dhcp_error_box">
+					<a href="javascript:void(0);"><button type="button" class="close" id="dhcp_error_close">&times;</button></a>
+					<i class="fas fa-ban"></i> Invalid Password!
+				</div>
+				<div class="input-group mb-3" style="margin-top: 5px">
+					<input type="password" id="password" class="form-control" placeholder="Password">
+					<div class="input-group-append">
+						<div class="input-group-text">
+							<span class="fas fa-lock"></span>
 						</div>
 					</div>
-				</form>
+				</div>
+				<div class="row">
+					<button type="submit" id="submit" class="btn btn-primary btn-block">Sign In</button>
+				</div>';
+
+#################################################################################################
+# Finalize the portal page:
+#################################################################################################
+echo '
 			</div>
 		</div>
 	</div>
-	<script src="http://192.168.2.1/plugins/jquery/jquery.min.js"></script>
-	<script src="http://192.168.2.1/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-	<script src="http://192.168.2.1/js/adminlte.min.js"></script>
-	<script src="http://192.168.2.1/js/site.js"></script>
-	<script src="http://192.168.2.1/js/site-advanced.js"></script>
+	<script src="', $URL, '/plugins/jquery/jquery.min.js"></script>
+	<script src="', $URL, '/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+	<script src="', $URL, '/js/adminlte.min.js"></script>
+	<script src="', $URL, '/js/site.js"></script>
 	<script>
-		Init_Login();
+		Init_Portal("', $mode, '");
 	</script>
 </body>
 </html>';

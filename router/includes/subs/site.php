@@ -109,6 +109,8 @@ function menu_link($url, $text, $icon = "far fa-circle", $enabled = true, $id = 
 {
 	global $site_title, $logged_in;
 
+	if (!isset($_GET['action']))
+		return;
 	$test_url = ltrim(preg_replace('/[\s\W]+/', '-', $url), '-');
 	$active = ($test_url == $_GET['action'] || ($url == '/' && $_GET['action'] == 'home')) ? ' active' : '';
 	if (!$enabled)

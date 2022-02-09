@@ -226,16 +226,15 @@ case $CMD in
 		#####################################################################
 		# CHECK => Checks to make sure supplied username/password combo is valid:
 		if [[ "$1" == "check" ]]; then
-			[[ "${2}" == "$(getent shadow $(cat /etc/passwd | grep ":1000:" | cut -d: -f1) | sha512sum | awk '{print $1}')" ]] && echo "OK" && exit
-			[[ "${2}" != "$($0 login webui)" ]] && echo "No match" && exit 1
 			[[ -z "${3}" ]] && echo "No match" && exit 1
 			pwd=$(getent shadow ${2} | cut -d: -f2)
+			[[ -z "${pwd}" ]] && echo "No match" && exit 1
 			gen=$(openssl passwd -$(echo ${pwd} | cut -d"\$" -f 2) -salt $(echo ${pwd} | cut -d"\$" -f 3) $3)
 			[[ "${gen}" == "${pwd}" ]] && echo "Match" || echo "No match"
 		#####################################################################
 		# WEBUI => Returns the username for user 1000:
 		elif [[ "$1" == "webui" ]]; then
-			echo $(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
+			$0 login check pi $2
 		#####################################################################
 		# PASSWD => Changes the password for user 1000:
 		elif [[ "$1" == "passwd" ]]; then
@@ -263,7 +262,7 @@ case $CMD in
 			echo "Usage: $(basename $0) login [check|webui|passwd|username|safety-check|cookie]"
 			echo "Where:"
 			echo "    check [username] [password]   - Verifies that supplied credentials are correct"
-			echo "    webui                         - Returns username of user 1000"
+			echo "    webui [password]              - Verifies that supplied credentials of user 1000 are correct"
 			echo "    passwd [password]             - Changes password of user 1000 to [password]"
 			echo "    username [username]           - Changes username of user 1000 to [username]"
 		fi
@@ -319,7 +318,9 @@ case $CMD in
 			if [[ "$2" == "bpi-r2-router-builder" ]]; then
 				$PWD/upgrade.sh
 			else
-				/opt/bpi-r2-router-builder/misc/wireless-regdb.sh
+				git reset --hard
+				git pull
+				test /ro && $0 git update $2
 			fi
 		#####################################################################
 		# Everything else:

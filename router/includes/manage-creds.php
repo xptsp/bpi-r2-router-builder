@@ -28,14 +28,13 @@ if (isset($_POST['action']))
 		####################################################################################
 		# If old password is correct, then attempt to change the password:
 		####################################################################################
-		$username = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login webui'));
-		$result = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check ' . $username . ' ' . $oldPass));
+		$result = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login webui ' . $oldPass));
 		if ($result == "Match")
 		{
 			$result = @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login passwd ' . $newPass . ' 2>&1');
 			$result = strpos($result, "password updated successfully") > 0 ? 'Successful' : 'Failed';
 			if ($result == "Successful" && isset($_COOKIE['remember_me']))
-				setcookie("remember_me", @trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh login cookie")), time() + 60*60*24*365 );
+				setcookie("remember_me", @trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh login get-cookie")), time() + 60*60*24*365 );
 		}
 		die($result);
 	}

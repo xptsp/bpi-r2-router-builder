@@ -129,3 +129,6 @@ remote_range=192.168.0.0-192.168.0.0
 ##########################################################################
 # Interface to pull the captive portal address from.  Default: "br0"
 captive_portal_iface=br0
+
+# Mode to run captive portal in.  Accepts "accept" and "username".  Default: "accept"
+captive_portal_mode=accept
