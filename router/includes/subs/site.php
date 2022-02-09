@@ -212,7 +212,7 @@ echo '
 		<!-- /.sidebar -->
 		<div class="sidebar-custom">
 			<ul class="nav nav-pills nav-sidebar flex-column" style="position: absolute; bottom: 0; left: 8;">
-				', menu_link('#', "Dark Mode", (!$dark_mode ? 'fas' : 'far') . ' fa-lightbulb', false, 'dark-mode'), '
+				', menu_link('#', "Dark Mode", (!$dark_mode ? 'fas' : 'far') . ' fa-lightbulb', true, 'dark-mode'), '
 			</ul>
 		</div>
 	</aside>
