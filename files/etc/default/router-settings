@@ -132,3 +132,6 @@ captive_portal_iface=br0
 
 # Mode to run captive portal in.  Accepts "accept" and "username".  Default: "accept"
 captive_portal_mode=accept
+
+# URL to direct user to after captive portal acceptance.  Default: "https://google.com"
+captive_portal_url=https://google.com

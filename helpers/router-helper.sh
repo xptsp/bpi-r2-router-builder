@@ -784,7 +784,10 @@ case $CMD in
 			ADDR=($(arp -a ${IP} | grep -o '..:..:..:..:..:..'))
 			if [[ -z "${ADDR[@]}" ]]; then echo "ERROR: No MAC address found for specified IP address!"; exit 1; fi
 			conntrack -L | grep ${IP} | grep ESTAB | grep 'dport=80' | awk "{ system(\"conntrack -D --orig-src $1 --orig-dst \" substr(\$6,5) \" -p tcp --orig-port-src \" substr(\$7,7) \" --orig-port-dst 80\"); }"
-			for MAC in ${ADDR[@]}; do iptables -t mangle -A PORTAL -m mac --mac-source ${MAC} -j MARK --set-mark 0x2; done
+			for MAC in ${ADDR[@]}; do 
+				iptables -t mangle -D PORTAL -m mac --mac-source ${MAC} -j MARK --set-mark 0x2 2> /dev/null
+				iptables -t mangle -A PORTAL -m mac --mac-source ${MAC} -j MARK --set-mark 0x2 
+			done
 			echo "OK"
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"

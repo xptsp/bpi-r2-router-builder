@@ -1,5 +1,11 @@
 <?php
 require_once("../includes/subs/site.php");
+
+#################################################################################################
+# Figure out the settings needed:
+#################################################################################################
+$option = parse_options();
+#echo '<pre>'; print_r($option); exit;
 $mode = !empty($option['captive_portal_mode']) ? $option['captive_portal_mode'] : 'accept';
 $mode = in_array($mode, array('accept', 'username', 'password')) ? $mode : 'accept';
 #echo $mode; exit;
@@ -11,6 +17,8 @@ if (isset($_POST['action']))
 {
 	if ($_POST['action'] != $mode)
 		die("Invalid action");
+	if (empty($_POST['accepted']) || $_POST['accepted'] == "N")
+		die("You must accept the terms and conditions before continuing!");
 
 	#################################################################################################
 	# ACTION: USERNAME => Validate the username/password combo sent:
@@ -29,7 +37,7 @@ if (isset($_POST['action']))
 	else if ($_POST['action'] == 'password')
 	{
 		$password = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['password']) ? $_POST['password'] : '');
-		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check guest ' . $password)) != "Match")
+		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check portal ' . $password)) != "Match")
 			die("Invalid Password Specified!");
 	}
 
@@ -38,15 +46,6 @@ if (isset($_POST['action']))
 	#################################################################################################
 	die(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh portal allow ' . $_SERVER['REMOTE_ADDR']));
 }
-
-#################################################################################################
-# Figure out the settings needed:
-#################################################################################################
-#echo $mode; exit;
-$option = parse_options();
-#echo '<pre>'; print_r($option); exit;
-$URL = (file_exists('/etc/nginx/sites-enabled/router-https') ? 'https://' : 'http://') . explode(":", $_SERVER['HTTP_HOST'])[0];
-#echo $URL; exit;
 
 #################################################################################################
 # Output the Router Login page if no action was specified:
@@ -73,12 +72,11 @@ echo '
 				<h4>Captive Portal</h4>
 			</div>
 			<div class="card-body">
-				<p>
-					Before continuing, you must first agree to the <a href="#">Terms of Service</a> and 
-					be of the legal age to do that in your selective country or have Parental Consent.
-				</p>
 				<div class="alert alert-danger hidden" id="portal_box">
 					<i class="fas fa-ban"></i> <span id="portal_msg">Invalid Message!</span>
+				</div>
+				<div class="input-group mb-3" style="margin-top: 5px">
+					<button type="button" class="btn btn-default btn-block" data-toggle="modal" data-target="#terms_modal">Terms and Conditions of Use</button>
 				</div>';
 
 #################################################################################################
@@ -122,14 +120,80 @@ else if ($mode == 'password')
 				</div>';
 
 #################################################################################################
-# Finalize the portal page:
+# Show the dialog buttons:
 #################################################################################################
 echo '
-				<hr>
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" id="accept">
+					<label class="form-check-label" for="accept" >I accept the terms and conditions.</label>
+				</div>
+				<hr style="border-width: 2px" />
 				<button type="submit" id="submit_button" class="btn btn-success btn-block">Submit</button>
 			</div>
 		</div>
+	</div>';
+
+#################################################################################################
+# Terms and Conditions modal:
+#################################################################################################
+echo '
+	<div class="modal fade" id="terms_modal">
+		<div class="modal-dialog modal-lg modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title">Terms and Conditions</h4>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>If you choose to continue, you are agreeing to comply with and be bound by the following terms and conditions of use.</p>
+					<p>If you disagree with any part of these terms and conditions, you may not continue.</p>
+					<h5>Terms of Use</h5>
+					<ol>
+						<li>Your use of any information or materials on sites you access is entirely at your own risk, for which we shall not be liable.</li>
+						<li>You agree that, through this portal, you will not perform any of the following acts:<ol>
+							<li>Attempt to access devices or resources to which you have no explicit, legitimate rights,</li>
+							<li>Copy, reproduce, or transmit any copyright files or information other than in accordance with the requirements and allowances of the copyright holder</li>
+							<li>Launch network attacks of any kind, including port scans, DoS/DDoS, packet floods, replays or injections, session hijacking or interception, or other such activity with malicious intent</li>
+							<li>Transmit malicious software such as viruses, Trojan horses, and worms</li>
+							<li>Surreptitiously install software or make configuration changes to any device or application, by means of the installation or execution of key loggers, registry keys, or other executable or active application or script.</li>
+						</ol></li>
+						<li>You agree that you will use the access provided here responsibly and with full regard to the safely, security and privacy of all other users, devices, and resources.</li>
+						<li>You agree that you will be mindful of the cultural sensitivites of others while using this portal so as not to provoke reaction or offense, and that you will not intentionally access pornographic, graphically violent, hateful, or other offensive material (as deemed by us) regarding of other\'s sensitivites.</li>
+						<li>You understand that we reserve the right to log or monitor traffic to ensure that these terms are being followed.</li>
+						<li>You understand that unauthorized use of resources through this portal may give rise to a claim for damages and/or be a criminal offense.</li>
+					</ol>
+				</div>
+				<div class="modal-footer justify-content-between">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>';
+
+#################################################################################################
+# Show user that submission was successful!
+#################################################################################################
+$url = !empty($option['captive_portal_url']) ? $option['captive_portal_url'] : 'https://google.com';
+echo '
+<div class="modal fade" id="success_modal">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">You may now browse the Internet!</h4>
+			</div>
+			<div class="modal-footer justify-content-between">
+				<center><a href="', $url, '"><button type="button" class="btn btn-success">Continue to Internet</button></a></center>
+			</div>
+		</div>
 	</div>
+</div>';
+
+#################################################################################################
+# Finalize the page:
+#################################################################################################
+echo '
 	<script src="/plugins/jquery/jquery.min.js"></script>
 	<script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 	<script src="/js/adminlte.min.js"></script>

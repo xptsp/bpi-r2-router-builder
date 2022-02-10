@@ -9,6 +9,7 @@ function Init_Portal(mode)
 		// Assemble the post data for the AJAX call:
 		postdata = {
 			'action':   mode,
+			'accepted': $("#accept").prop("checked") ? "Y" : "N",
 			'password': $("#password").val(),
 			'username': $("#username").val(),
 		};
@@ -18,7 +19,7 @@ function Init_Portal(mode)
 		$.post("/login.php", postdata, function(data) {
 			if (data.trim() != "OK")
 				return Portal_Error(data);
-			Portal_Error("Success!!");
+			$("#success_modal").modal("show");
 		}).fail(function() {
 			Portal_Error("AJAX call failed!");
 		});

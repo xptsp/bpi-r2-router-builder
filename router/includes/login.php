@@ -9,7 +9,7 @@ if (isset($_POST['action']))
 		// Is the username correct?  If not, abort with error:
 		$username = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['username']) ? $_POST['username'] : '');
 		$password = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['password']) ? $_POST['password'] : '');
-		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login webui ' . $username . ' ' . $password)) != "Match")
+		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check ' . $username . ' ' . $password)) != "Match")
 			die("Invalid");
 
 		// If "Remember Me" is checked, set a cookie with the hash of the hash of the password:
