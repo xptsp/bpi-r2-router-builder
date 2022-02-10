@@ -162,7 +162,7 @@ if [[ "$1" == "start" ]]; then
 		# User-defined chain and rules in "filter" table:
 		create_chain PORTAL
 		iptables -A PORTAL -m mark --mark 0x2 -j ACCEPT
-		iptables -A PORTAL -d ${IP} -p tcp --match multiport --dports 80:81 -j ACCEPT
+		iptables -A PORTAL -d ${IP} -p tcp --dport 81 -j ACCEPT
 		iptables -A PORTAL -p udp --match multiport --dport 53,67 -j ACCEPT
 		iptables -A PORTAL -p tcp --match multiport --dport 53,67 -j ACCEPT
 		iptables -A PORTAL -j REJECT --reject-with icmp-port-unreachable

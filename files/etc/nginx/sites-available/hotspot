@@ -2,19 +2,39 @@ server {
 	listen 192.168.2.1:81 default_server;
 	root   /opt/bpi-r2-router-builder/router/hotspot;
 
+	# pass PHP scripts to FastCGI server
+	location ~ \.php$ {
+		include snippets/fastcgi-php.conf;
+
+		# With php-fpm (or other unix sockets):
+		fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+	}
+	location /hotspot.html {
+		index hotspot.html;
+	}
+	location /js {
+		proxy_pass_header  X-Transmission-Session-Id;
+		proxy_pass         http://192.168.2.1/js/;
+	}
+	location /plugins {
+		proxy_pass_header  X-Transmission-Session-Id;
+		proxy_pass         http://192.168.2.1/plugins/;
+	}
+	location /css {
+		proxy_pass_header  X-Transmission-Session-Id;
+		proxy_pass         http://192.168.2.1/css/;
+	}
+	location /img {
+		proxy_pass_header  X-Transmission-Session-Id;
+		proxy_pass         http://192.168.2.1/img/;
+	}
+
 	# For iOS
 	if ($http_user_agent ~* (CaptiveNetworkSupport) ) {
-		return 302 http://bpiwrt.local:81/hotspot.html;
+		return 302 http://bpiwrt.local:81/files/hotspot.html;
 	}
 	# For others
 	location / {
 		return 302 http://bpiwrt.local:81/login.php;
 	}
-
-	location ~ \.php$ {
-		include fastcgi_params;
-		fastcgi_param SCRIPT_FILENAME $document_root/$fastcgi_script_name;
-		fastcgi_pass unix:/run/php/php7.4-fpm.sock;
-		fastcgi_param FQDN true;
-	}
-}
+ }

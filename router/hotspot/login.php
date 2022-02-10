@@ -76,25 +76,17 @@ echo '
 				<p>
 					Before continuing, you must first agree to the <a href="#">Terms of Service</a> and 
 					be of the legal age to do that in your selective country or have Parental Consent.
-				</p>';
-
-#################################################################################################
-# PORTAL MODE: ACCEPT ==> Requires user to press "Accept" before allowing them to continue...
-#################################################################################################
-if ($mode == 'accept')
-	echo '
-				<hr>
-				<button type="submit" id="accept" class="btn btn-success btn-block">Accept</button>';
+				</p>
+				<div class="alert alert-danger hidden" id="dhcp_error_box">
+					<a href="javascript:void(0);"><button type="button" class="close" id="dhcp_error_close">&times;</button></a>
+					<i class="fas fa-ban"></i> Invalid Credentials Specified!
+				</div>';
 
 #################################################################################################
 # PORTAL MODE: USERNAME ==> Requires a valid username and password before continuing..
 #################################################################################################
-else if ($mode == 'username')
+if ($mode == 'username')
 	echo '
-				<div class="alert alert-danger hidden" id="dhcp_error_box">
-					<a href="javascript:void(0);"><button type="button" class="close" id="dhcp_error_close">&times;</button></a>
-					<i class="fas fa-ban"></i> Invalid Username and/or Password!
-				</div>
 				<div class="input-group mb-3" style="margin-top: 5px">
 					<input type="username" id="username" class="form-control" placeholder="Username">
 					<div class="input-group-append">
@@ -110,9 +102,6 @@ else if ($mode == 'username')
 							<span class="fas fa-lock"></span>
 						</div>
 					</div>
-				</div>
-				<div class="row">
-					<button type="submit" id="login" class="btn btn-primary btn-block">Sign In</button>
 				</div>';
 
 #################################################################################################
@@ -131,22 +120,21 @@ else if ($mode == 'password')
 							<span class="fas fa-lock"></span>
 						</div>
 					</div>
-				</div>
-				<div class="row">
-					<button type="submit" id="submit" class="btn btn-primary btn-block">Sign In</button>
 				</div>';
 
 #################################################################################################
 # Finalize the portal page:
 #################################################################################################
 echo '
+				<hr>
+				<button type="submit" id="submit_button" class="btn btn-success btn-block">Submit</button>
 			</div>
 		</div>
 	</div>
 	<script src="', $URL, '/plugins/jquery/jquery.min.js"></script>
 	<script src="', $URL, '/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 	<script src="', $URL, '/js/adminlte.min.js"></script>
-	<script src="', $URL, '/js/site.js"></script>
+	<script src="/files/site.js?', time(), '"></script>
 	<script>
 		Init_Portal("', $mode, '");
 	</script>
