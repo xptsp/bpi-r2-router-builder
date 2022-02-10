@@ -178,7 +178,7 @@ echo '
 #################################################################################################
 $url = !empty($option['captive_portal_url']) ? $option['captive_portal_url'] : 'https://google.com';
 echo '
-	<div class="modal fade" id="success_modal" data-backdrop="static" tabindex="-1">
+	<div class="modal fade" id="success_modal" data-backdrop="static" tabindex="-1" data-keyboard="false">
 		<div class="modal-dialog modal-dialog-centered">
 			<div class="modal-content">
 				<div class="modal-header">
