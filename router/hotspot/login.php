@@ -29,7 +29,7 @@ if (isset($_POST['action']))
 	else if ($_POST['action'] == 'password')
 	{
 		$password = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['password']) ? $_POST['password'] : '');
-		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check guest ' . $password)) != "Match")
+		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check nobody ' . $password)) != "Match")
 			die("Invalid");
 	}
 
