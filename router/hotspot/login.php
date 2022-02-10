@@ -21,7 +21,7 @@ if (isset($_POST['action']))
 		$username = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['username']) ? $_POST['username'] : '');
 		$password = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['password']) ? $_POST['password'] : '');
 		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check ' . $username . ' ' . $password)) != "Match")
-			die("Invalid");
+			die("Invalid Username and/or Password!");
 	}
 	#################################################################################################
 	# ACTION: PASSWORD => Validate the password combo sent against password for user "guest":
@@ -30,7 +30,7 @@ if (isset($_POST['action']))
 	{
 		$password = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['password']) ? $_POST['password'] : '');
 		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check guest ' . $password)) != "Match")
-			die("Invalid");
+			die("Invalid Password Specified!");
 	}
 
 	#################################################################################################
@@ -58,17 +58,17 @@ echo '
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>BPiWRT | Captive Portal</title>
-	<link rel="stylesheet" href="', $URL, '/css/fonts.googleapis.com.css">
-	<link rel="stylesheet" href="', $URL, '/plugins/fontawesome-free/css/all.min.css">
-	<link rel="stylesheet" href="', $URL, '/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
-	<link rel="stylesheet" href="', $URL, '/css/adminlte.min.css">
-	<link rel="stylesheet" href="', $URL, '/css/custom.css">
+	<link rel="stylesheet" href="/css/fonts.googleapis.com.css">
+	<link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css">
+	<link rel="stylesheet" href="/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+	<link rel="stylesheet" href="/css/adminlte.min.css">
+	<link rel="stylesheet" href="/css/custom.css">
 </head>
 <body class="hold-transition login-page ', !empty($_SESSION['dark_mode']) ? 'bodybg-dark dark-mode' : 'bodybg', '">
 	<div class="login-box">
 		<div class="card card-outline card-primary">
 			<div class="card-header text-center">
-				<img src="', $URL, '/img/wifi-router-large.png"><br />
+				<img src="/img/wifi-router-large.png"><br />
 				<a href="/" class="h1"><b>BPi</b>WRT</a>
 				<h4>Captive Portal</h4>
 			</div>
@@ -77,9 +77,8 @@ echo '
 					Before continuing, you must first agree to the <a href="#">Terms of Service</a> and 
 					be of the legal age to do that in your selective country or have Parental Consent.
 				</p>
-				<div class="alert alert-danger hidden" id="dhcp_error_box">
-					<a href="javascript:void(0);"><button type="button" class="close" id="dhcp_error_close">&times;</button></a>
-					<i class="fas fa-ban"></i> Invalid Credentials Specified!
+				<div class="alert alert-danger hidden" id="portal_box">
+					<i class="fas fa-ban"></i> <span id="portal_msg">Invalid Message!</span>
 				</div>';
 
 #################################################################################################
@@ -131,10 +130,10 @@ echo '
 			</div>
 		</div>
 	</div>
-	<script src="', $URL, '/plugins/jquery/jquery.min.js"></script>
-	<script src="', $URL, '/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-	<script src="', $URL, '/js/adminlte.min.js"></script>
-	<script src="/files/site.js?', time(), '"></script>
+	<script src="/plugins/jquery/jquery.min.js"></script>
+	<script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+	<script src="/js/adminlte.min.js"></script>
+	<script src="/js/portal.js?', time(), '"></script>
 	<script>
 		Init_Portal("', $mode, '");
 	</script>

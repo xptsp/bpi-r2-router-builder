@@ -226,11 +226,9 @@ case $CMD in
 		#####################################################################
 		# CHECK => Checks to make sure supplied username/password combo is valid:
 		if [[ "$1" == "check" ]]; then
-			[[ -z "${3}" ]] && echo "No match" && exit 1
 			pwd=$(getent shadow ${2} | cut -d: -f2)
 			[[ -z "${pwd}" ]] && echo "No match" && exit 1
-			gen=$(openssl passwd -$(echo ${pwd} | cut -d"\$" -f 2) -salt $(echo ${pwd} | cut -d"\$" -f 3) $3)
-			[[ "${gen}" == "${pwd}" ]] && echo "Match" || echo "No match"
+			[[ "$(mkpasswd ${3} ${pwd})" == "${pwd}" ]] && echo "Match" || echo "No match"
 		#####################################################################
 		# WEBUI => Returns the username for user 1000:
 		elif [[ "$1" == "webui" ]]; then

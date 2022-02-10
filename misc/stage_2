@@ -157,7 +157,6 @@ apt install -y nginx php7.4-fpm php7.4-cgi php7.4-xml php7.4-sqlite3 php7.4-intl
 sed -i "s|display_errors = .*|display_errors = On|g" /etc/php/7.4/fpm/php.ini
 rm /etc/nginx/sites-enabled/default
 ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
-ln -sf /etc/nginx/sites-available/transmission /etc/nginx/sites-enabled/
 usermod -aG systemd-journal www-data
 systemctl enable --now php7.4-fpm
 apt-mark hold php7.4-fpm
@@ -179,6 +178,7 @@ mkdir -p /home/vpn/{Incomplete,Download}
 chown -R vpn:vpn /home/vpn/{Incomplete,Download}
 chmod -R 775 /home/vpn/{Incomplete,Download}
 systemctl enable --now transmission-daemon
+ln -sf /etc/nginx/sites-available/transmission /etc/nginx/sites-enabled/
 
 ##################################################################################
 # Install TrueCrypt and HD-Idle

@@ -16,7 +16,6 @@ function Init_Portal(mode)
 
 		// Perform our AJAX request to change the password:
 		$.post("/login.php", postdata, function(data) {
-			alert(data);
 			if (data.trim() != "OK")
 				return Portal_Error(data);
 			Portal_Error("Success!!");
@@ -28,10 +27,10 @@ function Init_Portal(mode)
 
 function Portal_Error(msg)
 {
-	$("#dhcp_error_msg").html(msg);
-	$("#dhcp_error_box").slideDown(400, function() {
+	$("#portal_msg").html(msg);
+	$("#portal_box").slideDown(400, function() {
 		timer = setInterval(function() {
-			$("#dhcp_error_box").slideUp();
+			$("#portal_box").slideUp();
 			clearInterval(timer);
 		}, 5000);
 	});
