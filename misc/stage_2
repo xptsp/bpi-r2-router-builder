@@ -34,8 +34,9 @@ useradd -m -G users -s /usr/sbin/nologin vpn
 usermod -aG vpn pi
 chown vpn:vpn -R /home/vpn
 
-# Assign default password to user "nobody":
-echo -e "bananapi\nbananapi" | passwd -q nobody
+# Create username "guest" and assign default password:
+useradd -N -g nogroup -M -d /nonexistent -s /usr/sbin/nologin guest
+echo -e "bananapi\nbananapi" | passwd -q guest
 
 ##############################################################################################
 # Do some tasks necessary to make this image work correctly:

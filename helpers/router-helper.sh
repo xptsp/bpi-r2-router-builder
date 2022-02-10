@@ -239,7 +239,8 @@ case $CMD in
 		# PASSWD => Changes the password for user 1000:
 		elif [[ "$1" == "passwd" ]]; then
 			[[ -z "${2}" ]] && echo "Password not specified" && exit 1
-			(echo $2; echo $2) | passwd $(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
+			ALT=$(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
+			(echo $2; echo $2) | passwd ${3:-"${ALT}"}
 		#####################################################################
 		# USERNAME => Returns the username for user 1000:
 		elif [[ "$1" == "username" ]]; then
@@ -263,7 +264,7 @@ case $CMD in
 			echo "Where:"
 			echo "    check [username] [password]   - Verifies that supplied credentials are correct"
 			echo "    webui [password]              - Verifies that supplied credentials of user 1000 are correct"
-			echo "    passwd [password]             - Changes password of user 1000 to [password]"
+			echo "    passwd [password] [username]  - Changes password of user 1000 to [password]"
 			echo "    username [username]           - Changes username of user 1000 to [username]"
 		fi
 		;;
@@ -800,27 +801,29 @@ case $CMD in
 		[[ "$1" != "-h" ]] && echo "ERROR: Invalid command passed!"
 		echo "Syntax: $(basename $0) [command] [options]"
 		echo "Where:"
-		echo "    chroot       - Enters chroot environment in system partition"
-		echo "    remount      - Remounts system partition as read-only or writable"
-		echo "    reformat     - Reformats persistent storage"
-		echo "    overlay      - Enables or Disables overlay script"
-		echo "    apt          - Debian package installer"
-		echo "    login        - Login actions"
-		echo "    device       - Device Setings actions"
-		echo "    backup       - Settings Backup and Restore actions"
-		echo "    git          - Repository actions"
-		echo "    iface        - Network Interface Setup actions"
-		echo "    dhcp         - DHCP actions"
-		echo "    systemctl    - System Services Control actions"
-		echo "    mac          - Onboard Ethernet MAC address actions"
-		echo "    firewall     - Firewall actions"
-		echo "    dns          - Domain Name Server actions"
-		echo "    route        - Network Routing actions"
-		echo "    upgrade      - Pulls the lastest version of WebUI from GitHub"
-		echo "    remove_files - Removes unnecessary files from system partition"
-		echo "    webui        - WebUI actions"
-		echo "    forward      - Port forwarding actions"
-		echo "    upnp         - UPnP actions"
+		(echo "    chroot       - Enters chroot environment in system partition"
+		 echo "    remount      - Remounts system partition as read-only or writable"
+		 echo "    reformat     - Reformats persistent storage"
+		 echo "    overlay      - Enables or Disables overlay script"
+		 echo "    apt          - Debian package installer"
+		 echo "    login        - Login actions"
+		 echo "    device       - Device Setings actions"
+		 echo "    backup       - Settings Backup and Restore actions"
+		 echo "    git          - Repository actions"
+		 echo "    iface        - Network Interface Setup actions"
+		 echo "    dhcp         - DHCP actions"
+		 echo "    systemctl    - System Services Control actions"
+		 echo "    mac          - Onboard Ethernet MAC address actions"
+		 echo "    firewall     - Firewall actions"
+		 echo "    dns          - Domain Name Server actions"
+		 echo "    route        - Network Routing actions"
+		 echo "    upgrade      - Pulls the lastest version of WebUI from GitHub"
+		 echo "    remove_files - Removes unnecessary files from system partition"
+		 echo "    webui        - WebUI actions"
+		 echo "    forward      - Port forwarding actions"
+		 echo "    upnp         - UPnP actions"
+		 echo "    portal       - Captive Portal actions"
+		) | sort
 		echo ""
 		echo "NOTE: Use \"-h\" after the command to see what options are available for that command."
 		;;
