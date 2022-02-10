@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once("../includes/subs/site.php");
 
 #################################################################################################
@@ -177,29 +178,30 @@ echo '
 #################################################################################################
 $url = !empty($option['captive_portal_url']) ? $option['captive_portal_url'] : 'https://google.com';
 echo '
-<div class="modal fade" id="success_modal">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h4 class="modal-title">You may now browse the Internet!</h4>
-			</div>
-			<div class="modal-footer justify-content-between">
-				<center><a href="', $url, '"><button type="button" class="btn btn-success">Continue to Internet</button></a></center>
+	<div class="modal fade" id="success_modal" data-backdrop="static" tabindex="-1">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title">You may now browse the Internet!</h4>
+				</div>
+				<div class="modal-footer justify-content-between">
+					<center><a href="', $url, '"><button type="button" class="btn btn-success">Continue to Internet</button></a></center>
+				</div>
 			</div>
 		</div>
-	</div>
-</div>';
+	</div>';
 
 #################################################################################################
 # Finalize the page:
 #################################################################################################
+$show_success = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh portal check ' . $_SERVER['REMOTE_ADDR']));
 echo '
 	<script src="/plugins/jquery/jquery.min.js"></script>
 	<script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 	<script src="/js/adminlte.min.js"></script>
 	<script src="/js/portal.js?', time(), '"></script>
 	<script>
-		Init_Portal("', $mode, '");
+		Init_Portal("', $mode, '", "', $show_success, '");
 	</script>
 </body>
 </html>';

@@ -3,7 +3,7 @@ var timer;
 //======================================================================================================
 // Javascript functions for "Login" page:
 //======================================================================================================
-function Init_Portal(mode)
+function Init_Portal(mode, show_success)
 {
 	$("#submit_button").click(function() {
 		// Assemble the post data for the AJAX call:
@@ -24,6 +24,8 @@ function Init_Portal(mode)
 			Portal_Error("AJAX call failed!");
 		});
 	});
+	if (show_success == "Y")
+		$("#success_modal").modal("show");
 }
 
 function Portal_Error(msg)

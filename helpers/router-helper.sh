@@ -778,7 +778,15 @@ case $CMD in
 	###########################################################################
 	# Code adapted from https://andrewwippler.com/2016/03/11/wifi-captive-portal/
 	portal)
-		if [[ "$1" == "allow" ]]; then
+		if [[ "$1" == "check" ]]; then
+			IP=${2}
+			if ! valid_ip ${IP}; then echo "ERROR: Invalid IP Address specified as 2rd param!"; exit 1; fi
+			# Not required if the interface isn't part of the captive portal configuration:
+			if ! iptables --list-rules -t mangle | grep PORTAL | grep $(arp | grep ${IP} | awk '{print $NF}') >& /dev/null; then echo "Y"; exit; fi
+			# Not required if MAC address has already been approved:
+			ADDR=($(arp -a ${IP} | grep -o '..:..:..:..:..:..'))
+			iptables --list-rules -t mangle | grep PORTAL | grep ${ADDR} >& /dev/null && echo "Y" || echo "N"
+		elif [[ "$1" == "allow" ]]; then
 			IP=${2}
 			if ! valid_ip ${IP}; then echo "ERROR: Invalid IP Address specified as 2rd param!"; exit 1; fi
 			ADDR=($(arp -a ${IP} | grep -o '..:..:..:..:..:..'))
@@ -791,9 +799,10 @@ case $CMD in
 			echo "OK"
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-			echo "SYNTAX: $(basename $0) portal [allow] (options)" && exit 0
+			echo "SYNTAX: $(basename $0) portal [check|allow] (options)" && exit 0
 			echo "Where:"
-			echo "    allow [ip]  - Allows IP address access to the network"
+			echo "    check [ip]  - Shows if captive portal is required for interface"
+			echo "    allow [ip]  - Allows MAC address associated with specified IP address access to network"
 		fi
 		;;
 
