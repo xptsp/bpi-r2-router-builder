@@ -24,15 +24,18 @@ systemctl enable --now ssh-session-cleanup
 # Assign default password to user "root":
 echo -e "bananapi\nbananapi" | passwd -q root
 
-# Create a user named "pi", being a member of the "sudo" and "users" group.
+# Create username "pi", being a member of the "sudo" and "users" group.
 useradd -m -G sudo,users -s /bin/bash pi
 echo -e "bananapi\nbananapi" | passwd -q pi
 chown pi:pi -R /home/pi
 
-# Create a user name "vpn", being a member of the "users" and "pi" group:
+# Create username "vpn", being a member of the "users" and "pi" group:
 useradd -m -G users -s /usr/sbin/nologin vpn
 usermod -aG vpn pi
 chown vpn:vpn -R /home/vpn
+
+# Assign default password to user "nobody":
+echo -e "bananapi\nbananapi" | passwd -q nobody
 
 ##############################################################################################
 # Do some tasks necessary to make this image work correctly:

@@ -2,6 +2,7 @@
 require_once("../includes/subs/site.php");
 $mode = !empty($option['captive_portal_mode']) ? $option['captive_portal_mode'] : 'accept';
 $mode = in_array($mode, array('accept', 'username', 'password')) ? $mode : 'accept';
+#echo $mode; exit;
 
 #################################################################################################
 # Validate the credentials sent:
@@ -11,6 +12,9 @@ if (isset($_POST['action']))
 	if ($_POST['action'] != $mode)
 		die("Invalid action");
 
+	#################################################################################################
+	# ACTION: USERNAME => Validate the username/password combo sent:
+	#################################################################################################
 	if ($_POST['action'] == 'username')
 	{
 		// Is the specified username/password combo valid?
@@ -19,7 +23,20 @@ if (isset($_POST['action']))
 		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check ' . $username . ' ' . $password)) != "Match")
 			die("Invalid");
 	}
-	die("OK");
+	#################################################################################################
+	# ACTION: PASSWORD => Validate the password combo sent against password for user "guest":
+	#################################################################################################
+	else if ($_POST['action'] == 'password')
+	{
+		$password = preg_replace("/[^A-Za-z0-9 ]/", '-', isset($_POST['password']) ? $_POST['password'] : '');
+		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check guest ' . $password)) != "Match")
+			die("Invalid");
+	}
+
+	#################################################################################################
+	# Add the MAC address associated with the calling IP address to valid portal clients list:
+	#################################################################################################
+	die(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh portal allow ' . $_SERVER['REMOTE_ADDR']));
 }
 
 #################################################################################################

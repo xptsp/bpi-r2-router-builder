@@ -1,12 +1,12 @@
 #!/bin/bash
 #############################################################################
-# This helper script establishes all of the ${IPT} rules required by the
+# This helper script establishes all of the iptables rules required by the
 # WebUI configuration for our router to operate properly.
 #############################################################################
-# Comments starting with "CTA:" and ${IPT} commands from source:
-#	https://javapipe.com/blog/${IPT}-ddos-protection/
-# Comments starting with "CTB:" and ${IPT} commands from source:
-#	https://offensivesecuritygeek.wordpress.com/2014/06/24/how-to-block-port-scans-using-${IPT}-only/
+# Comments starting with "CTA:" and iptables commands from source:
+#	https://javapipe.com/blog/iptables-ddos-protection/
+# Comments starting with "CTB:" and iptables commands from source:
+#	https://offensivesecuritygeek.wordpress.com/2014/06/24/how-to-block-port-scans-using-iptables-only/
 #############################################################################
 if [[ "${UID}" -ne 0 ]]; then
 	sudo $0 $@
@@ -16,7 +16,7 @@ fi
 #############################################################################
 function create_chain()
 {
-	nft add chain ip $([[ ! -z "$2" ]] && echo "$2" || echo "filter") $1 > /dev/null 2>& 1
+	iptables -N $1 $([[ ! -z "$2" ]] && echo "-t $2") > /dev/null 2>& 1
 }
 
 #############################################################################
@@ -37,94 +37,94 @@ fi
 #############################################################################
 if [[ "$1" == "start" ]]; then
 	#############################################################################
-	# CTB: Flush all the ${IPT} Rules
+	# CTB: Flush all the iptables Rules
 	#############################################################################
-	nft flush table ip filter
-	nft flush table ip mangle
-	nft flush table ip nat
+	iptables -F -t filter
+	iptables -F -t mangle
+	iptables -F -t nat
 
 	#############################################################################
 	# CTA: Set default policy to ACCEPT for input, output and forwarding:
 	#############################################################################
-	${IPT} -P INPUT ACCEPT
-	${IPT} -P FORWARD ACCEPT
-	${IPT} -P OUTPUT ACCEPT
+	iptables -P INPUT ACCEPT
+	iptables -P FORWARD ACCEPT
+	iptables -P OUTPUT ACCEPT
 
 	#############################################################################
 	# CTB: Accept loopback input
 	#############################################################################
-	nft add rule ip filter INPUT iifname "lo" counter accept
+	iptables -A INPUT -i lo -p all -j ACCEPT
 
 	#############################################################################
 	# Block user "vpn" from accessing anything other than the "lo" interface:
 	#############################################################################
 	create_chain VPN
 	create_chain VPN mangle
-	nft add rule ip filter OUTPUT counter jump VPN
-	nft add rule ip mangle OUTPUT counter jump VPN
-	nft add rule ip filter VPN oifname != "lo" skuid vpn counter drop
+	iptables -A OUTPUT -j VPN
+	iptables -t mangle -A OUTPUT -j VPN
+	iptables -A VPN ! -o lo -m owner --uid-owner vpn -j DROP
 
 	#############################################################################
 	# These are global rules that will always be set!
 	#############################################################################
 	# Allow any related and established connections on input and forward chains:
-	nft add rule ip filter INPUT ct state related,established counter accept
+	iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 	# CTA: This rule blocks all packets that are not a SYN packet and don’t
 	# belong to an established TCP connection.
-	nft add rule ip mangle PREROUTING ct state invalid counter drop
+	iptables -t mangle -A PREROUTING -m conntrack --ctstate INVALID -j DROP
 
 	# CTA: This blocks all packets that are new (don’t belong to an established
 	# connection) and don’t use the SYN flag.  This rule is similar to the “Block
 	# Invalid Packets” one, but we found that it catches some packets that the other one doesn’t.
-	nft add rule ip mangle PREROUTING tcp flags & (fin|syn|rst|ack) != syn ct state new counter drop
+	iptables -t mangle -A PREROUTING -p tcp ! --syn -m conntrack --ctstate NEW -j DROP
 
-	# CTA: The above ${IPT} rule blocks new packets (only SYN packets can be
+	# CTA: The above iptables rule blocks new packets (only SYN packets can be
 	# new packets as per the two previous rules) that use a TCP MSS value that
 	# is not common. This helps to block dumb SYN floods.
-	#${IPT} -t mangle -A PREROUTING -p tcp -m conntrack --ctstate NEW -m tcpmss ! --mss 536:65535 -j DROP
+	iptables -t mangle -A PREROUTING -p tcp -m conntrack --ctstate NEW -m tcpmss ! --mss 536:65535 -j DROP
 
 	# CTA: The above ruleset blocks packets that use bogus TCP flags, ie. TCP flags that legitimate packets wouldn’t use.
-	${IPT} -t mangle -A PREROUTING -p tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
-	${IPT} -t mangle -A PREROUTING -p tcp --tcp-flags SYN,RST SYN,RST -j DROP
-	${IPT} -t mangle -A PREROUTING -p tcp --tcp-flags FIN,RST FIN,RST -j DROP
-	${IPT} -t mangle -A PREROUTING -p tcp --tcp-flags FIN,ACK FIN -j DROP
-	${IPT} -t mangle -A PREROUTING -p tcp --tcp-flags ACK,URG URG -j DROP
-	${IPT} -t mangle -A PREROUTING -p tcp --tcp-flags ACK,PSH PSH -j DROP
-	${IPT} -t mangle -A PREROUTING -p tcp --tcp-flags ALL NONE -j DROP
+	iptables -t mangle -A PREROUTING -p tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
+	iptables -t mangle -A PREROUTING -p tcp --tcp-flags SYN,RST SYN,RST -j DROP
+	iptables -t mangle -A PREROUTING -p tcp --tcp-flags FIN,RST FIN,RST -j DROP
+	iptables -t mangle -A PREROUTING -p tcp --tcp-flags FIN,ACK FIN -j DROP
+	iptables -t mangle -A PREROUTING -p tcp --tcp-flags ACK,URG URG -j DROP
+	iptables -t mangle -A PREROUTING -p tcp --tcp-flags ACK,PSH PSH -j DROP
+	iptables -t mangle -A PREROUTING -p tcp --tcp-flags ALL NONE -j DROP
 
 	# Redirect incoming port 67 to port 68:
-	${IPT} -A INPUT -p udp -m udp --sport 67 --dport 68 -j ACCEPT
+	iptables -A INPUT -p udp -m udp --sport 67 --dport 68 -j ACCEPT
 
 	# CTB: Dropping all invalid packets
-	${IPT} -A INPUT -m state --state INVALID -j DROP
-	${IPT} -A FORWARD -m state --state INVALID -j DROP
-	${IPT} -A OUTPUT -m state --state INVALID -j DROP
+	iptables -A INPUT -m state --state INVALID -j DROP
+	iptables -A FORWARD -m state --state INVALID -j DROP
+	iptables -A OUTPUT -m state --state INVALID -j DROP
 
 	# CTB: flooding of RST packets, SMURF attack Rejection
-	${IPT} -A INPUT -p tcp -m tcp --tcp-flags RST RST -m limit --limit 2/second --limit-burst 2 -j ACCEPT
+	iptables -A INPUT -p tcp -m tcp --tcp-flags RST RST -m limit --limit 2/second --limit-burst 2 -j ACCEPT
 
 	#############################################################################
 	# Create chains to make WebUI remote management easier to detect in PHP:
 	#############################################################################
 	create_chain REMOTE
 	create_chain REMOTE nat
-	${IPT} -A FORWARD -j REMOTE
-	${IPT} -t nat -A PREROUTING -j REMOTE
+	iptables -A FORWARD -j REMOTE
+	iptables -t nat -A PREROUTING -j REMOTE
 
 	#############################################################################
 	# Create chains to make port forwards easier to detect in PHP:
 	#############################################################################
 	create_chain PORT_FORWARD
 	create_chain PORT_FORWARD nat
-	${IPT} -A FORWARD -j PORT_FORWARD
-	${IPT} -t nat -A PREROUTING -j PORT_FORWARD
+	iptables -A FORWARD -j PORT_FORWARD
+	iptables -t nat -A PREROUTING -j PORT_FORWARD
 
 	#############################################################################
 	# Create chain to make port triggers easier to detect in PHP:
 	#############################################################################
 	create_chain PORT_TRIGGER
-	${IPT} -A TRIGGER -j PORT_TRIGGER
+	iptables -A TRIGGER -j PORT_TRIGGER
 
 	#############################################################################
 	# Rules for input, output and forwarding for internet-facing interfaces:
@@ -141,7 +141,7 @@ if [[ "$1" == "start" ]]; then
 	#############################################################################
 	# Enable "br0" interface masquerading so port forwarding works:
 	#############################################################################
-	${IPT} -t nat -A POSTROUTING -o br0 -j MASQUERADE
+	iptables -t nat -A POSTROUTING -o br0 -j MASQUERADE
 
 	#############################################################################
 	# Create chains for our integrated captive WiFi portal:
@@ -155,17 +155,17 @@ if [[ "$1" == "start" ]]; then
 
 		# User-defined chain and rules in "nat" table:
 		create_chain PORTAL nat
-		${IPT} -t nat -A PORTAL -d ${IP} -j ACCEPT
-		${IPT} -t nat -A PORTAL -m mark --mark 0x2 -j ACCEPT
-		${IPT} -t nat -A PORTAL -p tcp --dport 80 -j DNAT --to-destination ${IP}:81
+		iptables -t nat -A PORTAL -d ${IP} -j ACCEPT
+		iptables -t nat -A PORTAL -m mark --mark 0x2 -j ACCEPT
+		iptables -t nat -A PORTAL -p tcp --dport 80 -j DNAT --to-destination ${IP}:81
 
 		# User-defined chain and rules in "filter" table:
 		create_chain PORTAL
-		${IPT} -A PORTAL -m mark --mark 0x2 -j ACCEPT
-		${IPT} -A PORTAL -d ${IP} -p tcp --match multiport --dports 80:81 -j ACCEPT
-		${IPT} -A PORTAL -p udp --match multiport --dport 53,67 -j ACCEPT
-		${IPT} -A PORTAL -p tcp --match multiport --dport 53,67 -j ACCEPT
-		${IPT} -A PORTAL -j REJECT --reject-with icmp-port-unreachable
+		iptables -A PORTAL -m mark --mark 0x2 -j ACCEPT
+		iptables -A PORTAL -d ${IP} -p tcp --match multiport --dports 80:81 -j ACCEPT
+		iptables -A PORTAL -p udp --match multiport --dport 53,67 -j ACCEPT
+		iptables -A PORTAL -p tcp --match multiport --dport 53,67 -j ACCEPT
+		iptables -A PORTAL -j REJECT --reject-with icmp-port-unreachable
 	fi
 
 	#############################################################################
@@ -178,27 +178,27 @@ if [[ "$1" == "start" ]]; then
 #############################################################################
 elif [[ "$1" == "add_portal" ]]; then
 	IFACE=${2}
-	${IPT} -t mangle -A PREROUTING -i ${IFACE} -j PORTAL
-	${IPT} -t nat -A PREROUTING -i ${IFACE} -j PORTAL
-	${IPT} -A FORWARD -i ${IFACE} -j PORTAL
+	iptables -t mangle -A PREROUTING -i ${IFACE} -j PORTAL
+	iptables -t nat -A PREROUTING -i ${IFACE} -j PORTAL
+	iptables -A FORWARD -i ${IFACE} -j PORTAL
 
 #############################################################################
 # DEL_PORTAL => Remove all internet-firewall rules for specified interface:
 #############################################################################
 elif [[ "$1" == "del_portal" ]]; then
 	IFACE=${2}
-	${IPT} -t mangle -D PREROUTING -i ${IFACE} -j PORTAL
-	${IPT} -t nat -D PREROUTING -i ${IFACE} -j PORTAL
-	${IPT} -D FORWARD -i ${IFACE} -j PORTAL
+	iptables -t mangle -D PREROUTING -i ${IFACE} -j PORTAL
+	iptables -t nat -D PREROUTING -i ${IFACE} -j PORTAL
+	iptables -D FORWARD -i ${IFACE} -j PORTAL
 
 #############################################################################
 # UNBLOCK => Remove all internet-firewall rules for specified interface:
 #############################################################################
 elif [[ "$1" == "unblock" && ! -z "${2}" ]]; then
 	IFACE=$2
-	${IPT} --list-rules | grep ${IFACE} | while IFS= read -r line; do ${IPT} ${line/\-A/\-D}; done
-	${IPT} --list-rules -t nat | grep ${IFACE} | while IFS= read -r line; do ${IPT} -t nat ${line/\-A/\-D}; done
-	${IPT} --list-rules -t mangle | grep ${IFACE} | while IFS= read -r line; do ${IPT} -t mangle ${line/\-A/\-D}; done
+	iptables --list-rules | grep ${IFACE} | while IFS= read -r line; do iptables ${line/\-A/\-D}; done
+	iptables --list-rules -t nat | grep ${IFACE} | while IFS= read -r line; do iptables -t nat ${line/\-A/\-D}; done
+	iptables --list-rules -t mangle | grep ${IFACE} | while IFS= read -r line; do iptables -t mangle ${line/\-A/\-D}; done
 
 #############################################################################
 # BLOCK => Install internet-firewall rules for specified interface:
@@ -208,29 +208,29 @@ elif [[ "$1" == "block" && ! -z "${2}" ]]; then
 	# Remove any existing firewall rules explicit to the specified interface:
 	$0 unblock ${IFACE}
 	# CTA: Allow masquerading to the wan port:
-	${IPT} -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE
+	iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE
 	# Direct interface to check WAN_IN chain for further INPUT rules:
-	${IPT} -A INPUT -i ${IFACE} -j WAN_IN
+	iptables -A INPUT -i ${IFACE} -j WAN_IN
 	# Drop any connections coming from the interface:
-	${IPT} -A INPUT -i ${IFACE} -j DROP
+	iptables -A INPUT -i ${IFACE} -j DROP
 	# Direct interface to check WAN_OUT chain for further OUTPUT rules:
-	${IPT} -A OUTPUT -o ${IFACE} -j WAN_OUT
+	iptables -A OUTPUT -o ${IFACE} -j WAN_OUT
 	# Allow related and established connections to be forwarded from the interface to other interfaces:
-	${IPT} -A FORWARD -i ${IFACE} ! -o ${IFACE} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+	iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 	# Add a rule for miniupnpd if we are using that connection:
 	if [[ "${IFACE}" == "$(cat /etc/miniupnpd/miniupnpd.conf | grep "^ext_ifname=" | cut -d= -f 2)" ]]; then
-		${IPT} -A FORWARD -i ${IFACE} -j MINIUPNPD
-		${IPT} -t nat -A PREROUTING -i ${IFACE} -j MINIUPNPD
+		iptables -A FORWARD -i ${IFACE} -j MINIUPNPD
+		iptables -t nat -A PREROUTING -i ${IFACE} -j MINIUPNPD
 	fi
 	# Drop all other connections being forwarded from the interface:
-	${IPT} -A FORWARD -i ${IFACE} ! -o ${IFACE} -j DROP
+	iptables -A FORWARD -i ${IFACE} ! -o ${IFACE} -j DROP
 
 #############################################################################
 # RELOAD => Setup the WebUI customizable firewall rules:
 #############################################################################
 elif [[ "$1" == "reload" ]]; then
-	${IPT} -F WAN_IN
-	${IPT} -F WAN_OUT
+	iptables -F WAN_IN
+	iptables -F WAN_OUT
 	$0 dmz
 	$0 firewall
 	$0 remote
@@ -239,17 +239,17 @@ elif [[ "$1" == "reload" ]]; then
 #############################################################################
 # DMZ => Setup the DMZ server rule:
 #############################################################################
-# "Default DMZ Server" ${IPT} commands from source:
-#   https://www.linuxquestions.org/questions/linux-networking-3/${IPT}-dmz-host-490491/#post2454665
-# "MAC Address Filter" ${IPT} parameters from source:
-#   https://tecadmin.net/mac-address-filtering-using-${IPT}/
+# "Default DMZ Server" iptables commands from source:
+#   https://www.linuxquestions.org/questions/linux-networking-3/iptables-dmz-host-490491/#post2454665
+# "MAC Address Filter" iptables parameters from source:
+#   https://tecadmin.net/mac-address-filtering-using-iptables/
 #############################################################################
 elif [[ "$1" == "dmz" ]]; then
 	# Is the DMZ server enabled?  If not, exit without error:
 	[[ "${enable_dmz:-"N"}" == "N" ]] && exit 0
 
-	# Remove any DMZ-commented lines from the ${IPT} rules list:
-	${IPT} --list-rules | grep "\-m comment \-\-comment DMZ" | while read rule; do ${IPT} $(echo $rule | sed "s|^-A|-D|g"); done
+	# Remove any DMZ-commented lines from the iptables rules list:
+	iptables --list-rules | grep "\-m comment \-\-comment DMZ" | while read rule; do iptables $(echo $rule | sed "s|^-A|-D|g"); done
 
 	# Can we locate the DMZ server?  If not, exit without error:
 	server=($(arp | grep ${dmz_ip_addr:-"${dmz_mac_addr}"} 2> /dev/null))
@@ -271,7 +271,7 @@ elif [[ "$1" == "dmz" ]]; then
 	fi
 
 	# Create the iptable rule for the DMZ server:
-	${IPT} -A WAN_FORWARD -i wan -o ${iface} ${params} -d ${dmz_ip_addr} -m comment --comment DMZ -m state --state NEW -j ACCEPT
+	iptables -A WAN_FORWARD -i wan -o ${iface} ${params} -d ${dmz_ip_addr} -m comment --comment DMZ -m state --state NEW -j ACCEPT
 
 #############################################################################
 # FIREWALL => Set the basic firewall security settings, according to WebUI:
@@ -279,28 +279,28 @@ elif [[ "$1" == "dmz" ]]; then
 # "Filter Multicast" iptable commands from source:
 # 	https://jeanwan.wordpress.com/2013/08/14/block-multicast-packets-by-using-ipfilter/
 # "Drop Pings from Internet" iptable commands from source:
-#   https://vitux.com/how-to-block-allow-ping-using-${IPT}-in-ubuntu/
+#   https://vitux.com/how-to-block-allow-ping-using-iptables-in-ubuntu/
 #############################################################################
 elif [[ "$1" == "firewall" ]]; then
 	#############################################################################
 	# OPTION "block_dot" => Drop outgoing DoT (DNS-over-TLS port 853) requests:
 	#############################################################################
 	if [[ "${block_dot:-"Y"}" == "Y" ]]; then
-		${IPT} -A WAN_OUT -p tcp --dport 853 -j DROP
-		${IPT} -A WAN_OUT -p udp --dport 853 -j DROP
+		iptables -A WAN_OUT -p tcp --dport 853 -j DROP
+		iptables -A WAN_OUT -p udp --dport 853 -j DROP
 	fi
 	#############################################################################
 	# OPTION "block_doq" => Drop outgoing DoT (DNS-over-QUIC port 8853) requests:
 	#############################################################################
 	if [[ "${block_doq:-"Y"}" == "Y" ]]; then
-		${IPT} -A WAN_OUT -p tcp --dport 8853 -j DROP
-		${IPT} -A WAN_OUT -p udp --dport 8853 -j DROP
+		iptables -A WAN_OUT -p tcp --dport 8853 -j DROP
+		iptables -A WAN_OUT -p udp --dport 8853 -j DROP
 	fi
 
 	#############################################################################
 	# OPTION "drop_ping" => Disable ping response from internet
 	#############################################################################
-	[[ "${drop_ping:-"Y"}" == "Y" ]] && ${IPT} -A WAN_IN -p icmp --icmp-type echo-request -j DROP
+	[[ "${drop_ping:-"Y"}" == "Y" ]] && iptables -A WAN_IN -p icmp --icmp-type echo-request -j DROP
 
 	#############################################################################
 	# OPTION "drop_port_scan" => Protect against port scans:
@@ -308,49 +308,49 @@ elif [[ "$1" == "firewall" ]]; then
 	if [[ "${drop_port_scan:-"Y"}" == "Y" ]]; then
 		# CTB: Create chain PORTSCAN and add logging to it (if requested) with your preferred prefix
 		create_chain PORTSCAN
-		[[ "${log_port_scan:-"N"}" == "Y" ]] && ${IPT} -A PORTSCAN -j NFLOG --nflog-group 1  --nflog-prefix 'Blocked_scans: '
-		${IPT} -A PORTSCAN -j DROP
+		[[ "${log_port_scan:-"N"}" == "Y" ]] && iptables -A PORTSCAN -j NFLOG --nflog-group 1  --nflog-prefix 'Blocked_scans: '
+		iptables -A PORTSCAN -j DROP
 
 		# CTB: Create chain UDP with custom logging (if requested)
 		create_chain UDP
-		[[ "${log_udp_flood:-"N"}" == "Y" ]] && ${IPT} -A UDP  -j NFLOG --nflog-group 2  --nflog-prefix 'UDP_FLOOD: '
-		${IPT} -A UDP -p udp -m state --state NEW -m recent --set --name UDP_FLOOD
-		${IPT} -A UDP -j DROP
+		[[ "${log_udp_flood:-"N"}" == "Y" ]] && iptables -A UDP  -j NFLOG --nflog-group 2  --nflog-prefix 'UDP_FLOOD: '
+		iptables -A UDP -p udp -m state --state NEW -m recent --set --name UDP_FLOOD
+		iptables -A UDP -j DROP
 
 		# CTB: Accept all connections for ports from 32768 to 61000.  These are mostly
 		# used in ACK and don’t have too many services hosted here.
-		${IPT} -A WAN_IN -p tcp -m tcp --destination-port 32768:61000 -j ACCEPT
+		iptables -A WAN_IN -p tcp -m tcp --destination-port 32768:61000 -j ACCEPT
 
 		# CTB: Anyone who previously tried to portscan or UDP flood us are locked out for an entire day.
 		# Their IP’s are stored in a list called ‘PORTSCAN’:
-		${IPT} -A WAN_IN -m recent --name PORTSCAN --rcheck --seconds 86400 -j PORTSCAN
-		${IPT} -A WAN_IN -m recent --name UDP_FLOOD --rcheck --seconds 86400 -j PORTSCAN
+		iptables -A WAN_IN -m recent --name PORTSCAN --rcheck --seconds 86400 -j PORTSCAN
+		iptables -A WAN_IN -m recent --name UDP_FLOOD --rcheck --seconds 86400 -j PORTSCAN
 
 		# CTB: Once the day has passed, remove them from the PORTSCAN list:
-		${IPT} -A WAN_IN -m recent --name PORTSCAN --remove
-		${IPT} -A WAN_IN -m recent --name UDP_FLOOD --remove
+		iptables -A WAN_IN -m recent --name PORTSCAN --remove
+		iptables -A WAN_IN -m recent --name UDP_FLOOD --remove
 
 		# CTB: Anyone who does not match the above rules (open ports) is trying to access a port our sever does not
 		# serve. So, as per design we consider them port scanners and we block them for an entire day
 		# These rules add scanners to the PORTSCAN list, and log the attempt:
-		${IPT} -A WAN_IN -p tcp -m tcp -m recent -m state --state NEW --name PORTSCAN --set -j PORTSCAN
+		iptables -A WAN_IN -p tcp -m tcp -m recent -m state --state NEW --name PORTSCAN --set -j PORTSCAN
 
 		# CTB: UDP
-		${IPT} -A WAN_IN -p udp -m state --state NEW -m recent --set --name Domainscans
-		${IPT} -A WAN_IN -p udp -m state --state NEW -m recent --rcheck --seconds 5 --hitcount 5 --name Domainscans -j UDP
+		iptables -A WAN_IN -p udp -m state --state NEW -m recent --set --name Domainscans
+		iptables -A WAN_IN -p udp -m state --state NEW -m recent --rcheck --seconds 5 --hitcount 5 --name Domainscans -j UDP
 	fi
 
 	#############################################################################
 	# OPTION "drop_ident" => Block port 113 (IDENT) from the Internet
 	#############################################################################
-	[[ "${drop_ident:-"Y"}" == "Y" ]] && ${IPT} -A WAN_IN -p tcp --destination-port 113 -j DROP
+	[[ "${drop_ident:-"Y"}" == "Y" ]] && iptables -A WAN_IN -p tcp --destination-port 113 -j DROP
 
 	#############################################################################
 	# OPTION "drop_multicast" => Drop multicast packets from the Internet:
 	#############################################################################
 	if [[ "${drop_multicast:-"N"}" == "Y" ]]; then
-		${IPT} -A WAN_OUT -o wan -m pkttype --pkt-type multicast -j DROP
-		${IPT} -A WAN_IN -i wan -m pkttype --pkt-type multicast -j DROP
+		iptables -A WAN_OUT -o wan -m pkttype --pkt-type multicast -j DROP
+		iptables -A WAN_IN -i wan -m pkttype --pkt-type multicast -j DROP
 	fi
 
 #############################################################################
@@ -358,8 +358,8 @@ elif [[ "$1" == "firewall" ]]; then
 #############################################################################
 elif [[ "$1" == "remote" ]]; then
 	# Remove existing Remote Management Port firewall rules and exit if disabled:
-	${IPT} -t nat -F REMOTE
-	${IPT} -F REMOTE
+	iptables -t nat -F REMOTE
+	iptables -F REMOTE
 	[[ "${enable_remote:-"N"}" == "N" ]] && exit 0
 
 	# Decide how we are going to limit access to the WebUI:
@@ -375,15 +375,15 @@ elif [[ "$1" == "remote" ]]; then
 	[[ "${remote_mode}" == "http" ]] && remote_src_port=80 || remote_src_port=443
 
 	# Set WebUI port forwarding rule according to user request:
-	${IPT} -t nat -I REMOTE -i ${remote_iface} -p tcp --dport ${remote_src_port} -j DNAT --to-destination ${IP_ADDR}:${remote_dst_port}
-	${IPT} -I REMOTE -p tcp -d ${IP_ADDR} --dport ${remote_dst_port} ${LIMIT} -j ACCEPT
+	iptables -t nat -I REMOTE -i ${remote_iface} -p tcp --dport ${remote_src_port} -j DNAT --to-destination ${IP_ADDR}:${remote_dst_port}
+	iptables -I REMOTE -p tcp -d ${IP_ADDR} --dport ${remote_dst_port} ${LIMIT} -j ACCEPT
 
 #############################################################################
 # FORWARD => Load the port triggers rules from /etc/network/port_forwarding.rules
 #############################################################################
 elif [[ "$1" == "forward" ]]; then
-	${IPT} -F PORT_FORWARD
-	${IPT} -t nat -F PORT_FORWARD
-	test -f /etc/network/port_forwarding.rules && cat /etc/network/port_forwarding.rules | ${IPT}-restore --noflush
+	iptables -F PORT_FORWARD
+	iptables -t nat -F PORT_FORWARD
+	test -f /etc/network/port_forwarding.rules && cat /etc/network/port_forwarding.rules | iptables-restore --noflush
 fi
 exit 0
