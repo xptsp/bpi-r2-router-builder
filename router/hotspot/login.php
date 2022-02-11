@@ -182,11 +182,11 @@ echo '
 		<div class="modal-dialog modal-dialog-centered">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h4 class="modal-title">You may now browse the Internet!</h4>
+					<h4 class="modal-title"><i class="far fa-thumbs-up"></i> You may now browse the Internet!</h4>
 				</div>
-				<div class="modal-footer justify-content-between">
-					<center><a href="', $url, '"><button type="button" class="btn btn-success">Continue to Internet</button></a></center>
-				</div>
+				<a href="', $url, '"><div class="modal-footer">
+					<button type="button" class="btn btn-success center_50">Continue to Internet</button>
+				</div></a>
 			</div>
 		</div>
 	</div>';

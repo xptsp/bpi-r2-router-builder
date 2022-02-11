@@ -223,37 +223,37 @@ case $CMD in
 
 	###########################################################################
 	login)
+		USER=$(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
 		#####################################################################
 		# CHECK => Checks to make sure supplied username/password combo is valid:
-		if [[ "$1" == "check" ]]; then
+		if [[ "$1" == "check" || "$1" == "webui" ]]; then
 			pwd=$(getent shadow ${2} | cut -d: -f2)
 			[[ -z "${pwd}" ]] && echo "No match" && exit 1
 			[[ "$(mkpasswd ${3} ${pwd})" == "${pwd}" ]] && echo "Match" || echo "No match"
 		#####################################################################
 		# WEBUI => Returns the username for user 1000:
 		elif [[ "$1" == "webui" ]]; then
-			$0 login check pi $2
+			$0 login check ${USER} $2
 		#####################################################################
 		# PASSWD => Changes the password for user 1000:
 		elif [[ "$1" == "passwd" ]]; then
 			[[ -z "${2}" ]] && echo "Password not specified" && exit 1
-			ALT=$(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
-			(echo $2; echo $2) | passwd ${3:-"${ALT}"}
+			(echo $2; echo $2) | passwd ${3:-"${USER}"}
 		#####################################################################
 		# USERNAME => Returns the username for user 1000:
 		elif [[ "$1" == "username" ]]; then
 			[[ -z "${2}" ]] && echo "Username not specified" && exit 1
-			usermod -l $2 $(cat /etc/passwd | grep ":1000:" | cut -d: -f1) && echo "Success"
+			usermod -l $2 ${3:-"${USER}"} && echo "Success"
 		#####################################################################
 		# SAFETY-CHECK => Returns information about possible security concerns:
 		elif [[ "$1" == "safety-check" ]]; then
-			[[ "$($0 login check $($0 login webui) bananapi)" == "Match" ]] && echo "Default"
+			[[ "$($0 login check ${USER} bananapi)" == "Match" ]] && echo "Default"
 			[[ "$($0 login check root bananapi)" == "Match" ]] && echo "Root"
 			mount | grep -e "[emergency|tmp]-root-rw on /rw " >& /dev/null && echo "Temp"
 		#####################################################################
 		# COOKIE => Returns hash of shadow password
 		elif [[ "$1" == "cookie" ]]; then
-			getent shadow $(cat /etc/passwd | grep ":1000:" | cut -d: -f1) | sha512sum | awk '{print $1}'
+			getent shadow ${USER} | sha512sum | awk '{print $1}'
 		#####################################################################
 		# Everything else:
 		else
