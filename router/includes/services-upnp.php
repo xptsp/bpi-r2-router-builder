@@ -1,4 +1,18 @@
 <?php
+require_once("subs/manage.php");
+require_once("subs/setup.php");
+
+$config = parse_options("/etc/miniupnpd/miniupnpd.conf");
+#echo '<pre>'; print_r($config); exit;
+$ifaces = get_network_adapters();
+#echo '<pre>'; print_r($ifaces); exit();
+$ext_ifaces = explode("\n", @trim(@shell_exec("grep masquerade /etc/network/interfaces.d/* | cut -d: -f 1 | cut -d\/ -f 5")));
+#echo '<pre>'; print_r($ext_ifaces); exit();
+$exclude_arr = array("docker.+", "lo", "sit.+", "eth0", "eth1", "aux");
+#echo $exclude_regex; exit;
+$valid_listen = array_diff( array_keys($ifaces), $exclude_arr, $ext_ifaces );
+#echo '<pre>'; print_r($valid_listen); exit();
+
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
 #################################################################################################
@@ -33,11 +47,11 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'submit')
 	{
-		$secure = option("secure");
-		$natpmp = option("natpmp");
-		$params = ($natpmp ? 'natpmp-on' : 'natpmp-off') . ' ' . ($secure ? 'secure-on' : 'secure-off');
-		shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh upnp ' . $params);
-		die("OK");
+		$params  = (option("natpmp") == "Y" ? 'natpmp-on' : 'natpmp-off') . ' ';
+		$params .= (option("secure") == "Y" ? 'secure-on' : 'secure-off') . ' ';
+		$params .= 'ext_iface=' . option_allowed("ext_iface", $ext_ifaces) . ' ';
+		$params .= 'listen=' . option_allowed("listen", $valid_listen, false) . ' ';
+		die(shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh upnp ' . $params . ' restart'));
 	}
 	#################################################################################################
 	# ACTION: SUBMIT ==> Update the UPnP configuration, per user settings:
@@ -56,6 +70,11 @@ if (isset($_POST['action']))
 #########################################################################################
 # Get everything we need to show the user:
 #########################################################################################
+$listen = array();
+foreach (explode(" ", $config['listening_ip']) as $tface)
+	$listen[$tface] = $tface;
+#echo '<pre>'; print_r($listen); exit();
+
 $options['upnp_secure'] = trim(@shell_exec("cat /etc/miniupnpd/miniupnpd.conf | grep '^secure_mode' | cut -d= -f 2")) == "yes" ? "Y" : "N";
 $options['upnp_natpmp'] = trim(@shell_exec("cat /etc/miniupnpd/miniupnpd.conf | grep '^enable_natpmp' | cut -d= -f 2")) == "yes" ? "Y" : "N";
 $service_enabled = trim(@shell_exec("systemctl is-active miniupnpd")) == "active";
@@ -81,9 +100,60 @@ echo '
 		<h3 class="card-title">Universal Plug and Play Settings</h3>
 	</div>
 	<div class="card-body">
-		', checkbox("upnp_secure", "Enable Secure Mode (UPnP clients can only add mappings to their own IP)"), '
-		', checkbox("upnp_natpmp", "Enable NAT Port Mapping Protocol"), '
-		<hr style="border-width: 2px" />
+		<div class="row" style="margin-top: 5px">
+			<div class="col-6">
+				<label for="listening_on">Listening Interfaces:</label>
+			</div>
+			<div class="col-3">
+				<select class="form-control" id="listening_on" multiple>';
+foreach ($valid_listen as $tface)
+{
+	echo '
+					<option value="', $tface, '"', isset($listen[$tface]) ? ' selected="selected"' : '', '>' . $tface . '</option>';
+}
+echo '
+				</select>
+			</div>
+		</div>
+		<div class="row" style="margin-top: 5px">
+			<div class="col-6">
+				<label for="ext_iface">External Interface:</label>
+			</div>
+			<div class="col-3">
+				<select class="form-control" id="ext_iface">';
+foreach ($ext_ifaces as $tface)
+{
+	echo '
+					<option value="', $tface, '"', $config['listening_ip'] == $tface ? ' selected="selected"' : '', '>' . $tface . '</option>';
+}
+echo '
+				</select>
+			</div>
+		</div>
+		<div class="row" style="margin-top: 5px">
+			<div class="col-6">
+				<label for="upnp_secure">Enable Secure Mode: (Clients can only map to own IP)</label>
+
+			</div>
+			<div class="col-6">
+				', checkbox("upnp_secure", '&nbsp;'), '
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-6">
+				<label for="upnp_natpmp">Enable NAT Port Mapping Protocol:</label>
+
+			</div>
+			<div class="col-6">
+				', checkbox("upnp_secure", '&nbsp;'), '
+			</div>
+		</div>
+		<hr style="border-width: 2px" />';
+
+#################################################################################################
+# Output the current UPnP port mappings:
+#################################################################################################
+echo '
 		<h5>
 			<a href="javascript:void(0);"><button type="button" id="upnp_refresh" class="btn btn-sm btn-primary float-right">Refresh</button></a>
 			Current UPnP Port Mappings

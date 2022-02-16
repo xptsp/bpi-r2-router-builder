@@ -454,10 +454,17 @@ function option($name, $allowed = "/^[Y|N]$/", $post = true)
 	return $tmp;
 }
 
-function option_allowed($name, $allowed = array())
+function in_array_all($needles, $haystack) 
+{
+	return empty(array_diff($needles, $haystack));
+}
+
+function option_allowed($name, $allowed = array(), $single = true)
 {
 	global $options, $options_changed;
-	if (!in_array($tmp = isset($_POST[$name]) ? $_POST[$name] : '', $allowed))
+	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
+	$tmp = $single ? array($tmp) : explode(",", $tmp);
+	if (!in_array_all($tmp, $allowed))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
 	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
 	return $tmp;

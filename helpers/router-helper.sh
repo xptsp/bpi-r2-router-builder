@@ -741,38 +741,47 @@ case $CMD in
 
 	###########################################################################
 	upnp)
+		FILE=/etc/miniupnpd/miniupnpd.conf
 		for action in $@; do
 			if [[ "${action}" == "list" ]]; then
-				if ! systemctl is-active miniupnpd >& /dev/null; then echo "Not Active"; exit; fi
-				PORT=$(cat /etc/miniupnpd/miniupnpd.conf | grep '^http_port=' | cut -d= -f 2)
-				[[ ! -z "${PORT}" ]] && PORT="-u http://$(ifconfig br0 | grep 'inet ' | awk '{print $2}'):${PORT}/rootDesc.xml"
-				upnpc ${PORT} -L
+				if ! systemctl is-active miniupnpd >& /dev/null; then echo "Not Active"; else /usr/local/sbin/upnpc -L; fi
 			elif [[ "${action}" == "enable" ]]; then
-				systemctl enable miniupnpd
-				systemctl restart miniupnpd
+				systemctl enable --now miniupnpd >& /dev/null
+			elif [[ "${action}" == "restart" ]]; then
+				systemctl is-active miniupnpd >& /dev/null && systemctl restart miniupnpd
 			elif [[ "${action}" == "disable" ]]; then
 				systemctl disable --now miniupnpd
 			elif [[ "${action}" == "secure-on" ]]; then
-				sed -i "s|^secure_mode=.*|secure_mode=yes|g" /etc/miniupnpd/miniupnpd.conf
+				sed -i "s|^secure_mode=.*|secure_mode=yes|g" ${FILE}
 			elif [[ "${action}" == "secure-off" ]]; then
-				sed -i "s|^secure_mode=.*|secure_mode=no|g" /etc/miniupnpd/miniupnpd.conf
+				sed -i "s|^secure_mode=.*|secure_mode=no|g" ${FILE}
 			elif [[ "${action}" == "natpmp-on" ]]; then
-				sed -i "s|^enable_natpmp=.*|enable_natpmp=yes|g" /etc/miniupnpd/miniupnpd.conf
+				sed -i "s|^enable_natpmp=.*|enable_natpmp=yes|g" ${FILE}
 			elif [[ "${action}" == "natpmp-off" ]]; then
-				sed -i "s|^enable_natpmp=.*|enable_natpmp=no|g" /etc/miniupnpd/miniupnpd.conf
+				sed -i "s|^enable_natpmp=.*|enable_natpmp=no|g" ${FILE}
+			elif [[ "${action}" =~ ^ext= && ! "${action}" =~ , ]]; then
+				sed -i "s|^ext_ifname=.*|ext_iface=${action/ext=/}|g" ${FILE}
+			elif [[ "${action}" =~ ^listen= ]]; then
+				tmp=${action/listen=/}
+				sed -i "s|^listening_ip=.*|listening_ip=${tmp/,/ }|g" ${FILE}
 			else
-				[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-				echo "SYNTAX: $(basename $0) upnp [list|enable|disable|secure-on|secure-off|natpmp-on|natpmp-off|restart]" && exit 0
-				echo "Where:"
-				echo "    list       - Lists current UPnP port mappings"
-				echo "    enable     - Enables and (re)starts the miniupnpd service"
-				echo "    disable    - Disables and stops the miniupnpd service if running"
-				echo "    secure-on  - Enables Secure Mode"
-				echo "    secure-off - Disables Secure Mode"
-				echo "    natpmp-on  - Enables NAT Port Mapping Protocol"
-				echo "    natpmp-off - Disables NAT Port Mapping Protocol"
+				[[ "$action" != "-h" ]] && echo "ERROR: Invalid option passed!"
+				echo "SYNTAX: $(basename $0) upnp [cmd]"
+				echo "Where [cmd] is:"
+				echo "    list         - Lists current UPnP port mappings"
+				echo "    enable       - Enables and (re)starts the miniupnpd service"
+				echo "    disable      - Disables and stops the miniupnpd service if running"
+				echo "    secure-on    - Enables Secure Mode"
+				echo "    secure-off   - Disables Secure Mode"
+				echo "    natpmp-on    - Enables NAT Port Mapping Protocol"
+				echo "    natpmp-off   - Disables NAT Port Mapping Protocol"
+				echo "    ext=<iface>  - Sets <iface> as the external interface"
+				echo "    listen=<tmp> - Sets <tmp> (separated by commas) as the listening interfaces"
+				echo "    restart      - Restarts the miniupnpd service if running"
+				exit 1
 			fi
 		done
+		echo "OK"
 		;;
 
 	###########################################################################

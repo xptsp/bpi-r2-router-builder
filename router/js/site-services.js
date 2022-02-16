@@ -49,10 +49,12 @@ function UPnP_Submit()
 
 	// Assemble the post data for the AJAX call:
 	postdata = {
-		'sid':      SID,
-		'action':   'submit',
-		'secure':   $("#upnp_secure").prop("checked") ? "Y" : "N",
-		'natpmp':   $("#upnp_natpmp").prop("checked") ? "Y" : "N",
+		'sid':       SID,
+		'action':    'submit',
+		'secure':    $("#upnp_secure").prop("checked") ? "Y" : "N",
+		'natpmp':    $("#upnp_natpmp").prop("checked") ? "Y" : "N",
+		'ext_iface': $("#ext_iface").val(),
+		'listen':    $("#listening_on").val().join(","),
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
