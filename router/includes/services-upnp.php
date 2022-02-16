@@ -47,6 +47,10 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'submit')
 	{
+		$options['enable_natpmp'] = option("enable_natpmp") == "Y" ? "yes" : "no";
+		$options['secure_mode'] = option("secure_mode") == "Y" ? "yes" : "no";
+		$options['ext_ifname'] = option_allowed("ext_ifname", $ext_ifaces);
+		$options['listening_ip'] = option_allowed("listening_ip", $valid_listen, false);
 		apply_options("upnp");
 		die(shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh upnp move restart'));
 	}
@@ -72,8 +76,8 @@ foreach (explode(" ", $options['listening_ip']) as $tface)
 	$listen[$tface] = $tface;
 #echo '<pre>'; print_r($listen); exit();
 
-$options['upnp_secure'] = trim(@shell_exec("cat /etc/miniupnpd/miniupnpd.conf | grep '^secure_mode' | cut -d= -f 2")) == "yes" ? "Y" : "N";
-$options['upnp_natpmp'] = trim(@shell_exec("cat /etc/miniupnpd/miniupnpd.conf | grep '^enable_natpmp' | cut -d= -f 2")) == "yes" ? "Y" : "N";
+$options['secure_mode'] = $options['secure_mode'] == "yes" ? "Y" : "N";
+$options['enable_natpmp'] = $options['enable_natpmp'] == "yes" ? "Y" : "N";
 $service_enabled = trim(@shell_exec("systemctl is-active miniupnpd")) == "active";
 #echo (int) $service_enabled; exit;
 site_menu(true, "Enabled", $service_enabled);
@@ -114,14 +118,15 @@ echo '
 		</div>
 		<div class="row" style="margin-top: 5px">
 			<div class="col-6">
-				<label for="ext_iface">External Interface:</label>
+				<label for="ext_ifname">External Interface:</label>
 			</div>
 			<div class="col-3">
-				<select class="form-control" id="ext_iface">';
+				<select class="form-control" id="ext_ifname">';
+$listening = explode(" ", $options['listening_ip']);
 foreach ($ext_ifaces as $tface)
 {
 	echo '
-					<option value="', $tface, '"', $options['listening_ip'] == $tface ? ' selected="selected"' : '', '>' . $tface . '</option>';
+					<option value="', $tface, '"', in_array($tface, $listening) ? ' selected="selected"' : '', '>' . $tface . '</option>';
 }
 echo '
 				</select>

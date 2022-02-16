@@ -444,7 +444,6 @@ function parse_options($file = '/etc/default/router-settings')
 function option($name, $allowed = "/^[Y|N|yes|no]$/", $post = true)
 {
 	global $options, $options_changed;
-	$convert = array("yes" => "Y", "no" => "N");
 	if ($post)
 		$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
 	else
@@ -452,7 +451,7 @@ function option($name, $allowed = "/^[Y|N|yes|no]$/", $post = true)
 	if (empty($allowed) || !preg_match($allowed, $tmp))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
 	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
-	return isset($convert[$tmp]) ? $convert[$tmp] : $tmp;
+	return $tmp;
 }
 
 function in_array_all($needles, $haystack) 
