@@ -2,8 +2,8 @@
 require_once("subs/manage.php");
 require_once("subs/setup.php");
 
-$config = parse_options("/etc/miniupnpd/miniupnpd.conf");
-#echo '<pre>'; print_r($config); exit;
+$options = parse_options("/etc/miniupnpd/miniupnpd.conf");
+#echo '<pre>'; print_r($options); exit;
 $ifaces = get_network_adapters();
 #echo '<pre>'; print_r($ifaces); exit();
 $ext_ifaces = explode("\n", @trim(@shell_exec("grep masquerade /etc/network/interfaces.d/* | cut -d: -f 1 | cut -d\/ -f 5")));
@@ -24,7 +24,7 @@ if (isset($_POST['action']))
 	if ($_POST['action'] == 'list')
 	{
 		$str = array();
-		foreach (explode("\n", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh upnp list'))) as $line)
+		foreach (explode("\n", trim(@shell_exec('/usr/local/sbin/upnpc -L'))) as $line)
 		{
 			if (preg_match("/(\d+)\s+(TCP|UDP)\s+(\d+)\-\>(\d+\.\d+\.\d+\.\d+):(\d+)\s+\'([^\']*)\'\s+\'([^\']*)\' (\d+)/", $line, $regex))
 			{
@@ -47,11 +47,8 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'submit')
 	{
-		$params  = (option("natpmp") == "Y" ? 'natpmp-on' : 'natpmp-off') . ' ';
-		$params .= (option("secure") == "Y" ? 'secure-on' : 'secure-off') . ' ';
-		$params .= 'ext=' . option_allowed("ext_iface", $ext_ifaces) . ' ';
-		$params .= 'listen=' . option_allowed("listen", $valid_listen, false) . ' ';
-		die(shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh upnp ' . $params . ' restart'));
+		apply_options("upnp");
+		die(shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh upnp move restart'));
 	}
 	#################################################################################################
 	# ACTION: SUBMIT ==> Update the UPnP configuration, per user settings:
@@ -71,7 +68,7 @@ if (isset($_POST['action']))
 # Get everything we need to show the user:
 #########################################################################################
 $listen = array();
-foreach (explode(" ", $config['listening_ip']) as $tface)
+foreach (explode(" ", $options['listening_ip']) as $tface)
 	$listen[$tface] = $tface;
 #echo '<pre>'; print_r($listen); exit();
 
@@ -124,7 +121,7 @@ echo '
 foreach ($ext_ifaces as $tface)
 {
 	echo '
-					<option value="', $tface, '"', $config['listening_ip'] == $tface ? ' selected="selected"' : '', '>' . $tface . '</option>';
+					<option value="', $tface, '"', $options['listening_ip'] == $tface ? ' selected="selected"' : '', '>' . $tface . '</option>';
 }
 echo '
 				</select>
@@ -132,20 +129,20 @@ echo '
 		</div>
 		<div class="row" style="margin-top: 5px">
 			<div class="col-6">
-				<label for="upnp_secure">Enable Secure Mode: (Clients can only map to own IP)</label>
+				<label for="secure_mode">Enable Secure Mode: (Clients can only map to own IP)</label>
 
 			</div>
 			<div class="col-6">
-				', checkbox("upnp_secure", '&nbsp;'), '
+				', checkbox("secure_mode", '&nbsp;'), '
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-6">
-				<label for="upnp_natpmp">Enable NAT Port Mapping Protocol:</label>
+				<label for="enable_natpmp">Enable NAT Port Mapping Protocol:</label>
 
 			</div>
 			<div class="col-6">
-				', checkbox("upnp_secure", '&nbsp;'), '
+				', checkbox("enable_natpmp", '&nbsp;'), '
 			</div>
 		</div>
 		<hr style="border-width: 2px" />';

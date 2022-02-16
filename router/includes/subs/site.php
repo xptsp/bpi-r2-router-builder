@@ -441,9 +441,10 @@ function parse_options($file = '/etc/default/router-settings')
 	return $options;
 }
 
-function option($name, $allowed = "/^[Y|N]$/", $post = true)
+function option($name, $allowed = "/^[Y|N|yes|no]$/", $post = true)
 {
 	global $options, $options_changed;
+	$convert = array("yes" => "Y", "no" => "N");
 	if ($post)
 		$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
 	else
@@ -451,7 +452,7 @@ function option($name, $allowed = "/^[Y|N]$/", $post = true)
 	if (empty($allowed) || !preg_match($allowed, $tmp))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
 	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
-	return $tmp;
+	return isset($convert[$tmp]) ? $convert[$tmp] : $tmp;
 }
 
 function in_array_all($needles, $haystack) 
@@ -525,8 +526,11 @@ function apply_options($mode = "reload")
 	$handle = fopen("/tmp/router-settings", "w");
 	fwrite($handle, $text);
 	fclose($handle);
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh firewall " . $mode);
-	if ($mode == "reload" && isset($options['use_isp']) && isset($options['dns1']))
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns " . ($options['use_isp'] == 'Y' ? 'config' : $options['dns1'] . ' ' . $options['dns2']));
+	if ($mode != "upnp")
+	{
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh firewall " . $mode);
+		if ($mode == "reload" && isset($options['use_isp']) && isset($options['dns1']))
+			@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns " . ($options['use_isp'] == 'Y' ? 'config' : $options['dns1'] . ' ' . $options['dns2']));
+	}
 	return "OK";
 }

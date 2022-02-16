@@ -51,8 +51,8 @@ function UPnP_Submit()
 	postdata = {
 		'sid':       SID,
 		'action':    'submit',
-		'secure':    $("#upnp_secure").prop("checked") ? "Y" : "N",
-		'natpmp':    $("#upnp_natpmp").prop("checked") ? "Y" : "N",
+		'secure':    $("#secure_mode").prop("checked") ? "Y" : "N",
+		'natpmp':    $("#enable_natpmp").prop("checked") ? "Y" : "N",
 		'ext_iface': $("#ext_iface").val(),
 		'listen':    $("#listening_on").val().join(","),
 	};
