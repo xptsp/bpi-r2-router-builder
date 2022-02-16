@@ -463,11 +463,10 @@ function option_allowed($name, $allowed = array(), $single = true)
 {
 	global $options, $options_changed;
 	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
-	$tmp = $single ? array($tmp) : explode(",", $tmp);
-	if (!in_array_all($tmp, $allowed))
+	if (!in_array_all($single ? array($tmp) : explode(",", $tmp), $allowed))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
 	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
-	return $tmp;
+	return $single ? $tmp[0] : $tmp;
 }
 
 function option_range($name, $min, $max)

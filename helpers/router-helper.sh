@@ -760,7 +760,7 @@ case $CMD in
 			elif [[ "${action}" == "natpmp-off" ]]; then
 				sed -i "s|^enable_natpmp=.*|enable_natpmp=no|g" ${FILE}
 			elif [[ "${action}" =~ ^ext= && ! "${action}" =~ , ]]; then
-				sed -i "s|^ext_ifname=.*|ext_iface=${action/ext=/}|g" ${FILE}
+				sed -i "s|^ext_ifname=.*|ext_ifname=${action/ext=/}|g" ${FILE}
 			elif [[ "${action}" =~ ^listen= ]]; then
 				tmp=${action/listen=/}
 				sed -i "s|^listening_ip=.*|listening_ip=${tmp/,/ }|g" ${FILE}
