@@ -8,7 +8,7 @@ $ifaces = get_network_adapters();
 #echo '<pre>'; print_r($ifaces); exit();
 $ext_ifaces = explode("\n", @trim(@shell_exec("grep masquerade /etc/network/interfaces.d/* | cut -d: -f 1 | cut -d\/ -f 5")));
 #echo '<pre>'; print_r($ext_ifaces); exit();
-$exclude_arr = array("docker.+", "lo", "sit.+", "eth0", "eth1", "aux");
+$exclude_arr = array("docker0", "lo", "sit0", "eth0", "eth1", "aux");
 #echo $exclude_regex; exit;
 $valid_listen = array_diff( array_keys($ifaces), $exclude_arr, $ext_ifaces );
 #echo '<pre>'; print_r($valid_listen); exit();
