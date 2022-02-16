@@ -49,7 +49,7 @@ if (isset($_POST['action']))
 	{
 		$params  = (option("natpmp") == "Y" ? 'natpmp-on' : 'natpmp-off') . ' ';
 		$params .= (option("secure") == "Y" ? 'secure-on' : 'secure-off') . ' ';
-		$params .= 'ext_iface=' . option_allowed("ext_iface", $ext_ifaces) . ' ';
+		$params .= 'ext=' . option_allowed("ext_iface", $ext_ifaces) . ' ';
 		$params .= 'listen=' . option_allowed("listen", $valid_listen, false) . ' ';
 		die(shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh upnp ' . $params . ' restart'));
 	}
