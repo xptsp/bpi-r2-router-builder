@@ -28,7 +28,7 @@ $sidebar_menu = array(
 	'services'  => array('Services', 'fas fa-concierge-bell', array(
 		'notify'    => menu_link('/services/notify', 'DHCP Notifications', 'fas fa-bullhorn', file_exists("/usr/bin/mosquitto_pub")),
 		'upnp'      => menu_link('/services/upnp', 'UPnP Setup', 'fas fa-plug', file_exists("/lib/systemd/system/miniupnpd.service")),
-		'usage'    => menu_link('/services/bandwidth', 'Bandwidth Usage', 'fas fa-chart-bar', file_exists("/lib/systemd/system/vnstat.service")),
+		'usage'     => menu_link('/services/bandwidth', 'Bandwidth Usage', 'fas fa-chart-bar', file_exists("/lib/systemd/system/vnstat.service")),
 	)),
 	'manage'  => array('Management', 'fas fa-cog', array(
 		'status'   => menu_link('/manage/status', 'Router Status', 'fas fa-ethernet'),

@@ -15,11 +15,20 @@ $log = &$cmds[ $_GET['which'] ];
 # Divide the program output into pages of specified number of lines:
 $lines = "";
 $per_page = 50;
-foreach (explode("\n", trim(@shell_exec($log['cmd']))) as $num => $line)
+$pages = 0;
+$output = trim(@shell_exec($log['cmd']));
+#echo '<pre>'; print_r($output); exit;
+if (empty($output))
+	$lines = '<div><center><strong>No Logs To Display</strong></center></div>';
+else
 {
-	$pages = floor(($num + $per_page) / $per_page);
-	$lines .= '<div class="everything page_' . $pages . ($pages > 1 ? ' hidden' : '') . '" id="dmesg-' . $num . '">' . htmlspecialchars($line) . "\n" . '</div>';
+	foreach (explode("\n", $output) as $num => $line)
+	{
+		$pages = floor(($num + $per_page) / $per_page);
+		$lines .= '<div class="everything page_' . $pages . ($pages > 1 ? ' hidden' : '') . '" id="dmesg-' . $num . '">' . htmlspecialchars($line) . "\n" . '</div>';
+	}
 }
+#echo '<pre>'; echo $lines; exit;
 
 # Assemble pagination code:
 $pagination = '';

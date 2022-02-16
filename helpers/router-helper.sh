@@ -319,7 +319,7 @@ case $CMD in
 			else
 				git reset --hard
 				git pull
-				test /ro && $0 git update $2
+				test /ro && $0 chroot /usr/local/bin/router-helper git update $2
 			fi
 		#####################################################################
 		# Everything else:

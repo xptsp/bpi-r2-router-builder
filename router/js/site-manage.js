@@ -1,5 +1,5 @@
 //======================================================================================================
-// Javascript functions for "Admin / Router Status"
+// Javascript functions for "Management / Router Status"
 //======================================================================================================
 function Init_Stats()
 {
@@ -84,7 +84,7 @@ function Stats_Network_Close()
 }
 
 //======================================================================================================
-// Javascript functions for "Admin / 7Credentials"
+// Javascript functions for "Management / Credentials"
 //======================================================================================================
 function Init_Creds()
 {
@@ -162,7 +162,7 @@ function Creds_Password_Submit()
 }
 
 //======================================================================================================
-// Javascript functions for "Admin / Repository Updates"
+// Javascript functions for "Management / Repository Updates"
 //======================================================================================================
 function Init_Repo()
 {
@@ -216,7 +216,7 @@ function Repo_Pull()
 }
 
 //======================================================================================================
-// Javascript functions for "Admin / Debian Updates"
+// Javascript functions for "Management / Debian Updates"
 //======================================================================================================
 function Init_Debian()
 {
@@ -308,7 +308,7 @@ function Debian_Pull(mode, packages = [])
 }
 
 //======================================================================================================
-// Javascript functions for "Admin / Router Logs"
+// Javascript functions for "Management / Router Logs"
 //======================================================================================================
 function Init_Logs(pages)
 {
@@ -373,7 +373,7 @@ function Logs_Page(page)
 }
 
 //======================================================================================================
-// Javascript functions for "Admin/Backup Settings"
+// Javascript functions for "Management / Backup Settings"
 //======================================================================================================
 function Init_Restore()
 {
@@ -446,7 +446,7 @@ function Restore_Confirm()
 }
 
 //======================================================================================================
-// Javascript functions for "Admin / WebUI Management"
+// Javascript functions for "Management / WebUI Management"
 //======================================================================================================
 function Init_Management()
 {
