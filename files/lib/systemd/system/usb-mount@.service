@@ -6,5 +6,3 @@ Type=oneshot
 RemainAfterExit=true
 ExecStart=/opt/bpi-r2-router-builder/helpers/usb-helper.sh start %i
 ExecStop=/opt/bpi-r2-router-builder/helpers/usb-helper.sh stop %i
-
-

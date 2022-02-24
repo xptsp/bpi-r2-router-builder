@@ -113,7 +113,7 @@ mv ${PFL} ${TFL}
 for dir in $(find ./ -maxdepth 1 -type d | grep -v "./root"); do 
 	DIR=${dir/.\//};
 	if [[ ! -z "${DIR}" ]]; then
-		for file in $(find ${DIR}/* -type f | grep -v -e "^lib/systemd/system/"); do replace $file; done
+		for file in $(find ${DIR}/* -type f | egrep -v -e "^lib/systemd/system/(.*).d/changes.conf"); do replace $file; done
 	fi
 done
 
