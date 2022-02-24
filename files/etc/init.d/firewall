@@ -313,13 +313,9 @@ elif [[ "$1" == "firewall" ]]; then
 
 		# CTB: Create chain UDP with custom logging (if requested)
 		create_chain UDP
-		[[ "${log_udp_flood:-"N"}" == "Y" ]] && iptables -A UDP  -j NFLOG --nflog-group 2  --nflog-prefix 'UDP_FLOOD: '
+		[[ "${log_udp_flood:-"N"}" == "Y" ]] && iptables -A UDP -j NFLOG --nflog-group 2  --nflog-prefix 'UDP_FLOOD: '
 		iptables -A UDP -p udp -m state --state NEW -m recent --set --name UDP_FLOOD
 		iptables -A UDP -j DROP
-
-		# CTB: Accept all connections for ports from 32768 to 61000.  These are mostly
-		# used in ACK and don’t have too many services hosted here.
-		iptables -A WAN_IN -p tcp -m tcp --destination-port 32768:61000 -j ACCEPT
 
 		# CTB: Anyone who previously tried to portscan or UDP flood us are locked out for an entire day.
 		# Their IP’s are stored in a list called ‘PORTSCAN’:
