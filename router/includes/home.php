@@ -48,15 +48,15 @@ if (isset($_GET['sid']))
 	# Insert Pi-Hole statistics information into array:
 	##########################################################################################
 	if (isset($pihole->unique_clients))
-		$arr['unique_clients'] = number_format($pihole->unique_clients);
+		$arr['unique_clients'] = $pihole->unique_clients;
 	if (isset($pihole->dns_queries_today))
-		$arr['dns_queries_today'] = number_format($pihole->dns_queries_today);
+		$arr['dns_queries_today'] = $pihole->dns_queries_today;
 	if (isset($pihole->ads_blocked_today))
-		$arr['ads_blocked_today'] = number_format($pihole->ads_blocked_today);
+		$arr['ads_blocked_today'] = $pihole->ads_blocked_today;
 	if (isset($pihole->ads_percentage_today))
-		$arr['ads_percentage_today'] = number_format($pihole->ads_percentage_today);
+		$arr['ads_percentage_today'] = $pihole->ads_percentage_today;
 	if (isset($pihole->domains_being_blocked))
-		$arr['domains_being_blocked'] = number_format($pihole->domains_being_blocked);
+		$arr['domains_being_blocked'] = $pihole->domains_being_blocked;
 
 	##########################################################################################
 	# Return status of internet-facing interfaces:

@@ -8,8 +8,10 @@ fi
 RO=$(mount | grep "/boot" | grep "(ro,")
 [[ ! -z "$RO" ]] && mount -o remount,rw /boot
 ROOT=/
-HAS_OVERLAY=$(router-helper has_overlay; echo $?)
-[[ "${HAS_OVERLAY}" -eq 0 ]] && ROOT=/ro && router-helper mount
+if test -d /ro; then
+	ROOT=/ro
+	mount -o remount,rw /ro
+fi
 
 # Remove the old kernel modules:
 rm -rf ${ROOT}/lib/modules/*
@@ -24,4 +26,5 @@ sudo tar -xzvf ${1} -C ${ROOT} --strip-components=1 BPI-ROOT
 router-helper mac saved
 
 # Remount root and boot partitons as read-only if they are before we started:
-[[ "${HAS_OVERLAY}" -eq 0 ]] && router-helper umount
+[[ ! -z "$RO" ]] && mount -o remount,ro /boot
+test -d /ro && mount -o remount,ro /ro

@@ -14,33 +14,56 @@ fi
 # Supporting functions
 ###########################################################################
 # Check to make sure that a read-only filesystem exists, and diagnose issue if it doesn't:
-function has_overlay()
+function check_ro()
 {
-	mount | grep " / " | grep -v "^/dev/" >& /dev/null
+	if ! test -d /ro; then
+		if [[ "$(cat /etc/debian_chroot)" == "CHROOT" ]]; then
+			echo "ERROR: Already in chroot environment!"
+			exit 1
+		elif ! test -e /boot/bananapi/bpi-r2/linux/uEnv.txt; then
+			echo "ERROR: uEnv.txt file is missing."
+			echo "Copy '/opt/bpi-r2-router-builder/uEnv.txt' to \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to enable."
+			exit 1
+		fi
+		DEF=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep bootmenu_default | cut -d= -f 2)
+		if [[ "$DEF" != "2" ]]; then
+			echo "ERROR: Overlay script has been disabled."
+			echo "Change \"bootmenu_default\" to \"2\" in order to enable readonly overlay script."
+		else
+			echo "ERROR: Readonly filesystem not available!"
+		fi
+		exit 1
+	fi
 }
 
 # Remount readonly lower filesystem as writable:
-function mount_lower()
+function remount_rw()
 {
-	cmd="$(cat /etc/fstab | grep "^#" | grep " / " | sed "s/#//g" | sed "s/ro,//g" | awk '{print "mount -r "$1" /ro"$2}')"
-	if [[ -z "${cmd}" ]]; then echo "ERROR: Overlay filesystem has not been enabled!"; exit 1; fi
-	if ! mount | grep " /ro " >& /dev/null; then
-		mkdir -p /ro
-		if ! $cmd; then echo "ERROR: Unable to mount lower filesystem!"; rmdir /ro; exit 1; fi
+	if ! mount -o remount,rw $RO_DEV /ro; then
+		echo "ERROR: Unable to remount root filesystem!"
+		exit 1
 	fi
-	if mount | grep " /ro " | grep "(ro," >& /dev/null && mount -o remount,rw /ro
 	if [[ ! "$1" == "notrap" ]]; then
-		trap 'umount_lower' SIGINT
-		trap 'umount_lower' EXIT
+		trap 'remount_ro' SIGINT
+		trap 'remount_ro' EXIT
 	fi
-	if [[ ! "$1" == "nosub" ]]; then for dir in dev run proc sys tmp; do mount --bind /${dir} /ro/${dir}; done; fi
+	mount --bind /dev /ro/dev
+	mount --bind /run /ro/run
+	mount --bind /proc /ro/proc
+	mount --bind /sys /ro/sys
+	mount --bind /tmp /ro/tmp
 	return 0
 }
 
 # Remount writable lower filesystem as readonly:
-function umount_lower()
+function remount_ro()
 {
-	for dir in $(mount | grep " /ro[ |/]" | awk '{print $3}' | tac); do umount $dir; done
+	umount /ro/tmp >& /dev/null
+	umount /ro/sys >& /dev/null
+	umount /ro/proc >& /dev/null
+	umount /ro/run >& /dev/null
+	umount /ro/dev >& /dev/null
+	mount -o remount,ro $RO_DEV /ro
 }
 
 # Function to ask whether to do a particular action:
@@ -92,47 +115,51 @@ function forward_help()
 ###########################################################################
 # Main code
 ###########################################################################
-RO_DEV=$(cat /etc/fstab | grep " / " | sed "s|^#||g" | cut -d" " -f 1)
+RO_DEV=$(test -f /ro/etc/fstab && cat /ro/etc/fstab | grep " / " | sed "s|^#||g" | cut -d" " -f 1)
 CMD=$1
 shift
 case $CMD in
 	###########################################################################
 	chroot)
-		if ! has_overlay; then echo "ERROR: No overlay exists on the system!"; exit 1; fi
-		mount_lower
+		check_ro
+		remount_rw
 		echo "CHROOT" > /tmp/debian_chroot
 		mount --bind /tmp/debian_chroot /ro/etc/debian_chroot
 		chroot /ro $@
 		umount /ro/etc/debian_chroot >& /dev/null
 		rm /tmp/debian_chroot
-		umount_lower || echo "Setting RO Failed"
+		remount_ro || echo "Setting RO Failed"
 		;;
 
 	###########################################################################
-	has_overlay)
-		has_overlay
-		;;
-
-	###########################################################################
-	mount)
-		if ! has_overlay; then echo "ERROR: No overlay exists on the system!"; exit 1; fi
-		mount_lower notrap
-		;;
-
-	###########################################################################
-	umount)
-		if ! has_overlay; then echo "ERROR: No overlay exists on the system!"; exit 1; fi
-		umount_lower
+	remount)
+		check_ro
+		if [[ "$1" == "rw" ]]; then
+			remount_rw notrap
+		elif [[ "$1" == "ro" ]]; then
+			remount_ro
+		else
+			echo "Usage: $(basename $0) remount [ro|rw]"
+			echo "Where:"
+			echo "     ro  -  Readonly Access"
+			echo "     rw  -  Read/Wrie Access"
+		fi
 		;;
 
 	###########################################################################
 	reformat)
 		if [[ "$1" == "clear" ]]; then
-			has_overlay && DIR=/ro && mount_lower
+			test -d /ro && DIR=/ro
 			source ${DIR}/etc/overlayRoot.conf
-			[[ "$SECONDARY_REFORMAT" == "yes" ]] && 
+			if [[ "$SECONDARY_REFORMAT" == "yes" ]]; then
+				echo "Yeah"
+				test -d /ro && mount -o remount,rw /ro
+				sed -i "/SECONDARY_REFORMAT=/d" ${DIR}/etc/overlayRoot.conf
+				test -d /ro && mount -o remount,ro /ro
+			fi
 			exit 0
 		fi
+		check_ro
 		if [[ ! "$1" =~ -(h|y|-yes) ]]; then
 			echo "Usage: $(basename $0) reformat [-y]"
 			echo "Where:"
@@ -143,8 +170,8 @@ case $CMD in
 			echo "WARNING: The router will reboot and persistent storage will be formatted.  This action cannot be undone!"
 			askYesNo "Are you SURE you want to do this?" || exit 0
 		fi
-		has_overlay && DIR=/ro && mount_lower
-		echo "SECONDARY_REFORMAT=yes" >> ${DIR}/etc/overlayRoot.conf
+		remount_rw
+		echo "SECONDARY_REFORMAT=yes" >> /ro/etc/overlayRoot.conf
 		reboot now
 		;;
 
@@ -154,12 +181,8 @@ case $CMD in
 		# ENABLE/DISABLE => Set overlay status to either ennabled or disabled:
 		if [[ "$1" == "enable" || "$1" == "disable" ]]; then
 			FILE=/boot/bananapi/bpi-r2/linux/uEnv.txt
-			if ! test -f ${FILE}; then
-				cp /opt/bpi-r2-router-builder/uEnv.txt ${FILE}
-			else
-				OLD=$(cat ${FILE} | grep bootmenu_default | cut -d= -f 2)
-			fi
-			DIFF=$(( $(cat ${FILE} | grep bootmenu_default | cut -d= -f 2) / 2 * 2 ))
+			OLD=$(cat ${FILE} | grep bootmenu_default | cut -d= -f 2)
+			DIFF=$(( $(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep bootmenu_default | cut -d= -f 2) / 2 * 2 ))
 			NEW=$([[ "$1" == "enable" ]] && echo "$(( 0 + $DIFF ))" || echo "$(( 1 + $DIFF ))")
 			TXT=$([[ "$NEW" == "2" ]] && echo "enabled" || echo "disabled")
 			[[ "$OLD" == "$NEW" ]] && echo "INFO: Overlay script already ${TXT}!" && exit
@@ -172,7 +195,7 @@ case $CMD in
 		# STATUS => Returns status of overlay setting:
 		elif [[ "$1" == "status" ]]; then
 			STAT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "^bootmenu_default=[2|4]" >& /dev/null && echo "enabled" || echo "disabled")
-			has_overlay || IN_USE=" not"
+			IN_USE=$(mount | grep " /ro " >& /dev/null || echo " not")
 			echo "Overlay Root script is ${STAT} for next boot, currently${IN_USE} active."
 		#####################################################################
 		# Everything else:
@@ -296,7 +319,7 @@ case $CMD in
 			else
 				git reset --hard
 				git pull
-				has_overlay && $0 chroot /usr/local/bin/router-helper git update $2
+				test /ro && $0 chroot /usr/local/bin/router-helper git update $2
 			fi
 		#####################################################################
 		# Everything else:
@@ -314,6 +337,7 @@ case $CMD in
 
 	###########################################################################
 	backup)
+		if ! cd /rw/upper; then echo "ERROR: Overlay is disabled."; exit; fi
 		#####################################################################
 		# CREATE => Create settings backup:
 		if [[ "$1" == "create" ]]; then
@@ -625,7 +649,7 @@ case $CMD in
 	remove_files)
 		CMD=/opt/bpi-r2-router-builder/misc/remove_files
 		$CMD $@
-		has_overlay && $0 chroot $CMD $@
+		[[ -d /ro ]] && $0 chroot $CMD $@
 		;;
 
 	###########################################################################
@@ -778,6 +802,7 @@ case $CMD in
 		echo "Syntax: $(basename $0) [command] [options]"
 		echo "Where:"
 		(echo "    chroot       - Enters chroot environment in system partition"
+		 echo "    remount      - Remounts system partition as read-only or writable"
 		 echo "    reformat     - Reformats persistent storage"
 		 echo "    overlay      - Enables or Disables overlay script"
 		 echo "    apt          - Debian package installer"

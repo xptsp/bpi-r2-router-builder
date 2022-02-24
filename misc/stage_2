@@ -134,9 +134,7 @@ systemctl enable --now avahi-daemon
 ##################################################################################
 # Install utility to track internet usage by adapter:
 ##################################################################################
-apt update
-apt install -y vnstat=1.18-2
-apt-mark hold vnstat
+apt install -y vnstat
 systemctl disable --now vnstat
 
 ##################################################################################
@@ -159,7 +157,6 @@ apt install -y nginx php7.4-fpm php7.4-cgi php7.4-xml php7.4-sqlite3 php7.4-intl
 sed -i "s|display_errors = .*|display_errors = On|g" /etc/php/7.4/fpm/php.ini
 rm /etc/nginx/sites-enabled/default
 ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
-ln -sf /etc/nginx/sites-available/hotspot /etc/nginx/sites-enabled/hotspot
 usermod -aG systemd-journal www-data
 systemctl enable --now php7.4-fpm
 apt-mark hold php7.4-fpm
@@ -306,9 +303,3 @@ apt install -y ulogd2
 mkdir -p /var/log/ulog
 touch /var/log/ulog/{port_scans,udp_floods}.log
 chmod 755 -R /var/log/ulog
-
-##################################################################################
-# Install fail2ban
-##################################################################################
-apt install -y fail2ban
-systemctl enable --now fail2ban

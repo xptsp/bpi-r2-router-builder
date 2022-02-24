@@ -1,20 +1,47 @@
 <?php
 require_once("subs/manage.php");
 
-#########################################################################################
-# Function that displays the leases attached to a particular interface.
-#########################################################################################
-function list_leases($iface, &$s)
+#################################################################################################
+# If action specified, then process this block of code:
+#################################################################################################
+if (isset($_POST['action']))
 {
-	global $leases;
-	$subnet = $s = "";
-	foreach (explode("\n", trim(@file_get_contents("/etc/network/interfaces.d/" . $iface))) as $iface)
+	####################################################################################
+	# ACTION: WOL ==> Send the magic packet (WOL) to the specified PC
+	# Adapted from: https://stackoverflow.com/a/62591806
+	####################################################################################
+	if ($_POST['action'] == "wol")
 	{
-		if (preg_match('/address\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.)/', $iface, $regex))
-			$subnet = $regex[1];
+		// Create Magic Packet
+		$packet = sprintf('%s%s', str_repeat(chr(255), 6), str_repeat(pack('H*', option_mac("mac")), 20));
+		if (($socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP)) !== false) 
+		{
+			if (socket_set_option($socket, SOL_SOCKET, SO_BROADCAST, true) !== false) 
+			{
+				socket_sendto($socket, $packet, strlen($packet), 0, "255.255.255.255", 9);
+				socket_close($socket);
+				die("OK");
+			}
+		}
+		die("Error sending WOL packet");
 	}
-	if (empty($subnet))
-		return 0;
+	#################################################################################################
+	# Got here?  We need to return "invalid action" to user:
+	#################################################################################################
+	die("Invalid action");
+}
+
+#########################################################################################
+# Gather the leases attached to each interface:
+#########################################################################################
+$leases = @file("/var/lib/misc/dnsmasq.leases");
+$table = array();
+foreach (get_network_adapters() as $iface => $bridged)
+{
+	$subnet = "";
+	if (!preg_match('/address\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.)/', @file_get_contents("/etc/network/interfaces.d/" . $iface), $regex))
+		continue;
+	$subnet = $regex[1];
 	$s = '
                 <table class="table table-hover text-nowrap">
 					<thead>
@@ -23,6 +50,7 @@ function list_leases($iface, &$s)
 							<th>MAC Address</th>
 							<th>Device Name</th>
 							<th>IP Address</th>
+							<th width="5%">WOL</th>
 						</tr>
 					</thead>
 					<tbody>';
@@ -37,6 +65,7 @@ function list_leases($iface, &$s)
 							<td>' . strtoupper($parts[1]) . '</td>
 							<td>' . $parts[3] . '</td>
 							<td>' . $parts[2] . '</td>
+							<td><center><i class="fas fa-power-off"></i></center></td>
 						</tr>';
 	}
 	if ($count == 0)
@@ -47,19 +76,8 @@ function list_leases($iface, &$s)
 	$s .= '
 					</tbody>
 				</table>';
-	return $count;
-}
-
-$leases = explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases")));
-$table = array();
-$s = '';
-foreach (get_network_adapters() as $iface => $bridged)
-{
-	if (list_leases($iface, $s) > 0)
-	{
-		$nickname = isset($bridged['nickname']) ? $bridged['nickname'] : $iface;
-		$table[$nickname] = $s;
-	}
+	if ($count > 0)
+		$table[$iface] = $s;
 }
 
 #########################################################################################
