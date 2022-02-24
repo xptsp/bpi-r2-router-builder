@@ -1,8 +1,0 @@
-[Unit]
-Description=Quality of Service script
-
-[Service]
-Type=oneshot
-RemainAfterExit=true
-ExecStart=/opt/bpi-r2-router-builder/helpers/qos-helper.sh start %i
-ExecStop=/opt/bpi-r2-router-builder/helpers/qos-helper.sh stop %i
