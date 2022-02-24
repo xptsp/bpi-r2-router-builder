@@ -13,7 +13,8 @@ if (isset($_POST['action']))
 	if ($_POST['action'] == "wol")
 	{
 		// Create Magic Packet
-		$packet = sprintf('%s%s', str_repeat(chr(255), 6), str_repeat(pack('H*', option_mac("mac")), 20));
+		$mac = option_mac("misc");
+		$packet = sprintf('%s%s', str_repeat(chr(255), 6), str_repeat(pack('H*', str_replace(":", "", $mac)), 20));
 		if (($socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP)) !== false) 
 		{
 			if (socket_set_option($socket, SOL_SOCKET, SO_BROADCAST, true) !== false) 
@@ -23,7 +24,7 @@ if (isset($_POST['action']))
 				die("OK");
 			}
 		}
-		die("Error sending WOL packet");
+		die("Error sending WOL packet to" . $mac);
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
@@ -62,10 +63,10 @@ foreach (get_network_adapters() as $iface => $bridged)
 			$s .= '
 						<tr>
 							<td>' . ++$count . '</td>
-							<td>' . strtoupper($parts[1]) . '</td>
+							<td class="mac_addr">' . strtoupper($parts[1]) . '</td>
 							<td>' . $parts[3] . '</td>
 							<td>' . $parts[2] . '</td>
-							<td><center><i class="fas fa-power-off"></i></center></td>
+							<td><button type="button" class="btn btn-block btn-primary btn-xs"><i class="fas fa-power-off"></i></button></td>
 						</tr>';
 	}
 	if ($count == 0)
@@ -115,4 +116,4 @@ echo '
 	</div>
 	<!-- /.card -->
 </div>';
-site_footer();
+site_footer('Init_Attached();');

@@ -488,3 +488,26 @@ function Management_Apply()
 		$("#apply_cancel").removeClass("hidden");
 	});
 }
+
+//======================================================================================================
+// Javascript functions for "Management / Attached Devices"
+//======================================================================================================
+function Init_Attached()
+{
+	$(".fa-power-off").click(function() {
+		root = $(this).parent().parent().parent();
+		$.post("/manage/attached", __postdata("wol", root.find('.mac_addr').html()), function(data) {
+			if (data == "RELOAD")
+				document.location.reload(true);
+			$(document).Toasts('create', {
+		        class: data.trim() == "OK" ? 'bg-success' : 'bg-danger',
+				title: 'Wake on LAN Command',
+				autohide: true,
+				delay: 5000,
+				body: 'Result: ' + data,
+			});
+		}).fail(function() {
+			alert("AJAX call failed!");
+		});
+	});
+}
