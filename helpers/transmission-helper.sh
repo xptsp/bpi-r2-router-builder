@@ -5,11 +5,6 @@
 # take very long to execute and should not rely on other services being up
 # and running.
 #############################################################################
-if [[ "${UID}" -ne 0 ]]; then
-	sudo $0 $@
-	exit $?
-fi
-
 JSON=/etc/transmission-daemon/settings.json
 if [[ "$1" == "start" ]]; then
 	# Set the WebUI credentials and port for the transmission-daemon:
