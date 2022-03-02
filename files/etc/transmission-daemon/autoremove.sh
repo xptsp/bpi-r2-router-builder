@@ -1,5 +1,5 @@
 #!/bin/sh
-test -e /etc/default/transmission-default && source /etc/default/transmission-default
+test -e /etc/default/transmission-daemon && source /etc/default/transmission-daemon
 
 # Get the IP and port number to access the transmission-daemon WebUI:
 PORT=$(cat /etc/nginx/sites-available/transmission | grep listen | awk '{print $2}')
