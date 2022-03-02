@@ -183,10 +183,11 @@ ln -sf /etc/nginx/sites-available/transmission /etc/nginx/sites-enabled/
 ##################################################################################
 # Replace transmission-daemon WebUI with custom WebUI:
 ##################################################################################
-pushd /usr/share/transmission
-git clone --depth=1 https://github.com/ronggang/transmission-web-control
+git clone --depth=1 https://github.com/ronggang/transmission-web-control /opt/transmission-web-control
+pushd /usr/share/transmission/
 mv web original
-ln -sf transmission-web-control/src web
+ln -sf /opt/transmission-web-control/src transmission-web-control
+ln -sf transmission-web-control web
 popd
 
 ##################################################################################
