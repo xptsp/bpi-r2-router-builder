@@ -15,8 +15,10 @@ fi
 #############################################################################
 cd /etc/nginx/sites-available
 NEW_IP=$(cat /etc/network/interfaces.d/br0 | grep address | awk '{print $2}')
-OLD_IP=$(cat router | grep listen | awk '{print $2}' | cut -d: -f 1)
-[[ "${NEW_IP}" != "${OLD_IP}" ]] && sed -i "s|${OLD_IP}|${NEW_IP}|g" *
+for FILE in *; do
+	OLD_IP=$(cat ${FILE} | grep listen | awk '{print $2}' | cut -d: -f 1)
+	[[ "${NEW_IP}" != "${OLD_IP}" ]] && sed -i "s|${OLD_IP}|${NEW_IP}|g" ${FILE}
+fi
 
 #############################################################################
 # Update transmission reverse proxy to match port address specified:
@@ -26,6 +28,12 @@ if test -f /etc/default/transmission-daemon; then
 	OLD_IP=$(cat transmission | grep listen | awk '{print $2}')
 	[[ "${NEW_IP}:${TRANS_PORT};" != "${OLD_IP}" ]] && sed -i "s|listen ${NEW_IP}:.*;|listen ${NEW_IP}:${TRANS_PORT};|g" transmission
 fi
+
+#############################################################################
+# We are done rewrite the configuration files.  If requesting a reload, then
+# reload the service as originally requested:
+#############################################################################
+[[ "$1" == "reload" ]] && /usr/sbin/nginx -g 'daemon on; master_process on;' -s reload
 
 #############################################################################
 # Return error code 0 to caller:
