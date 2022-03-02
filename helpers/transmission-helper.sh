@@ -39,7 +39,7 @@ if ! test -L ${WEB}; then
 	test -d ${DIR}/original && rm -rf ${DIR}/original
 	mv ${WEB} ${DIR}/original
 fi
-! test -d ${DIR}/${TRANS_WEBUI} && TRANS_WEBUI=transmission-web-control-1.6.1-update1/src
+! test -d ${DIR}/${TRANS_WEBUI} && TRANS_WEBUI=transmission-web-control
 ! test -d ${DIR}/${TRANS_WEBUI} && TRANS_WEBUI=original
 ! test -d ${DIR}/${TRANS_WEBUI} && exit 1
 CUR=$(ls -l ${WEB} | awk '{print $NF}')

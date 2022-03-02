@@ -14,8 +14,8 @@ TRANS_DOWNLOAD=/home/vpn/Completed
 # Folder where incomplete torrents are stored until completion (default: /home/vpn/Incomplete)
 TRANS_INCOMPLETE=/home/vpn/Incomplete
 
-# Subdirectory to use for transmission-daemon WebUI (default: transmission-web-control/src)
-TRANS_WEBUI=transmission-web-control/src
+# Subdirectory to use for transmission-daemon WebUI (default: transmission-web-control)
+TRANS_WEBUI=transmission-web-control
 
 # Change to 0 to disable daemon
 ENABLE_DAEMON=1
