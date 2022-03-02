@@ -26,7 +26,7 @@ done
 if test -f /etc/default/transmission-daemon; then
 	source /etc/default/transmission-daemon
 	OLD_IP=$(cat transmission | grep listen | awk '{print $2}')
-	[[ "${NEW_IP}:${TRANS_PORT};" != "${OLD_IP}" ]] && sed -i "s|listen ${NEW_IP/./\.}\:.*;|listen ${NEW_IP}\:${TRANS_PORT};|g" transmission
+	[[ "${NEW_IP}:${TRANS_PORT};" != "${OLD_IP}" ]] && sed -i "s|listen ${NEW_IP}:.*;|listen ${NEW_IP}\:${TRANS_PORT};|g" transmission
 fi
 
 #############################################################################
