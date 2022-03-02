@@ -45,6 +45,7 @@ DEV=$(los ${FILE})
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Cleaning up boot partition..."
+mount -o remount,rw ${DEV}/boot
 rm ${DEV}/boot/bananapi/bpi-r2/linux/uImage >& /dev/null
 rm ${DEV}/boot/*.conf >& /dev/null
 DTB=${DEV}/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb

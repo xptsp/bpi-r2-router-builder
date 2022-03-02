@@ -1,0 +1,15 @@
+# Username for transmission-daemon WebUI:
+USER=pi
+
+# Password for transmission-daemon WebUI:
+PASS=bananapi
+
+# Port to access the transmission-daemon WebUI:
+PORT=9091
+
+# Folder for torrents to be downloaded into:
+DOWNLOAD=/home/vpn/Completed
+
+# Folder where incomplete torrents are stored until completion:
+INCOMPLETE=/home/vpn/Incomplete
+

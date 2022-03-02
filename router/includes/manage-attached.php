@@ -66,7 +66,7 @@ foreach (get_network_adapters() as $iface => $bridged)
 							<td class="mac_addr">' . strtoupper($parts[1]) . '</td>
 							<td>' . $parts[3] . '</td>
 							<td>' . $parts[2] . '</td>
-							<td><button type="button" class="btn btn-block btn-primary btn-xs"><i class="fas fa-power-off"></i></button></td>
+							<td><a href="javascript:void(0);"><button type="button" class="btn btn-block btn-primary btn-xs"><i class="fas fa-power-off"></i></button></a></td>
 						</tr>';
 	}
 	if ($count == 0)

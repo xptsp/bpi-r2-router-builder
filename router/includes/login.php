@@ -26,6 +26,7 @@ if (isset($_POST['action']))
 #################################################################################################
 # Output the Router Login page if no action was specified:
 #################################################################################################
+header('HTTP/1.0 401 Unauthorized');
 echo '
 <!DOCTYPE html>
 <html lang="en">

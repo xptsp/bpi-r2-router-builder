@@ -29,6 +29,7 @@ $sidebar_menu = array(
 		'notify'    => menu_link('/services/notify', 'DHCP Notifications', 'fas fa-bullhorn', file_exists("/usr/bin/mosquitto_pub")),
 		'upnp'      => menu_link('/services/upnp', 'UPnP Setup', 'fas fa-plug', file_exists("/lib/systemd/system/miniupnpd.service")),
 		'usage'     => menu_link('/services/bandwidth', 'Bandwidth Usage', 'fas fa-chart-bar', file_exists("/lib/systemd/system/vnstat.service")),
+		'trans'     => menu_link('/services/transmission', 'Transmission Daemon', 'fas fa-file-download', file_exists("/lib/systemd/system/transmission-daemon.service")),
 	)),
 	'manage'  => array('Management', 'fas fa-cog', array(
 		'status'   => menu_link('/manage/status', 'Router Status', 'fas fa-ethernet'),
@@ -347,7 +348,7 @@ function apply_changes_modal($text = 'Please wait while the firewall service is 
 		<div class="modal-content">
 			<div class="modal-header bg-primary">
 				<h4 class="modal-title" id="apply_title">Applying Changes</h4>
-				<a href="javascript:void(0);"><button type="button hidden alert_control" class="close" data-dismiss="modal" aria-label="Close">
+				<a href="javascript:void(0);"><button type="button" class="close hidden alert_control" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button></a>
 			</div>
@@ -356,7 +357,7 @@ function apply_changes_modal($text = 'Please wait while the firewall service is 
 				<p id="apply_default" class="hidden">', $text, '</p>', !empty($text2) ? '
 				<p id="apply_default2" class="hidden">' . $text2 . '</p>' : '', '
 			</div>
-			<div class="modal-footer justify-content-between', $close_hidden ? ' hidden' : '', '" id="apply_cancel">
+			<div class="modal-footer justify-content-between', $close_hidden ? ' hidden' : '', ' alert_control">
 				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>
 			</div>
 		</div>

@@ -67,9 +67,6 @@ if [[ "$1" == "start" ]]; then
 	#############################################################################
 	# These are global rules that will always be set!
 	#############################################################################
-	# Allow any related and established connections on input and forward chains:
-	iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-
 	# CTA: This rule blocks all packets that are not a SYN packet and don’t
 	# belong to an established TCP connection.
 	iptables -t mangle -A PREROUTING -m conntrack --ctstate INVALID -j DROP
@@ -93,9 +90,6 @@ if [[ "$1" == "start" ]]; then
 	iptables -t mangle -A PREROUTING -p tcp --tcp-flags ACK,PSH PSH -j DROP
 	iptables -t mangle -A PREROUTING -p tcp --tcp-flags ALL NONE -j DROP
 
-	# Redirect incoming port 67 to port 68:
-	iptables -A INPUT -p udp -m udp --sport 67 --dport 68 -j ACCEPT
-
 	# CTB: Dropping all invalid packets
 	iptables -A INPUT -m state --state INVALID -j DROP
 	iptables -A FORWARD -m state --state INVALID -j DROP
@@ -103,6 +97,12 @@ if [[ "$1" == "start" ]]; then
 
 	# CTB: flooding of RST packets, SMURF attack Rejection
 	iptables -A INPUT -p tcp -m tcp --tcp-flags RST RST -m limit --limit 2/second --limit-burst 2 -j ACCEPT
+
+	# Allow any related and established connections on input and forward chains:
+	iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+	# Redirect incoming port 67 to port 68:
+	iptables -A INPUT -p udp -m udp --sport 67 --dport 68 -j ACCEPT
 
 	#############################################################################
 	# Create chains to make WebUI remote management easier to detect in PHP:

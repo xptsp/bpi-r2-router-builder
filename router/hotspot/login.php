@@ -49,6 +49,13 @@ if (isset($_POST['action']))
 }
 
 #################################################################################################
+# Output the HTML error code for "Authentication Required":
+#################################################################################################
+$show_success = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh portal check ' . $_SERVER['REMOTE_ADDR']));
+if (!$show_success)
+	header('HTTP/1.0 401 Unauthorized');
+
+#################################################################################################
 # Output the Router Login page if no action was specified:
 #################################################################################################
 echo '
@@ -174,7 +181,7 @@ echo '
 	</div>';
 
 #################################################################################################
-# Show user that submission was successful!
+# Modal that shows user that access is granted:
 #################################################################################################
 $url = !empty($option['captive_portal_url']) ? $option['captive_portal_url'] : 'https://google.com';
 echo '
@@ -194,7 +201,6 @@ echo '
 #################################################################################################
 # Finalize the page:
 #################################################################################################
-$show_success = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh portal check ' . $_SERVER['REMOTE_ADDR']));
 echo '
 	<script src="/plugins/jquery/jquery.min.js"></script>
 	<script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
