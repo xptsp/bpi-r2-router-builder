@@ -165,7 +165,7 @@ apt-mark hold nginx
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
 ##################################################################################
-# Install Transmission-BT program
+# Install Transmission-daemon
 ##################################################################################
 mv /etc/transmission-daemon/settings.json /tmp/settings.json
 apt install -y transmission-daemon
@@ -179,6 +179,15 @@ chown -R vpn:vpn /home/vpn/{Incomplete,Download}
 chmod -R 775 /home/vpn/{Incomplete,Download}
 systemctl enable --now transmission-daemon
 ln -sf /etc/nginx/sites-available/transmission /etc/nginx/sites-enabled/
+
+##################################################################################
+# Replace transmission-daemon WebUI with custom WebUI:
+##################################################################################
+pushd /usr/share/transmission
+git clone --depth=1 https://github.com/ronggang/transmission-web-control
+mv web original
+ln -sf transmission-web-control/src web
+popd
 
 ##################################################################################
 # Install TrueCrypt and HD-Idle
