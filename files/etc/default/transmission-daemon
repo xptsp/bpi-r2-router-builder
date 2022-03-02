@@ -1,7 +1,3 @@
-# defaults for transmission-daemon
-# sourced by /etc/init.d/transmission-daemon
-# sourced by /lib/systemd/system/transmission-daemon.service.d/changes.conf
-
 # Username for transmission-daemon WebUI (default: pi)
 TRANS_USER=pi
 
@@ -20,6 +16,9 @@ TRANS_PEERPORT=51413
 # Interface to accept incoming peers from (default: wan)
 TRANS_IFACE=wan
 
+# defaults for transmission-daemon
+# sourced by /etc/init.d/transmission-daemon
+
 # Change to 0 to disable daemon
 ENABLE_DAEMON=1
 
@@ -29,7 +28,7 @@ ENABLE_DAEMON=1
 CONFIG_DIR="/var/lib/transmission-daemon/info"
 
 # Default options for daemon, see transmission-daemon(1) for more options
-OPTIONS="-u ${TRANS_USER} -v ${TRANS_PASS} -w ${TRANS_DOWNLOAD} -P ${TRANS_PEERPORT} --incomplete-dir ${TRANS_INCOMPLETE} -g $CONFIG_DIR"
+OPTIONS="--config-dir $CONFIG_DIR --username ${TRANS_USER} --password ${TRANS_PASS} --incomplete_dir ${TRANS_INCOMPLETE} --download-dir ${TRANS_DOWNLOAD} --peerport ${TRANS_PEERPORT}"
 
 # (optional) extra options to start-stop-daemon
 #START_STOP_OPTIONS="--iosched idle --nicelevel 10"
