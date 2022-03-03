@@ -357,7 +357,7 @@ function apply_changes_modal($text = 'Please wait while the firewall service is 
 				<p id="apply_default" class="hidden">', $text, '</p>', !empty($text2) ? '
 				<p id="apply_default2" class="hidden">' . $text2 . '</p>' : '', '
 			</div>
-			<div class="modal-footer justify-content-between', $close_hidden ? ' hidden' : '', ' alert_control">
+			<div class="modal-footer justify-content-between', $close_hidden ? ' hidden' : '', '" id="apply_cancel">
 				<a href="javascript:void(0);"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></a>
 			</div>
 		</div>

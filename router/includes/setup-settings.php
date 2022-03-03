@@ -3,6 +3,15 @@ require_once("subs/manage.php");
 require_once("subs/setup.php");
 require_once("subs/wifi_country.php");
 
+# Gather WebUI language file names:
+$langs = array();
+foreach (glob("lang/*.php") as $lang)
+{
+	$s = str_replace('.php', '', basename($lang));
+	$langs[$s] = $s;
+}
+#echo '<pre>'; print_r($langs); exit;
+
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.
 #################################################################################################
@@ -27,12 +36,12 @@ if (isset($_POST['action']))
 	else if ($_POST['action'] == 'set')
 	{
 		// Set the change to the onboard wifi mode:
-		$option = parse_options();
+		$options = parse_options();
 		$tmp = option_allowed('onboard_wifi', array('1', 'A'));
-		$option['webui_lang'] = option_allowed('ui_lang', array('english'));
-		$option['country'] = option_allowed('country', array_keys($countries));
-		$restart = ($tmp != $option['onboard_wifi']);
-		$option['onboard_wifi'] = $tmp; 
+		$options['webui_lang'] = option_allowed('ui_lang', $langs);
+		$options['wifi_country'] = option_allowed('country', array_keys($countries));
+		$restart = ($tmp != $options['onboard_wifi']);
+		$options['onboard_wifi'] = $tmp; 
 		apply_options();
 		if ($restart)
 			@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart networking");
@@ -55,7 +64,7 @@ if (isset($_POST['action']))
 ###########################################################################################
 # Main code for this page:
 ###########################################################################################
-$option = parse_options();
+$options = parse_options();
 site_menu();
 #echo '<pre>'; print_r($current); exit;
 echo '
@@ -96,7 +105,7 @@ echo '
 $current = date_default_timezone_get();
 foreach (timezone_list() as $id => $text)
 	echo '
-					<option value="', trim($id), '"', $id == $current ? ' selected="selected"' : '', '>', $text, '</option>';
+					<option value="', trim($id), '"', trim($id) == trim($current) ? ' selected="selected"' : '', '>', $text, '</option>';
 echo '
 				</select>
 				<span class="input-group-append">
@@ -108,7 +117,7 @@ echo '
 ###########################################################################################
 # Wifi Country Setting:
 ###########################################################################################
-$wifi_country = isset($option['wifi_country']) ? $option['wifi_country'] : '';
+$wifi_country = isset($options['wifi_country']) ? $options['wifi_country'] : '';
 echo '
 		<div class="row" style="margin-top: 10px">
 			<div class="col-6">
@@ -136,7 +145,7 @@ echo '
 				<select class="form-control" id="locale">';
 foreach (get_os_locales() as $id => $text)
 	echo '
-					<option value="', trim($id), '"', $id == $current ? ' selected="selected"' : '', '>[', $id, '] ', $text, '</option>';
+					<option value="', trim($id), '"', trim($id) == trim($current) ? ' selected="selected"' : '', '>[', $id, '] ', $text, '</option>';
 echo '
 				</select>
 			</div>
@@ -145,14 +154,18 @@ echo '
 ###########################################################################################
 # WebUI Language Setting:
 ###########################################################################################
+$default = isset($options['lang']) ? $options['lang'] : 'English';
 echo '
 		<div class="row" style="margin-top: 10px">
 			<div class="col-6">
 				<label for="webui_language">WebUI Language:</label></td>
 			</div>
 			<div class="col-6 input-group">
-				<select class="form-control" id="webui_language" disabled="disabled">
-					<option value="english" selected="selected">English</option>
+				<select class="form-control" id="webui_language"', count($langs) == 1 ? ' disabled="disabled"' : '', '>';
+foreach ($langs as $lang)
+	echo '
+					<option value="', $lang, '"', $default == $lang ? ' selected="selected"' : '', '>', $lang, '</option>';
+echo '
 				</select>
 			</div>
 		</div>';
@@ -160,6 +173,7 @@ echo '
 ###########################################################################################
 # Onboard Wifi Setting:
 ###########################################################################################
+$mode = isset($options['onboard_wifi']) ? $options['onboard_wifi'] : '';
 echo '
 		<div class="row" style="margin-top: 10px">
 			<div class="col-6">
@@ -167,8 +181,8 @@ echo '
 			</div>
 			<div class="col-6 input-group">
 				<select class="form-control" id="onboard_wifi">
-					<option value="A"', $option['onboard_wifi'] == 'A' ? ' selected="selected"' : '', '>Access Point or Client Mode</option>
-					<option value="1"', $option['onboard_wifi'] == '1' ? ' selected="selected"' : '', '>Client Mode Only</option>
+					<option value="A"', $mode == 'A' ? ' selected="selected"' : '', '>Access Point or Client Mode</option>
+					<option value="1"', $mode == '1' ? ' selected="selected"' : '', '>Client Mode Only</option>
 				</select>
 			</div>
 		</div>
@@ -180,9 +194,9 @@ echo '
 $wan = parse_ifconfig('wan');
 #echo '<pre>'; print_r($wan); exit();
 $mac = trim($wan['ether']);
-$option = parse_options("/boot/persistent.conf");
-#echo '<pre>'; print_r($option); exit;
-$def = isset($option['MAC']) ? $option['MAC'] : $mac;
+$options = parse_options("/boot/persistent.conf");
+#echo '<pre>'; print_r($options); exit;
+$def = isset($options['MAC']) ? $options['MAC'] : $mac;
 $mac_com = trim(@shell_exec("arp -n | grep " . $_SERVER['REMOTE_ADDR'] . " | awk '{print $3}'"));
 $mac_chk = ($mac == $def || $mac == $mac_com);
 echo '

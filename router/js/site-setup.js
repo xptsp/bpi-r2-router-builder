@@ -318,10 +318,10 @@ function Settings_Apply()
 		'locale':	$("#locale").val(),
 		'mac':      $("#mac_addr").val(),
 		'ui_lang':  $("#webui_language").val(),
-		'onboard':  $("#onboard_wifi").find("option:selected").val(),
 		'country':  $("#wifi_country").val(),
+		'onboard_wifi':  $("#onboard_wifi").find("option:selected").val(),
 	};
-	alert(JSON.stringify(postdata, null, 5)); return;
+	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to remove the IP reservation:
 	$("#apply_msg").html( $("#apply_default").html() );

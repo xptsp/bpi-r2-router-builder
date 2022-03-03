@@ -10,6 +10,9 @@ dark_mode=N
 # Wifi Country code.  Default: US
 wifi_country=US
 
+# Language file to use in the Router WebUI.  Default: English
+webui_lang=English
+
 ##########################################################################
 # WebUI Setup / DNS Settings
 ##########################################################################
