@@ -306,10 +306,3 @@ echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 apt install -y minissdpd
 systemctl enable --now minissdpd
 
-##################################################################################
-# Install ulogd2 package
-##################################################################################
-apt install -y ulogd2
-mkdir -p /var/log/ulog
-touch /var/log/ulog/{port_scans,udp_floods}.log
-chmod 755 -R /var/log/ulog
