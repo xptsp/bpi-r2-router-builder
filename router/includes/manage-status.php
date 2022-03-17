@@ -7,11 +7,11 @@ require_once("subs/manage.php");
 if (isset($_POST['action']))
 {
 	###################################################################################################
-	# ACTION: REBOOT ==> Reboot the router:
+	# ACTION: REBOOT/POWEROFF ==> Reboot or power off the router:
 	###################################################################################################
-	if ($_POST['action'] == 'reboot')
+	if ($_POST['action'] == 'reboot' || $_POST['action'] == 'poweroff')
 	{
-		die(@exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh reboot'));
+		die(@exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh status ' . $_POST['action']));
 	}
 	###################################################################################################
 	# ACTION: STATUS ==> Return information for the "Router Status" page:
@@ -106,7 +106,8 @@ $wan_if = parse_ifconfig('wan');
 $dns = get_dns_servers();
 $type = strpos($wan['iface'], 'dhcp') > 0 ? 'DHCP' : 'Static IP';
 $power_button = file_exists("/etc/modprobe.d/power_button.conf");
-$model = explode(":", shell_exec("dmesg | grep 'Machine model'"));
+$model = explode(":", @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh status machine'));
+echo '<pre>'; print_r($model); exit;
 $debian_version = @file_get_contents('/etc/debian_version');
 
 #######################################################################################################

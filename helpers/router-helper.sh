@@ -268,8 +268,25 @@ case $CMD in
 		;;
 
 	###########################################################################
-	reboot)
-		/sbin/reboot now
+	status)
+		#####################################################################
+		# REBOOT/POWEROFF: Reboot or poweroff the machine
+		if [[ "$1" == "reboot" || "$1" == "poweroff" ]]; then
+			/sbin/$0 now
+		#####################################################################
+		# MACHINE: Return machine name from system log (inaccessable otherwise...)
+		elif [[ "$1" == "machine" ]]; then
+			cat /var/log/syslog* | grep 'Machine Name'
+		#####################################################################
+		# Everything else:
+		else
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "Usage: $(basename $0) status [reboot|poweroff|machine]"
+			echo "Where:"
+			echo "    reboot   - Reboots the machine"
+			echo "    poweroff - Powers off the machine"
+			echo "    machine  - Returns machine name found in system log"
+		fi
 		;;
 
 	###########################################################################

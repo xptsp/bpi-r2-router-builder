@@ -1,8 +1,4 @@
 #!/bin/bash
-if [[ "$UID" -ne 0 ]]; then
-	sudo $0 $@
-	exit
-fi
 RED='\033[1;31m'
 GREEN='\033[1;32m'
 BLUE='\033[1;34m'
@@ -10,26 +6,19 @@ NC='\033[0m'
 mkdir -p ~/R2
 cd ~/R2
 for file in BPI_*; do if test -d ${file}; then echo -e "${GREEN}INFO:${NC} Unmounting ${file}..."; umount ${file}; fi; done
-for file in BPI_*; do echo -e "${GREEN}INFO:${NC} Removing ${file}..."; rm -rf ${file}; done
-for file in .tmp/*; do echo -e "${GREEN}INFO:${NC} Removing ${file}..."; rm -rf ${file}; done
-echo -e "${GREEN}INFO:${NC} Updated local BPI-R2-4.14 repository..."
-cd .BPI-R2-4.14
+for file in .tmp/*; do echo -e "${GREEN}INFO:${NC} Removing contents of ${file}..."; rm -rf ${file}/*; done
+echo -e "${GREEN}INFO:${NC} Updating local BPI-R2-4.14 repository..."
+cd ~/R2/.BPI-R2-4.14
 git pull
 cd ..
 for ver in 5.4 5.6 5.7 5.8 5.9 5.10 5.15; do
-	echo -e "${GREEN}INFO:${NC} Mounting branch ${BLUE}${ver}-main${NC}...."
-	test -d .tmp/${ver}_upper && CHECK=N || CHECK=Y
+	echo -e "${GREEN}INFO:${NC} Checking out branch ${BLUE}${ver}-main${NC}...."
 	mkdir -p BPI_${ver}
-	mkdir -p .tmp/${ver}_{upper,work}
-	chown doug:doug -R BPI_${ver}
-	chown doug:doug -R .tmp/${ver}_{upper,work}
-	mount -t overlay -o lowerdir=.BPI-R2-4.14,upperdir=.tmp/${ver}_upper,workdir=.tmp/${ver}_work overlay BPI_${ver}
-	if [[ "$CHECK" == "Y" ]]; then
-		echo -e "${GREEN}INFO:${NC} Checking out branch ${BLUE}${ver}-main${NC}...."
-		cd BPI_${ver}
-		sudo -u doug git checkout ${ver}-main
-		sudo -u doug ./build.sh importconfig
-		cd ..
-	fi
+	sudo mount BPI_${ver}
+	cd BPI_${ver}
+	git checkout ${ver}-main
+	./build.sh importconfig
+	cd ..
 done
+! test -e ~/R2/BPI-R2-4.14/ && ln -sf ~/R2/BPI_5.15 ~/R2/BPI-R2-4.14
 cp /home/doug/GitHub/bpiwrt-builder/.kernel_config ~/R2/BPI-R2-4.14/
