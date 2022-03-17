@@ -11,7 +11,7 @@ $options = parse_options("/etc/default/transmission-default");
 if (isset($_POST['action']))
 {
 	#################################################################################################
-	# ACTION: LIST ==> List the current UPnP port mappings, as reported by calling "upnpc":
+	# ACTION: LIST ==> Make the changes as requested by the caller:
 	#################################################################################################
 	if ($_POST['action'] == 'submit')
 	{
