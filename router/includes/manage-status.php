@@ -107,7 +107,6 @@ $dns = get_dns_servers();
 $type = strpos($wan['iface'], 'dhcp') > 0 ? 'DHCP' : 'Static IP';
 $power_button = file_exists("/etc/modprobe.d/power_button.conf");
 $model = explode(":", @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh status machine'));
-echo '<pre>'; print_r($model); exit;
 $debian_version = @file_get_contents('/etc/debian_version');
 
 #######################################################################################################
