@@ -106,7 +106,7 @@ $wan_if = parse_ifconfig('wan');
 $dns = get_dns_servers();
 $type = strpos($wan['iface'], 'dhcp') > 0 ? 'DHCP' : 'Static IP';
 $power_button = file_exists("/etc/modprobe.d/power_button.conf");
-$model = explode(":", @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh status machine'));
+$model = @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh status machine');
 $debian_version = @file_get_contents('/etc/debian_version');
 
 #######################################################################################################
@@ -137,7 +137,7 @@ echo '
 						</tr>
 						<tr>
 							<td width="50%"><strong>Machine Model</strong></td>
-							<td>', str_replace("Bananapi", "Banana Pi", $model[ count($model) - 1 ]), '</td>
+							<td>', str_replace("Bananapi", "Banana Pi", $model), '</td>
 						</tr>
 						<tr>
 							<td><strong>OS Version</strong></td>

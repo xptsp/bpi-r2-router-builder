@@ -272,11 +272,11 @@ case $CMD in
 		#####################################################################
 		# REBOOT/POWEROFF: Reboot or poweroff the machine
 		if [[ "$1" == "reboot" || "$1" == "poweroff" ]]; then
-			/sbin/$0 now
+			/sbin/$1 now
 		#####################################################################
 		# MACHINE: Return machine name from system log (inaccessable otherwise...)
 		elif [[ "$1" == "machine" ]]; then
-			cat /var/log/syslog* | grep 'Machine Name'
+			cat /var/log/syslog* | grep 'Machine model' | head -1 | awk -F ":" '/1/ {print $NF}'
 		#####################################################################
 		# Everything else:
 		else
