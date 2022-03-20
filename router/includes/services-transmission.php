@@ -44,38 +44,47 @@ echo '
 #################################################################################################
 # Output the Transmission Daemon Settings page:
 #################################################################################################
+$trans_port = isset($options['TRANS_PORT']) ? $options['TRANS_PORT'] : "9091";
 echo '
 <div class="card card-primary">
 	<div class="card-header">
 		<h3 class="card-title">Transmission Daemon Settings</h3>
 	</div>
 	<div class="card-body">
-		<div class="input-group mb-2">
-			<label for="username" class="col-sm-4 col-form-label">Transmission User Name:</label>
-			<div class="input-group col-sm-8">
-				<input type="text" class="form-control" id="username" name="username" value="', isset($options['TRANS_USER']) ? $options['TRANS_USER'] : "pi", '"  placeholder="Old Password">
+		<div class="row">
+			<div class="col-6">
+				<label for="ip_address">Transmission WebUI Address</label>
 			</div>
-		</div>
-		<div class="input-group mb-2">
-			<label for="password" class="col-sm-4 col-form-label">Transmission Password:</label>
-			<div class="input-group col-sm-8">
-				<input type="password" class="form-control" id="password" name="password" value="', isset($options['TRANS_PASS']) ? $options['TRANS_PASS'] : "bananapi", '" placeholder="Required">
-				<div class="input-group-append">
-					<span class="input-group-text"><i class="fas fa-eye"></i></span>
+			<div class="col-4">
+				<div class="input-group">
+					<div class="input-group-prepend">
+						<span class="input-group-text">http://</span>
+					</div>
+					<input id="dns1" type="text" placeholder="127.0.0.1" class="dns_address form-control" value="', $iface['inet'], '" disabled="disabled">
+					<div class="input-group-prepend">
+						<span class="input-group-text" title="Port Number">:</span>
+					</div>
+					<input id="dns_port1" type="text" class="dns_port form-control" placeholder="9091" value="', $trans_port, '">
 				</div>
+			</div>
+			<div class="col-2">
+				<a href="http://', $iface['inet'], ':', $trans_port,'"><button type="button" class="btn btn-block btn-primary">Visit WebUI</button></a>
 			</div>
 		</div>
 		<hr />
 		<div class="input-group mb-2">
-			<label for="download" class="col-sm-4 col-form-label">Download Directory:</label>
-			<div class="input-group col-sm-8">
-				<input type="text" class="form-control" id="download" name="download" value="', isset($options['TRANS_DOWNLOAD']) ? $options['TRANS_DOWNLOAD'] : '/home/vpn/Completed', '"  placeholder="/home/vpn/Completed">
+			<label for="username" class="col-sm-6 col-form-label">Transmission User Name:</label>
+			<div class="input-group col-sm-6">
+				<input type="text" class="form-control" id="username" name="username" value="', isset($options['TRANS_USER']) ? $options['TRANS_USER'] : "pi", '"  placeholder="Old Password">
 			</div>
 		</div>
 		<div class="input-group mb-2">
-			<label for="incomplete" class="col-sm-4 col-form-label">Incomplete Directory:</label>
-			<div class="input-group col-sm-8">
-				<input type="text" class="form-control" id="incomplete" name="incomplete" value="', isset($options['TRANS_INCOMPLETE']) ? $options['TRANS_INCOMPLETE'] : '/home/vpn/Incomplete', '"  placeholder="/home/vpn/Incomplete">
+			<label for="password" class="col-sm-6 col-form-label">Transmission Password:</label>
+			<div class="input-group col-sm-6">
+				<input type="password" class="form-control" id="password" name="password" value="', isset($options['TRANS_PASS']) ? $options['TRANS_PASS'] : "bananapi", '" placeholder="Required">
+				<div class="input-group-append">
+					<span class="input-group-text"><i class="fas fa-eye"></i></span>
+				</div>
 			</div>
 		</div>
 	</div>

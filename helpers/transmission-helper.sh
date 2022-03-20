@@ -17,19 +17,19 @@ if [[ "$1" == "start" ]]; then
 	source /etc/default/transmission-daemon
 	sed -i "s|\"rpc-username\": \".*\",|\"rpc-username\": \"${TRANS_USER:-"pi"}\",|g" ${JSON}
 	sed -i "s|\"rpc-password\": \".*\",|\"rpc-password\": \"${TRANS_PASS:-"bananapi"}\",|g" ${JSON}
-	sed -i "s|\"download-dir\": \".*\",|\"download-dir\": \"${TRANS_DOWNLOAD:-"/home/vpn/Downloads"}\",|g" ${JSON}
-	sed -i "s|\"incomplete-dir\": \".*\",|\"incomplete-dir\": \"${TRANS_INCOMPLETE:-"/home/vpn/Incomplete"}\",|g" ${JSON}
-	sed -i "s|\"peer-port\: .*,|\"peer-port\": ${TRANS_PEERPORT:-"51543"},|g" ${JSON}
-	sed -i "s|\"peer-port-random-on-start\": .*,|\"peer-port-random-on-start\": false,|g" ${JSON}
 fi
 
 # Forward all traffic on the peer port to the transmission daemon:
+PEER=$(cat $JSON | egrep -o '"peer-port": [0-9]*' | cut -d: -f 2)
+BR0=$(cat /etc/network/interfaces.d/br0 | grep 'address' | awk '{print $2}')
 if [[ "$1" == "start" ]]; then
-	iptables -I PREROUTING -t nat -p tcp --dport ${TRANS_PEERPORT:-"51543"} -j DNAT --to 127.0.0.1:${TRANS_PEERPORT:-"51543"}
-	iptables -I FORWARD -p tcp -d 127.0.0.1 --dport ${TRANS_PEERPORT:-"51543"} -j ACCEPT
+	ip route add 127.0.0.0/8 via ${BR0}
+	iptables -I PREROUTING -t nat -p tcp --dport ${PEER:-"51543"} -j DNAT --to 127.0.0.1:${PEER:-"51543"}
+	iptables -I FORWARD -p tcp -d 127.0.0.1 --dport ${PEER:-"51543"} -j ACCEPT
 elif [[ "$1" == "stop" ]]; then
-	iptables -D PREROUTING -t nat -p tcp --dport ${TRANS_PEERPORT:-"51543"} -j DNAT --to 127.0.0.1:${TRANS_PEERPORT:-"51543"}
-	iptables -D FORWARD -p tcp -d 127.0.0.1 --dport ${TRANS_PEERPORT:-"51543"} -j ACCEPT
+	ip route del 127.0.0.0/8 via ${BR0}
+	iptables -D PREROUTING -t nat -p tcp --dport ${PEER:-"51543"} -j DNAT --to 127.0.0.1:${PEER:-"51543"}
+	iptables -D FORWARD -p tcp -d 127.0.0.1 --dport ${PEER:-"51543"} -j ACCEPT
 fi
 
 # Change the transmission-daemon WebUI to choice in Router WebUI:
@@ -39,7 +39,7 @@ if ! test -L ${WEB}; then
 	test -d ${DIR}/original && rm -rf ${DIR}/original
 	mv ${WEB} ${DIR}/original
 fi
-! test -d ${DIR}/${TRANS_WEBUI} && TRANS_WEBUI=transmission-web-control
+TRANS_WEBUI=${TRANS_WEBUI:-"transmission-web-control"}
 ! test -d ${DIR}/${TRANS_WEBUI} && TRANS_WEBUI=original
 ! test -d ${DIR}/${TRANS_WEBUI} && exit 1
 CUR=$(ls -l ${WEB} | awk '{print $NF}')
@@ -50,4 +50,3 @@ fi
 
 # Return error code 0 to caller:
 exit 0
-

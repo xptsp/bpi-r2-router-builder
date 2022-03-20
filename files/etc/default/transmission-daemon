@@ -8,18 +8,9 @@ TRANS_USER=pi
 # Password for transmission-daemon WebUI (default: bananapi)
 TRANS_PASS=bananapi
 
-# Port for incoming peers to communicate on (default: 51543)
-TRANS_PEERPORT=51543
-
 # Port for Transmission Daemon WebUI to communicate on (default: 9091)
 # NOTE: IP address is specified from the "br0" interface.
 TRANS_PORT=9091
-
-# Folder for torrents to be downloaded into (default: /home/vpn/Completed)
-TRANS_DOWNLOAD=/home/vpn/Completed
-
-# Folder where incomplete torrents are stored until completion (default: /home/vpn/Incomplete)
-TRANS_INCOMPLETE=/home/vpn/Incomplete
 
 # Subdirectory to use for transmission-daemon WebUI (default: transmission-web-control)
 TRANS_WEBUI=transmission-web-control

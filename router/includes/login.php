@@ -12,12 +12,8 @@ if (isset($_POST['action']))
 		if (trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login check ' . $username . ' ' . $password)) != "Match")
 			die("Invalid");
 
-		// If "Remember Me" is checked, set a cookie with the hash of the hash of the password:
-		if (isset($_POST['remember']) && $_POST['remember'] == "Y")
-			setcookie("remember_me", @trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh login cookie")), time() + 60*60*24 );
-
 		// Set "login_valid_until" session variable, then return "OK" to the caller:
-		$_SESSION['login_valid_until'] = time() + 600;
+		$_SESSION['login_valid_until'] = time() + 60 * ((isset($_POST['remember']) && $_POST['remember'] == "Y") ? 60*24 : 10);
 		die("OK");
 	}
 	die("Invalid action");

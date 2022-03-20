@@ -251,10 +251,6 @@ case $CMD in
 			[[ "$($0 login check root bananapi)" == "Match" ]] && echo "Root"
 			mount | grep -e "[emergency|tmp]-root-rw on /rw " >& /dev/null && echo "Temp"
 		#####################################################################
-		# COOKIE => Returns hash of shadow password
-		elif [[ "$1" == "cookie" ]]; then
-			getent shadow ${USER} | sha512sum | awk '{print $1}'
-		#####################################################################
 		# Everything else:
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
