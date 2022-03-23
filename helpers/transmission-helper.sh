@@ -11,7 +11,7 @@ if [[ "${UID}" -ne 0 ]]; then
 fi
 
 # Forward all traffic on the peer port to the transmission daemon:
-PEER=$(cat /etc/transmission-daemon/settings.json | egrep -o '"peer-port": [0-9]*' | cut -d: -f 2)
+PEER=$(cat /etc/transmission-daemon/settings.json | egrep -o '"peer-port": [0-9]*' | awk '{print $2}')
 BR0=$(cat /etc/network/interfaces.d/br0 | grep 'address' | awk '{print $2}')
 if [[ "$1" == "start" ]]; then
 	ip route add 127.0.0.0/8 via ${BR0}
