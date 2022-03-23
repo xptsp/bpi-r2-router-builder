@@ -10,17 +10,8 @@ if [[ "${UID}" -ne 0 ]]; then
 	exit $?
 fi
 
-# Modify the configuration file to match the expected configuration values from WebUI:
-JSON=/etc/transmission-daemon/settings.json
-if [[ "$1" == "start" ]]; then
-	# Set the WebUI credentials and port for the transmission-daemon:
-	source /etc/default/transmission-daemon
-	sed -i "s|\"rpc-username\": \".*\",|\"rpc-username\": \"${TRANS_USER:-"pi"}\",|g" ${JSON}
-	sed -i "s|\"rpc-password\": \".*\",|\"rpc-password\": \"${TRANS_PASS:-"bananapi"}\",|g" ${JSON}
-fi
-
 # Forward all traffic on the peer port to the transmission daemon:
-PEER=$(cat $JSON | egrep -o '"peer-port": [0-9]*' | cut -d: -f 2)
+PEER=$(cat /etc/transmission-daemon/settings.json | egrep -o '"peer-port": [0-9]*' | cut -d: -f 2)
 BR0=$(cat /etc/network/interfaces.d/br0 | grep 'address' | awk '{print $2}')
 if [[ "$1" == "start" ]]; then
 	ip route add 127.0.0.0/8 via ${BR0}
