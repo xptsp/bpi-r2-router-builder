@@ -231,7 +231,7 @@ if (isset($_POST['action']))
 	else
 		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl disable hostapd@" . $iface);
 	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ifup " . $iface);
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole restartdns");
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole restartdns " . $iface);
 	die("OK");
 }
 

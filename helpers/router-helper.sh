@@ -583,6 +583,15 @@ case $CMD in
 		;;
 
 	###########################################################################
+	pihole)
+		if [[ "$1" == "restartdns" && ! -z "$2" ]]; then
+			echo "  [✓] Waiting for interface $2 to become available...."
+			while ! ifconfig $2 >& /dev/null; do sleep 1; done
+		fi
+		/usr/local/sbin/pihole $@
+		;;
+
+	###########################################################################
 	dns)
 		# If we are being requested to set the DNS servers from the ISP, do so then exit
 		unset DNS1 DNS2
