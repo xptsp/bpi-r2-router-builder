@@ -183,12 +183,13 @@ ln -sf /etc/nginx/sites-available/transmission /etc/nginx/sites-enabled/
 ##################################################################################
 # Replace transmission-daemon WebUI with custom WebUI:
 ##################################################################################
-git clone --depth=1 https://github.com/ronggang/transmission-web-control /opt/transmission-web-control
-pushd /usr/share/transmission/
+cd /usr/share/transmission/
 mv web original
-ln -sf /opt/transmission-web-control/src transmission-web-control
-ln -sf transmission-web-control web
-popd
+wget https://github.com/Secretmapper/combustion/archive/release.zip
+unzip release.zip
+rm release.zip
+ln -sf combustion-release web
+cd /
 
 ##################################################################################
 # Install TrueCrypt and HD-Idle

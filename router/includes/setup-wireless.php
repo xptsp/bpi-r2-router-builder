@@ -172,8 +172,10 @@ if (isset($_POST['action']))
 		$handle = fopen("/tmp/" . $iface, "w");
 		fwrite($handle, trim($text) . "\n");
 		fclose($handle);
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface hostapd " . $iface);
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ap_move " . $iface);
 	}
+	else
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ap_del " . $iface);
 
 	#################################################################################################
 	# Decide what the interface configuration text will look like:
@@ -194,11 +196,11 @@ if (isset($_POST['action']))
 			$text .= '    wpa_psk "' . $wpa_psk . '"' . "\n";
 		$text .= '    masquerade yes' . "\n";
 	}
-	if ($firewall == "Y" && $action != "disabled")
+	if (isset($firewalled) && $firewalled == "Y" && $action != "disabled")
 		$text .= '    firewall yes' . "\n";
 	if ($action == "ap")
 		$text .= '    nohook wpa_supplicant' . "\n";
-	if ($ap_no_net == "Y")
+	if (isset($ap_no_net) && $ap_no_net == "Y")
 		$text .= '    no_internet yes' . "\n";
 
 	#################################################################################################
@@ -221,13 +223,14 @@ if (isset($_POST['action']))
 		die($tmp);
 
 	#################################################################################################
-	# Start the wireless interface and restart pihole-FTL:
+	# (Re)start the wireless interface and restart pihole-FTL:
 	#################################################################################################
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ifup " . $iface);
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl stop hostapd@" . $iface);
 	if ($action == 'ap')
 		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl enable --now hostapd@" . $iface);
 	else
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl disable --now hostapd@" . $iface);
+		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl disable hostapd@" . $iface);
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ifup " . $iface);
 	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole restartdns");
 	die("OK");
 }

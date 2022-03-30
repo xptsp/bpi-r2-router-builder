@@ -420,11 +420,16 @@ case $CMD in
 		elif [[ "$1" == "scan-test" ]]; then
 			cat /opt/bpi-r2-router-builder/misc/scan-test.txt
 		#####################################################################
-		# HOSTAPD => Move specified configuration file from "/tmp" to "/etc/network/interfaces.d/":
-		elif [[ "$1" == "hostapd" ]]; then
+		# AP_MOVE => Move specified configuration file from "/tmp" to "/etc/network/interfaces.d/":
+		elif [[ "$1" == "ap_move" ]]; then
 			if ! test -f /tmp/${2}; then echo "ERROR: Missing Configuration File"; exit; fi
 			mv /tmp/${2} /etc/hostapd/${2}.conf
 			chown root:root /etc/hostapd/${2}.conf
+		#####################################################################
+		# AP_DEL => Move specified configuration file from "/tmp" to "/etc/network/interfaces.d/":
+		elif [[ "$1" == "ap_del" ]]; then
+			if ! test -f /tmp/${2}; then echo "ERROR: No Configuration File specified"; exit; fi
+			rm /etc/hostapd/${2}.conf
 		#####################################################################
 		# Everything else:
 		else
@@ -437,7 +442,8 @@ case $CMD in
 			echo "    ifdown [iface]    - Brings specified interface down"
 			echo "    scan [iface]      - Perform a wifi scan on the specified interface"
 			echo "    scan-test [iface] - Returns test scan data instead of performing a wifi scan."
-			echo "    hostapd [iface]   - Moves specified file from /tmp/ to /etc/hostapd/"
+			echo "    ap_move [iface]   - Moves specified file from /tmp/ to /etc/hostapd/"
+			echo "    ap_del [iface]    - Deletes specified hostapd configuration file"
 		fi
 		;;
 

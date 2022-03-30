@@ -34,7 +34,7 @@ if (!isset($_SESSION['dark_mode']))
 if (!$logged_in)
 	unset($_SESSION['sid']);
 else
-	$_SESSION['login_valid_until'] = time() + 600;
+	$_SESSION['login_valid_until'] = max($_SESSION['login_valid_until'], time() + 600);
 
 # If we are not logged it, redirect all page requests to the "Login" page:
 if (!$logged_in && $_GET['action'] != 'login')

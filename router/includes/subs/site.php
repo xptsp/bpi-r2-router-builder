@@ -47,30 +47,16 @@ $sidebar_menu = array(
 
 # Get the WebUI version once per this session:
 ################################################################################################################
-if (isset($_SESSION['webui_version']) && isset($_SESSION['webui_version_last']) && $_SESSION['webui_version_last'] > time())
-{
-	unset($_SESSION['webui_version']);
-	unset($_SESSION['regdb_version']);
-	unset($_SESSION['webui_version_last']);
-}
 if (!isset($_SESSION['webui_version']))
 {
 	$time = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current'));
 	$_SESSION['webui_version'] = ($time == (int) $time ? date('Y.md.Hi', (int) $time) : "Invalid Data");
-	$_SESSION['webui_version_last'] = time() + 600;
 }
 if (!isset($_SESSION['regdb_version']))
 {
 	$time = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current wireless-regdb'));
 	$_SESSION['regdb_version'] = ($time == (int) $time ? date('Y.md.Hi', (int) $time) : "Invalid Data");
 }
-$webui_version = $_SESSION['webui_version'];
-
-# Get whether the router is operating on a temporary overlay in RAM:
-################################################################################################################
-if (!isset($_SESSION['critical_alerts']))
-	$_SESSION['critical_alerts'] = explode("\n", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh security-check')));
-#echo '<pre>'; print_r($_SESSION['critical_alerts']); exit;
 
 ################################################################################################################
 # Function that outputs the header of the web page:
@@ -260,7 +246,7 @@ echo '
 ################################################################################################################
 function site_footer($init_str = '')
 {
-	global $webui_version, $logged_in, $output_null, $include_js;
+	global $logged_in, $output_null, $include_js;
 	$post_js = '?' . time();
 
 	# Purge the output buffer if we aren't allowed to show anything:
@@ -275,7 +261,7 @@ function site_footer($init_str = '')
 
 	<footer class="main-footer text-sm">
 		<div class="float-right d-none d-sm-block">
-			<b>WebUI</b> v', $webui_version, '
+			<b>WebUI</b> v', $_SESSION['webui_version'], '
 		</div>
 		<strong>Copyright &copy; 2021 <a href="https://github.com/xptsp/bpi-r2-router-builder" target="_blank">BPi-R2 Router Builder</a>.</strong> All rights reserved.
 	</footer>
