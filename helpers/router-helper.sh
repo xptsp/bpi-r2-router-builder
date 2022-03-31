@@ -272,7 +272,7 @@ case $CMD in
 		#####################################################################
 		# MACHINE: Return machine name from system log (inaccessable otherwise...)
 		elif [[ "$1" == "machine" ]]; then
-			cat /var/log/syslog* | grep 'Machine model' | head -1 | awk -F ":" '/1/ {print $NF}'
+			cat /var/log/syslog* | grep 'Machine model' | head -1 | awk -F ":" '{print $NF}'
 		#####################################################################
 		# Everything else:
 		else

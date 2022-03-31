@@ -79,7 +79,7 @@ echo '
 		<h3 class="card-title">Restore Settings</h3>
 	</div>
 	<div class="card-body">';
-if (in_array("Temp", $_SESSION['critical_alerts']))
+if (isset($_SESSION['critical_alerts']) && in_array("Temp", $_SESSION['critical_alerts']))
 	echo '<label>You must enable persistent storage before you can restore settings to this router.</label>';
 else
 {

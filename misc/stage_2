@@ -77,7 +77,7 @@ systemctl disable --now hostapd
 ##############################################################################################
 # Install some necessary packages:
 ##############################################################################################
-apt install -y wget git toilet pmount eject lsb-release dialog mosquitto-clients sudo gnupg curl gnupg
+apt install -y wget git toilet pmount eject lsb-release dialog mosquitto-clients sudo gnupg curl gnupg nftables
 apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance wireless-regdb crda
 git config --global pull.rebase false
 
