@@ -75,16 +75,19 @@ echo '
 		<div class="input-group mb-2">
 			<label for="username" class="col-sm-6 col-form-label">Transmission User Name:</label>
 			<div class="input-group col-sm-6">
+				<div class="input-group-prepend">
+					<span class="input-group-text"><i class="fas fa-user"></i></span>
+				</div>
 				<input type="text" class="form-control" id="username" name="username" value="', isset($options['TRANS_USER']) ? $options['TRANS_USER'] : "pi", '"  placeholder="Old Password">
 			</div>
 		</div>
 		<div class="input-group mb-2">
 			<label for="password" class="col-sm-6 col-form-label">Transmission Password:</label>
 			<div class="input-group col-sm-6">
-				<input type="password" class="form-control" id="password" name="password" value="', isset($options['TRANS_PASS']) ? $options['TRANS_PASS'] : "bananapi", '" placeholder="Required">
-				<div class="input-group-append">
-					<span class="input-group-text"><i class="fas fa-eye"></i></span>
+				<div class="input-group-prepend">
+					<span class="input-group-text"><i class="fas fa-key"></i></span>
 				</div>
+				<input type="text" class="form-control" id="password" name="password" value="', isset($options['TRANS_PASS']) ? $options['TRANS_PASS'] : "bananapi", '" placeholder="Required">
 			</div>
 		</div>
 	</div>

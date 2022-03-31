@@ -84,8 +84,8 @@ echo '
 				</div>
 				<div class="col-6">
 					<div class="input-group">
-						<div class="input-group-prepend pass_toggle">
-							<span class="input-group-text"><i class="fas fa-eye"></i></span>
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-key"></i></span>
 						</div>
 						<input id="password" type="text" class="form-control" value="', $options['mosquitto_pass'], '">
 					</div>

@@ -19,8 +19,20 @@ rm -rf ${ROOT}/lib/modules/*
 # Unpack the new kernel into the boot partition:
 sudo tar -xzvf ${1} -C /boot/ --strip-components=1 BPI-BOOT
 
+# Remove the "uImage" file in favor of "uImage_nodt":
+DIR=/boot/bananapi/bpi-r2/linux
+rm ${DIR}/uImage
+if cat ${DIR}/uEnv.txt | grep -e "^kernel=" >& /dev/null; then
+	sed -i "s|^kernel=.*|kernel=uImage_nodt|g" ${DIR}/uEnv.txt
+else
+	echo "kernel=uImage_nodt" >> ${DIR}/uEnv.txt
+fi
+
 # Unpack the new kernel modules into the root partition:
 sudo tar -xzvf ${1} -C ${ROOT} --strip-components=1 BPI-ROOT
+
+# Remove a few unnecessary files:
+rm /lib/modules/$(ls /lib/modules/)/{build,source} >& /dev/null
 
 # Write the current MAC address to the DTB file:
 router-helper mac saved

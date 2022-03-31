@@ -696,6 +696,13 @@ case $CMD in
 				test -f /etc/nginx/sites-enabled/default-https && rm /etc/nginx/sites-enabled/default-https
 			elif [[ "${action}" == "restart" ]]; then
 				systemctl restart nginx
+			elif [[ "${action}" == "samba-on" || "${action}" == "samba-off" ]]; then
+				mount -o remount,rw /boot
+				[[ "${action}" == "samba-on" ]] && SETTING=y || SETTING=n
+				sed -i "s|WEBUI_SHARE=.*|WEBUI_SHARE=${SETTING}|g" /boot/persistent.conf
+				mount -o remount,ro /boot
+				systemctl restart smbd
+				systemctl restart nmbd
 			else
 				[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
 				echo "SYNTAX: $(basename $0) git [http-on|http-off|https-on|https-off|restart]" && exit 0
