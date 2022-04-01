@@ -13,8 +13,14 @@ export LANG=C
 apt install -y apt-transport-https bridge-utils dnsmasq hostapd ca-certificates openssh-server ppp pppoeconf pppoe
 
 ##############################################################################################
-# Fix the hung SSH session issue with Debian Buster:
+# Configure SSH and fix the hung SSH session issue with Debian Buster:
 ##############################################################################################
+sed -i "s|#ClientAliveInterval .*|ClientAliveInterval 60|g" /etc/ssh/sshd_config
+sed -i "s|#ClientAliveCountMax .*|ClientAliveCountMax 3|g" /etc/ssh/sshd_config
+sed -i "s|#PermitRootLogin .*|PermitRootLogin yes|g" /etc/ssh/sshd_config
+systemctl restart sshd
+
+# Fix hung SSH session:
 ln -sf /usr/share/doc/openssh-client/examples/ssh-session-cleanup.service /etc/systemd/system/
 systemctl enable --now ssh-session-cleanup
 
@@ -34,7 +40,7 @@ useradd -m -G users -s /usr/sbin/nologin vpn
 usermod -aG vpn pi
 chown vpn:vpn -R /home/vpn
 
-# Create username "guest" and assign default password:
+# Create username "portal" and assign default password:
 useradd -N -g nogroup -M -d /nonexistent -s /usr/sbin/nologin portal
 echo -e "bananapi\nbananapi" | passwd -q portal
 
