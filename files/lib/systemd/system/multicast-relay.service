@@ -1,0 +1,12 @@
+[Unit]
+Description=Multicast Relay
+Requires=network.target
+After=network.target
+
+[Service]
+EnvironmentFile=-/etc/default/multicast-relay
+WorkingDirectory=/opt/multicast-relay
+ExecStart=bash -c "/usr/bin/python3 multicast-relay.py --interfaces ${IFACES} --foreground"
+
+[Install]
+WantedBy=multi-user.target
