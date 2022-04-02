@@ -776,7 +776,6 @@ case $CMD in
 
 	###########################################################################
 	upnp)
-		FILE=/etc/miniupnpd/miniupnpd.conf
 		for action in $@; do
 			if [[ "${action}" == "enable" ]]; then
 				systemctl enable --now miniupnpd >& /dev/null
