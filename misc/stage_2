@@ -313,3 +313,10 @@ echo "minissdpd minissdpd/start_daemon boolean true" | debconf-set-selections
 apt install -y minissdpd
 systemctl enable --now minissdpd
 
+##################################################################################
+# Install multicast-relay repo and supporting packages:
+##################################################################################
+# Install supporting packages here:
+apt install python3-netifaces
+# Clone the multicast-relay repo:
+git clone https://github.com/alsmith/multicast-relay /opt/multicast-relay
