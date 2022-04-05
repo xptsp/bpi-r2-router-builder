@@ -452,11 +452,12 @@ case $CMD in
 		#####################################################################
 		# INFO => Get DHCP information from the system logs:
 		if [[ "$1" == "info" ]]; then
-			bound=($(cat /var/log/syslog* | grep dhclient | grep bound | sort | tail -1))
-			from=($(cat /var/log/syslog* | grep dhclient | grep from | sort | tail -1))
-			[[ -z "${from[-1]}" ]] && exit
+			IFACE=${2:-"wan"}
+			request=($(journalctl | grep dhclient | grep DHCPREQUEST | grep ${IFACE} | tail -1))
+			bound=($(journalctl | grep dhclient | grep bound | grep ${request[8]} | tail -1))
+			from=$(route -n | grep -e '^0.0.0.0' | grep ${IFACE} | head -1 | awk '{print $2}')
 			[[ -z "${bound[-2]}" ]] && exit
-			echo ${from[-1]} ${bound[0]} ${bound[1]} ${bound[2]} ${bound[-2]}
+			echo ${from} ${bound[0]} ${bound[1]} ${bound[2]} ${bound[-2]}
 		#####################################################################
 		# SET => Create or modify the DHCP for a specific interface:
 		elif [[ "$1" == "set" ]]; then
@@ -498,7 +499,7 @@ case $CMD in
 		#####################################################################
 		# DEL => Delete the DHCP configuration file:
 		elif [[ "$1" == "del" ]]; then
-			rm /etc/dnsmasq.d/${2}.conf
+			test -f /etc/dnsmasq.d/${2}.conf && rm /etc/dnsmasq.d/${2}.conf
 		#####################################################################
 		# IFACES => List the interfaces we can  the DHCP configuration file:
 		elif [[ "$1" == "ifaces" ]]; then
