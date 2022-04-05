@@ -500,6 +500,15 @@ case $CMD in
 		elif [[ "$1" == "del" ]]; then
 			rm /etc/dnsmasq.d/${2}.conf
 		#####################################################################
+		# IFACES => List the interfaces we can  the DHCP configuration file:
+		elif [[ "$1" == "ifaces" ]]; then
+			for iface in /sys/class/net/*; do 
+				name=$(basename $iface)
+				if test -f /etc/dnsmasq.d/${name}.conf; then
+					cat /etc/dnsmasq.d/${name}.conf | grep dhcp-range | cut -d= -f 2 | cut -d, -f 1
+				fi
+			done
+		#####################################################################
 		# Everything else:
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
@@ -510,6 +519,7 @@ case $CMD in
 			echo "    remove [iface] [mac] [ip]            - Remove the specified host from interface\'s DHCP configuration"
 			echo "    add [iface] [mac] [ip] [?]           - Adds specified host to interface\'s DHCP configuration"
 			echo "    del [iface]                          - Deletes DHCP configuration for interface"
+			echo "    ifaces                               - Lists interfaces that we can set DHCP reservations on"
 		fi
 		;;
 

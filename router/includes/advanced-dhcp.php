@@ -140,7 +140,7 @@ if (isset($_POST['action']))
 ###################################################################################################
 # Assemble a list of all of the network adapters that have a DHCP range assigned:
 ###################################################################################################
-$ifaces = explode("\n", trim(@shell_exec("echo br0; cat /etc/dnsmasq.d/*.conf | grep dhcp-range | cut -d= -f 2 | cut -d, -f 1 | grep -v br0")));
+$ifaces = explode("\n", trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp ifaces")));
 #echo '<pre>'; print_r($ifaces); exit();
 $iface = isset($_GET['iface']) ? $_GET['iface'] : $ifaces[0];
 #echo $iface; exit();

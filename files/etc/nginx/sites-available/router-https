@@ -6,7 +6,7 @@ server {
 	# Add index.php to the list if you are using PHP
 	index index.php index.html index.htm index.nginx-debian.html;
 
-	server_name _;
+	server_name bpiwrt bpiwrt.local _;
 
 	ssl_certificate /etc/ssl/certs/localhost.crt;
 	ssl_certificate_key /etc/ssl/private/localhost.key;
