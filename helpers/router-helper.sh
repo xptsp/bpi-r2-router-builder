@@ -350,39 +350,59 @@ case $CMD in
 
 	###########################################################################
 	backup)
-		if ! cd /rw/upper; then echo "ERROR: Overlay is disabled."; exit; fi
+		if ! mount | grep ^overlayfs-root >& /dev/null; then echo "ERROR: Overlay is disabled."; exit; fi
 		#####################################################################
-		# CREATE => Create settings backup:
-		if [[ "$1" == "create" ]]; then
-			cd /rw/upper/etc
-			mksquashfs ./ /tmp/bpiwrt.cfg -e ./pihole/*.db
+		# SQUASH => Create settings backup in the /tmp folder:
+		if [[ "$1" == "squash" ]]; then
+			$0 backup unlink
+			cd /rw/upper
+			mksquashfs etc/ /tmp/bpiwrt.cfg -e etc/pihole/*.db
 		#####################################################################
 		# REMOVE => Remove uploaded configuration backup:
-		elif [[ "$1" == "remove" ]]; then
-			rm /tmp/bpiwrt.cfg
+		elif [[ "$1" == "unlink" ]]; then
+			umount /tmp/bpiwrt >& /dev/null
+			test -f /tmp/bpiwrt.cfg && rm /tmp/bpiwrt.cfg
 		#####################################################################
 		# PREP => Prep the uploaded configuration backup to be restored:
 		elif [[ "$1" == "prep" ]]; then
 			umount /tmp/bpiwrt >& /dev/null
-			rm -rf /tmp/bpiwrt
 			mkdir -p /tmp/bpiwrt
-			mount -o loop -t squashfs /tmp/bpiwrt.cfg /tmp/bpiwrt >& /dev/null || echo "ERROR: Corrupted or invalid settings backup!"
+			if ! test -f /tmp/bpiwrt.cfg; then echo "ERROR: Missing /tmp/bpiwrt.cfg file!"; exit 1; fi
+			if ! mount -o loop -t squashfs /tmp/bpiwrt.cfg /tmp/bpiwrt >& /dev/null; then echo "ERROR: Corrupted or invalid settings backup!"; exit 1; fi
 		#####################################################################
-		# RESTORE => Actually move the files from the uploaded configuration backup into place:
-		elif [[ "$1" == "restore" ]]; then
-			if ! test -d /tmp/bpiwrt; then echo "ERROR: Restore Prep has not been run yet!"; exit; fi
-			if ! mount | grep /tmp/bpiwrt >& /dev/null; then echo "ERROR: Restore Prep has not been run yet!"; exit; fi
+		# RESTORE => Copy the files from the uploaded configuration backup into place:
+		elif [[ "$1" == "copy" ]]; then
+			if ! mount | grep ' /tmp/bpiwrt ' >& /dev/null; then $0 backup prep || exit 1; fi
 			cp -aR /tmp/bpiwrt/* /etc/
+		#####################################################################
+		# DEFAULT => Create "persistent" default settings in the /boot partition:
+		elif [[ "$1" == "default" ]]; then
+			$0 backup squash
+			mount -o remount,rw /boot
+			mv /tmp/bpiwrt.cfg /boot/bpiwrt.cfg || rm /boot/bpiwrt.cfg
+			mount -o remount,ro /boot
+		#####################################################################
+		# REMOVE => Create "persistent" settings backup from the /boot partition:
+		elif [[ "$1" == "remove" ]]; then
+			if test -f /boot/bpiwrt.cfg; then
+				mount -o remount,rw /boot
+				rm /boot/bpiwrt.cfg
+				mount -o remount,ro /boot
+			else
+				echo "ERROR: No override defaults have been stored in \"/boot\"!"
+			fi
 		#####################################################################
 		# Everything else:
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-			echo "Usage: $(basename $0) backup [create|remove|prep|restore]"
+			echo "Usage: $(basename $0) backup [squash|unlink|prep|copy|default|remove]"
 			echo "Where:"
-			echo "    create  - Creates a backup in /tmp/bpiwrt.cfg of critical settings"
-			echo "    remote  - Removes temporary file /tmp/bpiwrt.cfg"
-			echo "    prep    - Preps the uploaded configuration backup found in /tmp/bpiwrt.cfg"
-			echo "    restore - Restores the files from the uploaded configuration backup"
+			echo "    squash  - Creates a backup of critical settings in /tmp/bpiwrt.cfg "
+			echo "    unlink  - Unmount and remove /tmp/bpiwrt.cfg"
+			echo "    prep    - Prepares the uploaded backup found in /tmp/bpiwrt.cfg"
+			echo "    copy    - Restores the files from the uploaded configuration backup"
+			echo "    default - Creates default override settings config in /boot/bpiwrt.cfg"
+			echo "    remove  - Unmount and remove /boot/bpiwrt.cfg"
 		fi
 		;;
 
@@ -497,7 +517,7 @@ case $CMD in
 		#####################################################################
 		# IFACES => List the interfaces we can  the DHCP configuration file:
 		elif [[ "$1" == "ifaces" ]]; then
-			for iface in /sys/class/net/*; do 
+			for iface in /sys/class/net/*; do
 				name=$(basename $iface)
 				if test -f /etc/dnsmasq.d/${name}.conf; then
 					cat /etc/dnsmasq.d/${name}.conf | grep dhcp-range | cut -d= -f 2 | cut -d, -f 1
@@ -604,7 +624,7 @@ case $CMD in
 			test -f /etc/default/router-settings && source /etc/default/router-settings
 			if [[ "${use_cloudflared:="N"}" == "Y" ]]; then
 				DNS1=127.0.0.1#5051
-			elif [[ "${use_isp:="N"}" == "Y" ]]; then 
+			elif [[ "${use_isp:="N"}" == "Y" ]]; then
 				IP=($(cat /etc/resolv.conf | grep "nameserver" | head -2 | awk '{print $2}'))
 				DNS1=${IP[0]}
 				DNS2=${IP[1]}
@@ -821,9 +841,9 @@ case $CMD in
 			ADDR=($(arp -a ${IP} | grep -o '..:..:..:..:..:..'))
 			if [[ -z "${ADDR[@]}" ]]; then echo "ERROR: No MAC address found for specified IP address!"; exit 1; fi
 			conntrack -L | grep ${IP} | grep ESTAB | grep 'dport=80' | awk "{ system(\"conntrack -D --orig-src $1 --orig-dst \" substr(\$6,5) \" -p tcp --orig-port-src \" substr(\$7,7) \" --orig-port-dst 80\"); }"
-			for MAC in ${ADDR[@]}; do 
+			for MAC in ${ADDR[@]}; do
 				iptables -t mangle -D PORTAL -m mac --mac-source ${MAC} -j MARK --set-mark 0x2 2> /dev/null
-				iptables -t mangle -A PORTAL -m mac --mac-source ${MAC} -j MARK --set-mark 0x2 
+				iptables -t mangle -A PORTAL -m mac --mac-source ${MAC} -j MARK --set-mark 0x2
 			done
 			echo "OK"
 		else

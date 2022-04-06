@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['download']))
 {
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup create");
+	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup squash");
 	$cfg = "/tmp/bpiwrt.cfg";
 	header('Content-Disposition: attachment; filename="' . basename($cfg) . '"');
 	header("Content-Length: " . filesize($cfg));
@@ -15,38 +15,37 @@ if (isset($_GET['download']))
 #################################################################################################
 if (isset($_POST['action']))
 {
+	# Make sure that persistent storage is available before proceeding:
+	if (trim(@shell_exec("mount | grep ^overlayfs-root")) == "")
+		die("ERROR: Persistent storage not enabled on this router!");
+
 	####################################################################################
 	# ACTION: UPLOAD ==> Verify the contents of the upload:
 	####################################################################################
 	if ($_POST['action'] == "upload")
 	{
 		if (!isset($_FILES['file']['name']))
-			echo "ERROR: No file specified!";
+			die("ERROR: No file specified!");
 		else if (strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION)) != "cfg")
-			echo 'ERROR: File extension must be "cfg"!';
+			die('ERROR: File extension must be "cfg"!');
 		else
 		{
-			@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup remove");
+			@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup unlink");
 			if (@move_uploaded_file($_FILES['file']['tmp_name'], '/tmp/bpiwrt.cfg'))
-				echo trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup prep"));
-			else
-				echo "ERROR: File move failed";
+				die(trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup prep")));
+			die("ERROR: File prep failed");
 		}
 	}
 	####################################################################################
 	# ACTION: FACTORY ==> Signal a reformat is needed and return to caller:
 	####################################################################################
 	else if ($_POST['action'] == "factory")
-	{
-		echo explode("\n", trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh reformat -y")))[0];
-	}
+		die(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh reformat -y"));
 	####################################################################################
 	# ACTION: FILE ==> Process the uploaded file:
 	####################################################################################
-	else if ($_POST['action'] == 'file')
-	{
-		echo trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup restore"));
-	}
+	else if ($_POST['action'] == "file")
+		die(trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup restore")));
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
 	#################################################################################################
@@ -54,11 +53,21 @@ if (isset($_POST['action']))
 }
 
 #######################################################################################################
-# Show the backup and restore options to the user:
+# Otherwise, show the backup and restore options:
 #######################################################################################################
 site_menu();
-echo '
-<div class="card card-primary">
+#######################################################################################################
+# If there is no overlay filesystem, notify the user that no options are available.
+#######################################################################################################
+echo trim(@shell_exec("mount | grep ^overlayfs-root")) == "" ? 
+'<div class="alert alert-danger">
+	<h5><i class="icon fas fa-ban"></i> No Persistent Storage Detected!</h5>
+	You must enable persistent storage before you can backup and restore settings on this router!
+</div>' : 
+#######################################################################################################
+# Otherwise, show the backup and restore options:
+#######################################################################################################
+'<div class="card card-primary">
 	<div class="card-header">
 		<h3 class="card-title">Backup Settings</h3>
 	</div>
@@ -68,22 +77,12 @@ echo '
 			<div class="col-sm-6"><a href="/manage/backup?download"><button type="button" class="btn btn-block btn-outline-info">Backup Settings</button></a></div>
 		</div>
 	</div>
-</div>';
-
-#######################################################################################################
-# Disable "Factory Restore" option if the overlay isn't active or temporary overlay is active:
-#######################################################################################################
-echo '
+</div>
 <div class="card card-primary">
 	<div class="card-header">
 		<h3 class="card-title">Restore Settings</h3>
 	</div>
-	<div class="card-body">';
-if (isset($_SESSION['critical_alerts']) && in_array("Temp", $_SESSION['critical_alerts']))
-	echo '<label>You must enable persistent storage before you can restore settings to this router.</label>';
-else
-{
-	echo '
+	<div class="card-body">
 		<div class="input-group mb-4">
 			<label class="col-sm-6 col-form-label">
 				Restore saved settings from a file
@@ -95,17 +94,12 @@ else
 				</div>
 			</label>
 			<div class="col-sm-6"><a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-danger" id="restore_settings">Restore Settings</button></a></div>
-		</div>';
-
-	if (strpos(@file_get_contents("/boot/bananapi/bpi-r2/linux/uEnv.txt"), "bootmenu_default=2") > -1)
-		echo '
+		</div>' . (strpos(trim(@shell_exec("mount | grep ' /ro '")), "/dev/") !== false ? '
 		<hr />
 		<div class="input-group mb-4">
 			<label class="col-sm-6 col-form-label">Restore to default settings</label>
-			<div class="col-sm-6"><button type="button" class="btn btn-block btn-outline-danger" data-toggle="modal" data-target="#reboot-modal" id="factory_settings">Erase Settings</button></div>
-		</div>';
-}
-echo '
+			<div class="col-sm-6"><a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-danger" data-toggle="modal" data-target="#reboot-modal" id="factory_settings">Erase Settings</button></a></div>
+		</div>' : '') . '
 	</div>
 	<!-- /.card-body -->
 </div>';
