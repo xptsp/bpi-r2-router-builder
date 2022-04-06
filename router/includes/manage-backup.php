@@ -28,7 +28,7 @@ if (isset($_POST['action']))
 		{
 			@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup remove");
 			if (@move_uploaded_file($_FILES['file']['tmp_name'], '/tmp/bpiwrt.cfg'))
-				echo trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup unpack"));
+				echo trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup prep"));
 			else
 				echo "ERROR: File move failed";
 		}

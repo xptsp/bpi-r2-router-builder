@@ -320,3 +320,9 @@ systemctl enable --now minissdpd
 apt install python3-netifaces
 # Clone the multicast-relay repo:
 git clone https://github.com/alsmith/multicast-relay /opt/multicast-relay
+systemctl enable --now multicast-relay
+
+##################################################################################
+# Install PiVPN support packages:
+##################################################################################
+apt install -y telnet bsdmainutils dnsutils openvpn expect grepcidr

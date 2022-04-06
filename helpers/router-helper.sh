@@ -354,41 +354,35 @@ case $CMD in
 		#####################################################################
 		# CREATE => Create settings backup:
 		if [[ "$1" == "create" ]]; then
-			find . | grep -v -E "/var|/opt|/home|/run|/tmp|/root|/rw|/ro" | grep -E ".conf|.json" > /tmp/backup_file.list
-			ftb=($(cat /tmp/backup_file.list))
-			cd /tmp
-			md5sum ${ftb[@]} |sed "s|  /|  |g" > md5sum
-			test -f /tmp/bpiwrt.cfg && rm /tmp/bpiwrt.cfg
-			tar -cJf /tmp/bpiwrt.cfg md5sum ${ftb[@]} >& /dev/null
+			cd /rw/upper/etc
+			mksquashfs ./ /tmp/bpiwrt.cfg -e ./pihole/*.db
 		#####################################################################
 		# REMOVE => Remove uploaded configuration backup:
 		elif [[ "$1" == "remove" ]]; then
 			rm /tmp/bpiwrt.cfg
 		#####################################################################
-		# UNPACK => Unpack the uploaded configuration backup:
-		elif [[ "$1" == "unpack" ]]; then
+		# PREP => Prep the uploaded configuration backup to be restored:
+		elif [[ "$1" == "prep" ]]; then
+			umount /tmp/bpiwrt >& /dev/null
 			rm -rf /tmp/bpiwrt
 			mkdir -p /tmp/bpiwrt
-			cd /tmp/bpiwrt
-			if ! tar -xJf /tmp/bpiwrt.cfg; then echo "ERROR: Invalid settings file!"; exit; fi
-			if md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null; then echo "ERROR: Checksum Failure"; exit; fi
+			mount -o loop -t squashfs /tmp/bpiwrt.cfg /tmp/bpiwrt >& /dev/null || echo "ERROR: Corrupted or invalid settings backup!"
 		#####################################################################
 		# RESTORE => Actually move the files from the uploaded configuration backup into place:
 		elif [[ "$1" == "restore" ]]; then
-			if ! test -d /tmp/bpiwrt; then echo "ERROR: Backup has not been unpacked!"; exit; fi
-			cd /tmp/bpiwrt
-			if md5sum -c md5sum 2> /dev/null | grep FAILED >& /dev/null; then echo "ERROR: Checksum Failure"; exit; fi
-			while IFS= read -r line; do mv ${line:1} $(dirname $line)/; done < etc/default/backup_file.list
+			if ! test -d /tmp/bpiwrt; then echo "ERROR: Restore Prep has not been run yet!"; exit; fi
+			if ! mount | grep /tmp/bpiwrt >& /dev/null; then echo "ERROR: Restore Prep has not been run yet!"; exit; fi
+			cp -aR /tmp/bpiwrt/* /etc/
 		#####################################################################
 		# Everything else:
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-			echo "Usage: $(basename $0) backup [create|remove|unpack|restore]"
+			echo "Usage: $(basename $0) backup [create|remove|prep|restore]"
 			echo "Where:"
 			echo "    create  - Creates a backup in /tmp/bpiwrt.cfg of critical settings"
 			echo "    remote  - Removes temporary file /tmp/bpiwrt.cfg"
-			echo "    unpack  - Unpacks the uploaded configuration backup found in /tmp/bpiwrt.cfg"
-			echo "    restore - Actually move the files from the uploaded configuration backup into place"
+			echo "    prep    - Preps the uploaded configuration backup found in /tmp/bpiwrt.cfg"
+			echo "    restore - Restores the files from the uploaded configuration backup"
 		fi
 		;;
 

@@ -12,8 +12,8 @@ TRANS_PASS=bananapi
 # NOTE: IP address is specified from the "br0" interface.
 TRANS_PORT=9091
 
-# Subdirectory to use for transmission-daemon WebUI (default: transmission-web-control)
-TRANS_WEBUI=transmission-web-control
+# Subdirectory to use for transmission-daemon WebUI (default: combustion-release)
+TRANS_WEBUI=combustion-release
 
 # Change to 0 to disable daemon
 ENABLE_DAEMON=1
@@ -28,4 +28,3 @@ OPTIONS=""
 
 # (optional) extra options to start-stop-daemon
 #START_STOP_OPTIONS="--iosched idle --nicelevel 10"
-

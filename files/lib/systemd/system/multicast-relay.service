@@ -6,7 +6,7 @@ After=network-online.target
 [Service]
 EnvironmentFile=-/etc/default/multicast-relay
 WorkingDirectory=/opt/multicast-relay
-ExecStart=bash -c "/usr/bin/python3 multicast-relay.py --interfaces ${IFACES} --foreground"
+ExecStart=bash -c "/usr/bin/python3 multicast-relay.py --interfaces ${MULTICAST_IFACES} --foreground ${MULTICAST_OPTIONS}"
 
 [Install]
 WantedBy=multi-user.target

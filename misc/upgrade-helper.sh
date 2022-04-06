@@ -33,6 +33,7 @@ COPY_ONLY=(
 	/etc/overlayRoot.conf
 	/etc/pihole/
 	/etc/pivpn/
+	/etc/systemd/system/miniupnpd.service
 	/root/
 	/home/pi/
 	/home/vpn/

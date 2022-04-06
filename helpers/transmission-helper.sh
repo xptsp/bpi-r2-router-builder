@@ -30,7 +30,7 @@ if ! test -L ${WEB}; then
 	test -d ${DIR}/original && rm -rf ${DIR}/original
 	mv ${WEB} ${DIR}/original
 fi
-TRANS_WEBUI=${TRANS_WEBUI:-"transmission-web-control"}
+TRANS_WEBUI=${TRANS_WEBUI:-"combustion-release"}
 ! test -d ${DIR}/${TRANS_WEBUI} && TRANS_WEBUI=original
 ! test -d ${DIR}/${TRANS_WEBUI} && exit 1
 CUR=$(ls -l ${WEB} | awk '{print $NF}')
