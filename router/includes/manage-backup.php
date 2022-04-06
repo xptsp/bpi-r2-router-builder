@@ -1,4 +1,7 @@
 <?php
+#################################################################################################
+# If "?download" is passed in the URL, create and download the backup:
+#################################################################################################
 if (isset($_GET['download']))
 {
 	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup squash");
@@ -45,7 +48,7 @@ if (isset($_POST['action']))
 	# ACTION: FILE ==> Process the uploaded file:
 	####################################################################################
 	else if ($_POST['action'] == "file")
-		die(trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup restore")));
+		die(trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup copy")));
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
 	#################################################################################################
@@ -94,7 +97,7 @@ echo trim(@shell_exec("mount | grep ^overlayfs-root")) == "" ?
 				</div>
 			</label>
 			<div class="col-sm-6"><a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-danger" id="restore_settings">Restore Settings</button></a></div>
-		</div>' . (strpos(trim(@shell_exec("mount | grep ' /ro '")), "/dev/") !== false ? '
+		</div>' . (strpos(trim(@shell_exec("mount | grep ' /rw '")), "/dev/") !== false ? '
 		<hr />
 		<div class="input-group mb-4">
 			<label class="col-sm-6 col-form-label">Restore to default settings</label>
