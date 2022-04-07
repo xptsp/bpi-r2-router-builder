@@ -323,6 +323,29 @@ git clone https://github.com/alsmith/multicast-relay /opt/multicast-relay
 systemctl enable --now multicast-relay
 
 ##################################################################################
-# Install PiVPN support packages:
+# Install PiVPN, modifying files and installing packages as required:
 ##################################################################################
-apt install -y telnet bsdmainutils dnsutils openvpn expect grepcidr
+# Clone the PiVPN repository:
+DIR=/usr/local/src/pivpn
+git clone https://github.com/pivpn/pivpn.git "${DIR}"
+
+# Set repository head to commit "f80b0a7962d91862132c0a4abd65c1e67bd37bd7":
+cd ${DIR}
+git reset --hard f80b0a7962d91862132c0a4abd65c1e67bd37bd7
+
+# Modify the PiVPN installer so that we can delay creation of certificates and such:
+MODDED=/usr/local/src/modded_pivpn_install.sh
+cp ${DIR}/auto_install/install.sh ${MODDED}
+sed -i 's|setStaticIPv4(){|setStaticIPv4(){\n\treturn;|g' ${MODDED}
+sed -i "/restartServices$/d" ${MODDED}
+sed -i "/confLogging$/d" ${MODDED}
+sed -i 's|confOVPN$|createOVPNuser|g' ${MODDED}
+sed -i '/confNetwork$/d' ${MODDED}
+sed -i "s|confOpenVPN(){|generateServerName(){|" ${MODDED}
+sed -i "s|# Backup the openvpn folder|echo \"SERVER_NAME=\$SERVER_NAME\" >> /etc/openvpn/.server_name\n}\n\nbackupOpenVPN(){\n\t# Backup  the openvpn folder|" ${MODDED}
+sed -i "s|\tif \[ -f /etc/openvpn/server.conf \]; then|}\n\nconfOpenVPN(){\n\tif [ -f /etc/openvpn/server.conf ]; then|" ${MODDED}
+sed -i 's|cd /etc/openvpn/easy-rsa|$SUDO mv /etc/openvpn /etc/openvpn.orig\n}\n\nGenerateOpenVPN() {\n\t$SUDO cp -R /etc/openvpn.orig/* /etc/openvpn/\n\tcd  /etc/openvpn/easy-rsa|' ${MODDED}
+sed -i "s|  if ! getent passwd openvpn; then|}\n\ncreateOVPNuser(){\n  if ! getent  passwd openvpn >\& /dev/null; then|" ${MODDED}
+sed -i "s|  \${SUDOE} chown \"\$debianOvpnUserGroup\" /etc/openvpn/crl.pem|}\n\ncreateServerConf(){\n\t\${SUDOE}  chown \"\$debianOvpnUserGroup\" /etc/openvpn/crl.pem|" ${MODDED}
+sed -i "s|whiptail --msgbox --backtitle \"Setup OpenVPN\"|echo; #whiptail --msgbox --backtitle \"Setup OpenVPN\"|g" ${MODDED}
+#sed -i "s|if [ \"\${USE_PREDEFINED_DH_PARAM}\" -eq 1 ]; then|if [ \"\${DOWNLOAD_DH_PARAM}\" -eq 1]; then\n\t\t\t\${SUDOE} curl https://2ton.com.au/getprimes/random/dhparam/\${pivpnENCRYPT} -o pki/dh\${pivpnENCRYPT}.pem\nelif [ \"\${USE_PREDEFINED_DH_PARAM}\"  -eq 1 ]; then|" ${MODDED}
