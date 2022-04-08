@@ -215,9 +215,9 @@ case $CMD in
 		if [[ "$1" == "hold" || "$1" == "unhold" ]]; then
 			apt-mark $@
 		elif [[ "$1" == "upgrade" || "$1" == "dist-upgrade" || "$1" == "full-upgrade" || "$1" == "install" ]]; then
-			apt -o Dpkg::Options::='--force-confdef' --assume-yes -fuy $@
+			apt -o Dpkg::Options::='--force-confdef' --assume-yes -fuy $@ | stdbuf -oL tr '\r' '\n'
 		else
-			apt $@
+			apt $@ | stdbuf -oL tr '\r' '\n'
 		fi
 		;;
 

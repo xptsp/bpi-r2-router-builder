@@ -327,7 +327,7 @@ systemctl enable --now multicast-relay
 ##################################################################################
 # Clone the PiVPN repository:
 DIR=/usr/local/src/pivpn
-git clone https://github.com/pivpn/pivpn.git "${DIR}"
+git clone https://github.com/pivpn/pivpn.git ${DIR}
 
 # Set repository head to commit "f80b0a7962d91862132c0a4abd65c1e67bd37bd7":
 cd ${DIR}
@@ -349,3 +349,28 @@ sed -i "s|  if ! getent passwd openvpn; then|}\n\ncreateOVPNuser(){\n  if ! gete
 sed -i "s|  \${SUDOE} chown \"\$debianOvpnUserGroup\" /etc/openvpn/crl.pem|}\n\ncreateServerConf(){\n\t\${SUDOE}  chown \"\$debianOvpnUserGroup\" /etc/openvpn/crl.pem|" ${MODDED}
 sed -i "s|whiptail --msgbox --backtitle \"Setup OpenVPN\"|echo; #whiptail --msgbox --backtitle \"Setup OpenVPN\"|g" ${MODDED}
 #sed -i "s|if [ \"\${USE_PREDEFINED_DH_PARAM}\" -eq 1 ]; then|if [ \"\${DOWNLOAD_DH_PARAM}\" -eq 1]; then\n\t\t\t\${SUDOE} curl https://2ton.com.au/getprimes/random/dhparam/\${pivpnENCRYPT} -o pki/dh\${pivpnENCRYPT}.pem\nelif [ \"\${USE_PREDEFINED_DH_PARAM}\"  -eq 1 ]; then|" ${MODDED}
+
+# Run the modified script:
+bash ${MODDED} --unattended /etc/pivpn/setupVars.conf --reconfigure
+
+# Customize the PiVPN setupVars.conf in the /tmp folder:
+setupVars=/usr/local/src/setupVars.conf
+cp /tmp/setupVars.conf ${setupVars}
+sed -i "/^pivpnHOST=/d" ${setupVars}
+sed -i "/^IPv4dev=/d" ${setupVars}
+echo "pivpnDH_DOWNLOAD=0" >> ${setupVars}
+echo "pivpnDH_PREDEFINED=0" >> ${setupVars}
+echo "pivpnTWO_POINT_FOUR=0" >> ${setupVars}
+echo "pivpnWEB_PASS=password" >> ${setupVars}
+echo "pivpnWEB_PORT=0" >> ${setupVars}
+echo "pivpnHOST=" >> ${setupVars}
+echo "pivpnKeepAlive=" >> ${setupVars}
+echo "SHOW_REVOKED=1" >> ${setupVars}
+sed -i "s|^pivpnDEV=.*|pivpnDEV=pivpn|" ${setupVars}
+echo "HELP_SHOWN=1" >> ${setupVars}
+echo '[[ -f /etc/openvpn/pivpn.env ]] && source /etc/openvpn/pivpn.env' >> ${setupVars}
+
+# Move files around:
+rm /etc/{pivpn/openvpn,pivpn}/setupVars.conf
+ln -sf ${setupVars} /etc/pivpn/openvpn/setupVars.conf
+ln -sf ${setupVars} /etc/pivpn/setupVars.conf
