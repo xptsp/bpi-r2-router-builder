@@ -64,11 +64,12 @@ if (isset($_POST['action']))
 	###################################################################################################
 	if ($_POST['action'] == 'reservations')
 	{
+		$dev = array();
 		foreach ($reserve as $parts)
 		{
 			if (isset($parts['ip']) && empty($parts['hide']))
 			{
-				echo
+				$dev[ $parts['ip'] ] =
 					'<tr>' .
 						'<td class="dhcp_host">' . (isset($parts['host']) ? $parts['host'] : (isset($hostname[$parts['mac']]) ? $hostname[$parts['mac']] : 'Unknown')) . '</td>' .
 						'<td class="dhcp_ip_addr">' . $parts['ip'] . '</td>' .
@@ -78,6 +79,8 @@ if (isset($_POST['action']))
 					'</tr>';
 			}
 		}
+		ksort($dev);
+		echo implode("", $dev);
 		die( empty($reserve) ? '<tr><td colspan="5"><center>No IP Address Reservations</center></td></tr>' : '' );
 	}
 	###################################################################################################

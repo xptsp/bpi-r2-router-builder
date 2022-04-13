@@ -177,7 +177,7 @@ function DHCP_Refresh_Leases()
 			document.location.reload(true);
 		$("#clients-table").html(data);
 		$(".reservation-option").click(function() {
-			line = $(this).parent();
+			line = $(this);
 			$("#dhcp_client_name").val( line.find(".dhcp_host").html() );
 			$("#dhcp_ip_addr").val( line.find(".dhcp_ip_addr").html() );
 			$("#dhcp_mac_addr").val( line.find(".dhcp_mac_addr").html() );
