@@ -355,8 +355,8 @@ case $CMD in
 		# SQUASH => Create settings backup in the /tmp folder:
 		if [[ "$1" == "squash" ]]; then
 			$0 backup unlink
-			cd /rw/upper
-			mksquashfs etc/ /tmp/bpiwrt.cfg -e etc/pihole/*.db
+			cd /rw/upper/etc
+			mksquashfs ./ /tmp/bpiwrt.cfg -e ./pihole/*.db
 		#####################################################################
 		# REMOVE => Remove uploaded configuration backup:
 		elif [[ "$1" == "unlink" ]]; then

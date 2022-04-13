@@ -348,7 +348,7 @@ sed -i 's|\tcd /etc/openvpn/easy-rsa|}\n\nGenerateOpenVPN() {\n\tcd  /etc/openvp
 sed -i "s|  if ! getent passwd openvpn; then|}\n\ncreateOVPNuser(){\n  if ! getent  passwd openvpn >\& /dev/null; then|" ${MODDED}
 sed -i "s|  \${SUDOE} chown \"\$debianOvpnUserGroup\" /etc/openvpn/crl.pem|}\n\ncreateServerConf(){\n\t\${SUDOE}  chown \"\$debianOvpnUserGroup\" /etc/openvpn/crl.pem|" ${MODDED}
 sed -i "s|whiptail --msgbox --backtitle \"Setup OpenVPN\"|echo; #whiptail --msgbox --backtitle \"Setup OpenVPN\"|g" ${MODDED}
-sed -i "s|main \"\$@\"|[[ -z \"\${IN_DOCKER}\" ]] \|\| main \"\$@\"|g" ${MODDED}
+sed -i "s|main \"\$@\"|[[ -z \"\${IN_DOCKER}\" ]] \&\& main \"\$@\"|g" ${MODDED}
 #sed -i "s|if [ \"\${USE_PREDEFINED_DH_PARAM}\" -eq 1 ]; then|if [ \"\${DOWNLOAD_DH_PARAM}\" -eq 1]; then\n\t\t\t\${SUDOE} curl https://2ton.com.au/getprimes/random/dhparam/\${pivpnENCRYPT} -o pki/dh\${pivpnENCRYPT}.pem\nelif [ \"\${USE_PREDEFINED_DH_PARAM}\"  -eq 1 ]; then|" ${MODDED}
 
 # Run the modified script:
