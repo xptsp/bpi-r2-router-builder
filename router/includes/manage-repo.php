@@ -75,7 +75,7 @@ function show_repo($title, $repo, $url, $alt_desc = null)
 						</tr>
 						<tr>
 							<td><strong>Repository Location</strong></td>
-							<td nowrap><a href="', $url, '" target="_blank">', $alt_desc == null ? $title : $alt_desc, '</a></td>
+							<td nowrap><a href="', $url, '" target="_blank">', $alt_desc == null ? $title : str_replace("https://github.com/", "", $alt_desc), '</a></td>
 						</tr>
 						<tr id="', $repo, '_check_div">
 							<td colspan="2">
@@ -106,6 +106,7 @@ echo '
 show_repo('Web UI', 'webui', 'https://github.com/xptsp/bpiwrt-builder', 'xptsp/bpiwrt-builder');
 show_repo('Wifi Regulatory Database', 'regdb', 'https://git.kernel.org/pub/scm/linux/kernel/git/sforshee/wireless-regdb.git/');
 show_repo('SSD1306 Stats Display', 'stats', 'https://github.com/xptsp/bpi-r2-ssd1306-display', 'xptsp/bpi-r2-ssd1306-display');
+show_repo('Multicast-Relay', 'multicast-relay', 'https://github.com/alsmith/multicast-relay', 'alsmith/multicast-relay');
 echo '
 	</div>
 </div>';
