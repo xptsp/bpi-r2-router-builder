@@ -105,7 +105,7 @@ echo '
 			<div class="col-sm-6">
 				<label for="listening_on">Listening Interfaces:</label>
 			</div>
-			<div class="col-3">
+			<div class="col-sm-3">
 				<select class="form-control" id="listening_on" multiple>';
 foreach ($valid_listen as $tface)
 {
@@ -120,7 +120,7 @@ echo '
 			<div class="col-sm-6">
 				<label for="ext_ifname">External Interface:</label>
 			</div>
-			<div class="col-3">
+			<div class="col-sm-3">
 				<select class="form-control" id="ext_ifname">';
 $listening = explode(" ", $options['listening_ip']);
 foreach ($ext_ifaces as $tface)

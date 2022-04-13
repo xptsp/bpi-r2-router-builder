@@ -66,8 +66,8 @@ function show_repo($title, $repo, $url, $alt_desc = null)
 				<div class="card-body table-responsive p-0" id="', $repo, '_div">
 					<table class="table">
 						<tr>
-							<td width="50%"><strong>Current Version</strong></td>
-							<td>v<span id="', $repo, '_current">', $_SESSION[$repo . '_version'], '</span></td>
+							<td width="40%"><strong>Current Version</strong></td>
+							<td width="60%">v<span id="', $repo, '_current">', $_SESSION[$repo . '_version'], '</span></td>
 						</tr>
 						<tr>
 							<td><strong>Latest Version</strong></td>

@@ -103,6 +103,7 @@ echo '
 			</div>
 			<div class="col-sm-6">
 				<div class="form-group">
+					<label>Select DNS Servers:</label>
 					<select class="provider form-control', !$use_provider ? ' hidden' : '', '" id="select_provider">';
 foreach ($providers as $provider)
 	echo '
@@ -123,16 +124,12 @@ echo '
 				<div class="col-sm-6">
 					<label for="ip_address">Primary DNS Server</label>
 				</div>
-				<div class="col-sm-4">
+				<div class="col-sm-6">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
 						<input id="dns1" type="text" placeholder="127.0.0.1" class="dns_address form-control" value="', explode("#", $primary . "#")[0], '"', !$use_isp ? ' disabled="disabled"' : '', '>
-					</div>
-				</div>
-				<div class="col-sm-2">
-					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text" title="Port Number"><i class="fas fa-hashtag"></i></span>
 						</div>
@@ -144,16 +141,12 @@ echo '
 				<div class="col-sm-6">
 					<label for="ip_address">Secondary DNS Server</label>
 				</div>
-				<div class="col-sm-4">
+				<div class="col-sm-6">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
 						</div>
 						<input id="dns2" type="text" placeholder="127.0.0.1" class="dns_address form-control" value="', explode("#", $secondary . "#")[0], '"', !$use_isp ? ' disabled="disabled"' : '', '>
-					</div>
-				</div>
-				<div class="col-sm-2">
-					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text" title="Port Number"><i class="fas fa-hashtag"></i></span>
 						</div>

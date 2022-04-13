@@ -41,23 +41,19 @@ echo '
 		<h3 class="card-title">Mosquitto</h3>
 	</div>
 	<div class="card-body">
-		', checkbox("enable_mosquitto", "Notify Mosquitto server when DHCP clients connect or disconnect"), '
+		', checkbox("enable_mosquitto", "Send DHCP notifications to Mosquitto server"), '
 		<div id="mosquitto_options"', $options['enable_mosquitto'] == "N" ? ' class="hidden"' : '', '>
 			<hr style="border-width: 2px" />
 			<div class="row">
 				<div class="col-sm-6">
 					<label for="ip_address">Mosquitto Server Address:</label>
 				</div>
-				<div class="col-sm-4">
+				<div class="col-sm-6">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-server"></i></span>
 						</div>
 						<input id="ip_addr" type="text" placeholder="127.0.0.1" class="ip_address form-control" placeholder="127.0.0.1" value="', $options['mosquitto_addr'], '">
-					</div>
-				</div>
-				<div class="col-sm-2">
-					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text" title="Port Number"><i class="fas fa-hashtag"></i></span>
 						</div>

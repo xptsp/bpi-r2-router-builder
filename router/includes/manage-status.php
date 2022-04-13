@@ -51,11 +51,10 @@ if (isset($_POST['action']))
 				'<tr>',
 					'<th>Port</th>',
 					'<th>Status</th>',
-					'<th>TX Packets</th>',
-					'<th>RX Packets</th>',
-					'<th>Collisions</th>',
-					'<th>TX Bytes</th>',
-					'<th>RX Bytes</th>',
+					'<th>Packets Sent</th>',
+					'<th>Packets Recv</th>',
+					'<th>Bytes Sent</th>',
+					'<th>Bytes Recv</th>',
 				'</tr>',
 			'</thead>',
 			'<tbody>';
@@ -79,7 +78,6 @@ if (isset($_POST['action']))
 						'<td>', $status, '</td>',
 						'<td><span class="float-right">', number_format((int) @file_get_contents($SYS . $name . '/statistics/tx_packets')), '</span></td>',
 						'<td><span class="float-right">', number_format((int) @file_get_contents($SYS . $name . '/statistics/rx_packets')), '</span></td>',
-						'<td><span class="float-right">', number_format((int) @file_get_contents($SYS . $name . '/statistics/collisions')), '</span></td>',
 						'<td><span class="float-right">', number_format((int) @file_get_contents($SYS . $name . '/statistics/tx_bytes') / 1024 / 1024, 2), ' MB</span></td>',
 						'<td><span class="float-right">', number_format((int) @file_get_contents($SYS . $name . '/statistics/rx_bytes') / 1024 / 1024, 2), ' MB</span></td>',
 					'</tr>';
