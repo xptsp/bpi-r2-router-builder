@@ -281,10 +281,10 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 	###################################################################################################
 	echo '
 		<div class="row">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<label for="iface_mode">Mode of Operation:</label>
 			</div>
-			<div class="col-6">
+			<div class="col-sm-6">
 				<select id="op_mode" class="form-control">
 					<option value="disabled"', $netcfg['op_mode'] == 'manual' ? ' selected="selected"' : '', '>Not Configured</option>';
 	if (isset($wifi['supported']['AP']))
@@ -310,10 +310,10 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 		<div id="client_mode_div"', ($netcfg['op_mode'] == 'dhcp' && !empty($wpa_ssid)) || ($netcfg['op_mode'] == 'static' && !empty($wpa_ssid)) ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_addr">Network Name (SSID):</label>
 				</div>
-				<div class="col-6">
+				<div class="col-sm-6">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
@@ -326,10 +326,10 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_mask">Passphrase:</label>
 				</div>
-				<div class="col-6">
+				<div class="col-sm-6">
 					<div class="input-group">
 						<div class="input-group-prepend wpa_toggle">
 							<span class="input-group-text"><i class="fas fa-key"></i></span>
@@ -377,10 +377,10 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 		<div id="ap_mode_div"', $netcfg['op_mode'] == 'ap' ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_addr">Network Name (SSID):</label>
 				</div>
-				<div class="col-6">
+				<div class="col-sm-6">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
@@ -390,10 +390,10 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_mask">Passphrase:</label>
 				</div>
-				<div class="col-6">
+				<div class="col-sm-6">
 					<div class="input-group">
 						<div class="input-group-prepend wpa_toggle">
 							<span class="input-group-text"><i class="fas fa-key"></i></span>
@@ -403,10 +403,10 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 				</div>
 			</div>
 			<div class="row', count($wifi['band']) == 1 ? ' hidden' : '', '" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_mask">Wireless Band:</label>
 				</div>
-				<div class="col-6">
+				<div class="col-sm-6">
 					<select id="ap_band" class="form-control">';
 	$band_used = false;
 	foreach ($wifi['band'] as $band => $info)
@@ -420,10 +420,10 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_mask">Wireless Channel:</label>
 				</div>
-				<div class="col-6">';
+				<div class="col-sm-6">';
 	foreach ($wifi['band'] as $band => $info)
 	{
 		echo '
@@ -440,10 +440,10 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_mask">Wifi Network Mode:</label>
 				</div>
-				<div class="col-6">';
+				<div class="col-sm-6">';
 	foreach ($wifi['band'] as $band => $info)
 	{
 		if ($info['channels']['first'] < 36)
@@ -492,10 +492,10 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 		<div id="static_ip_div"', ($netcfg['op_mode'] == 'ap' || ($netcfg['op_mode'] == 'static' && isset($netcfg['wpa_ssid']))) ? '' : ' class="hidden"', '>
 			<hr style="border-width: 2px" />
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_addr">IP Address:</label>
 				</div>
-				<div class="col-6">
+				<div class="col-sm-6">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
@@ -505,10 +505,10 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_mask">IP Subnet Mask:</label>
 				</div>
-				<div class="col-6">
+				<div class="col-sm-6">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
@@ -518,10 +518,10 @@ $URL = explode("?", $_SERVER['REQUEST_URI'])[0];
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_gate">IP Gateway Address:</label>
 				</div>
-				<div class="col-6">
+				<div class="col-sm-6">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>

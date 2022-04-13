@@ -200,10 +200,10 @@ foreach ($adapters as $tface)
 #echo '<pre>'; print_r($tmp); exit;
 echo '
 		<div class="row">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<label for="iface_mode">Mode of Operation:</label>
 			</div>
-			<div class="col-6">
+			<div class="col-sm-6">
 				<select id="op_mode" class="form-control"', $netcfg['op_mode'] == 'bridged' ? ' disabled="disabled"' : '', '>
 					<option value="dhcp"', $netcfg['op_mode'] == 'dhcp' ? ' selected="selected"' : '', '>Automatic Configuration - DHCP</option>
 					<option value="static"', $netcfg['op_mode'] == 'static' ? ' selected="selected"' : '', '>Static IP Address</option>';
@@ -243,10 +243,10 @@ if (count($tmp) > 1)
 {
 	echo '
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="', $iface . '_bound">Bridged Interfaces:
 				</div>
-				<div class="col-6">
+				<div class="col-sm-6">
 					<input id="iface" type="hidden" value="', $iface, '" />
 					<ul class="pagination pagination-sm" style="margin-bottom: 0px">';
 	foreach ($tmp as $tface)
@@ -268,10 +268,10 @@ if (count($tmp) > 1)
 $subnet = isset($ifcfg['inet']) ? $ifcfg['inet'] : '';
 echo '
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_addr">IP Address:</label>
 				</div>
-				<div class="col-6">
+				<div class="col-sm-6">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
@@ -281,10 +281,10 @@ echo '
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_mask">IP Subnet Mask:</label>
 				</div>
-				<div class="col-6">
+				<div class="col-sm-6">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
@@ -294,10 +294,10 @@ echo '
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_gate">IP Gateway Address:</label>
 				</div>
-				<div class="col-6">
+				<div class="col-sm-6">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>

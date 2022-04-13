@@ -130,10 +130,10 @@ echo '
 				</div>
 				<div class="modal-body">
 					<div class="row', count($ifaces) == 1 ? ' hidden' : '', '" style="margin-top: 5px">
-						<div class="col-6">
+						<div class="col-sm-6">
 							<label for="iface">Interface:</label>
 						</div>
-						<div class="col-6">
+						<div class="col-sm-6">
 							<select id="iface" class="form-control">';
 foreach ($ifaces as $iface)
 	echo '
@@ -143,10 +143,10 @@ echo '
 						</div>
 					</div>
 					<div class="row" style="margin-top: 5px">
-						<div class="col-6">
+						<div class="col-sm-6">
 							<label for="app_select">Application:</label>
 						</div>
-						<div class="col-6">
+						<div class="col-sm-6">
 							<select id="app_select" class="form-control">
 								<option value=",,tcp" selected="selected">Manual</option>
 								<option value="FTP,21,tcp">FTP</option>
@@ -165,10 +165,10 @@ echo '
 						</div>
 					</div>
 					<div class="row" style="margin-top: 5px">
-						<div class="col-6">
+						<div class="col-sm-6">
 							<label for="comment">Application Name:</label>
 						</div>
-						<div class="col-6">
+						<div class="col-sm-6">
 							<div class="input-group">
 								<input id="comment" type="text" class="form-control" value="">
 							</div>
@@ -176,7 +176,7 @@ echo '
 					</div>
 					<hr style="border-width: 2px" />
 					<div class="row" style="margin-top: 5px">
-						<div class="col-6">
+						<div class="col-sm-6">
 							<label for="ext_min">Min External Port:</label>
 						</div>
 						<div class="col-3">
@@ -189,7 +189,7 @@ echo '
 						</div>
 					</div>
 					<div class="row" style="margin-top: 5px">
-						<div class="col-6">
+						<div class="col-sm-6">
 							<label for="ext_max">Max External Port:</label>
 						</div>
 						<div class="col-3">
@@ -203,7 +203,7 @@ echo '
 					</div>
 					<hr style="border-width: 2px" />
 					<div class="row" style="margin-top: 5px">
-						<div class="col-6">
+						<div class="col-sm-6">
 							<label for="int_port">Internal Port:</label>
 						</div>
 						<div class="col-3">
@@ -216,10 +216,10 @@ echo '
 						</div>
 					</div>
 					<div class="row" style="margin-top: 5px">
-						<div class="col-6">
+						<div class="col-sm-6">
 							<label for="protocol">Protocol:</label>
 						</div>
-						<div class="col-6">
+						<div class="col-sm-6">
 							<div class="input-group">
 								<div class="input-group-prepend">
 									<span class="input-group-text"><i class="fas fa-caret-down"></i></span>
@@ -233,10 +233,10 @@ echo '
 						</div>
 					</div>
 					<div class="row" style="margin-top: 5px">
-						<div class="col-6">
+						<div class="col-sm-6">
 							<label for="ip_addr">IP Address:</label>
 						</div>
-						<div class="col-6">
+						<div class="col-sm-6">
 							<div class="input-group">
 								<div class="input-group-prepend">
 									<span class="input-group-text"><i class="fas fa-laptop"></i></span>
@@ -246,10 +246,10 @@ echo '
 						</div>
 					</div>
 					<div class="row" style="margin-top: 5px">
-						<div class="col-6">
+						<div class="col-sm-6">
 							<label for="int_port">Enabled:</label>
 						</div>
-						<div class="col-6">
+						<div class="col-sm-6">
 							', checkbox("enabled", ""), '
 							<input type="hidden" id="old_iface" value="" />
 							<input type="hidden" id="old_proto" value="" />

@@ -52,10 +52,10 @@ echo '
 	</div>
 	<div class="card-body">
 		<div class="row">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<label for="ip_address">Transmission WebUI Address</label>
 			</div>
-			<div class="col-4">
+			<div class="col-sm-4">
 				<div class="input-group">
 					<div class="input-group-prepend">
 						<span class="input-group-text">http://</span>
@@ -67,7 +67,7 @@ echo '
 					<input id="dns_port1" type="text" class="dns_port form-control" placeholder="9091" value="', $trans_port, '">
 				</div>
 			</div>
-			<div class="col-2">
+			<div class="col-sm-2">
 				<a href="http://', $iface['inet'], ':', $trans_port,'"><button type="button" class="btn btn-block btn-primary">Visit WebUI</button></a>
 			</div>
 		</div>

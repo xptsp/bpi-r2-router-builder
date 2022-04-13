@@ -79,10 +79,10 @@ echo '
 echo '
 	<div class="card-body">
 		<div class="row" style="margin-top: 10px">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<label for="hostname">Host Name</label></td>
 			</div>
-			<div class="col-6">
+			<div class="col-sm-6">
 				<div class="input-group">
 					<div class="input-group-prepend">
 						<span class="input-group-text"><i class="fas fa-laptop-code"></i></span>
@@ -97,10 +97,10 @@ echo '
 ###########################################################################################
 echo '
 		<div class="row" style="margin-top: 10px">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<label for="hostname">System Time Zone</label></td>
 			</div>
-			<div class="col-6 input-group">
+			<div class="col-sm-6 input-group">
 				<select class="form-control" id="timezone">';
 $current = date_default_timezone_get();
 foreach (timezone_list() as $id => $text)
@@ -120,10 +120,10 @@ echo '
 $wifi_country = isset($options['wifi_country']) ? $options['wifi_country'] : '';
 echo '
 		<div class="row" style="margin-top: 10px">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<label for="webui_language">WiFi Country:</label></td>
 			</div>
-			<div class="col-6 input-group">
+			<div class="col-sm-6 input-group">
 				<select class="form-control" id="wifi_country">';
 foreach ($countries as $code => $country)
 	echo '
@@ -138,10 +138,10 @@ echo '
 ###########################################################################################
 echo '
 		<div class="row" style="margin-top: 10px">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<label for="hostname">Available OS Locales:</label></td>
 			</div>
-			<div class="col-6 input-group">
+			<div class="col-sm-6 input-group">
 				<select class="form-control" id="locale">';
 foreach (get_os_locales() as $id => $text)
 	echo '
@@ -157,10 +157,10 @@ echo '
 $default = isset($options['lang']) ? $options['lang'] : 'English';
 echo '
 		<div class="row" style="margin-top: 10px">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<label for="webui_language">WebUI Language:</label></td>
 			</div>
-			<div class="col-6 input-group">
+			<div class="col-sm-6 input-group">
 				<select class="form-control" id="webui_language"', count($langs) == 1 ? ' disabled="disabled"' : '', '>';
 foreach ($langs as $lang)
 	echo '
@@ -176,10 +176,10 @@ echo '
 $mode = isset($options['onboard_wifi']) ? $options['onboard_wifi'] : '';
 echo '
 		<div class="row" style="margin-top: 10px">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<label for="onboard_wifi">BPi R2 Onboard Wifi Mode:</label></td>
 			</div>
-			<div class="col-6 input-group">
+			<div class="col-sm-6 input-group">
 				<select class="form-control" id="onboard_wifi">
 					<option value="A"', $mode == 'A' ? ' selected="selected"' : '', '>Access Point or Client Mode</option>
 					<option value="1"', $mode == '1' ? ' selected="selected"' : '', '>Client Mode Only</option>
@@ -206,7 +206,7 @@ echo '
 	<!-- /.card-header -->
 	<div class="card-body">
 		<div class="row">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<div class="icheck-primary">
 					<input class="mac_opt" type="radio" id="mac_custom" name="router_mac"', !$mac_chk ? ' checked="checked"' : '', '>
 					<label for="mac_custom">Use this MAC Address</label>
@@ -224,7 +224,7 @@ echo '
 					<label for="mac_random">Use Randomly Generated MAC Address</label>
 				</div>
 			</div>
-			<div class="col-6">
+			<div class="col-sm-6">
 				<span class="float-right">
 					<input id="mac_addr" name="mac_addr" type="text" class="form-control" placeholder="', strtoupper($mac), '" value="', $mac, '" maxlength="17"', $mac_chk ? ' disabled="disabled"' : '', '>
 				</span>

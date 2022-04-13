@@ -72,7 +72,7 @@ echo '
 								<label for="remember">Remember for 1 day</label>
 							</div>
 						</div>
-						<div class="col-4">
+						<div class="col-sm-4">
 							<button type="submit" id="login_button" class="btn btn-primary btn-block">Sign In</button>
 						</div>
 					</div>

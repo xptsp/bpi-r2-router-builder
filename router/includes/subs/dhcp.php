@@ -169,10 +169,10 @@ function dhcp_reservations_settings($ap = false)
 				</div>
 				<div class="dhcp_div ', !$use_dhcp ? ' hidden' : '', '">
 					<div class="row">
-						<div class="col-6">
+						<div class="col-sm-6">
 							<label for="dhcp_start">DHCP Starting IP Address:</label>
 						</div>
-						<div class="col-6">
+						<div class="col-sm-6">
 							<div class="input-group">
 								<div class="input-group-prepend">
 									<span class="input-group-text"><i class="fas fa-laptop"></i></span>
@@ -182,10 +182,10 @@ function dhcp_reservations_settings($ap = false)
 						</div>
 					</div>
 					<div class="row" style="margin-top: 5px">
-						<div class="col-6">
+						<div class="col-sm-6">
 							<label for="dhcp_end">DHCP Ending IP Address:</label>
 						</div>
-						<div class="col-6">
+						<div class="col-sm-6">
 							<div class="input-group">
 								<div class="input-group-prepend">
 									<span class="input-group-text"><i class="fas fa-laptop"></i></span>
@@ -195,11 +195,11 @@ function dhcp_reservations_settings($ap = false)
 						</div>
 					</div>
 					<div class="row" style="margin-top: 5px">
-						<div class="col-6">
+						<div class="col-sm-6">
 							<label for="dhcp_lease">Client Lease Time:</label>
 						</div>
-						<div class="col-6">
-							<div class="input-group col-6 p-0">
+						<div class="col-sm-6">
+							<div class="input-group col-sm-6 p-0">
 								<div class="input-group-prepend">
 									<span class="input-group-text"><i class="far fa-clock"></i></span>
 								</div>

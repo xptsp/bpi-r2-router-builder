@@ -102,7 +102,7 @@ echo '
 	</div>
 	<div class="card-body">
 		<div class="row" style="margin-top: 5px">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<label for="listening_on">Listening Interfaces:</label>
 			</div>
 			<div class="col-3">
@@ -117,7 +117,7 @@ echo '
 			</div>
 		</div>
 		<div class="row" style="margin-top: 5px">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<label for="ext_ifname">External Interface:</label>
 			</div>
 			<div class="col-3">
@@ -133,20 +133,20 @@ echo '
 			</div>
 		</div>
 		<div class="row" style="margin-top: 5px">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<label for="secure_mode">Enable Secure Mode: (Clients can only map to own IP)</label>
 
 			</div>
-			<div class="col-6">
+			<div class="col-sm-6">
 				', checkbox("secure_mode", '&nbsp;'), '
 			</div>
 		</div>
 		<div class="row">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<label for="enable_natpmp">Enable NAT Port Mapping Protocol:</label>
 
 			</div>
-			<div class="col-6">
+			<div class="col-sm-6">
 				', checkbox("enable_natpmp", '&nbsp;'), '
 			</div>
 		</div>

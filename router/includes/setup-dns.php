@@ -81,27 +81,27 @@ echo '
 	</div>
 	<div class="card-body">
 		<div class="row">
-			<div class="col-6">
+			<div class="col-sm-6">
 				<div class="form-group clearfix">
 					<div class="icheck-primary">
-						<input type="radio" id="dns_provider" value="alt" name="dns_server_opt"', $use_provider ? ' checked="checked"' : '', '>
-						<label for="dns_provider">Use Public DNS Servers</label>
-					</div>
-					<div class="icheck-primary">
-						<input type="radio" id="dns_cloud" value="cloudflared" name="dns_server_opt"', $cloudflared_mode != "N" ? ' checked="checked"' : '', '>
-						<label for="dns_cloud">Use Cloudflare DNS Servers (DoH)</label>
+						<input type="radio" id="dns_custom" value="custom" name="dns_server_opt"', $use_custom ? ' checked="checked"' : '', '>
+						<label for="dns_custom">Manually Set DNS Servers</label>
 					</div>
 					<div class="icheck-primary">
 						<input type="radio" id="dns_isp" value="isp" name="dns_server_opt"', $use_isp ? ' checked="checked"' : '', '>
 						<label for="dns_isp">Get Automatically from ISP</label>
 					</div>
 					<div class="icheck-primary">
-						<input type="radio" id="dns_custom" value="custom" name="dns_server_opt"', $use_custom ? ' checked="checked"' : '', '>
-						<label for="dns_custom">Manually Set DNS Servers</label>
+						<input type="radio" id="dns_cloud" value="cloudflared" name="dns_server_opt"', $cloudflared_mode != "N" ? ' checked="checked"' : '', '>
+						<label for="dns_cloud">Use Cloudflare DNS Servers (DoH)</label>
+					</div>
+					<div class="icheck-primary">
+						<input type="radio" id="dns_provider" value="alt" name="dns_server_opt"', $use_provider ? ' checked="checked"' : '', '>
+						<label for="dns_provider">Use Public DNS Servers</label>
 					</div>
 				</div>
 			</div>
-			<div class="col-6">
+			<div class="col-sm-6">
 				<div class="form-group">
 					<select class="provider form-control', !$use_provider ? ' hidden' : '', '" id="select_provider">';
 foreach ($providers as $provider)
@@ -120,10 +120,10 @@ echo '
 		<div id="dns_settings">
 			<hr />
 			<div class="row">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_address">Primary DNS Server</label>
 				</div>
-				<div class="col-4">
+				<div class="col-sm-4">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
@@ -131,7 +131,7 @@ echo '
 						<input id="dns1" type="text" placeholder="127.0.0.1" class="dns_address form-control" value="', explode("#", $primary . "#")[0], '"', !$use_isp ? ' disabled="disabled"' : '', '>
 					</div>
 				</div>
-				<div class="col-2">
+				<div class="col-sm-2">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text" title="Port Number"><i class="fas fa-hashtag"></i></span>
@@ -141,10 +141,10 @@ echo '
 				</div>
 			</div>
 			<div class="row" style="margin-top: 5px">
-				<div class="col-6">
+				<div class="col-sm-6">
 					<label for="ip_address">Secondary DNS Server</label>
 				</div>
-				<div class="col-4">
+				<div class="col-sm-4">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-laptop"></i></span>
@@ -152,7 +152,7 @@ echo '
 						<input id="dns2" type="text" placeholder="127.0.0.1" class="dns_address form-control" value="', explode("#", $secondary . "#")[0], '"', !$use_isp ? ' disabled="disabled"' : '', '>
 					</div>
 				</div>
-				<div class="col-2">
+				<div class="col-sm-2">
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text" title="Port Number"><i class="fas fa-hashtag"></i></span>
