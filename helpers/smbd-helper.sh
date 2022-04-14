@@ -95,20 +95,31 @@ function remove_shares()
 }
 
 case "$1" in
-	"start")
+	########################################################################
+	"mount")
 		check_params $2
 		usb_mount $2
 		add_shares
 		;;
-	"stop")
+	########################################################################
+	"umount")
 		check_params $2
 		usb_umount $2
 		remove_shares
 		add_shares
 		;;
-	"prep")
+	########################################################################
+	"start")
+		# SUBNET HACK: Figure out which interfaces to bind to:
+		cd /etc/network/interfaces.d
+		IFACES="$(for file in $(grep "inet static" * | cut -d":" -f 1); do grep "firewall" $file >& /dev/null || echo $file; done)"
+		sed -i "s|^    interfaces = .*$|    interfaces = ${IFACES}|" /etc/samba/smb.conf
+
+		# FUNCTIONALITY HACK: Remove any non-existant USB shares:
 		remove_shares
 		add_shares
+
+		# FUNCTIONALITY HACK: Add the WebUI samba share if requested in "/boot/persistent.conf":
 		test -f /boot/persistent.conf && source /boot/persistent.conf
 		if ! test -f /etc/samba/smb.d/webui.conf; then
 			if [[ "${WEBUI_SHARE:=n}" == "y" ]]; then
@@ -120,7 +131,8 @@ case "$1" in
 			rm /etc/samba/smb.d/webui.conf
 		fi
 		;;
+
 	*)
-		echo "Syntax: usb-helper.sh [start|stop|prep]"
+		echo "Syntax: usb-helper.sh [start|mount|umount]"
 		;;
 esac

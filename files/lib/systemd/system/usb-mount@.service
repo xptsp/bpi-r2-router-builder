@@ -4,5 +4,5 @@ Description=Mount USB Drive on %i
 [Service]
 Type=oneshot
 RemainAfterExit=true
-ExecStart=/opt/bpi-r2-router-builder/helpers/usb-helper.sh start %i
-ExecStop=/opt/bpi-r2-router-builder/helpers/usb-helper.sh stop %i
+ExecStart=/opt/bpi-r2-router-builder/helpers/smbd-helper.sh mount %i
+ExecStop=/opt/bpi-r2-router-builder/helpers/smbd-helper.sh umount %i
