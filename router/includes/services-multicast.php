@@ -23,7 +23,7 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'submit')
 	{
-		$options['listen_on'] = option_allowed("listen_on", $valid_listen, false);
+		$options['MULTICAST_IFACES'] = '"' . str_replace(",", "", option_allowed("listen_on", $valid_listen, false)) . '"';
 		apply_options("upnp");
 		die(shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh multicast move restart'));
 	}
