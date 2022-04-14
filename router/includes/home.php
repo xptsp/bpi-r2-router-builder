@@ -80,7 +80,7 @@ if (isset($_GET['sid']))
 				$status = 'Disconnected';
 			else
 				$status = strpos(@shell_exec('ping -I ' . $iface . ' -c 1 -W 1 8.8.8.8'), '1 received') > 0 ? 'Online' : 'Offline';
-			$arr['status'] .= show_interface_status($iface, $status, '/setup/wire' . ($wifi ? 'less' : 'd') . ($iface != 'wan' ? '?iface=' . $iface : ''), $wifi ? 'fa-wifi' : 'fa-ethernet');
+			$arr['status'] .= show_interface_status($iface, $status, '/setup/wire' . ($wifi ? 'less' : 'd') . '?iface=' . $iface, $wifi ? 'fa-wifi' : 'fa-ethernet');
 		}
 	}
 

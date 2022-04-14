@@ -261,3 +261,68 @@ function Bandwidth_Update()
 		$("#table_data").html('<tr><td colspan="4"><center><strong>AJAX Call Failed</strong></center></td></tr>');
 	});
 }
+
+//======================================================================================================
+// Javascript functions for "Services / UPnP Setup":
+//======================================================================================================
+function Init_Multicast()
+{
+	$("#refresh_switch").bootstrapSwitch();
+	$("#refresh_switch").on('switchChange.bootstrapSwitch', function(event, state) {
+		$("#apply_msg").html( $("#apply_default").html() );
+		$("#apply_cancel").addClass("hidden");
+		$("#apply-modal").modal("show");
+		$.post("/services/multicast", __postdata(state ? 'enable' : 'disable'), function(data) {
+			$("#apply-modal").modal("hide");
+			data = data.trim();
+			if (data == "RELOAD")
+				document.location.reload(true);
+			else if (data == "disable")
+				$("#disabled_div").slideDown(400);
+			else if (data == "enable")
+				$("#disabled_div").slideUp(400);
+			else
+			{
+				$("#apply_msg").html(data);
+				$(".alert_control").removeClass("hidden");
+			}
+		}).fail(function() {
+			$("#apply_msg").html("AJAX call failed");
+			$(".alert_control").removeClass("hidden");
+			$("#refresh_switch").bootstrapSwitch('state', !state, true);
+		});
+	});
+	$("#toggle_service").click(function() {
+		$("#refresh_switch").bootstrapSwitch('state', true);
+	});
+	$("#multicast_submit").click(Multicast_Submit);
+}
+
+function Multicast_Submit()
+{
+	// Assemble the post data for the AJAX call:
+	postdata = {
+		'sid':       SID,
+		'action':    'submit',
+		'listen_on': $("#listening_on").val().join(","),
+	};
+	//alert(JSON.stringify(postdata, null, 5)); return;
+
+	// Perform our AJAX request to change the WAN settings:
+	$("#apply_msg").html( $("#apply_default").html() );
+	$("#apply-modal").modal("show");
+	$("#apply_cancel").addClass("hidden");
+	$.post("/services/multicast", postdata, function(data) {
+		data = data.trim();
+		if (data == "RELOAD" || data == "OK")
+			document.location.reload(true);
+		else
+		{
+			$("#apply_msg").html(data);
+			$(".alert_control").removeClass("hidden");
+		}
+	}).fail(function() {
+		$("#apply_msg").html("AJAX call failed!");
+		$("#apply_cancel").removeClass("hidden");
+	});
+}

@@ -7,6 +7,8 @@ session_start();
 # If SID is passed and not equal to session variable SID, return "RELOAD" to caller:
 if (isset($_POST['sid']) && (empty($_SESSION['sid']) || $_POST['sid'] != $_SESSION['sid']))
 	die("RELOAD");
+if (isset($_GET['sid']) && (empty($_SESSION['sid']) || $_GET['sid'] != $_SESSION['sid']))
+	die("RELOAD");
 
 # If no action has been passed, assume we want the basic router status:
 $_GET['action'] = empty($_GET['action']) ? 'home' : ($_GET['action'] != '/' ? $_GET['action'] : 'home');
@@ -16,6 +18,13 @@ $include_js = $include_js == 'site-ajax' ? '' : $include_js;
 
 # Decide whether the user is logged in or not:
 $logged_in = isset($_SESSION['login_valid_until']) && $_SESSION['login_valid_until'] >= time();
+
+# If we are not logged and not using the login page, check to see if the "remember_me" cookie is valid:
+if (!$logged_in && isset($_COOKIE["remember_me"]) && isset($_SESSION['sid']))
+{
+	if ($logged_in = ($_COOKIE["remember_me"] == $_SESSION['sid']))
+		setcookie("remember_me", $_COOKIE["remember_me"] = $_SESSION['sid'], time() + $_SESSION['session_length']);
+}
 
 # If user is logging out OR if the "sid" session variable isn't set, do the logout routine:
 if (!$logged_in || $_GET['action'] == 'logout')
@@ -34,7 +43,7 @@ if (!isset($_SESSION['dark_mode']))
 if (!$logged_in)
 	unset($_SESSION['sid']);
 else
-	$_SESSION['login_valid_until'] = max($_SESSION['login_valid_until'], time() + 600);
+	$_SESSION['login_valid_until'] = time() + $_SESSION['session_length'];
 
 # If we are not logged it, redirect all page requests to the "Login" page:
 if (!$logged_in && $_GET['action'] != 'login')
@@ -55,8 +64,11 @@ if (!isset($_SESSION['sid']))
 #echo $_SESSION['sid']; exit;
 
 # Include the PHP site framework functions from the "includes" directory:
-foreach (glob('includes/plugins/hook-*.php') as $file)
-	require_once($file);
+foreach (glob('includes/plugins/*', GLOB_ONLYDIR) as $dir)
+{
+	foreach (glob($dir . '/hook-*.php') as $file)
+		require_once($file);
+}
 
 # Call any needed functions for the specified action:
 $include_file = (file_exists('includes/' . $_GET['action'] . '.php') ? ($_GET['action'] != 'template' ? $_GET['action'] : '404') : '404');;

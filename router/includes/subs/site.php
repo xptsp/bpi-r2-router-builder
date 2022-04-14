@@ -30,6 +30,7 @@ $sidebar_menu = array(
 		'upnp'      => menu_link('/services/upnp', 'UPnP Setup', 'fas fa-plug', file_exists("/lib/systemd/system/miniupnpd.service")),
 		'usage'     => menu_link('/services/bandwidth', 'Bandwidth Usage', 'fas fa-chart-bar', file_exists("/lib/systemd/system/vnstat.service")),
 		'trans'     => menu_link('/services/transmission', 'Transmission Daemon', 'fas fa-file-download', file_exists("/lib/systemd/system/transmission-daemon.service")),
+		'multicast' => menu_link('/services/multicast', 'Multicast Relay Setup', 'fab fa-chromecast', file_exists("/lib/systemd/system/multicast-relay.service")),
 	)),
 	'manage'  => array('Management', 'fas fa-cog', array(
 		'status'   => menu_link('/manage/status', 'Router Status', 'fas fa-ethernet'),

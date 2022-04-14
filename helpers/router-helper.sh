@@ -809,7 +809,7 @@ case $CMD in
 			elif [[ "${action}" == "disable" ]]; then
 				systemctl disable --now miniupnpd
 			elif [[ "${action}" == "move" ]]; then
-				if ! test -f /tmp/router-settings; then echo "ERROR: Fle does not exist!"; exit; fi
+				if ! test -f /tmp/router-settings; then echo "ERROR: File does not exist!"; exit; fi
 				mv /tmp/router-settings /etc/miniupnpd/miniupnpd.conf
 			else
 				[[ "$action" != "-h" ]] && echo "ERROR: Invalid option passed!"
@@ -818,6 +818,31 @@ case $CMD in
 				echo "    enable       - Enables and (re)starts the miniupnpd service"
 				echo "    disable      - Disables and stops the miniupnpd service if running"
 				echo "    restart      - Restarts the miniupnpd service if running"
+				exit 1
+			fi
+		done
+		echo "OK"
+		;;
+
+	###########################################################################
+	multicast)
+		for action in $@; do
+			if [[ "${action}" == "enable" ]]; then
+				systemctl enable --now multicast-relay >& /dev/null
+			elif [[ "${action}" == "restart" ]]; then
+				systemctl is-active multicast-relay >& /dev/null && systemctl restart multicast-relay
+			elif [[ "${action}" == "disable" ]]; then
+				systemctl disable --now multicast-relay
+			elif [[ "${action}" == "move" ]]; then
+				if ! test -f /tmp/router-settings; then echo "ERROR: File does not exist!"; exit; fi
+				mv /tmp/router-settings /etc/default/multicast-relay
+			else
+				[[ "$action" != "-h" ]] && echo "ERROR: Invalid option passed!"
+				echo "SYNTAX: $(basename $0) multicast [cmd]"
+				echo "Where [cmd] is:"
+				echo "    enable       - Enables and (re)starts the multicast-relay service"
+				echo "    disable      - Disables and stops the multicast-relay service if running"
+				echo "    restart      - Restarts the multicast-relay service if running"
 				exit 1
 			fi
 		done

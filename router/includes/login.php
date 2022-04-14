@@ -13,7 +13,8 @@ if (isset($_POST['action']))
 			die("Invalid");
 
 		// Set "login_valid_until" session variable, then return "OK" to the caller:
-		$_SESSION['login_valid_until'] = time() + 60 * ((isset($_POST['remember']) && $_POST['remember'] == "Y") ? 60*24 : 10);
+		$_SESSION['session_length'] = 60 * ((isset($_POST['remember']) && $_POST['remember'] == "Y") ? 60*24 : 10);
+		$_SESSION['login_valid_until'] = time() + $_SESSION['session_length'];
 		die("OK");
 	}
 	die("Invalid action");
