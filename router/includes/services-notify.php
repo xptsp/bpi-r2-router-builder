@@ -1,5 +1,18 @@
 <?php
+require_once("subs/manage.php");
+require_once("subs/setup.php");
+
 $options = parse_options();
+$ifaces = get_network_adapters();
+#echo '<pre>'; print_r($ifaces); exit();
+$ext_ifaces = explode("\n", @trim(@shell_exec("grep masquerade /etc/network/interfaces.d/* | cut -d: -f 1 | cut -d\/ -f 5")));
+#echo '<pre>'; print_r($ext_ifaces); exit();
+$exclude_arr = array("docker0", "lo", "sit0", "eth0", "eth1", "aux");
+#echo $exclude_regex; exit;
+$valid_listen = array_diff( array_keys($ifaces), $exclude_arr, $ext_ifaces );
+#echo '<pre>'; print_r($valid_listen); exit();
+$listen = explode(" ", str_replace('"', '', isset($options['mosquitto_ifaces']) ? $options['mosquitto_ifaces'] : ''));
+#echo '<pre>'; print_r($listen); exit();
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
@@ -85,6 +98,22 @@ echo '
 						</div>
 						<input id="password" type="text" class="form-control" value="', $options['mosquitto_pass'], '">
 					</div>
+				</div>
+			</div>
+			<hr style="border-width: 2px" />
+			<div class="row" style="margin-top: 5px">
+				<div class="col-sm-6">
+					<label for="listening_on">Notification Interfaces:</label>
+				</div>
+				<div class="col-sm-3">
+					<select class="form-control" id="send_on" multiple="multiple">';
+foreach ($valid_listen as $tface)
+{
+	echo '
+						<option value="', $tface, '"', in_array($tface, $listen) ? ' selected="selected"' : '', '>' . $tface . '</option>';
+}
+echo '
+					</select>
 				</div>
 			</div>
 		</div>

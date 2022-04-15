@@ -103,6 +103,9 @@ mosquitto_user=pi
 # Password of the username in the mosquitto server.  Accepts a string.  Default: bananapi
 mosquitto_pass=bananapi
 
+# Interfaces to send DHCP notifications on, surrounded by quotes and seperated by spaces.  Default: "br0 ap0"
+mosquitto_ifaces="br0 ap0"
+
 ##########################################################################
 # WebUI Manage / WebUI Management
 ##########################################################################

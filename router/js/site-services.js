@@ -105,6 +105,7 @@ function Notify_Apply()
 		'ip_port':    $("#ip_port").val(),
 		'username':   $("#username").val(),
 		'password':   $("#password").val(),
+		'send_on':    $("#send_on").val().join(","),
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
