@@ -11,7 +11,7 @@ function Init_Stats()
 	$("#refresh_switch").bootstrapSwitch();
 }
 
-function Stats_Update(iface)
+function Stats_Fetch(iface)
 {
 	$.post("/manage/status", __postdata("status", iface), function(data) {
 		if (data == "RELOAD")
