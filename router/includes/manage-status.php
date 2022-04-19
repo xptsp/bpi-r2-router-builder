@@ -23,12 +23,13 @@ function Show_Interface($iface, $config, $ip_sensitive = false, $wireless = fals
 
 	# Gather information about the hostapd configuration:
 	$iface_up = trim(@shell_exec("ifconfig " . $iface . " | head -1 | grep UP"));
-	if ($iface_up && file_exists("/etc/hostapd/" . $iface . ".conf"))
+	if ($iface_up && !isset($config['wpa_ssid']) && file_exists("/etc/hostapd/" . $iface . ".conf"))
 	{
 		$apd = parse_options("/etc/hostapd/" . $iface . ".conf");
 		if (trim(@shell_exec("systemctl is-active hostapd@" . $iface)) != 'active')
 			return;
-		$iface_type = (isset($apd['ignore_broadcast_ssid']) && $apd['ignore_broadcast_ssid'] == '1' ? 'Hidden ' : '') . 'Access Point';
+		$iface_type = (isset($apd['ignore_broadcast_ssid']) && $apd['ignore_broadcast_ssid'] == '1' ? 'Hidden ' : '');
+		$iface_type .= ($apd['hw_mode'] == 'a' ? '5 GHz' : '2.4 GHz') . ' Access Point';
 	}
 	else
 		$iface_type = isset($config['bridge_ports']) ? 'Bridge Interface' : (isset($config['masquerade']) ? 'Internet Interface' : (isset($config['wpa_ssid']) ? 'Wireless Client' : 'Wired Interface'));
