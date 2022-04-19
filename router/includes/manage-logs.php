@@ -52,7 +52,8 @@ if ($pages > 1)
 # Output everything:
 site_menu();
 echo '
-<div class="col-12 col-sm-12">
+<div class="row">
+<div class="col-sm-12">
 	<div class="card card-tabs card-primary">
 		<div class="card-header">
 			Selected Logs: <select id="which">';
@@ -63,10 +64,17 @@ foreach ($cmds as $cmd => $arr)
 echo '
 			</select>
         </div>
-        <div class="card p-0 pt-1">
-			<div class="card-header">
-				<div class="card-tools">
-					<div class="input-group input-group-sm">
+		<div class="card-body">
+			<div class="row">
+				<div class="col-8">';
+if ($pages > 1)
+	echo '
+					<ul class="pagination pagination-sm m-0" id="pages">', $pagination, '
+					</ul>';
+echo '
+				</div>
+				<div class="col-4">
+					<div class="float-right input-group input-group-sm">
 						<input type="text" id="search" class="form-control float-right" placeholder="Search">
 						<div class="input-group-append">
 							<button type="submit" class="btn btn-default">
@@ -74,18 +82,13 @@ echo '
 							</button>
 						</div>
 					</div>
-				</div>';
-if ($pages > 1)
-	echo '
-				<ul class="pagination pagination-sm m-0" id="pages">', $pagination, '
-				</ul>';
-echo '
+				</div>
 			</div>
-			<div class="card-body">
-				<pre id="lines">' . "\n" . $lines . '</pre>
-			</div>
+			<hr />
+			<pre id="lines">' . "\n" . $lines . '</pre>
 		</div>
-	</div>';
+	</div>
+</div>';
 
 # Wrap it up:
 apply_changes_modal("Please wait while the logs are being loaded...", true);
