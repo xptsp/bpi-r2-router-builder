@@ -29,7 +29,7 @@ function Show_Interface($iface, $config, $ip_sensitive = false, $wireless = fals
 		if (trim(@shell_exec("systemctl is-active hostapd@" . $iface)) != 'active')
 			return;
 		$iface_type = (isset($apd['ignore_broadcast_ssid']) && $apd['ignore_broadcast_ssid'] == '1' ? 'Hidden ' : '');
-		$iface_type .= ($apd['hw_mode'] == 'a' ? '5 GHz' : '2.4 GHz') . ' Access Point';
+		$iface_type .= ($apd['hw_mode'] == 'a' ? '5 GHz' : ($apd['hw_mode'] == 'ad' ? '60 GHz' : '2.4 GHz')) . ' Access Point';
 	}
 	else
 		$iface_type = isset($config['bridge_ports']) ? 'Bridge Interface' : (isset($config['masquerade']) ? 'Internet Interface' : (isset($config['wpa_ssid']) ? 'Wireless Client' : 'Wired Interface'));
