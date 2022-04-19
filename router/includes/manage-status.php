@@ -1,6 +1,122 @@
 <?php
 require_once("subs/manage.php");
 
+# Set this variable to "true" to hide internet WAN addresses & wifi access point names:
+$override_blur = false;
+
+#######################################################################################################
+# Function that shows information about the interface requested:
+#######################################################################################################
+function Show_Interface($iface, $config, $ip_sensitive = false, $wireless = false)
+{
+	global $init_str, $override_blur;
+	$blur_ip = ($ip_sensitive && $override_blur) ? ' style="filter: blur(4px);"' : '';
+	$blur_wifi = ($wireless && $override_blur) ? ' style="filter: blur(4px);"' : '';
+
+	# Gather information about the interface in question:
+	$ifconfig = parse_ifconfig($iface);
+	$type = strpos($config['iface'], 'dhcp') > 0 ? 'DHCP' : 'Static';
+	$gateway = trim(@shell_exec("route -n | grep " . $iface . " | head -1 | awk '{print $2}'"));
+	$gateway = !empty($gateway) ? ($gateway == '0.0.0.0' ? 'Default <i>(' . $gateway . ')</i>' : $gateway) : '<i>Disconnected</i>';
+	$bridged = explode(" ", isset($config["bridge_ports"]) ? $config["bridge_ports"] : '');
+	array_shift($bridged);
+
+	# Gather information about the hostapd configuration:
+	$iface_up = trim(@shell_exec("ifconfig " . $iface . " | head -1 | grep UP"));
+	if ($iface_up && file_exists("/etc/hostapd/" . $iface . ".conf"))
+	{
+		$apd = parse_options("/etc/hostapd/" . $iface . ".conf");
+		if (trim(@shell_exec("systemctl is-active hostapd@" . $iface)) != 'active')
+			return;
+		$iface_type = (isset($apd['ignore_broadcast_ssid']) && $apd['ignore_broadcast_ssid'] == '1' ? 'Hidden ' : '') . 'Access Point';
+	}
+	else
+		$iface_type = isset($config['bridge_ports']) ? 'Bridge Interface' : (isset($config['masquerade']) ? 'Internet Interface' : (isset($config['wpa_ssid']) ? 'Wireless Client' : 'Wired Interface'));
+
+	# Start outputting information about the interface:
+	echo '
+		<div class="col-md-6">
+			<div class="card card-', $iface_up ? 'primary' : 'danger', '">
+				<div class="card-header">
+					<h3 class="card-title">', $iface_type, ': <strong>', $iface, '</strong></h3>
+				</div>
+				<!-- /.card-header -->
+				<div class="card-body table-responsive p-0">
+					<table class="table table-hover text-nowrap">';
+	if (isset($config['wpa_ssid']) || isset($apd['ssid']))
+		echo '
+						<tr>
+							<td><strong>Wireless SSID:</strong></td>
+							<td><span', $blur_wifi, '>', isset($config['wpa_ssid']) ? $config['wpa_ssid'] : $apd['ssid'], '</span></td>
+						</tr>';
+	echo '
+						<tr>
+							<td><strong>', $type, ' IP Address:</strong></td>
+							<td><span', $blur_ip, '>', isset($ifconfig['inet']) ? $ifconfig['inet'] : '<i>Disconnected</i>', '<span></td>
+						</tr>
+						<tr>
+							<td width="50%"><strong>Network Subnet:</strong></td>
+							<td><span', $blur_ip, '>', isset($ifconfig['netmask']) ? $ifconfig['netmask'] : '<i>Disconnected</i>', '</span></td>
+						</tr>
+						<tr>
+							<td><strong>', $type == 'Static' ? 'Gateway' : 'DHCP', ' IP Address:</strong></td>
+							<td><span', $blur_ip, $type == 'DHCP' ? ' id="' . $iface . '_dhcp_server"><i>Retrieving...</i>' : '>' . $gateway, '</td>
+						</tr>';
+	if ($type == 'DHCP')
+	{
+		$init_str[] = "\n\t" . 'Stats_Fetch("' . $iface . '");';
+		echo '
+						<tr>
+							<td><strong>DHCP Lease Began:</strong></td>
+							<td id="', $iface, '_dhcp_begin"><i>Retrieving...</i></td>
+						</tr>
+						<tr>
+							<td><strong>DHCP Lease Expires:</strong></td>
+							<td id="', $iface, '_dhcp_expire"><i>Retrieving...</i></td>
+						</tr>';
+	}
+	if (count($bridged) > 0)
+		echo '
+						<tr>
+							<td width="50%"><strong>Bridged Interfaces:</strong></td>
+							<td>', implode(', ', $bridged), '</td>
+						</tr>';
+	echo '
+						<tr>
+							<td width="50%"><strong>MAC Address:</strong></td>
+							<td>', isset($ifconfig['ether']) ? strtoupper($ifconfig['ether']) : '<i>Disconnected</i>', '</td>
+						</tr>
+					</table>
+				</div>
+				<!-- /.card-body -->
+			</div>
+			<!-- /.card -->
+		</div>
+		<!-- /.col -->';
+}
+
+#######################################################################################################
+# Gather the list of interfaces we care about:
+#######################################################################################################
+$other = $wireless = array();
+foreach (explode("\n", @trim(@shell_exec("iw dev | grep Interface | awk '{print $2}' | sort"))) as $iface)
+{
+	$config = get_mac_info($iface);
+	if (isset($config['wpa_ssid']) || file_exists("/etc/hostapd/" . $iface . ".conf"))
+		$wireless[$iface] = get_mac_info($iface);
+}
+#echo '<pre>'; print_r($wireless); exit;
+foreach (glob("/etc/network/interfaces.d/*") as $file)
+{
+	if (!isset($wireless[ $iface = basename($file) ]))
+	{
+		$config = get_mac_info($iface);
+		if (isset($config['address']) || isset($config['masquerade']))
+			$other[$iface] = $config;
+	}
+}
+#echo '<pre>'; print_r($other); exit;
+
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
 #################################################################################################
@@ -16,25 +132,35 @@ if (isset($_POST['action']))
 	###################################################################################################
 	# ACTION: STATUS ==> Return information for the "Router Status" page:
 	###################################################################################################
-	else if ($_POST['action'] == 'status')
+	else if ($_POST['action'] == 'status' || $_POST['action'] == 'refresh')
 	{
-		header('Content-type: application/json');
-		$dhcp = explode(' ', trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp info')) . " 0 0");
-
-		$year = date("Y");
-		$dhcp_begin = strtotime("$dhcp[1] $dhcp[2] $year $dhcp[3]");
-		if ($dhcp_begin > time())
+		$iface = option_allowed("misc", array_keys( array_merge($wireless, $other) ));
+		if ($_POST['action'] == 'refresh' || (isset($_SESSION['dhcp']) && $_SESSION['dhcp']['int_dhcp_end'] < time()))
+			unset($_SESSION[$iface . '_dhcp']);
+		if (!isset($_SESSION[$iface . '_dhcp']))
 		{
-			$year = ((int) $year) - 1;
+			$dhcp = explode(' ', trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp info ' . $iface)) . " 0 0");
+
+			$year = date("Y");
 			$dhcp_begin = strtotime("$dhcp[1] $dhcp[2] $year $dhcp[3]");
+			if ($dhcp_begin > time())
+			{
+				$year = ((int) $year) - 1;
+				$dhcp_begin = strtotime("$dhcp[1] $dhcp[2] $year $dhcp[3]");
+			}
+			$dhcp_expire = $dhcp_begin + intval($dhcp[4]);
+
+			$_SESSION[$iface . '_dhcp'] = array(
+				'dhcp_server'  => $dhcp[0],
+				'dhcp_begin'   => date('Y-m-d H:i:s', $dhcp_begin),
+				'dhcp_expire'  => date('Y-m-d H:i:s', $dhcp_expire),
+				'dhcp_refresh' => $dhcp_expire - time(),
+				'int_dhcp_beg' => $dhcp_begin,
+				'int_dhcp_end' => $dhcp_expire,
+			);
 		}
-		$dhcp_expire = $dhcp_begin + intval($dhcp[4]);
-		die(json_encode(array(
-			'dhcp_server'  => $dhcp[0],
-			'dhcp_begin'   => date('Y-m-d H:i:s', $dhcp_begin),
-			'dhcp_expire'  => date('Y-m-d H:i:s', $dhcp_expire),
-			'dhcp_refresh' => $dhcp_expire - time()
-		)));
+		header('Content-type: application/json');
+		die(json_encode($_SESSION[$iface . '_dhcp']));
 	}
 	###################################################################################################
 	# ACTION: NETWORK ==> Display statistics for each interface:
@@ -97,122 +223,90 @@ if (isset($_POST['action']))
 #######################################################################################################
 # Gather as much information before starting the overview display as we can:
 #######################################################################################################
-$load = sys_getloadavg();
-$br0 = parse_ifconfig('br0');
-$wan = get_mac_info('wan');
-$wan_if = parse_ifconfig('wan');
 $dns = get_dns_servers();
-$type = strpos($wan['iface'], 'dhcp') > 0 ? 'DHCP' : 'Static IP';
-$power_button = file_exists("/etc/modprobe.d/power_button.conf");
-$model = str_replace("Bananapi", "Banana Pi", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh status machine')));
-$debian_version = @file_get_contents('/etc/debian_version');
+if (!isset($_SESSION['machine_name']))
+	$_SESSION['machine_name'] = str_replace("Bananapi", "Banana Pi", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh status machine')));
+$init_str = array();
 
 #######################################################################################################
-# Display information about the router:
+# Display information about the OS:
 #######################################################################################################
 site_menu();
 echo '
 <div class="container-fluid">
+	<h3>System Overview</h3>
 	<div class="row">
 		<div class="col-md-6">
 			<div class="card card-primary">
 				<div class="card-header">
-					<h3 class="card-title">Router Information</h3>
+					<h3 class="card-title">Operating System</h3>
 				</div>
 				<!-- /.card-header -->
 				<div class="card-body table-responsive p-0">
 					<table class="table table-hover text-nowrap">
 						<tr>
-							<td><strong>Internal IP Address</strong></td>
-							<td>', $br0['inet'], '</td>
+							<td width="50%"><strong>Machine Model:</strong></td>
+							<td>', !empty($_SESSION['machine_name']) ? $_SESSION['machine_name'] : 'Unknown', '</td>
 						</tr>
 						<tr>
-							<td width="50%"><strong>Internal MAC Address</strong></td>
-							<td>', strtoupper(trim($br0['ether'])), '</td>
+							<td width="50%"><strong>OS Version:</strong></td>
+							<td>Debian ', ucwords(parse_options("/etc/os-release")['VERSION_CODENAME']), ' ', @trim(@file_get_contents("/etc/debian_version")), '</td>
 						</tr>
 						<tr>
-							<td colspan="2"><strong><i>Operating System Information</i></strong></td>
-						</tr>
-						<tr>
-							<td width="50%"><strong>Machine Model</strong></td>
-							<td>', !empty($model) ? $model : 'Unknown', '</td>
-						</tr>
-						<tr>
-							<td><strong>OS Version</strong></td>
-							<td>Debian ', $debian_version < 11 ? 'Buster' : 'Bullseye', ' ', $debian_version, '</td>
-						</tr>
-						<tr>
-							<td><strong>OS Kernel</strong></td>
+							<td width="50%"><strong>OS Kernel:</strong></td>
 							<td>', explode(' ', @file_get_contents('/proc/version'))[2], '</td>
 						</tr>
 						<tr>
-							<td><strong>Web UI Version</strong></td>
-							<td>v', $_SESSION['webui_version'], '</td>
+							<td width="50%"><strong>DNS Addresses:</strong></td>
+							<td>', $dns[0], isset($dns[1]) ? ', ' . $dns[1] : '', '</td>
 						</tr>
-						<tr>
-							<td><strong>Wifi Regulatory Database</strong></td>
-							<td>v', $_SESSION['regdb_version'], '</td>
-						</tr>
-
 					</table>
 				</div>
 				<!-- /.card-body -->
 				<div class="card-footer">
 					<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-danger center_50" data-toggle="modal" data-target="#reboot-modal" id="reboot_button">Reboot Router</button></a>
 				</div>
-				<!-- /.card-body -->
 			</div>
 			<!-- /.card -->
 		</div>
 		<!-- /.col -->';
 
 #######################################################################################################
-# Display information about the Internet Port ("wan" interface):
+# Display information about the integrated Git repositories:
 #######################################################################################################
+foreach (array("webui", "regdb", "stats", "multicast-relay") as $repo)
+{
+	if (!isset($_SESSION[$repo . '_version']))
+	{
+		$time = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current ' . $repo));
+		$_SESSION[$repo . '_version'] = ($time == (int) $time ? date('Y.md.Hi', (int) $time) : "Invalid Data");
+	}
+}
 echo '
 		<div class="col-md-6">
 			<div class="card card-primary">
 				<div class="card-header">
-					<h3 class="card-title">Internet Port</h3>
+					<h3 class="card-title">Git Repositories</h3>
 				</div>
 				<!-- /.card-header -->
 				<div class="card-body table-responsive p-0">
 					<table class="table table-hover text-nowrap">
 						<tr>
-							<td><strong>External IP Address</strong></td>
-							<td>', isset($wan_if['inet']) ? $wan_if['inet'] : '<i>Disconnected</i>', '</td>
+							<td width="50%"><strong>WebUI Version:</strong></td>
+							<td>v', $_SESSION['webui_version'], '</td>
 						</tr>
 						<tr>
-							<td><strong>External Subnet Mask</strong></td>
-							<td>', isset($wan_if['netmask']) ? $wan_if['netmask'] : '<i>Disconnected</i>', '</td>
+							<td width="50%"><strong>Wifi Regulatory Database:</strong></td>
+							<td>v', $_SESSION['regdb_version'], '</td>
 						</tr>
 						<tr>
-							<td width="50%"><strong>External MAC Address</strong></td>
-							<td>', isset($wan_if['ether']) ? strtoupper($wan_if['ether']) : '<i>Disconnected</i>', '</td>
+							<td width="50%"><strong>SSD1306 Stats Display:</strong></td>
+							<td>v', $_SESSION['stats_version'], '</td>
 						</tr>
 						<tr>
-							<td><strong>Domain Name Server', isset($dns[1]) ? 's' : '', '</strong></td>
-							<td>', $dns[0], isset($dns[1]) ? ', ' . $dns[1] : '', '</td>
+							<td width="50%"><strong>Multicast Relay:</strong></td>
+							<td>v', $_SESSION['multicast-relay_version'], '</td>
 						</tr>
-						<tr>
-							<td><strong>Connection</strong></td>
-							<td id="connection_type">', $type, '</td>
-						</tr>';
-if ($type == 'DHCP')
-	echo '
-						<tr>
-							<td><strong>External DHCP Server</strong></td>
-							<td id="dhcp_server"><i>Retrieving...</i></td>
-						</tr>
-						<tr>
-							<td><strong>DHCP Lease Began</strong></td>
-							<td id="dhcp_begin"><i>Retrieving...</i></td>
-						</tr>
-						<tr>
-							<td><strong>DHCP Lease Expires</strong></td>
-							<td id="dhcp_expire"><i>Retrieving...</i></td>
-						</tr>';
-echo '
 					</table>
 				</div>
 				<!-- /.card-body -->
@@ -222,43 +316,55 @@ echo '
 			</div>
 			<!-- /.card -->
 		</div>
-		<!-- /.col -->';
+		<!-- /.col -->
+	</div>';
 
 #######################################################################################################
-# Display information about the normal Wireless Network (2.4GHz)
+# Display information about the wired and bridge interfaces:
 #######################################################################################################
 echo '
+	<h3>Wired Interfaces</h3>
+	<div class="row">';
+foreach ($other as $iface => $config)
+	Show_Interface($iface, $config, $iface == 'wan');
+
+#######################################################################################################
+# Display information about the Wireless Networks:
+#######################################################################################################
+echo '
+	</div>
+	<h3>Active Wireless Interfaces</h3>
+	<div class="row">';
+foreach ($wireless as $iface => $config)
+	Show_Interface($iface, $config, false, $iface != 'ap0');
+
+/*
+{
+	$wifi_mode = isset($apd['hw_mode']) ? $apd['hw_mode'] : '';
+	echo '
 		<div class="col-md-6">
 			<div class="card card-primary">
 				<div class="card-header">
-					<h3 class="card-title">Wireless Network (2.4GHz)</h3>
+					<h3 class="card-title">Wireless Network: <strong>', $iface, '</strong></h3>
 				</div>
 				<!-- /.card-header -->
 				<div class="card-body table-responsive p-0">
 					<table class="table table-hover text-nowrap">
 						<tr>
-							<td width="50%"><strong>Name (SSID)</strong></td>
-							<td>N/A</td>
+							<td><strong>Wireless Mode:</strong></td>
+							<td>', $wifi_mode, '</td>
 						</tr>
 						<tr>
-							<td><strong>Region</strong></td>
-							<td>N/A</td>
+							<td width="50%"><strong>Wireless SSID:</strong></td>
+							<td>', isset($apd['ssid']) ? $apd['ssid'] : '', '</td>
 						</tr>
 						<tr>
-							<td><strong>Channel</strong></td>
-							<td>N/A</td>
+							<td><strong>Wireless Channel:</strong></td>
+							<td>', !empty($apd['channel']) ? $apd['channel'] : 'Auto-Select', '</td>
 						</tr>
 						<tr>
-							<td><strong>Mode</strong></td>
-							<td>N/A</td>
-						</tr>
-						<tr>
-							<td><strong>Wireless AP</strong></td>
-							<td>N/A</td>
-						</tr>
-						<tr>
-							<td><strong>Broadcast Name</strong></td>
-							<td>N/A</td>
+							<td><strong>Broadcast Status:</strong></td>
+							<td>', isset($apd['ignore_broadcast_ssid']) && $apd['ignore_broadcast_ssid'] == '1' ? 'Hidden' : 'Visible', '</td>
 						</tr>
 					</table>
 				</div>
@@ -267,122 +373,8 @@ echo '
 			<!-- /.card -->
 		</div>
 		<!-- /.col -->';
-
-#######################################################################################################
-# Display information about the normal Wireless Network (5GHz)
-#######################################################################################################
-echo '
-		<div class="col-md-6">
-			<div class="card card-primary">
-				<div class="card-header">
-					<h3 class="card-title">Wireless Network (5GHz)</h3>
-				</div>
-				<!-- /.card-header -->
-				<div class="card-body table-responsive p-0">
-					<table class="table table-hover text-nowrap">
-						<tr>
-							<td width="50%"><strong>Name (SSID)</strong></td>
-							<td>N/A</td>
-						</tr>
-						<tr>
-							<td><strong>Region</strong></td>
-							<td>N/A</td>
-						</tr>
-						<tr>
-							<td><strong>Channel</strong></td>
-							<td>N/A</td>
-						</tr>
-						<tr>
-							<td><strong>Mode</strong></td>
-							<td>N/A</td>
-						</tr>
-						<tr>
-							<td><strong>Wireless AP</strong></td>
-							<td>N/A</td>
-						</tr>
-						<tr>
-							<td><strong>Broadcast Name</strong></td>
-							<td>N/A</td>
-						</tr>
-					</table>
-				</div>
-				<!-- /.card-body -->
-			</div>
-			<!-- /.card -->
-		</div>
-		<!-- /.col -->';
-
-#######################################################################################################
-# Display information about the Guest Wireless Network (2.4GHz)
-#######################################################################################################
-echo '
-		<div class="col-md-6">
-			<div class="card card-primary">
-				<div class="card-header">
-					<h3 class="card-title">Guest Network (2.4GHz)</h3>
-				</div>
-				<!-- /.card-header -->
-				<div class="card-body table-responsive p-0">
-					<table class="table table-hover text-nowrap">
-						<tr>
-							<td width="50%"><strong>Name (SSID)</strong></td>
-							<td>N/A</td>
-						</tr>
-						<tr>
-							<td><strong>Wireless AP</strong></td>
-							<td>N/A</td>
-						</tr>
-						<tr>
-							<td><strong>Broadcast Name</strong></td>
-							<td>N/A</td>
-						</tr>
-						<tr>
-							<td><strong>Can access local network</strong></td>
-							<td>N/A</td>
-						</tr>
-					</table>
-				</div>
-				<!-- /.card-body -->
-			</div>
-			<!-- /.card -->
-		</div>
-		<!-- /.col -->';
-
-#######################################################################################################
-# Display information about the Guest Wireless Network (5GHz)
-#######################################################################################################
-echo '
-		<div class="col-md-6">
-			<div class="card card-primary">
-				<div class="card-header">
-					<h3 class="card-title">Guest Network (5GHz)</h3>
-				</div>
-				<!-- /.card-header -->
-				<div class="card-body table-responsive p-0">
-					<table class="table table-hover text-nowrap">
-						<tr>
-							<td width="50%"><strong>Name (SSID)</strong></td>
-							<td>N/A</td>
-						</tr>
-						<tr>
-							<td><strong>Wireless AP</strong></td>
-							<td>N/A</td>
-						</tr>
-						<tr>
-							<td><strong>Broadcast Name</strong></td>
-							<td>N/A</td>
-						</tr>
-						<tr>
-							<td><strong>Can access local network</strong></td>
-							<td>N/A</td>
-						</tr>
-					</table>
-				</div>
-				<!-- /.card-body -->
-			</div>
-			<!-- /.card -->
-		</div>
-		<!-- /.col -->';
+}
+*/
 
 #######################################################################################################
 # Close this overview page:
@@ -417,4 +409,4 @@ echo '
 </div>';
 reboot_modal();
 
-site_footer('Init_Stats();');
+site_footer('Init_Stats();' . implode("\n\t", $init_str));

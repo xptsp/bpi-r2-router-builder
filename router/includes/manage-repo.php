@@ -106,7 +106,7 @@ echo '
 show_repo('Web UI', 'webui', 'https://github.com/xptsp/bpiwrt-builder', 'xptsp/bpiwrt-builder');
 show_repo('Wifi Regulatory Database', 'regdb', 'https://git.kernel.org/pub/scm/linux/kernel/git/sforshee/wireless-regdb.git/');
 show_repo('SSD1306 Stats Display', 'stats', 'https://github.com/xptsp/bpi-r2-ssd1306-display', 'xptsp/bpi-r2-ssd1306-display');
-show_repo('Multicast-Relay', 'multicast-relay', 'https://github.com/alsmith/multicast-relay', 'alsmith/multicast-relay');
+show_repo('Multicast Relay', 'multicast-relay', 'https://github.com/alsmith/multicast-relay', 'alsmith/multicast-relay');
 echo '
 	</div>
 </div>';

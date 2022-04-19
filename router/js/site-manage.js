@@ -3,7 +3,6 @@
 //======================================================================================================
 function Init_Stats()
 {
-	Stats_Update();
 	$("#stats_button").click(Stats_Network_Show);
 	$("#stats_close").click(Stats_Network_Close);
 	$("#reboot_button").click(Stats_Reboot_Button);
@@ -12,28 +11,25 @@ function Init_Stats()
 	$("#refresh_switch").bootstrapSwitch();
 }
 
-function Stats_Update()
+function Stats_Update(iface)
 {
-	if ($("#connection_type").html() == "DHCP")
-	{
-		$.post("/manage/status", __postdata("status"), function(data) {
-			if (data == "RELOAD")
-				document.location.reload(true);
-			$("#dhcp_server").html( data.dhcp_server );
-			$("#dhcp_begin").html( data.dhcp_begin );
-			$("#dhcp_expire").html( data.dhcp_expire );
-			timer = setInterval(function() {
-				if (timer === 0) {
-					clearInterval(timer);
-					Stats_Update();
-				}
-			}, data.dhcp_refresh + 60);
-		}).fail(function() {
-			$("#dhcp_server").html('AJAX call failed');
-			$("#dhcp_begin").html('AJAX call failed');
-			$("#dhcp_expire").html('AJAX call failed');
-		});
-	}
+	$.post("/manage/status", __postdata("status", iface), function(data) {
+		if (data == "RELOAD")
+			document.location.reload(true);
+		$("#" + iface + "_dhcp_server").html( data.dhcp_server );
+		$("#" + iface + "_dhcp_begin").html( data.dhcp_begin );
+		$("#" + iface + "_dhcp_expire").html( data.dhcp_expire );
+		timer = setInterval(function() {
+			if (timer === 0) {
+				clearInterval(timer);
+				Stats_Update();
+			}
+		}, data.dhcp_refresh + 60);
+	}).fail(function() {
+		$("#" + iface + "_dhcp_server").html('AJAX call failed');
+		$("#" + iface + "_dhcp_begin").html('AJAX call failed');
+		$("#" + iface + "_dhcp_expire").html('AJAX call failed');
+	});
 }
 
 function Stats_Reboot_Button()

@@ -5,14 +5,15 @@ BLUE='\033[1;34m'
 NC='\033[0m'
 mkdir -p ~/R2
 cd ~/R2
-for file in BPI_*; do if test -d ${file}; then echo -e "${GREEN}INFO:${NC} Unmounting ${file}..."; umount ${file}; fi; done
-for file in .tmp/*; do echo -e "${GREEN}INFO:${NC} Removing contents of ${file}..."; rm -rf ${file}/*; done
+for file in BPI_*; do if test -d ${file}; then echo -e "${GREEN}INFO:${NC} Unmounting ${file}..."; sudo umount ${file}; fi; done
+for file in .tmp/*; do echo -e "${GREEN}INFO:${NC} Removing contents of ${file}..."; sudo rm -rf ${file}/*; done
 echo -e "${GREEN}INFO:${NC} Updating local BPI-R2-4.14 repository..."
 cd ~/R2/.BPI-R2-4.14
 git pull
 cd ..
 for ver in 5.4 5.6 5.7 5.8 5.9 5.10 5.15; do
 	echo -e "${GREEN}INFO:${NC} Checking out branch ${BLUE}${ver}-main${NC}...."
+	mkdir -p .tmp/${ver}_{upper,work}
 	mkdir -p BPI_${ver}
 	sudo mount BPI_${ver}
 	cd BPI_${ver}

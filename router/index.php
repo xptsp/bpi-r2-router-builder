@@ -3,6 +3,7 @@
 ini_set('display_errors',1);
 error_reporting(E_ALL);
 session_start();
+setcookie(session_name(), session_id(), time() + (isset($_SESSION['session_length']) ? $_SESSION['session_length'] : 600));
 
 # If SID is passed and not equal to session variable SID, return "RELOAD" to caller:
 if (isset($_POST['sid']) && (empty($_SESSION['sid']) || $_POST['sid'] != $_SESSION['sid']))
@@ -11,27 +12,17 @@ if (isset($_GET['sid']) && (empty($_SESSION['sid']) || $_GET['sid'] != $_SESSION
 	die("RELOAD");
 
 # If no action has been passed, assume we want the basic router status:
-$_GET['action'] = empty($_GET['action']) ? 'home' : ($_GET['action'] != '/' ? $_GET['action'] : 'home');
-$_GET['action'] = ltrim(preg_replace('/[\s\W]+/', '-', $_GET['action']), '-');
+$_GET['action'] = ltrim(preg_replace('/[\s\W]+/', '-', empty($_GET['action']) ? 'home' : ($_GET['action'] != '/' ? $_GET['action'] : 'home')), '-');
 $include_js = $_GET['action']  == 'home' ? '' : 'site-' . explode('-', $_GET['action'])[0];
-$include_js = $include_js == 'site-ajax' ? '' : $include_js;
 
-# Decide whether the user is logged in or not:
-$logged_in = isset($_SESSION['login_valid_until']) && $_SESSION['login_valid_until'] >= time();
-
-# If we are not logged and not using the login page, check to see if the "remember_me" cookie is valid:
-if (!$logged_in && isset($_COOKIE["remember_me"]) && isset($_SESSION['sid']))
+# If the session variable "sid" doesn't exit, redirect to the login page:
+$logged_in = isset($_SESSION['sid']);
+if ((!$logged_in && $_GET['action'] != 'login') || $_GET['action'] == 'logout')
 {
-	if ($logged_in = ($_COOKIE["remember_me"] == $_SESSION['sid']))
-		setcookie("remember_me", $_COOKIE["remember_me"] = $_SESSION['sid'], time() + $_SESSION['session_length']);
-}
-
-# If user is logging out OR if the "sid" session variable isn't set, do the logout routine:
-if (!$logged_in || $_GET['action'] == 'logout')
-{
-	$logged_in = ($_SESSION['login_valid_until'] = 0) != 0;
-	setcookie("remember_me", false, time() - 3600);
-	unset($_COOKIE["remember_me"]);
+	session_unset();
+	session_destroy();
+	setcookie(session_name(), false, time() - 3600);
+	header('Location: http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/login');
 }
 
 # Set dark mode if not already set:
@@ -39,29 +30,12 @@ require_once('includes/subs/site.php');
 if (!isset($_SESSION['dark_mode']))
 	$_SESSION['dark_mode'] = parse_options()['dark_mode'] == "Y";
 
-# Remove the session ID if not logged in.  Otherwise, extend the session time for another 10 minutes:
-if (!$logged_in)
-	unset($_SESSION['sid']);
-else
-	$_SESSION['login_valid_until'] = time() + $_SESSION['session_length'];
-
-# If we are not logged it, redirect all page requests to the "Login" page:
-if (!$logged_in && $_GET['action'] != 'login')
-{
-	header('Location: http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/login', true, 301);
-	die();
-}
 # If we are logged in but going to the login page, redirect the page request to the "Home" page:
-else if ($logged_in && $_GET['action'] == 'login')
+if ($logged_in && $_GET['action'] == 'login')
 {
-	header('Location: http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/', true, 301);
+	header('Location: http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/');
 	die();
 }
-
-# Generate a random SID for use in the session:
-if (!isset($_SESSION['sid']))
-	$_SESSION['sid'] = substr(bin2hex(random_bytes(32)), 0, 32);
-#echo $_SESSION['sid']; exit;
 
 # Include the PHP site framework functions from the "includes" directory:
 foreach (glob('includes/plugins/*', GLOB_ONLYDIR) as $dir)

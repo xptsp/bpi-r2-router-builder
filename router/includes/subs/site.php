@@ -3,6 +3,7 @@ $site_title = '';
 $header_done = false;
 $output_null = false;
 $options_changed = false;
+$layout_fixed = false;
 
 ################################################################################################################
 # Define the default sidebar menu:
@@ -33,7 +34,7 @@ $sidebar_menu = array(
 		'multicast' => menu_link('/services/multicast', 'Multicast Relay Setup', 'fab fa-chromecast', file_exists("/lib/systemd/system/multicast-relay.service")),
 	)),
 	'manage'  => array('Management', 'fas fa-cog', array(
-		'status'   => menu_link('/manage/status', 'Router Status', 'fas fa-ethernet'),
+		'status'   => menu_link('/manage/status', 'Detailed Status', 'fas fa-ethernet'),
 		'manage'   => menu_link('/manage/webui', 'WebUI Management', 'fas fa-server'),
 		'attached' => menu_link('/manage/attached', 'Attached Devices', 'fas fa-link'),
 		'backup'   => menu_link('/manage/backup', 'Backup &amp; Restore', 'fas fa-file-export'),
@@ -162,7 +163,7 @@ function menu_log()
 ################################################################################################################
 function site_menu($refresh_switch = false, $refresh_text = "Refresh", $refresh_checked = true)
 {
-	global $site_title, $header_done, $sidebar_menu, $logged_in, $output_null;
+	global $site_title, $header_done, $sidebar_menu, $logged_in, $output_null, $layout_fixed;
 
 	# If header not written yet, cache our output for now:
 	if (!$header_done)
@@ -171,7 +172,7 @@ function site_menu($refresh_switch = false, $refresh_text = "Refresh", $refresh_
 	# Write the menu:
 	$dark_mode = $_SESSION['dark_mode'] == "Y";
 	echo '
-<body class="hold-transition sidebar-mini layout-boxed layout-fixed ', $dark_mode ? 'bodybg-dark dark-mode' : 'bodybg', '">
+<body class="hold-transition sidebar-mini layout-boxed ', $layout_fixed ? 'layout-fixed ' : '', $dark_mode ? 'bodybg-dark dark-mode' : 'bodybg', '">
 <div class="wrapper">
 	<!-- Main Sidebar Container -->
 	<aside class="main-sidebar main-sidebar-custom sidebar-dark-primary elevation-4 ">
@@ -197,12 +198,12 @@ echo '
 			</nav>
 			<!-- /.sidebar-menu -->
 		</div>
-		<!-- /.sidebar -->
+		<!-- /.sidebar -->', $layout_fixed ? '
 		<div class="sidebar-custom">
 			<ul class="nav nav-pills nav-sidebar flex-column" style="position: absolute; bottom: 0; left: 8;">
-				', menu_link('#', "Dark Mode", (!$dark_mode ? 'fas' : 'far') . ' fa-lightbulb', true, 'dark-mode'), '
+				' . menu_link('#', "Dark Mode", (!$dark_mode ? 'fas' : 'far') . ' fa-lightbulb', true, 'dark-mode') . '
 			</ul>
-		</div>
+		</div>' : '', '
 	</aside>
 
 	<!-- Content Wrapper. Contains page content -->
