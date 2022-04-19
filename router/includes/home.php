@@ -300,12 +300,10 @@ echo '
 #######################################################################################################
 echo '
 </div>
-<div class="row mb-2">
-	<div class="col-sm-12">
-		<h3>Network Interfaces</h1>
-	</div>
+<div class="row">
+	<h3>Network Interfaces</h3>
 </div>
-<div class="row mb-2" id="connectivity-text">
+<div class="row" id="connectivity-text">
 </div>';
 
 #######################################################################################################

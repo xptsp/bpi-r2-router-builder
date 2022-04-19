@@ -23,7 +23,7 @@ function Show_Interface($iface, $config, $ip_sensitive = false, $wireless = fals
 
 	# Gather information about the hostapd configuration:
 	$iface_up = trim(@shell_exec("ifconfig " . $iface . " | head -1 | grep UP"));
-	if ($iface_up && !isset($config['wpa_ssid']) && file_exists("/etc/hostapd/" . $iface . ".conf"))
+	if (!isset($config['wpa_ssid']) && file_exists("/etc/hostapd/" . $iface . ".conf"))
 	{
 		$apd = parse_options("/etc/hostapd/" . $iface . ".conf");
 		if (trim(@shell_exec("systemctl is-active hostapd@" . $iface)) != 'active')
