@@ -1,9 +1,17 @@
 <?php
 require_once("subs/manage.php");
 require_once("subs/setup.php");
+$called_as_sub = true;
+require_once("services.php");
 
+#########################################################################################
+# Get everything we need to show the user:
+#########################################################################################
 $options = parse_options("/etc/default/transmission-default");
 #echo '<pre>'; print_r($options); exit;
+$trans_port = isset($options['TRANS_PORT']) ? $options['TRANS_PORT'] : "9091";
+$iface = parse_ifconfig('br0');
+#echo '<pre>'; print_r($iface); exit;
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
@@ -11,7 +19,7 @@ $options = parse_options("/etc/default/transmission-default");
 if (isset($_POST['action']))
 {
 	#################################################################################################
-	# ACTION: LIST ==> Make the changes as requested by the caller:
+	# ACTION: SUBMIT ==> Make the changes as requested by the caller:
 	#################################################################################################
 	if ($_POST['action'] == 'submit')
 	{
@@ -22,29 +30,10 @@ if (isset($_POST['action']))
 	die("Invalid action");
 }
 
-#########################################################################################
-# Get everything we need to show the user:
-#########################################################################################
-$service_enabled = trim(@shell_exec("systemctl is-active transmission-daemon")) == "active";
-#echo (int) $service_enabled; exit;
-site_menu(true, "Enabled", $service_enabled);
-$iface = parse_ifconfig('br0');
-#echo '<pre>'; print_r($iface); exit;
-
-#########################################################################################
-# Create an alert showing vnstat is disabled and must be started to gather info:
-#########################################################################################
-echo '
-<div class="alert alert-danger', $service_enabled ? ' hidden' : '', '" id="disabled_div">
-	<button type="button" id="toggle_service" class="btn bg-gradient-success float-right">Enable</button>
-	<h5><i class="icon fas fa-ban"></i> Service Disabled!</h5>
-	Service <i>miniupnpd</i> must be enabled to use Universal Plug and Play services!
-</div>';
-
 #################################################################################################
 # Output the Transmission Daemon Settings page:
 #################################################################################################
-$trans_port = isset($options['TRANS_PORT']) ? $options['TRANS_PORT'] : "9091";
+services_start('transmission-daemon');
 echo '
 <div class="card card-primary">
 	<div class="card-header">

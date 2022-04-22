@@ -25,9 +25,9 @@ $sidebar_menu = array(
 		'dmz'       => menu_link('/advanced/dmz', 'DMZ Setup', 'fas fa-server'),
 		'dhcp'      => menu_link('/advanced/dhcp', 'DHCP Reservations', 'fas fa-address-card'),
 		'forward'   => menu_link('/advanced/forward', 'Port Forwarding', 'fas fa-forward'),
+		'notify'    => menu_link('/advanced/notify', 'DHCP Notifications', 'fas fa-bullhorn', file_exists("/usr/bin/mosquitto_pub")),
 	)),
 	'services'  => array('Services', 'fas fa-concierge-bell', array(
-		'notify'    => menu_link('/services/notify', 'DHCP Notifications', 'fas fa-bullhorn', file_exists("/usr/bin/mosquitto_pub")),
 		'upnp'      => menu_link('/services/upnp', 'UPnP Setup', 'fas fa-plug', file_exists("/lib/systemd/system/miniupnpd.service")),
 		'usage'     => menu_link('/services/bandwidth', 'Bandwidth Usage', 'fas fa-chart-bar', file_exists("/lib/systemd/system/vnstat.service")),
 		'trans'     => menu_link('/services/transmission', 'Transmission Daemon', 'fas fa-file-download', file_exists("/lib/systemd/system/transmission-daemon.service")),
@@ -332,7 +332,7 @@ function apply_changes_modal($text = 'Please wait while the firewall service is 
 {
 	echo '
 <div class="modal fade" id="apply-modal" data-backdrop="static" style="display: none;" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
+	<div class="modal-dialog modal-dialog-centered" id="apply-modal-middle">
 		<div class="modal-content">
 			<div class="modal-header bg-primary">
 				<h4 class="modal-title" id="apply_title">Applying Changes</h4>

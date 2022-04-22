@@ -1,33 +1,54 @@
 //======================================================================================================
 // Javascript functions for "Services / UPnP Setup":
 //======================================================================================================
-function Init_UPnP()
+function __Services_Init(service)
 {
 	$("#refresh_switch").bootstrapSwitch();
 	$("#refresh_switch").on('switchChange.bootstrapSwitch', function(event, state) {
-		$("#apply_msg").html( $("#apply_default").html() );
-		$("#apply_cancel").addClass("hidden");
-		$("#apply-modal").modal("show");
-		$.post("/services/upnp", __postdata(state ? 'enable' : 'disable'), function(data) {
-			$("#apply-modal").modal("hide");
-			data = data.trim();
-			if (data == "RELOAD")
-				document.location.reload(true);
-			else if (data == "disable")
-				$("#disabled_div").slideDown(400);
-			else if (data == "enable")
-				$("#disabled_div").slideUp(400);
-			else
-			{
-				$("#apply_msg").html(data);
-				$(".alert_control").removeClass("hidden");
-			}
-		}).fail(function() {
-			$("#apply_msg").html("AJAX call failed");
-			$(".alert_control").removeClass("hidden");
-			$("#refresh_switch").bootstrapSwitch('state', !state, true);
-		});
+		__Service_Call( state, state ? 'enable' : 'disable', service );
 	});
+	$("#service_status").click(function() {
+		__Service_Call( 'status', service );
+	});
+	$("#service_start").click(function() {
+		__Service_Call( 'start', service );
+	});
+	$("#service_stop").click(function() {
+		__Service_Call( 'stop', service );
+	});
+}
+
+function __Service_Call(cmd, service)
+{
+	$("#apply-modal-middle").removeClass("modal-xl");
+	$("#apply_msg").html( $("#apply_default").html() );
+	$("#apply_cancel").addClass("hidden");
+	$("#apply-modal").modal("show");
+	$.post("/services", __postdata(cmd, service), function(data) {
+		$("#apply-modal").modal("hide");
+		data = data.trim();
+		if (data == "RELOAD" || data == "OK")
+			document.location.reload(true);
+		else
+		{
+			$("#apply-modal-middle").addClass("modal-xl");
+			$("#apply_msg").html(data);
+			$("#apply_cancel").removeClass("hidden");
+		}
+	}).fail(function() {
+		if (cmd == 'enable' || cmd == 'disable')
+			$("#refresh_switch").bootstrapSwitch('state', !state, true);
+		$("#apply_msg").html("AJAX call failed");
+		$("#apply_cancel").removeClass("hidden");
+	});
+}
+
+//======================================================================================================
+// Javascript functions for "Services / UPnP Setup":
+//======================================================================================================
+function Init_UPnP()
+{
+	__Services_Init('miniupnpd');
 	$("#toggle_service").click(function() {
 		$("#refresh_switch").bootstrapSwitch('state', true);
 	});
@@ -135,40 +156,13 @@ function Notify_Apply()
 //======================================================================================================
 function Init_Bandwidth(tx, rx)
 {
+	__Services_Init('vnstat');
 	barTX = tx;
 	barRX = rx;
 	barChart = false;
 	$("#update_chart").click(Bandwidth_Update).click();
 	$("#interface").change(Bandwidth_Update);
 	$("#mode").change(Bandwidth_Update);
-	$("#refresh_switch").bootstrapSwitch();
-	$("#refresh_switch").on('switchChange.bootstrapSwitch', function(event, state) {
-		$("#apply_msg").html( $("#apply_default").html() );
-		$("#apply_cancel").addClass("hidden");
-		$("#apply-modal").modal("show");
-		$.post("/services/bandwidth", __postdata(state ? 'enable' : 'disable'), function(data) {
-			$("#apply-modal").modal("hide");
-			data = data.trim();
-			if (data == "RELOAD")
-				document.location.reload(true);
-			else if (data == "disable")
-				$("#disabled_div").slideDown(400);
-			else if (data == "enable")
-				$("#disabled_div").slideUp(400);
-			else
-			{
-				$("#apply_msg").html(data);
-				$(".alert_control").removeClass("hidden");
-			}
-		}).fail(function() {
-			$("#apply_msg").html("AJAX call failed");
-			$(".alert_control").removeClass("hidden");
-			$("#refresh_switch").bootstrapSwitch('state', !state, true);
-		});
-	});
-	$("#toggle_service").click(function() {
-		$("#refresh_switch").bootstrapSwitch('state', true);
-	});
 }
 
 function Bandwidth_Update()
@@ -268,34 +262,7 @@ function Bandwidth_Update()
 //======================================================================================================
 function Init_Multicast()
 {
-	$("#refresh_switch").bootstrapSwitch();
-	$("#refresh_switch").on('switchChange.bootstrapSwitch', function(event, state) {
-		$("#apply_msg").html( $("#apply_default").html() );
-		$("#apply_cancel").addClass("hidden");
-		$("#apply-modal").modal("show");
-		$.post("/services/multicast", __postdata(state ? 'enable' : 'disable'), function(data) {
-			$("#apply-modal").modal("hide");
-			data = data.trim();
-			if (data == "RELOAD")
-				document.location.reload(true);
-			else if (data == "disable")
-				$("#disabled_div").slideDown(400);
-			else if (data == "enable")
-				$("#disabled_div").slideUp(400);
-			else
-			{
-				$("#apply_msg").html(data);
-				$(".alert_control").removeClass("hidden");
-			}
-		}).fail(function() {
-			$("#apply_msg").html("AJAX call failed");
-			$(".alert_control").removeClass("hidden");
-			$("#refresh_switch").bootstrapSwitch('state', !state, true);
-		});
-	});
-	$("#toggle_service").click(function() {
-		$("#refresh_switch").bootstrapSwitch('state', true);
-	});
+	__Services_Init('miniupnpd');
 	$("#multicast_submit").click(Multicast_Submit);
 }
 

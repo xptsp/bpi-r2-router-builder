@@ -1,7 +1,12 @@
 <?php
 require_once("subs/manage.php");
 require_once("subs/setup.php");
+$called_as_sub = true;
+require_once("services.php");
 
+#########################################################################################
+# Get everything we need to show the user:
+#########################################################################################
 $options = parse_options("/etc/default/multicast-relay");
 #echo '<pre>'; print_r($options); exit;
 $ifaces = get_network_adapters();
@@ -12,6 +17,11 @@ $exclude_arr = array("docker0", "lo", "sit0", "eth0", "eth1", "aux");
 #echo $exclude_regex; exit;
 $valid_listen = array_diff( array_keys($ifaces), $exclude_arr, $ext_ifaces );
 #echo '<pre>'; print_r($valid_listen); exit();
+
+$listen = array();
+foreach (explode(" ", str_replace('"', '', $options['MULTICAST_IFACES'])) as $tface)
+	$listen[$tface] = $tface;
+#echo '<pre>'; print_r($listen); exit();
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
@@ -28,44 +38,15 @@ if (isset($_POST['action']))
 		die(shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh multicast move restart'));
 	}
 	#################################################################################################
-	# ACTION: SUBMIT ==> Update the UPnP configuration, per user settings:
-	#################################################################################################
-	if ($_POST['action'] == 'enable' || $_POST['action'] == 'disable')
-	{
-		shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh upnp ' . $_POST['action']);
-		die($_POST['action']);
-	}
-	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
 	#################################################################################################
 	die("Invalid action");
 }
 
-#########################################################################################
-# Get everything we need to show the user:
-#########################################################################################
-$listen = array();
-foreach (explode(" ", str_replace('"', '', $options['MULTICAST_IFACES'])) as $tface)
-	$listen[$tface] = $tface;
-#echo '<pre>'; print_r($listen); exit();
-
-$service_enabled = trim(@shell_exec("systemctl is-active multicast-relay")) == "active";
-#echo (int) $service_enabled; exit;
-site_menu(true, "Enabled", $service_enabled);
-
-#########################################################################################
-# Create an alert showing vnstat is disabled and must be started to gather info:
-#########################################################################################
-echo '
-<div class="alert alert-danger', $service_enabled ? ' hidden' : '', '" id="disabled_div">
-	<button type="button" id="toggle_service" class="btn bg-gradient-success float-right">Enable</button>
-	<h5><i class="icon fas fa-ban"></i> Service Disabled!</h5>
-	Service <i>multicast-relay</i> must be enabled to use Universal Plug and Play services!
-</div>';
-
 #################################################################################################
-# Output the UPnP Settings page:
+# Output the Multicast Relay page:
 #################################################################################################
+services_start('multicast-relay');
 echo '
 <div class="card card-primary">
 	<div class="card-header">

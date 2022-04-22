@@ -2,6 +2,9 @@
 require_once("subs/manage.php");
 require_once("subs/setup.php");
 
+#################################################################################################
+# Gather the information needed by this page:
+#################################################################################################
 $options = parse_options();
 $ifaces = get_network_adapters();
 #echo '<pre>'; print_r($ifaces); exit();

@@ -1,5 +1,17 @@
 <?php
 require_once("subs/dhcp.php");
+$called_as_sub = true;
+require_once("services.php");
+
+#########################################################################################
+# Get everything we need to show the user:
+#########################################################################################
+$_GET['iface'] = isset($_GET['iface']) ? $_GET['iface'] : 'wan';
+$_GET['mode'] = isset($_GET['mode']) ? $_GET['mode'] : 'hour';
+$options = parse_options();
+$wan_ifaces = array();
+#echo '<pre>'; print_r($wan_ifaces[0]); exit;
+
 $L['datefmt_days'] = '%d %B';
 $L['datefmt_months'] = '%B %Y';
 $L['datefmt_hours'] = '%l%p';
@@ -72,14 +84,6 @@ if (isset($_POST['action']))
 		header('Content-type: application/json');
 		die(json_encode($data));
 	}
-	####################################################################################
-	# ACTION: TOGGLE ==> Toggle whether service vnstat is running or not:
-	####################################################################################
-	else if ($_POST['action'] == 'disable' || $_POST['action'] == 'enable')
-	{
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl " . $_POST['action'] . " --now vnstat");
-		die($_POST['action']);
-	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
 	#################################################################################################
@@ -87,29 +91,9 @@ if (isset($_POST['action']))
 }
 
 #########################################################################################
-# Get everything we need to show the user:
-#########################################################################################
-$service_enabled = trim(@shell_exec("systemctl is-active vnstat")) == "active";
-site_menu(true, "Enabled", $service_enabled);
-$_GET['iface'] = isset($_GET['iface']) ? $_GET['iface'] : 'wan';
-$_GET['mode'] = isset($_GET['mode']) ? $_GET['mode'] : 'hour';
-$options = parse_options();
-$wan_ifaces = array();
-#echo '<pre>'; print_r($wan_ifaces[0]); exit;
-
-#########################################################################################
-# Create an alert showing vnstat is disabled and must be started to gather info:
-#########################################################################################
-echo '
-<div class="alert alert-danger', $service_enabled ? ' hidden' : '', '" id="disabled_div">
-	<button type="button" id="toggle_service" class="btn bg-gradient-success float-right">Enable</button>
-	<h5><i class="icon fas fa-ban"></i> Service Disabled!</h5>
-	Service <i>vnstat</i> must be enabled to collect bandwidth statistics!
-</div>';
-
-#########################################################################################
 # Create the page to show the data:
 #########################################################################################
+services_start('vnstat');
 echo '
 <div class="card card-primary">
 	<div class="card-header">
