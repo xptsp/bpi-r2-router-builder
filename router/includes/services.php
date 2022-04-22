@@ -35,15 +35,15 @@ function services_start($service)
 			<button type="button" id="service_status" class="btn btn-sm bg-success">Service Status</button>
 			<button type="button" id="service_start" class="btn btn-sm bg-success">Start Service</button>
 		</div>
-		<h5><i class="fas fa-thumbs-down"></i> &quot;', $service, '&quot; is ', !$enabled ? '<strong>NOT</strong> ' : '', 'enabled and <strong>NOT</strong> running.</h5>
+		<h5><i class="fas fa-ban"></i> &quot;', $service, '&quot; is ', !$enabled ? '<strong>NOT</strong> ' : '', 'enabled and <strong>NOT</strong> running.</h5>
 	</div>';
 	else
 		echo '
-	<div class="alert alert-primary">
+	<div class="alert alert-success">
 		<div class="float-right">
 			<button type="button" id="service_status" class="btn btn-sm bg-danger">Service Status</button>
 			<button type="button" id="service_stop" class="btn btn-sm bg-danger">Stop Service</button>
 		</div>
-		<h5><i class="fas fa-thumbs-up"></i> &quot;', $service, '&quot; ', $enabled ? '' : 'not ', 'enabled and is running.</h5>
+		<h5><i class="fas fa-thumbs-up"></i> &quot;', $service, '&quot; is running', $enabled ? ' and ' : ', but not ', 'enabled.</h5>
 	</div>';
 }
