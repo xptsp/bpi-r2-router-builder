@@ -4,14 +4,11 @@ Requires=docker.service
 After=docker.service
 
 [Service]
-User=pi
-Group=pi
 Type=oneshot
-RemainAfterExit=yes
-WorkingDirectory=/var/lib/docker/data
+RemainAfterExit=true
+WorkingDirectory=/var/lib/docker
 ExecStart=/usr/local/bin/docker-compose up -d
-ExecStop=/usr/local/bin/docker-compose stop
-TimeoutStartSec=0
+ExecStop=/usr/local/bin/docker-compose down
 
 [Install]
 WantedBy=multi-user.target
