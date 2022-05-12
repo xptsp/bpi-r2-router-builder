@@ -82,7 +82,7 @@ while [[ ! -z "${!uuid[@]}" ]]; do
 	done
 
 	# If password was specified on command-line, abort if everything isn't mounted:
-	[[ ! -z "${options[p]}" && ! -z "${!uuid[@]}" ]] && exit 1 done fi
+	[[ ! -z "${options[p]}" && ! -z "${!uuid[@]}" ]] && exit 1
 done
 
 # Notify user if we need to have any services that we will be stopping:

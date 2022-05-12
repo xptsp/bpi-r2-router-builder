@@ -74,10 +74,13 @@ function add_shares()
 
 function usb_umount()
 {
-	# Use the pmount command to mount to a directory with the volume label.
-	# Failing that, mount to the device name.
+	# Detect the filesystem type before attempting to mount the device:
 	DEV=/dev/${1}
-	/usr/bin/pumount ${DEV}
+	TYPE=$(blkid -o export ${DEV}| grep "^TYPE=")
+
+	# If we identified a filesystem on the device, use the pmount command to mount to a
+	# directory with the volume label.  Failing that, mount to the device name.
+	[[ ! -z "${TYPE}" ]] && /usr/bin/pumount ${DEV}
 }
 
 function remove_shares()
