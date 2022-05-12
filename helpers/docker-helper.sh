@@ -6,7 +6,10 @@
 # and running.
 #############################################################################
 
-mount | grep " /var/lib/docker " >& /dev/null || mount LABEL=DOCKER /var/lib/docker
+if ! mount | grep " /var/lib/docker " >& /dev/null; then
+	DEV=$(blkid | grep "LABEL=\"DOCKER\"" | cut -d: -f 1)
+	[[ ! -z "${DEV}" ]] && mount ${DEV} /var/lib/docker
+fi
 if ! test -d /var/lib/docker/data; then
 	mkdir -p /var/lib/docker/data
 	cp /dev/null /var/lib/docker/data/docker-compose.yaml
