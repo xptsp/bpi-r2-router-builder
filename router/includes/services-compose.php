@@ -14,8 +14,12 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'submit')
 	{
-		echo '<pre>'; print_r($_POST); exit;		
-		die("OK");
+		if (empty($_POST['misc']))
+			die("ERROR: No contents for docker-compose.yaml passed!");
+		$handle = fopen("/tmp/docker-compose.yaml", "w");
+		fwrite($handle, $_POST['misc']);
+		fclose($handle);
+		die(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh compose move'));		
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
@@ -34,8 +38,8 @@ echo '
 	</div>
 	<div class="card-body">
 		<div class="row" style="margin-top: 5px">
-			<textarea id="output_div" class="form-control" rows="15" style="overflow-y: scroll;">',
-				preg_replace(@file_get_contents("/var/lib/docker/docker-compose.yaml")),
+			<textarea id="contents-div" class="form-control" rows="15" style="overflow-y: scroll;">',
+				str_replace("  ", "\t", @file_get_contents("/etc/docker-compose.yaml")),
 			'</textarea>
 		</div>
 	</div>

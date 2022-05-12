@@ -1,14 +1,14 @@
 #!/bin/bash
+GREEN='\033[1;32m'
+BLUE='\033[1;34m'
+NC='\033[0m'
+CHECK="\xE2\x9C\x94"
 
 # If we are not running as root, then run this script as root:
 if [[ "$EUID" -ne 0 ]]; then
     sudo $0 $@
     exit $?
 fi
-
-# Define the keyiables we need for this script:
-export CONFIG_FILE=/etc/tcmount.ini
-export TITLE="TrueCrypt Unmounter"
 
 # Read in the configuration file:
 unset volumes options before services bind rebind after
@@ -27,54 +27,25 @@ do
 			declare -A "$section[${key}]=${val}"
 		fi
 	fi
-done < ${CONFIG_FILE}
-
-# Run any commands requested by the settings file before binding directories together:
-for cmd in "${before[@]}"; do $cmd; done
+done < /etc/tcmount.ini
 
 # Notify user if we need to have any services that we will be stopping:
-systemctl list-unit-files > /tmp/services.list
-for service in "${services[@]}"; do
-	[[ ! -z "$(cat /tmp/services.list | grep "${service}")" ]] && declare -A "stopped[${service}]=${service}"
+for service in "${services[@]}"; do 
+	echo -e "${GREEN}[${BLUE}${CHECK}${GREEN}]  Stopping service ${service}..."
+	systemctl stop ${service}
 done
-rm /tmp/services.list
-if [[ ! -z "${stopped[@]}" ]]; then
-	MSG="Stopping services...  Please wait!"
-	_title "${MSG}"
-	for service in "${stopped[@]}"; do systemctl stop ${service}; done
-fi
 
 # Notify user if we need to rebind directories:
-if [[ ! -z "${rebind[@]}" || ! -z "${bind[@]}" ]]; then
-	MSG="Binding directories together...  Please wait!"
-	_title "${MSG}"
-
-	# Unmount the specified folders before binding others together:
-	for dir in "${rebind[@]}"; do [[ -d ${dir} ]] && umount ${dir} >& /dev/null; done
+if [[ ! -z "${bind[@]}" ]]; then
+	echo -e "${GREEN}[${BLUE}${CHECK}${GREEN}]  Unbinding mount points...  Please wait!"
 
 	# Bind the specified folders together:
 	for src in "${!bind[@]}"; do
 		dst=${bind[${src}]}
-		[[ -d ${dst} &&  -d ${src} ]] && umount ${src}
+		[[ -e ${dst} && -e ${src} ]] && umount ${src} && rmdir ${src}
 	done
-
-	# Remount the specified folders umounted earlier:
-	for dir in "${rebind[@]}"; do [[ -d ${dir} ]] && mount ${dir} >& /dev/null; done
 fi
-
-# Start the specified services:
-if [[ ! -z "${stopped[@]}" ]]; then
-	MSG="Restarting services...  Please wait!"
-	_title "${MSG}"
-	for service in "${stopped[@]}"; do systemctl start ${service}; done
-fi
-
-# Run any commands requested by the settings file before binding directories together:
-for cmd in "${after[@]}"; do $cmd; done
 
 # Dismount all Truecrypt volumes:
+echo -e "${GREEN}[${BLUE}${CHECK}${GREEN}]  Dismounting Truecrypt volumes..."
 truecrypt -d -f
-
-# Notify user that this script is finished running:
-MSG="${TITLE} has finished running!"
-_title "${MSG}"

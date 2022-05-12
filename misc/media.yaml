@@ -1,0 +1,49 @@
+version: "2.1"
+services:
+	jellyfin:
+		image: linuxserver/jellyfin
+		container_name: jellyfin
+		environment:
+			- PUID=1000
+			- PGID=1000
+			- TZ=America/Chicago
+		volumes:
+			- /mnt/Volume_1/.docker/jellyfin:/config
+			- /mnt/Volume_1/Series:/data/tvshows
+			- /mnt/Volume_1/Movies:/data/movies
+		ports:
+			- 192.168.2.1:8096:8096
+			- 192.168.2.1:8920:8920
+			- 192.168.2.1:7359:7359/udp
+		restart: unless-stopped
+
+	sickchill:
+		image: linuxserver/sickchill
+		container_name: sickchill
+		environment:
+			- PUID=1000
+			- PGID=1000
+			- TZ=America/Chicago
+		volumes:
+			- /mnt/Volume_1/.docker/sickchill:/config
+			- /mnt/Volume_1/Downloads:/downloads
+			- /mnt/Volume_1/Series/:/tv
+		ports:
+			- 192.168.2.1:8081:8081
+		restart: unless-stopped
+
+	couchpotato:
+		image: linuxserver/couchpotato
+		container_name: couchpotato
+		environment:
+			- PUID=1000
+			- PGID=1000
+			- TZ=America/Chicago
+			- UMASK_SET=022
+		volumes:
+			- /mnt/Volume_1/.docker/couchpotato:/config
+			- /mnt/Volume_1/Downloads:/downloads
+			- /mnt/Volume_1/Movies:/movies
+		ports:
+			- 192.168.2.1:5050:5050
+		restart: unless-stopped

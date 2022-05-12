@@ -230,6 +230,7 @@ tar xvzf /tmp/docker.tgz
 mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
 ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
 popd
+touch /etc/docker-compose.yaml
 
 ##################################################################################
 # Install cloudflared binary:

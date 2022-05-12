@@ -170,3 +170,34 @@ function Del_Overlay(id)
 {
 	$("#" + id + "_loading").remove();
 }
+
+//======================================================================================================
+// Helper functions dealing with posting settings:
+//======================================================================================================
+function __WebUI_Post(url, postdata, state = false, large = false)
+{
+	$("#apply-modal-middle").removeClass("modal-xl");
+	$("#apply_msg").html( $("#apply_default").html() );
+	$("#apply_cancel").addClass("hidden");
+	$("#apply-modal").modal("show");
+	$.post(url, postdata, function(data) {
+		$("#apply-modal").modal("hide");
+		data = data.trim();
+		if (data == "RELOAD" || data == "OK")
+			document.location.reload(true);
+		else
+		{
+			if (large)
+				$("#apply-modal-middle").addClass("modal-xl");
+			$("#apply_msg").html(data);
+			$(".alert_control").removeClass("hidden");
+			$("#apply_cancel").removeClass("hidden");
+		}
+	}).fail(function() {
+		if (post['action'] == 'enable' || post['action'] == 'disable')
+			$("#refresh_switch").bootstrapSwitch('state', !state, true);
+		$("#apply_msg").html("AJAX call failed");
+		$(".alert_control").removeClass("hidden");
+		$("#apply_cancel").removeClass("hidden");
+	});
+}

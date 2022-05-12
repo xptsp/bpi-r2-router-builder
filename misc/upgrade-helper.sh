@@ -27,6 +27,7 @@ COPY_ONLY=(
 	/etc/dnsmasq.d/
 	/etc/hostapd/
 	/etc/fstab
+	/etc/tcmount.ini
 	/etc/rc.local
 	/etc/transmission-daemon/settings.json
 	/etc/default/

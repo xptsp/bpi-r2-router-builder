@@ -12,43 +12,21 @@ function Init_Firewall()
 		else
 			$("#port_scan_options").slideUp(400);
 	});
-	$("#apply_changes").click( FireWall_Apply );
-}
-
-function FireWall_Apply()
-{
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid':            SID,
-		'action':         'submit',
-		'drop_port_scan': $("#drop_port_scan").prop("checked") ? "Y" : "N",
-		'log_port_scan':  $("#log_port_scan").prop("checked") ? "Y" : "N",
-		'log_udp_flood':  $("#log_udp_flood").prop("checked") ? "Y" : "N",
-		'drop_ping':      $("#drop_ping").prop("checked") ? "Y" : "N",
-		'drop_ident':     $("#drop_ident").prop("checked") ? "Y" : "N",
-		'drop_multicast': $("#drop_multicast").prop("checked") ? "Y" : "N",
-		'redirect_dns':   $("#redirect_dns").prop("checked") ? "Y" : "N",
-	};
-	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Perform our AJAX request to change the WAN settings:
-	$("#apply_msg").html( $("#apply_default").html() );
-	$("#apply_cancel").addClass("hidden");
-	$("#apply-modal").modal("show");
-	$.post("/advanced/firewall", postdata, function(data) {
-		data = data.trim();
-		if (data == "RELOAD")
-			document.location.reload(true);
-		else if (data == "OK")
-			$("#apply-modal").modal("hide");
-		else
-		{
-			$("#apply_msg").html(data);
-			$(".alert_control").removeClass("hidden");
-		}
-	}).fail(function() {
-		$("#apply_msg").html("AJAX call failed!");
-		$("#apply_cancel").removeClass("hidden");
+	$("#apply_changes").click(function() {
+		// Assemble the post data for the AJAX call:
+		postdata = {
+			'sid':            SID,
+			'action':         'submit',
+			'drop_port_scan': $("#drop_port_scan").prop("checked") ? "Y" : "N",
+			'log_port_scan':  $("#log_port_scan").prop("checked") ? "Y" : "N",
+			'log_udp_flood':  $("#log_udp_flood").prop("checked") ? "Y" : "N",
+			'drop_ping':      $("#drop_ping").prop("checked") ? "Y" : "N",
+			'drop_ident':     $("#drop_ident").prop("checked") ? "Y" : "N",
+			'drop_multicast': $("#drop_multicast").prop("checked") ? "Y" : "N",
+			'redirect_dns':   $("#redirect_dns").prop("checked") ? "Y" : "N",
+		};
+		//alert(JSON.stringify(postdata, null, 5)); return;
+		__WebUI_Post("/advanced/firewall", postdata);
 	});
 }
 
@@ -95,45 +73,23 @@ function Init_DMZ()
 		$("#mac_addr").removeAttr("disabled");
 	});
 	$("#mac_addr").inputmask('mac');
-	$("#apply_changes").click( DMZ_Apply );
-}
-
-function DMZ_Apply()
-{
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid':        SID,
-		'action':     'submit',
-		'enable_dmz': $("#enable_dmz").prop("checked") ? "Y" : "N",
-		'src_type':   $("[name=src_type]:checked").val(),
-		'range_from': $("#range_from").val(),
-		'range_to':   $("#range_to").val(),
-		'mask_ip':    $("#mask_ip").val(),
-		'mask_bits':  $("#mask_bits").val(),
-		'dest_type':   $("[name=dest_type]:checked").val(),
-		'dest_ip':    $("#ip_addr").val(),
-		'dest_mac':   $("#mac_addr").val(),
-	};
-	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Perform our AJAX request to change the WAN settings:
-	$("#apply_msg").html( $("#apply_default").html() );
-	$("#apply-modal").modal("show");
-	$("#apply_cancel").addClass("hidden");
-	$.post("/advanced/dmz", postdata, function(data) {
-		data = data.trim();
-		if (data == "RELOAD")
-			document.location.reload(true);
-		else if (data == "OK")
-			$("#apply-modal").modal("hide");
-		else
-		{
-			$("#apply_msg").html(data);
-			$(".alert_control").removeClass("hidden");
-		}
-	}).fail(function() {
-		$("#apply_msg").html("AJAX call failed!");
-		$("#apply_cancel").removeClass("hidden");
+	$("#apply_changes").click(function() {
+		// Assemble the post data for the AJAX call:
+		postdata = {
+			'sid':        SID,
+			'action':     'submit',
+			'enable_dmz': $("#enable_dmz").prop("checked") ? "Y" : "N",
+			'src_type':   $("[name=src_type]:checked").val(),
+			'range_from': $("#range_from").val(),
+			'range_to':   $("#range_to").val(),
+			'mask_ip':    $("#mask_ip").val(),
+			'mask_bits':  $("#mask_bits").val(),
+			'dest_type':   $("[name=dest_type]:checked").val(),
+			'dest_ip':    $("#ip_addr").val(),
+			'dest_mac':   $("#mac_addr").val(),
+		};
+		//alert(JSON.stringify(postdata, null, 5)); return;
+		__WebUI_Post("/advanced/dmz", postdata);
 	});
 }
 
@@ -326,62 +282,6 @@ function DHCP_Error(msg)
 //======================================================================================================
 // Javascript functions for "Advanced / UPnP Setup":
 //======================================================================================================
-function Init_UPnP()
-{
-	$("#upnp_enable").bootstrapSwitch().on('switchChange.bootstrapSwitch', function(event, state) {
-		if (state == true)
-			$("#upnp_div").slideDown(400);
-		else
-			$("#upnp_div").slideUp(400);
-	});
-	$("#upnp_refresh").click(function() {
-		$.post('/advanced/upnp', __postdata("list"), function(data) {
-			if (data == "RELOAD")
-				document.location.reload(true);
-			else
-				$("#upnp-table").html(data);
-		});
-	}).click();
-	$("#upnp_submit").click(UPnP_Submit);
-}
-
-function UPnP_Submit()
-{
-	// Hide confirmation dialog if shown:
-	$("#confirm-modal").modal("hide");
-
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid':      SID,
-		'action':   'submit',
-		'enable':   $("#upnp_enable").prop("checked") ? "Y" : "N",
-		'secure':   $("#upnp_secure").prop("checked") ? "Y" : "N",
-		'natpmp':   $("#upnp_natpmp").prop("checked") ? "Y" : "N",
-	};
-	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Perform our AJAX request to change the WAN settings:
-	$("#apply_msg").html( $("#apply_default").html() );
-	$("#apply-modal").modal("show");
-	$("#apply_cancel").addClass("hidden");
-	$.post("/advanced/upnp", postdata, function(data) {
-		data = data.trim();
-		if (data == "RELOAD" || data == "OK")
-			document.location.reload(true);
-		else
-		{
-			$("#apply_msg").html(data);
-			$(".alert_control").removeClass("hidden");
-		}
-	}).fail(function() {
-		$("#apply_msg").html("AJAX call failed!");
-		$("#apply_cancel").removeClass("hidden");
-	});
-}
-
-//======================================================================================================
-// Javascript functions for "Advanced / UPnP Setup":
-//======================================================================================================
 function Init_PortForward(ip)
 {
 	$("#forward_refresh").click(function() {
@@ -393,7 +293,22 @@ function Init_PortForward(ip)
 				PortForward_Delete( $(this).parent().parent().parent().parent() );
 			});
 			$(".fa-pencil-alt").click(function() {
-				PortForward_Edit( $(this).parent().parent().parent().parent() );
+				// Populate the port forward modal with the settings from the selected line:
+				parent = $(this).parent().parent().parent().parent();
+				$('#app_select').val(",,tcp").change();
+				$("#iface").val( parent.find(".iface").text() );
+				parts = parent.find(".ext_port").text().split(":");
+				$("#ext_min").val( parts[0] );
+				$("#ext_max").val( parts.length == 1 ? parts[0] : parts[1] );
+				$("#ip_addr").val( parent.find(".ip_addr").text() );
+				$("#int_port").val( parent.find(".int_port").text() );
+				$("#protocol").val( parent.find(".proto").text() );
+				$("#comment").val( parent.find(".comment").text() );
+				$("#enabled").prop("checked", parent.find(".enabled").text() == "Y" );
+
+				// Now that the fields are set, show the modal to the user:
+				$("#forward-modal").modal("show");
+
 			});
 		});
 	}).click();
@@ -530,23 +445,6 @@ function PortForward_Delete(line)
 	});
 }
 
-function PortForward_Edit(line)
-{
-	// Populate the port forward modal with the settings from the selected line:
-	parent = line;
-	$('#app_select').val(",,tcp").change();
-	$("#iface").val( parent.find(".iface").text() );
-	parts = parent.find(".ext_port").text().split(":");
-	$("#ext_min").val( parts[0] );
-	$("#ext_max").val( parts.length == 1 ? parts[0] : parts[1] );
-	$("#ip_addr").val( parent.find(".ip_addr").text() );
-	$("#int_port").val( parent.find(".int_port").text() );
-	$("#protocol").val( parent.find(".proto").text() );
-	$("#comment").val( parent.find(".comment").text() );
-	$("#enabled").prop("checked", parent.find(".enabled").text() == "Y" );
-
-	// Now that the fields are set, show the modal to the user:
-	$("#forward-modal").modal("show");
 }
 
 //======================================================================================================
@@ -563,42 +461,19 @@ function Init_Notify()
 	});
 	$('.ip_address').inputmask("ip");
 	$(".ip_port").inputmask("integer", {min:0, max:65535});
-	$("#apply_changes").click( Notify_Apply );
-}
-
-function Notify_Apply()
-{
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid':        SID,
-		'action':     'submit',
-		'enabled':    $("#enable_mosquitto").prop("checked") ? "Y" : "N",
-		'ip_addr':    $("#ip_addr").val(),
-		'ip_port':    $("#ip_port").val(),
-		'username':   $("#username").val(),
-		'password':   $("#password").val(),
-		'send_on':    $("#send_on").val().join(","),
-	};
-	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Perform our AJAX request to change the WAN settings:
-	$("#apply_msg").html( $("#apply_default").html() );
-	$("#apply-modal").modal("show");
-	$("#apply_cancel").addClass("hidden");
-	$.post("/advanced/notify", postdata, function(data) {
-		data = data.trim();
-		if (data == "RELOAD")
-			document.location.reload(true);
-		else if (data == "OK")
-			$("#apply-modal").modal("hide");
-		else
-		{
-			$("#apply_msg").html(data);
-			$(".alert_control").removeClass("hidden");
-		}
-	}).fail(function() {
-		$("#apply_msg").html("AJAX call failed!");
-		$("#apply_cancel").removeClass("hidden");
+	$("#apply_changes").click(function() {
+		// Assemble the post data for the AJAX call:
+		postdata = {
+			'sid':        SID,
+			'action':     'submit',
+			'enabled':    $("#enable_mosquitto").prop("checked") ? "Y" : "N",
+			'ip_addr':    $("#ip_addr").val(),
+			'ip_port':    $("#ip_port").val(),
+			'username':   $("#username").val(),
+			'password':   $("#password").val(),
+			'send_on':    $("#send_on").val().join(","),
+		};
+		//alert(JSON.stringify(postdata, null, 5)); return;
+		__WebUI_Post("/advanced/notify", postdata);
 	});
 }
-

@@ -1,0 +1,13 @@
+[Unit]
+Description=Docker Compose Service for %i
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/local/bin/docker-compose -f /etc/%i.yaml up -d
+ExecStop=/usr/local/bin/docker-compose -f /etc/%i.yaml down
+
+[Install]
+WantedBy=multi-user.target

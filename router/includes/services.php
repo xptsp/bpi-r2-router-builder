@@ -9,7 +9,7 @@ if (empty($called_as_sub) && isset($_POST['action']))
 	if (in_array($_POST['action'], array('enable', 'disable', 'start', 'stop')))
 	{
 		@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl ' . $_POST['action'] . ' ' . $_POST['misc']);
-		die(trim(@shell_exec("systemctl is-active " . $service)) == "inactive" ? 'active' : 'inactive');
+		die('OK');
 	}
 	if ($_POST['action'] == 'status')
 		die('<textarea id="output_div" class="form-control" rows="15" readonly="readonly" style="overflow-y: scroll;">' . @shell_exec('systemctl status ' . $_POST['misc']) . '</textarea>');
@@ -44,6 +44,6 @@ function services_start($service)
 			<button type="button" id="service_status" class="btn btn-sm bg-danger">Service Status</button>
 			<button type="button" id="service_stop" class="btn btn-sm bg-danger">Stop Service</button>
 		</div>
-		<h5><i class="fas fa-thumbs-up"></i> &quot;', $service, '&quot; is running', $enabled ? ' and ' : ', but not ', 'enabled.</h5>
+		<h5><i class="fas fa-thumbs-up"></i> &quot;', $service, '&quot; is running', $enabled ? ' and ' : ', but <strong>NOT</strong> ', 'enabled.</h5>
 	</div>';
 }

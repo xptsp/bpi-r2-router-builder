@@ -1,14 +1,16 @@
 #!/bin/bash
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+BLUE='\033[1;34m'
+NC='\033[0m'
+CHECK="\xE2\x9C\x94"
+CROSS="\xE2\x9D\x8C"
 
 # If we are not running as root, then run this script as root:
 if [[ "$EUID" -ne 0 ]]; then
     sudo $0 $@
     exit $?
 fi
-
-# Define the keyiables we need for this script:
-export CONFIG_FILE=/etc/tcmount.ini
-export TITLE="TrueCrypt Mounter"
 
 # Read in the configuration file:
 unset volumes mount before services bind rebind after
@@ -29,98 +31,80 @@ do
 			declare -A "$section[${key}]=${val}"
 		fi
 	fi
-done < ${CONFIG_FILE}
+done < /etc/tcmount.ini
 
 # Create our mounting options string here:
-if [[ "${KODI}" == "n" ]]; then
-	unset MNT
-	for option in "${!mount[@]}"; do
-		MNT="${MNT}$([[ ! -z "${MNT}" ]] && echo ",")$option=${mount[$option]}"
-	done
-	[[ ! -z "${MNT}" ]] && MNT="-o ${MNT}"
+unset MNT
+for option in "${!mount[@]}"; do
+	MNT="${MNT}$([[ ! -z "${MNT}" ]] && echo ",")$option=${mount[$option]}"
+done
+[[ ! -z "${MNT}" ]] && MNT="-o ${MNT}"
 
-	# Determine what volumes are present and unmounted:
-	for file in "${!volumes[@]}"; do
-		if [[ -e ${file} ]]; then
-			PART=$(ls -l $file | cut -d">" -f 2 | cut -d"/" -f 3)
-			MNT=$(mount | grep " ${volumes[${file}]} ")
-			[[ ! -z "${PART}" && -z "${MNT}" ]] && declare -A "uuid[${file}]=${volumes[${file}]}"
-		fi
-	done
-	if [[ -z "${!uuid[@]}" ]]; then
-		MSG="No unmounted TrueCrypt volumes found!  Exiting..."
-		if [[ -z "${options[q]}" && -z "${options[quiet]}" ]]; then
-			[[ -z "${DISPLAY}" ]] && _title "${MSG}" || zenity --info --no-wrap --title "${TITLE}" --text="${MSG}"
-		fi
-		exit 0
+# Determine what volumes are present and unmounted:
+for file in "${!volumes[@]}"; do
+	if [[ -e ${file} ]]; then
+		PART=$(ls -l $file | cut -d">" -f 2 | cut -d"/" -f 3)
+		MNT=$(mount | grep " ${volumes[${file}]} ")
+		[[ ! -z "${PART}" && -z "${MNT}" ]] && declare -A "uuid[${file}]=${volumes[${file}]}"
 	fi
-
-	# Loop until no volumes left to mount OR user cancels the script:
-	while [[ ! -z "${!uuid[@]}" ]]; do
-		# Was password specified on command-line?  If so, use it!
-		if [[ ! -z "${options[p]}" || ! -z "${options[password]}" ]]; then
-			[[ -z "${options[p]}" ]] && declare -A "options[p]=${options[password]}"
-			PASS=${options[p]}
-		# Get the password to use to attempt to open the TrueCrypt volumes:
-		elif [[ -z "${DISPLAY}" ]]; then
-			read -s -p "Enter Password: " PASS; echo ""
-		else
-			PASS=$(zenity --password "Type in your TrueCrypt password:" --title "${TITLE}")
-		fi
-		[[ -z "${PASS}" || $? -gt 0 ]] && exit 0
-
-		# Attempt to mount the specified partitions using the supplied password:
-		for part in "${!uuid[@]}"; do
-			dst=${uuid[${part}]}
-			[[ ! -d ${dst} ]] && mkdir -p ${dst}
-			OUT=$(unset DISPLAY; truecrypt --non-interactive -k "" --protect-hidden=no -p ${PASS} ${part} ${dst} 2>&1)
-			if [[ ! -z "${OUT}" ]]; then
-				[[ -z "${DISPLAY}" ]] && _error "$OUT" || notify-send --icon=error "${TITLE}" "${OUT}"
-			else
-				MSG="$(basename ${dst}) mounted successfully!"
-				[[ -z "${DISPLAY}" ]] && _title "${MSG}" || notify-send --icon=info "${TITLE}" "${MSG}"
-				PART=$(mount | grep "${uuid[${part}]}" | cut -d" " -f 1)
-				if [[ ! -z "${MNT}" ]]; then
-					umount ${dst} && mount ${MNT} ${PART} ${dst}
-				fi
-				unset uuid[${part}]
-			fi
-		done
-
-		# If password was specified on command-line, abort if everything isn't mounted:
-		[[ ! -z "${options[p]}" && ! -z "${!uuid[@]}" ]] && exit 1
-	done
+done
+if [[ -z "${!uuid[@]}" ]]; then
+	echo -e "${GREEN}[${BLUE}${CHECK}${GREEN}]  No unmounted TrueCrypt volumes found!  Exiting..."
+	exit 0
 fi
 
-# Run any commands requested by the settings file before binding directories together:
-for cmd in "${before[@]}"; do $cmd; done
+# Loop until no volumes left to mount OR user cancels the script:
+while [[ ! -z "${!uuid[@]}" ]]; do
+	# Was password specified on command-line?  If so, use it!
+	if [[ ! -z "${options[p]}" || ! -z "${options[password]}" ]]; then
+		[[ -z "${options[p]}" ]] && declare -A "options[p]=${options[password]}"
+		PASS=${options[p]}
+
+	# Get the password to use to attempt to open the TrueCrypt volumes:
+	read -s -p "Enter Password: " PASS; echo ""
+	[[ -z "${PASS}" || $? -gt 0 ]] && exit 0
+
+	# Attempt to mount the specified partitions using the supplied password:
+	for part in "${!uuid[@]}"; do
+		dst=${uuid[${part}]}
+		[[ ! -d ${dst} ]] && mkdir -p ${dst}
+		OUT=$(unset DISPLAY; truecrypt --non-interactive -k "" --protect-hidden=no -p ${PASS} ${part} ${dst} 2>&1)
+		if [[ ! -z "${OUT}" ]]; then
+			echo -e "${GREEN}[${RED}${CROSS}${GREEN}]  ${OUT}${NC}"
+		else
+			echo -e "${GREEN}[${BLUE}${CHECK}${GREEN}]  $(basename ${dst}) mounted successfully!"
+			PART=$(mount | grep "${uuid[${part}]}" | cut -d" " -f 1)
+			if [[ ! -z "${MNT}" ]]; then
+				umount ${dst} && mount ${MNT} ${PART} ${dst}
+			fi
+			unset uuid[${part}]
+		fi
+	done
+
+	# If password was specified on command-line, abort if everything isn't mounted:
+	[[ ! -z "${options[p]}" && ! -z "${!uuid[@]}" ]] && exit 1 done fi
+done
 
 # Notify user if we need to have any services that we will be stopping:
-for service in "${services[@]}"; do systemctl stop ${service}; done
+for service in "${services[@]}"; do 
+	echo -e "${GREEN}[${BLUE}${CHECK}${GREEN}]  Stopping service ${service}..."
+	systemctl stop ${service}
+done
 
 # Notify user if we need to rebind directories:
 if [[ ! -z "${rebind[@]}" || ! -z "${bind[@]}" ]]; then
-	MSG="Binding directories together...  Please wait!"
-	[[ "${KODI}" == "n" ]] && ([[ -z "${DISPLAY}" ]] && _title "${MSG}" || notify-send --icon=info "${TITLE}" "${MSG}")
-
-	# Unmount the specified folders before binding others together:
-	for dir in "${rebind[@]}"; do [[ -d ${dir} ]] && umount ${dir} >& /dev/null; done
+	MSG="Binding mount points together...  Please wait!"
+	echo -e "${GREEN}[${BLUE}${CHECK}${GREEN}]  ${MSG}${NC}"
 
 	# Bind the specified folders together:
 	for src in "${!bind[@]}"; do
 		dst=${bind[${src}]}
-		[[ -d ${dst} &&  -d ${src} ]] && mount --bind ${src} ${dst}
+		[[ -e ${dst} && -e ${src} ]] && mount --bind ${src} ${dst}
 	done
-
-	# Remount the specified folders umounted earlier:
-	for dir in "${rebind[@]}"; do [[ -d ${dir} ]] && mount ${dir} >& /dev/null; done
 fi
 
 # Start the specified services:
-if [[ ! -z "${stopped[@]}" ]]; then
-	MSG="Restarting services...  Please wait!"
-	for service in "${stopped[@]}"; do systemctl start ${service}; done
-fi
-
-# Run any commands requested by the settings file before binding directories together:
-for cmd in "${after[@]}"; do $cmd; done
+for service in "${services[@]}"; do 
+	echo -e "${GREEN}[${BLUE}${CHECK}${GREEN}]  Starting service ${service}..."
+	systemctl stop ${service}
+done
