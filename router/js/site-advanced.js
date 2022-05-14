@@ -362,7 +362,7 @@ function Init_PortForward(ip)
 			$("#ext_max").removeAttr("disabled");
 	});
 	$('#ip_addr').inputmask("ip");
-	$("#submit_forward").click(function() {{
+	$("#submit_forward").click(function() {
 		// If "parent" is not null, then delete the port forwarding rule that we are editing:
 		if (parent != null)
 			PortForward_Delete( parent );
