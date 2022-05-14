@@ -18,9 +18,9 @@ function __Services_Init(service)
 	});
 }
 
-function __Service_Call(cmd, service, state = false)
+function __Service_Call(cmd, service, state = null)
 {
-	__WebUI_Post("/services", __postdata(cmd, service), state, true);
+	WebUI_Post("/services", __postdata(cmd, service), state, true);
 }
 
 //======================================================================================================
@@ -51,7 +51,7 @@ function Init_UPnP()
 			'listening_ip':  $("#listening_on").val().join(","),
 		};
 		//alert(JSON.stringify(postdata, null, 5)); return;
-		__WebUI_Post("/services/upnp", postdata);
+		WebUI_Post("/services/upnp", postdata);
 	});
 }
 
@@ -176,7 +176,7 @@ function Init_Multicast()
 			'listen_on': $("#listening_on").val().join(","),
 		};
 		//alert(JSON.stringify(postdata, null, 5)); return;
-		__WebUI_Post("/services/multicast", postdata); 
+		WebUI_Post("/services/multicast", postdata); 
 	});
 }
 
@@ -187,6 +187,6 @@ function Init_Compose()
 {
 	__Services_Init('docker-compose');
 	$("#compose_submit").click(function() {
-		__WebUI_Post("/services/compose", __postdata("submit", $("#contents-div").val()));
+		WebUI_Post("/services/compose", __postdata("submit", $("#contents-div").val()));
 	}); 
 }

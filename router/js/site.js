@@ -174,7 +174,7 @@ function Del_Overlay(id)
 //======================================================================================================
 // Helper functions dealing with posting settings:
 //======================================================================================================
-function __WebUI_Post(url, postdata, state = false, large = false)
+function WebUI_Post(url, postdata, state = null, large = false, OK_sub = function() { document.location.reload(true); } )
 {
 	$("#apply-modal-middle").removeClass("modal-xl");
 	$("#apply_msg").html( $("#apply_default").html() );
@@ -183,8 +183,10 @@ function __WebUI_Post(url, postdata, state = false, large = false)
 	$.post(url, postdata, function(data) {
 		$("#apply-modal").modal("hide");
 		data = data.trim();
-		if (data == "RELOAD" || data == "OK")
+		if (data == "RELOAD")
 			document.location.reload(true);
+		else if (data == "OK")
+			OK_sub();
 		else
 		{
 			if (large)
@@ -194,7 +196,7 @@ function __WebUI_Post(url, postdata, state = false, large = false)
 			$("#apply_cancel").removeClass("hidden");
 		}
 	}).fail(function() {
-		if (post['action'] == 'enable' || post['action'] == 'disable')
+		if (state != null && (post['action'] == 'enable' || post['action'] == 'disable'))
 			$("#refresh_switch").bootstrapSwitch('state', !state, true);
 		$("#apply_msg").html("AJAX call failed");
 		$(".alert_control").removeClass("hidden");

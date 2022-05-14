@@ -65,7 +65,8 @@ if (isset($_POST['action']))
 		$options['ext_ifname'] = option_allowed("ext_ifname", $ext_ifaces);
 		$options['listening_ip'] = option_allowed("listening_ip", $valid_listen, false);
 		apply_options("upnp");
-		die(shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh upnp move restart'));
+		@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl move miniupnp restart');
+		die("OK");
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:

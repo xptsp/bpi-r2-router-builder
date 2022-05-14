@@ -7,7 +7,7 @@ $options = parse_options();
 if (isset($_POST['action']))
 {
 	#################################################################################################
-	# ACTION: FIREWALL ==> Update the configuration file using the parameters specified:
+	# ACTION: SUBMIT ==> Update the configuration file using the parameters specified:
 	#################################################################################################
 	if ($_POST['action'] == 'submit')
 	{
@@ -18,7 +18,8 @@ if (isset($_POST['action']))
 		$options['drop_ident']     = option('drop_ident');
 		$options['drop_multicast'] = option('drop_multicast');
 		#echo '<pre>'; print_r($options); exit;
-		die(apply_options());
+		apply_options();
+		die("OK");
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:

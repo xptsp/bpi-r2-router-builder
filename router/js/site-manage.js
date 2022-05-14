@@ -162,52 +162,50 @@ function Creds_Password_Submit()
 //======================================================================================================
 function Init_Repo()
 {
-	$(".check_repo").click(Repo_Check).click();
-	$(".pull_repo").click(Repo_Pull);
-}
+	// Handler for checking repo status:
+	$(".check_repo").click(function()
+	{
+		elem = $(this).attr('id').split("_")[0];
+		Add_Overlay(elem + "_div");
+		$.post("/manage/repo", __postdata("check", elem), function(data) {
+			if (data == "RELOAD")
+				document.location.reload(true);
+			data = JSON.parse(data);
+			Del_Overlay(data.elem + "_div");
+			valid = (data.time != "Invalid Data");
+			$("#" + data.elem + "_latest").html( (valid ? 'v' : '') + data.time );
+			if (valid && data.time > $("#" + data.elem + "_current").text())
+			{
+				$("#" + data.elem + "_check_div").addClass("hidden");
+				$("#" + data.elem + "_pull_div").removeClass("hidden");
+				$("#" + data.elem + "_ribbon").removeClass("hidden");
+			}
+		}).fail( function() {
+			Del_Overlay(elem + "_div");
+			$("#" + elem + "_latest").html("AJAX Call Failed");
+		});
+	}).click();
 
-function Repo_Check()
-{
-	elem = $(this).attr('id').split("_")[0];
-	Add_Overlay(elem + "_div");
-	$.post("/manage/repo", __postdata("check", elem), function(data) {
-		if (data == "RELOAD")
-			document.location.reload(true);
-		data = JSON.parse(data);
-		Del_Overlay(data.elem + "_div");
-		valid = (data.time != "Invalid Data");
-		$("#" + data.elem + "_latest").html( (valid ? 'v' : '') + data.time );
-		if (valid && data.time > $("#" + data.elem + "_current").text())
-		{
-			$("#" + data.elem + "_check_div").addClass("hidden");
-			$("#" + data.elem + "_pull_div").removeClass("hidden");
-			$("#" + data.elem + "_ribbon").removeClass("hidden");
-		}
-	}).fail( function() {
-		Del_Overlay(elem + "_div");
-		$("#" + elem + "_latest").html("AJAX Call Failed");
-	});
-}
-
-function Repo_Pull()
-{
-	elem = $(this).attr('id').split("_")[0];
-	$("#apply_msg").html( $("#apply_default").html() );
-	$("#apply_cancel").addClass("hidden");
-	$("#apply-modal").modal("show");
-	$.post("/manage/repo", __postdata("pull", elem), function(data) {
-		data = data.trim();
-		if (data == "RELOAD" || data == "OK")
-			document.location.reload(true);
-		else
-		{
+	// Handler for pulling repo updates:
+	$(".pull_repo").click(function() {
+		elem = $(this).attr('id').split("_")[0];
+		$("#apply_msg").html( $("#apply_default").html() );
+		$("#apply_cancel").addClass("hidden");
+		$("#apply-modal").modal("show");
+		$.post("/manage/repo", __postdata("pull", elem), function(data) {
+			data = data.trim();
+			if (data == "RELOAD" || data == "OK")
+				document.location.reload(true);
+			else
+			{
+				$("#apply_msg").html(data);
+				$("#apply_cancel").removeClass("hidden");
+			}
+		}).fail( function() {
 			$("#apply_msg").html(data);
 			$("#apply_cancel").removeClass("hidden");
-		}
-	}).fail( function() {
-		$("#apply_msg").html(data);
-		$("#apply_cancel").removeClass("hidden");
-		$("#" + elem + "_latest").html("AJAX Call Failed");
+			$("#" + elem + "_latest").html("AJAX Call Failed");
+		});
 	});
 }
 
@@ -331,24 +329,21 @@ function Init_Logs(pages)
 	$("#pages .page_last").on("click", function() {
 		Logs_Page( MaxPages );
 	});
-	$("#search").on("propertychange input", Logs_Filter);
+	$("#search").on("propertychange input", function() { 
+		msg = $("#search").val();
+		$(".everything").addClass("hidden");
+		if (msg.length >= 2)
+		{
+			$("#lines > div:contains('" + msg + "')").removeClass("hidden");
+			$(".pagination").addClass("hidden");
+		}
+		else
+		{
+			$(".pagination").removeClass("hidden");
+			$("#lines .page_" + $("#pages .active").text()).removeClass("hidden");
+		}
+	});
 	Logs_Page(1);
-}
-
-function Logs_Filter()
-{
-	msg = $("#search").val();
-	$(".everything").addClass("hidden");
-	if (msg.length >= 2)
-	{
-		$("#lines > div:contains('" + msg + "')").removeClass("hidden");
-		$(".pagination").addClass("hidden");
-	}
-	else
-	{
-		$(".pagination").removeClass("hidden");
-		$("#lines .page_" + $("#pages .active").text()).removeClass("hidden");
-	}
 }
 
 function Logs_Page(page)
@@ -465,23 +460,9 @@ function Management_Apply()
 	$("#apply_msg").html( $("#apply_default").html() );
 	$("#apply_cancel").addClass("hidden");
 	$("#apply-modal").modal("show");
-	$.post("/manage/management", postdata, function(data) {
-		data = data.trim();
-		if (data == "RELOAD")
-			document.location.reload(true);
-		else if (data == "OK")
-		{
-			$.post("/manage/management", __postdata('reboot'));
-			$("#apply-modal").modal("hide");
-		}
-		else
-		{
-			$("#apply_msg").html(data);
-			$("#apply_cancel").removeClass("hidden");
-		}
-	}).fail(function() {
-		$("#apply_msg").html("AJAX call failed!");
-		$("#apply_cancel").removeClass("hidden");
+	WebUI_Post("/manage/management", postdata, null, false, function() {
+		$.post("/manage/management", __postdata('reboot'));
+		$("#apply-modal").modal("hide");
 	});
 }
 

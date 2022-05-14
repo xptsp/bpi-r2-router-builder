@@ -730,7 +730,7 @@ case $CMD in
 				systemctl restart nmbd
 			else
 				[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-				echo "SYNTAX: $(basename $0) git [http-on|http-off|https-on|https-off|restart]" && exit 0
+				echo "SYNTAX: $(basename $0) git [http-on|http-off|https-on|https-off|restart]"
 			fi
 		done
 		;;
@@ -800,54 +800,27 @@ case $CMD in
 		;;
 
 	###########################################################################
-	upnp)
-		for action in $@; do
-			if [[ "${action}" == "enable" ]]; then
-				systemctl enable --now miniupnpd >& /dev/null
-			elif [[ "${action}" == "restart" ]]; then
-				systemctl is-active miniupnpd >& /dev/null && systemctl restart miniupnpd
-			elif [[ "${action}" == "disable" ]]; then
-				systemctl disable --now miniupnpd
-			elif [[ "${action}" == "move" ]]; then
-				if ! test -f /tmp/router-settings; then echo "ERROR: File does not exist!"; exit; fi
-				mv /tmp/router-settings /etc/miniupnpd/miniupnpd.conf
-			else
-				[[ "$action" != "-h" ]] && echo "ERROR: Invalid option passed!"
-				echo "SYNTAX: $(basename $0) upnp [cmd]"
-				echo "Where [cmd] is:"
-				echo "    enable       - Enables and (re)starts the miniupnpd service"
-				echo "    disable      - Disables and stops the miniupnpd service if running"
-				echo "    restart      - Restarts the miniupnpd service if running"
-				exit 1
-			fi
-		done
-		echo "OK"
-		;;
+	move)
+		# Determine what filename to move the temporary file to:
+		FILE=
+		[[ "$1" == "miniupnpd" ]] && FILE=/etc/miniupnpd/miniupnpd.conf
+		[[ "$1" == "multicast-relay" ]] && FILE=/etc/default/multicast-relay
+		[[ "$1" == "docker-compose" ]] && FILE=/etc/docker-compose.yaml
+		
+		# Was a filename determined?  If not, abort with error:
+		[[ -z "${FILE}" ]] && echo "ERROR: Invalid option passed!" && exit 1
 
-	###########################################################################
-	multicast)
-		for action in $@; do
-			if [[ "${action}" == "enable" ]]; then
-				systemctl enable --now multicast-relay >& /dev/null
-			elif [[ "${action}" == "restart" ]]; then
-				systemctl is-active multicast-relay >& /dev/null && systemctl restart multicast-relay
-			elif [[ "${action}" == "disable" ]]; then
-				systemctl disable --now multicast-relay
-			elif [[ "${action}" == "move" ]]; then
-				if ! test -f /tmp/router-settings; then echo "ERROR: File does not exist!"; exit; fi
-				mv /tmp/router-settings /etc/default/multicast-relay
-			else
-				[[ "$action" != "-h" ]] && echo "ERROR: Invalid option passed!"
-				echo "SYNTAX: $(basename $0) multicast [cmd]"
-				echo "Where [cmd] is:"
-				echo "    enable       - Enables and (re)starts the multicast-relay service"
-				echo "    disable      - Disables and stops the multicast-relay service if running"
-				echo "    restart      - Restarts the multicast-relay service if running"
-				exit 1
-			fi
-		done
-		echo "OK"
-		;;
+		# Abort if temporary file not found.  Otherwise, move to destination and change owner to root:
+		if ! test -f /tmp/router-settings; then echo "ERROR: File does not exist!"; exit; fi
+		mv /tmp/router-settings ${FILE} 
+		chown root:root ${FILE}
+
+		# Restart service if requested and already running:
+		if [[ "$2" == "restart" ]]; then
+			[[ "$(systemctl is-active $1)" == "active" ]] && systemctl restart $1
+		fi
+		echo "OK" 
+		;;		
 
 	###########################################################################
 	# Code adapted from https://andrewwippler.com/2016/03/11/wifi-captive-portal/
@@ -873,7 +846,7 @@ case $CMD in
 			echo "OK"
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-			echo "SYNTAX: $(basename $0) portal [check|allow] (options)" && exit 0
+			echo "SYNTAX: $(basename $0) portal [check|allow] (options)"
 			echo "Where:"
 			echo "    check [ip]  - Shows if captive portal is required for interface"
 			echo "    allow [ip]  - Allows MAC address associated with specified IP address access to network"
@@ -905,7 +878,7 @@ case $CMD in
 		 echo "    remove_files - Removes unnecessary files from system partition"
 		 echo "    webui        - WebUI actions"
 		 echo "    forward      - Port forwarding actions"
-		 echo "    upnp         - UPnP actions"
+		 echo "    move         - Move configuration files into position"
 		 echo "    portal       - Captive Portal actions"
 		) | sort
 		echo ""

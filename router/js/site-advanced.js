@@ -26,7 +26,7 @@ function Init_Firewall()
 			'redirect_dns':   $("#redirect_dns").prop("checked") ? "Y" : "N",
 		};
 		//alert(JSON.stringify(postdata, null, 5)); return;
-		__WebUI_Post("/advanced/firewall", postdata);
+		WebUI_Post("/advanced/firewall", postdata);
 	});
 }
 
@@ -89,7 +89,7 @@ function Init_DMZ()
 			'dest_mac':   $("#mac_addr").val(),
 		};
 		//alert(JSON.stringify(postdata, null, 5)); return;
-		__WebUI_Post("/advanced/dmz", postdata);
+		WebUI_Post("/advanced/dmz", postdata);
 	});
 }
 
@@ -362,51 +362,32 @@ function Init_PortForward(ip)
 			$("#ext_max").removeAttr("disabled");
 	});
 	$('#ip_addr').inputmask("ip");
-	$("#submit_forward").click(PortForward_Add);
-}
+	$("#submit_forward").click(function() {{
+		// If "parent" is not null, then delete the port forwarding rule that we are editing:
+		if (parent != null)
+			PortForward_Delete( parent );
 
-function PortForward_Add()
-{
-	// If "parent" is not null, then delete the port forwarding rule that we are editing:
-	if (parent != null)
-		PortForward_Delete( parent );
+		// Assemble the post data for the AJAX call:
+		postdata = {
+			'sid':      SID,
+			'action':   'add',
+			'iface':    $("#iface").val(),
+			'ext_min':  $("#ext_min").val(),
+			'ext_max':  $("#ext_max").val(),
+			'ip_addr':  $("#ip_addr").val(),
+			'int_port': $("#int_port").val(),
+			'protocol': $("#protocol").val(),
+			'comment':  $("#comment").val(),
+			'enabled':  $("#enabled").prop("checked") ? "Y" : "N",
+		};
+		//alert(JSON.stringify(postdata, null, 5)); return;
 
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid':      SID,
-		'action':   'add',
-		'iface':    $("#iface").val(),
-		'ext_min':  $("#ext_min").val(),
-		'ext_max':  $("#ext_max").val(),
-		'ip_addr':  $("#ip_addr").val(),
-		'int_port': $("#int_port").val(),
-		'protocol': $("#protocol").val(),
-		'comment':  $("#comment").val(),
-		'enabled':  $("#enabled").prop("checked") ? "Y" : "N",
-	};
-	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Perform our AJAX request to change the WAN settings:
-	$("#apply_msg").html( $("#apply_default").html() );
-	$("#apply-modal").modal("show");
-	$.post("/advanced/forward", postdata, function(data) {
-		data = data.trim();
-		if (data == "RELOAD")
-			document.location.reload(true);
-		else if (data == "OK")
-		{
+		// Perform our AJAX request to change the WAN settings:
+		WebUI_Post("/advanced/forward", postdata, null, false, function() {
 			$("#apply-modal").modal("hide");
 			$("#forward-modal").modal("hide");
 			$("#forward_refresh").click();
-		}
-		else
-		{
-			$("#apply_msg").html('<pre>' + data + '</pre>');
-			$(".alert_control").removeClass("hidden");
-		}
-	}).fail(function() {
-		$("#apply_msg").html("AJAX call failed!");
-		$("#apply_cancel").removeClass("hidden");
+		});
 	});
 }
 
@@ -423,26 +404,10 @@ function PortForward_Delete(line)
 	//alert(JSON.stringify(postdata, null, 5)); return;
 
 	// Perform our AJAX request to change the WAN settings:
-	$("#apply_msg").html( $("#apply_default").html() );
-	$("#apply-modal").modal("show");
-	$.post("/advanced/forward", postdata, function(data) {
-		data = data.trim();
-		if (data == "RELOAD")
-			document.location.reload(true);
-		else if (data == "OK")
-		{
-			$("#forward_refresh").click();
-			$("#apply-modal").modal("hide");
-		}			
-		else
-		{
-			$("#apply_msg").html('<pre>' + data + '</pre>');
-			$(".alert_control").removeClass("hidden");
-		}
-	}).fail(function() {
-		$("#apply_msg").html("AJAX call failed!");
-		$("#apply_cancel").removeClass("hidden");
-	});
+	WebUI_Post("/advanced/forward", postdata, null, false, function() {
+		$("#forward_refresh").click();
+		$("#apply-modal").modal("hide");
+	});			
 }
 
 //======================================================================================================
@@ -472,6 +437,6 @@ function Init_Notify()
 			'send_on':    $("#send_on").val().join(","),
 		};
 		//alert(JSON.stringify(postdata, null, 5)); return;
-		__WebUI_Post("/advanced/notify", postdata);
+		WebUI_Post("/advanced/notify", postdata);
 	});
 }
