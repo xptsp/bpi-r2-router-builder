@@ -64,25 +64,7 @@ function DNS_Submit()
 		'block_doq':       $("#block_doq").prop("checked") ? "Y" : "N",
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Perform our AJAX request to change the WAN settings:
-	$("#apply_msg").html( $("#apply_default").html() );
-	$("#apply_cancel").addClass("hidden");
-	$("#apply-modal").modal("show");
-	$.post("/setup/dns", postdata, function(data) {
-		if (data.trim() == "RELOAD")
-			document.location.reload(true);
-		else if (data.trim() == "OK")
-			$("#apply-modal").modal("hide");
-		else
-		{
-			$("#apply_msg").html(data);
-			$("#apply_cancel").removeClass("hidden");
-		}
-	}).fail(function() {
-		$("#apply_msg").html("AJAX call failed!");
-		$("#apply_cancel").removeClass("hidden");
-	});
+	WebUI_Post("/setup/dns", postdata);
 }
 
 //======================================================================================================
@@ -235,7 +217,7 @@ function Routing_Delete()
 	$.post("/setup/routing", postdata, function(data) {
 		Del_Overlay("routing-div");
 		if (data.trim() == "")
-			DHCP_Refresh_Reservations();
+			Routing_Refresh();
 		else
 			DHCP_Error(data);
 	}).fail(function() {
@@ -262,7 +244,7 @@ function Routing_Add()
 	$.post("/setup/routing", postdata, function(data) {
 		Del_Overlay("routing-div");
 		if (data.trim() == "OK")
-			DHCP_Refresh_Reservations();
+			Routing_Refresh();
 		else
 			DHCP_Error(data);
 	}).fail(function() {
@@ -322,26 +304,7 @@ function Settings_Apply()
 		'onboard_wifi':  $("#onboard_wifi").find("option:selected").val(),
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Perform our AJAX request to remove the IP reservation:
-	$("#apply_msg").html( $("#apply_default").html() );
-	$("#apply_cancel").addClass("hidden");
-	$("#apply-modal").modal("show");
-	$.post("/setup/settings", postdata, function(data) {
-		data = data.trim();
-		if (data == "RELOAD")
-			document.location.reload(true);
-		else if (data == "OK")
-			$("#apply-modal").modal("hide");
-		else
-		{
-			$("#apply_msg").html(data);
-			$("#apply_cancel").removeClass("hidden");
-		}
-	}).fail(function() {
-		$("#apply_msg").html("AJAX call failed!");
-		$("#apply_cancel").removeClass("hidden");
-	});
+	WebUI_Post("/setup/settings", postdata);
 }
 
 //======================================================================================================
@@ -398,7 +361,6 @@ function Init_Wireless(iface)
 		$(".band_" + $("#ap_band option:selected").val()).removeClass("hidden");
 	});
 	$("#apply_changes").click(Wireless_Submit);
-	$("#wifi_encode").click(Wireless_Encode);
 	$("#wifi_scan").click(function() {
 		$("#scan_data").html("");
 		$("#scan-modal").modal("show");
@@ -460,54 +422,7 @@ function Wireless_Submit()
 		'ap_no_net':  $("#ap_no_net").is(":checked") ? 'Y' : 'N',
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Notify the user what we are doing:
-	$("#apply_msg").html( $("#apply_default").html() );
-	$("#apply_cancel").addClass("hidden");
-	if (reboot_suggested)
-		$("#reboot-modal").modal("show");
-	else
-		$("#apply-modal").modal("show");
-
-	// Perform our AJAX request to change the WAN settings:
-	$.post('/setup/wireless', postdata, function(data) {
-		if (data == "OK")
-			document.location.reload(true);
-		else if (data == "REBOOT")
-			Reboot_Confirmed();
-		else
-		{
-			$("#apply_msg").html(data);
-			$("#apply_cancel").removeClass("hidden");
-		}
-	}).fail(function() {
-		$("#apply_msg").html("AJAX call failed!");
-		$("#apply_cancel").removeClass("hidden");
-	});
-}
-
-function Wireless_Encode()
-{
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid':        SID,
-		'action':     'encode',
-		'wpa_ssid':   $("#wpa_ssid").val(),
-		'wpa_psk':    $("#wpa_psk").val(),
-	};
-	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Perform our AJAX request to change the WAN settings:
-	$.post('/setup/wireless', postdata, function(data) {
-		data = data.trim();
-		if (data == "RELOAD")
-			document.location.reload(true);
-		$("#wpa_psk").val( data );
-	}).fail(function() {
-		$("#apply-modal").modal("show");
-		$("#apply_msg").html("AJAX call failed!");
-		$("#apply_cancel").removeClass("hidden");
-	});
+	WebUI_Post("/setup/wireless", postdata, null, false, Reboot_Confirmed);
 }
 
 function Wireless_Scan()

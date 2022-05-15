@@ -174,7 +174,19 @@ function Del_Overlay(id)
 //======================================================================================================
 // Helper functions dealing with posting settings:
 //======================================================================================================
-function WebUI_Post(url, postdata, state = null, large = false, OK_sub = function() { document.location.reload(true); } )
+function __WebUI_OK() 
+{
+	document.location.reload(true); 
+}
+
+function __WebUI_Other(data)
+{
+	$("#apply_msg").html(data);
+	$(".alert_control").removeClass("hidden");
+	$("#apply_cancel").removeClass("hidden");
+}
+
+function WebUI_Post(url, postdata, state = null, large = false, OK_sub = __WebUI_OK, Other_sub = __WebUI_Other)
 {
 	$("#apply-modal-middle").removeClass("modal-xl");
 	$("#apply_msg").html( $("#apply_default").html() );
@@ -191,9 +203,7 @@ function WebUI_Post(url, postdata, state = null, large = false, OK_sub = functio
 		{
 			if (large)
 				$("#apply-modal-middle").addClass("modal-xl");
-			$("#apply_msg").html(data);
-			$(".alert_control").removeClass("hidden");
-			$("#apply_cancel").removeClass("hidden");
+			Other_sub(data);
 		}
 	}).fail(function() {
 		if (state != null && (post['action'] == 'enable' || post['action'] == 'disable'))

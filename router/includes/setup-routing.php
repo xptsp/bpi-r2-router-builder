@@ -81,7 +81,8 @@ if (isset($_POST['action']))
 		fwrite($handle, $text);
 		fclose($handle);
 		@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh route move ' . $_POST['iface'] . '-route');
-		die( @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh route ' . str_replace("ip route ", "", $out)) );
+		@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh route ' . str_replace("ip route ", "", $out));
+		die("OK");
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
@@ -153,4 +154,5 @@ echo '
 		<a href="javascript:void(0);"><button type="button" id="add_route" class="btn btn-success float-right">Add Route</button></a>
 	</div>
 </div>';
+apply_changes_modal('Please wait....', true);
 site_footer('Init_Routing();');

@@ -59,6 +59,7 @@ while [[ ! -z "${!uuid[@]}" ]]; do
 	if [[ ! -z "${options[p]}" || ! -z "${options[password]}" ]]; then
 		[[ -z "${options[p]}" ]] && declare -A "options[p]=${options[password]}"
 		PASS=${options[p]}
+	fi
 
 	# Get the password to use to attempt to open the TrueCrypt volumes:
 	read -s -p "Enter Password: " PASS; echo ""
