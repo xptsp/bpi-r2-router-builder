@@ -3,12 +3,47 @@
 //======================================================================================================
 function Init_Stats()
 {
-	$("#stats_button").click(Stats_Network_Show);
-	$("#stats_close").click(Stats_Network_Close);
-	$("#reboot_button").click(Stats_Reboot_Button);
-	$("#power_button").click(Stats_Power_Button);
-	$("#reboot_yes").click(Reboot_Confirmed);
 	$("#refresh_switch").bootstrapSwitch();
+
+	// Handler dealing with showing the network statistics modal:
+	$("#stats_button").click(function() {
+		Stats_Network_Get();
+		myTimer = setInterval(Stats_Network_Get, 5000);
+		$("#refresh_switch").on('switchChange.bootstrapSwitch', function(event, state) {
+			if (state == true)
+			{
+				Stats_Network_Get();
+				myTimer = setInterval(Stats_Network_Get, 5000);
+			}
+			else
+				clearInterval(myTimer);
+		});
+	});
+
+	// Handler dealing with closing the network statistics modal:
+	$("#stats_close").click(function() {
+		clearInterval(myTimer);
+	});
+
+	// Handler dealing with the reboot button:
+	$("#reboot_button").click(function()
+	{
+		restore_type = "reboot";
+		$("#title_msg").html("Reboot");
+		$("#body_msg").html("Rebooting");
+		$("#reboot_yes").html("Reboot Router");
+	});
+
+	// Handler dealing with the power button:  
+	$("#power_button").click(function() {
+		restore_type = "power";
+		$("#title_msg").html("Power Off");
+		$("#body_msg").html("Powering off");
+		$("#reboot_yes").html("Power Off Router");
+	});
+
+	// Handler dealing with the reboot confirmed modal:
+	$("#reboot_yes").click(Reboot_Confirmed);
 }
 
 function Stats_Fetch(iface)
@@ -22,7 +57,7 @@ function Stats_Fetch(iface)
 		timer = setInterval(function() {
 			if (timer === 0) {
 				clearInterval(timer);
-				Stats_Update();
+				Stats_Fetch();
 			}
 		}, data.dhcp_refresh + 60);
 	}).fail(function() {
@@ -32,21 +67,6 @@ function Stats_Fetch(iface)
 	});
 }
 
-function Stats_Reboot_Button()
-{
-	restore_type = "reboot";
-	$("#title_msg").html("Reboot");
-	$("#body_msg").html("Rebooting");
-	$("#reboot_yes").html("Reboot Router");
-}
-
-function Stats_Power_Button()
-{
-	restore_type = "power";
-	$("#title_msg").html("Power Off");
-	$("#body_msg").html("Powering off");
-	$("#reboot_yes").html("Power Off Router");
-}
 
 function Stats_Network_Get()
 {
@@ -59,101 +79,32 @@ function Stats_Network_Get()
 	});
 }
 
-function Stats_Network_Show()
-{
-	Stats_Network_Get();
-	myTimer = setInterval(Stats_Network_Get, 5000);
-	$("#refresh_switch").on('switchChange.bootstrapSwitch', function(event, state) {
-		if (state == true)
-		{
-			Stats_Network_Get();
-			myTimer = setInterval(Stats_Network_Get, 5000);
-		}
-		else
-			clearInterval(myTimer);
-	});
-}
-
-function Stats_Network_Close()
-{
-	clearInterval(myTimer);
-}
-
 //======================================================================================================
 // Javascript functions for "Management / Credentials"
 //======================================================================================================
 function Init_Creds()
 {
-	$("#submit").click(Creds_Password_Submit);
-	$(".input-group-append").click(Creds_Password_Toggle);
-}
+	// Handler to submit password-change form:
+	$("#submit").click(function() {
+		postdata = {
+			'sid':     SID,
+			'action':  'submit',
+			'oldPass': $("#oldPass").val(),
+			'newPass': $("#newPass").val(),
+			'conPass': $("#conPass").val()
+		};
+		//alert(JSON.stringify(postdata, null, 5)); return;
+		WebUI_Post("/manage/creds", postdata);
+	});
 
-function Creds_Password_Toggle()
-{
-	input = $(this).parent().find(".form-control");
-	if (input.attr("type") === "password")
-		input.attr("type", "text");
-	else
-        input.attr("type", "password");
-	$(this).find(".fas").toggleClass("fa-eye fa-eye-slash");
-}
-
-function Creds_Password_Fail(msg)
-{
-	$("#passwd_msg").html(msg);
-	$("#passwd_icon").removeClass("fa-thumbs-up");
-	$("#alert_msg").addClass("alert-danger").removeClass("alert-success").fadeIn("slow");
-	myTimer = setInterval(function() {
-		clearInterval(MyTimer);
-		$("#alert_msg").fadeOut("slow");
-	}, 3000);
-}
-
-function Creds_Password_Submit()
-{
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid':     SID,
-		'action':  'submit',
-		'oldPass': $("#oldPass").val(),
-		'newPass': $("#newPass").val(),
-		'conPass': $("#conPass").val()
-	};
-
-	// Confirm all information has been entered correctly:
-	if (postdata.oldPass == "")
-		return Creds_Password_Fail("Current password not specified!");
-	if (postdata.newPass == "")
-		return Creds_Password_Fail("New password not specified!");
-	if (postdata.conPass == "")
-		return Creds_Password_Fail("Confirm password not specified!");
-	if (postdata.conPass != postdata.newPass)
-		return Creds_Password_Fail("New password does not match Confirm Password!");
-
-	// Perform our AJAX request to change the password:
-	$.post("/manage/creds", postdata, function(data) {
-		if (data == "RELOAD")
-			document.location.reload(true);
-		else if (data == "oldPass")
-			Creds_Password_Fail("Old Password cannot contain characters other than alphanumeric characters!");
-		else if (data == "newPass")
-			Creds_Password_Fail("New Password cannot contain characters other than alphanumeric characters!");
-		else if (data == "Successful")
-		{
-			$("#passwd_msg").html("Password Change Successful!");
-			$("#passwd_icon").addClass("fa-thumbs-up");
-			$("#alert_msg").removeClass("alert-danger").addClass("alert-success").fadeIn("slow");
-			myTimer = setInterval(function() {
-				clearInterval(MyTimer);
-				$("#alert_msg").fadeOut("slow");
-			}, 3000);
-		}
-		else if (data == "No match")
-			Creds_Password_Fail("Incorrect Old Password!");
+	// Handler to toggle password visibility:
+	$(".input-group-append").click(function() {
+		input = $(this).parent().find(".form-control");
+		if (input.attr("type") === "password")
+			input.attr("type", "text");
 		else
-			Creds_Password_Fail("Password Change failed for unknown reason!");
-	}).fail(function() {
-		Creds_Password_Fail("AJAX call failed!");
+		    input.attr("type", "password");
+		$(this).find(".fas").toggleClass("fa-eye fa-eye-slash");
 	});
 }
 
@@ -189,23 +140,7 @@ function Init_Repo()
 	// Handler for pulling repo updates:
 	$(".pull_repo").click(function() {
 		elem = $(this).attr('id').split("_")[0];
-		$("#apply_msg").html( $("#apply_default").html() );
-		$("#apply_cancel").addClass("hidden");
-		$("#apply-modal").modal("show");
-		$.post("/manage/repo", __postdata("pull", elem), function(data) {
-			data = data.trim();
-			if (data == "RELOAD" || data == "OK")
-				document.location.reload(true);
-			else
-			{
-				$("#apply_msg").html(data);
-				$("#apply_cancel").removeClass("hidden");
-			}
-		}).fail( function() {
-			$("#apply_msg").html(data);
-			$("#apply_cancel").removeClass("hidden");
-			$("#" + elem + "_latest").html("AJAX Call Failed");
-		});
+		WebUI_Post("/manage/repo", __postdata("pull", elem));
 	});
 }
 
@@ -442,27 +377,16 @@ function Restore_Confirm()
 function Init_Management()
 {
 	$(".checkbox").bootstrapSwitch();
-	$("#apply_changes").click(Management_Apply);
-}
-
-function Management_Apply()
-{
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid':               SID,
-		'action':            'submit',
-		'allow_local_http':  $("#allow_local_http").prop("checked") ? "Y" : "N",
-		'allow_local_https': $("#allow_local_https").prop("checked") ? "Y" : "N",
-	};
-	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Perform our AJAX request to change the WAN settings:
-	$("#apply_msg").html( $("#apply_default").html() );
-	$("#apply_cancel").addClass("hidden");
-	$("#apply-modal").modal("show");
-	WebUI_Post("/manage/management", postdata, null, false, function() {
-		$.post("/manage/management", __postdata('reboot'));
-		$("#apply-modal").modal("hide");
+	$("#apply_changes").click(function() {
+		// Assemble the post data for the AJAX call:
+		postdata = {
+			'sid':               SID,
+			'action':            'submit',
+			'allow_local_http':  $("#allow_local_http").prop("checked") ? "Y" : "N",
+			'allow_local_https': $("#allow_local_https").prop("checked") ? "Y" : "N",
+		};
+		//alert(JSON.stringify(postdata, null, 5)); return;
+		WebUI_Post("/manage/management", postdata);
 	});
 }
 

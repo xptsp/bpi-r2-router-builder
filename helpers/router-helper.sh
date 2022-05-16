@@ -226,39 +226,31 @@ case $CMD in
 		USER=$(cat /etc/passwd | grep ":1000:" | cut -d: -f1)
 		#####################################################################
 		# CHECK => Checks to make sure supplied username/password combo is valid:
-		if [[ "$1" == "check" || "$1" == "webui" ]]; then
+		if [[ "$1" == "check" ]]; then
+			[[ -z "${2}" ]] && echo "No match" && exit 1
 			pwd=$(getent shadow ${2} | cut -d: -f2)
 			[[ -z "${pwd}" ]] && echo "No match" && exit 1
 			[[ "$(mkpasswd ${3} ${pwd})" == "${pwd}" ]] && echo "Match" || echo "No match"
 		#####################################################################
-		# WEBUI => Returns the username for user 1000:
-		elif [[ "$1" == "webui" ]]; then
-			$0 login check ${USER} $2
-		#####################################################################
 		# PASSWD => Changes the password for user 1000:
 		elif [[ "$1" == "passwd" ]]; then
-			[[ -z "${2}" ]] && echo "Password not specified" && exit 1
-			(echo $2; echo $2) | passwd ${3:-"${USER}"}
+			OK=$($0 login check ${USER} $2)
+			[[ "${OK}" == "No match" ]] && echo "ERROR: Incorrect Password" && exit 1  
+			[[ -z "${3}" ]] && echo "ERROR: Password not specified" && exit 1
+			(echo $3; echo $3) | passwd ${3:-"${USER}"} >& /dev/null && echo "OK" || echo "Password change failed"
 		#####################################################################
 		# USERNAME => Returns the username for user 1000:
 		elif [[ "$1" == "username" ]]; then
 			[[ -z "${2}" ]] && echo "Username not specified" && exit 1
 			usermod -l $2 ${3:-"${USER}"} && echo "Success"
 		#####################################################################
-		# SAFETY-CHECK => Returns information about possible security concerns:
-		elif [[ "$1" == "safety-check" ]]; then
-			[[ "$($0 login check ${USER} bananapi)" == "Match" ]] && echo "Default"
-			[[ "$($0 login check root bananapi)" == "Match" ]] && echo "Root"
-			mount | grep -e "[emergency|tmp]-root-rw on /rw " >& /dev/null && echo "Temp"
-		#####################################################################
 		# Everything else:
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
 			echo "Usage: $(basename $0) login [check|webui|passwd|username|safety-check|cookie]"
 			echo "Where:"
-			echo "    check [username] [password]   - Verifies that supplied credentials are correct"
-			echo "    webui [password]              - Verifies that supplied credentials of user 1000 are correct"
-			echo "    passwd [password] [username]  - Changes password of user 1000 to [password]"
+			echo "    check [username] [password]   - Verifies that supplied credentials are correct for user 1000"
+			echo "    passwd [oldPass] [newPass]    - Changes password of user 1000 from [oldPass] to [newPass]"
 			echo "    username [username]           - Changes username of user 1000 to [username]"
 		fi
 		;;
