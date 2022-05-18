@@ -127,5 +127,5 @@ echo '
 	</div>
 	<!-- /.card-body -->
 </div>';
-apply_changes_modal('Please wait while the settings are updated....', true);
+apply_changes_modal('Please wait while changes are pending....', true);
 site_footer('Init_Notify();');

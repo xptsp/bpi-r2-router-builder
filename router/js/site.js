@@ -186,7 +186,14 @@ function __WebUI_Other(data)
 	$("#apply_cancel").removeClass("hidden");
 }
 
-function WebUI_Post(url, postdata, state = null, large = false, OK_sub = __WebUI_OK, Other_sub = __WebUI_Other)
+function __WebUI_Fail()
+{
+	$("#apply_msg").html("AJAX call failed");
+	$(".alert_control").removeClass("hidden");
+	$("#apply_cancel").removeClass("hidden");
+}
+
+function WebUI_Post(url, postdata, state = null, large = false, OK_sub = __WebUI_OK, Other_sub = __WebUI_Other, Fail_sub = __WebUI_Fail)
 {
 	$("#apply-modal-middle").removeClass("modal-xl");
 	$("#apply_msg").html( $("#apply_default").html() );
@@ -208,8 +215,6 @@ function WebUI_Post(url, postdata, state = null, large = false, OK_sub = __WebUI
 	}).fail(function() {
 		if (state != null && (post['action'] == 'enable' || post['action'] == 'disable'))
 			$("#refresh_switch").bootstrapSwitch('state', !state, true);
-		$("#apply_msg").html("AJAX call failed");
-		$(".alert_control").removeClass("hidden");
-		$("#apply_cancel").removeClass("hidden");
+		__WebUI_Fail();
 	});
 }

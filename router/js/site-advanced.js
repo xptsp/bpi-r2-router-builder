@@ -12,8 +12,9 @@ function Init_Firewall()
 		else
 			$("#port_scan_options").slideUp(400);
 	});
+
+	// Handler to submit form settings:
 	$("#apply_changes").click(function() {
-		// Assemble the post data for the AJAX call:
 		postdata = {
 			'sid':            SID,
 			'action':         'submit',
@@ -73,8 +74,9 @@ function Init_DMZ()
 		$("#mac_addr").removeAttr("disabled");
 	});
 	$("#mac_addr").inputmask('mac');
+
+	// Handler to submit form settings:
 	$("#apply_changes").click(function() {
-		// Assemble the post data for the AJAX call:
 		postdata = {
 			'sid':        SID,
 			'action':     'submit',
@@ -393,7 +395,7 @@ function Init_PortForward(ip)
 
 function PortForward_Delete(line)
 {
-	// Assemble the post data for the AJAX call:
+	// Handler to submit form settings:
 	postdata = {
 		'sid':      SID,
 		'action':   'del',
@@ -402,8 +404,6 @@ function PortForward_Delete(line)
 		'ext_min':  line.find(".ext_port").text(),
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Perform our AJAX request to change the WAN settings:
 	WebUI_Post("/advanced/forward", postdata, null, false, function() {
 		$("#forward_refresh").click();
 		$("#apply-modal").modal("hide");
@@ -424,8 +424,9 @@ function Init_Notify()
 	});
 	$('.ip_address').inputmask("ip");
 	$(".ip_port").inputmask("integer", {min:0, max:65535});
+
+	// Handler to submit form settings:
 	$("#apply_changes").click(function() {
-		// Assemble the post data for the AJAX call:
 		postdata = {
 			'sid':        SID,
 			'action':     'submit',

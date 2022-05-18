@@ -181,25 +181,37 @@ function Init_Routing()
 {
 	$('.ip_address').inputmask("ip");
 	$("#dest_addr").focus();
-	$("#routing-refresh").click(Routing_Refresh).click();
-	$("#add_route").click(Routing_Add);
-}
 
-function Routing_Refresh()
-{
-	Add_Overlay("routing-div");
-	$.post("/setup/routing", __postdata("show"), function(data) {
-		Del_Overlay("routing-div");
-		$("#routing-table").html(data);
-		$(".fa-trash-alt").click(Routing_Delete);
-	}).fail(function() {
-		$("#routing-table").html('<td colspan="6"><center>AJAX call failed!</center></td>');
+	// HAndler to refresh the network routing table:
+	$("#routing-refresh").click(function() {
+		Add_Overlay("routing-div");
+		$.post("/setup/routing", __postdata("show"), function(data) {
+			Del_Overlay("routing-div");
+			$("#routing-table").html(data);
+			$(".fa-trash-alt").click(Routing_Delete);
+		}).fail(function() {
+			$("#routing-table").html('<td colspan="6"><center>AJAX call failed!</center></td>');
+		});
+	}).click();
+
+	// Handler to add network routing to system:
+	$("#add_route").click(function() {
+		postdata = {
+			'sid':       SID,
+			'action':    'add',
+			'dest_addr': $("#dest_addr").val(),
+			'mask_addr': $("#mask_addr").val(),
+			'gate_addr': $("#gate_addr").val(),
+			'metric':    $("#metric").val(),
+			'iface':     $("#iface").val(),
+		};
+		//alert(JSON.stringify(postdata, null, 5)); return;
+		WebUI_Post("/setup/routing", postdata, null, false);
 	});
 }
 
 function Routing_Delete()
 {
-	// Assemble the post data for the AJAX call:
 	line = $(this).parent().parent().parent().parent();
 	postdata = {
 		'sid':       SID,
@@ -211,45 +223,7 @@ function Routing_Delete()
 		'iface':     line.find(".iface").html(),
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Perform our AJAX request to add the IP reservation:
-	Add_Overlay("routing-div");
-	$.post("/setup/routing", postdata, function(data) {
-		Del_Overlay("routing-div");
-		if (data.trim() == "")
-			Routing_Refresh();
-		else
-			DHCP_Error(data);
-	}).fail(function() {
-		DHCP_Error("AJAX call failed!");
-	});
-}
-
-function Routing_Add()
-{
-	// Assemble the post data for the AJAX call:
-	postdata = {
-		'sid':       SID,
-		'action':    'add',
-		'dest_addr': $("#dest_addr").val(),
-		'mask_addr': $("#mask_addr").val(),
-		'gate_addr': $("#gate_addr").val(),
-		'metric':    $("#metric").val(),
-		'iface':     $("#iface").val(),
-	};
-	//alert(JSON.stringify(postdata, null, 5)); return;
-
-	// Perform our AJAX request to add the IP reservation:
-	Add_Overlay("routing-div");
-	$.post("/setup/routing", postdata, function(data) {
-		Del_Overlay("routing-div");
-		if (data.trim() == "OK")
-			Routing_Refresh();
-		else
-			DHCP_Error(data);
-	}).fail(function() {
-		DHCP_Error("AJAX call failed!");
-	});
+	WebUI_Post("/setup/routing", postdata, null, false);
 }
 
 //======================================================================================================

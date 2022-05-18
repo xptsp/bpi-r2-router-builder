@@ -377,8 +377,9 @@ function Restore_Confirm()
 function Init_Management()
 {
 	$(".checkbox").bootstrapSwitch();
+
+	// Handler to submit form settings:
 	$("#apply_changes").click(function() {
-		// Assemble the post data for the AJAX call:
 		postdata = {
 			'sid':               SID,
 			'action':            'submit',

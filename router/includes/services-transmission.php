@@ -49,11 +49,11 @@ echo '
 					<div class="input-group-prepend">
 						<span class="input-group-text">http://</span>
 					</div>
-					<input id="dns1" type="text" placeholder="127.0.0.1" class="dns_address form-control" value="', $iface['inet'], '" disabled="disabled">
+					<input type="text" placeholder="127.0.0.1" class="dns_address form-control" value="', $iface['inet'], '" disabled="disabled">
 					<div class="input-group-prepend">
 						<span class="input-group-text" title="Port Number">:</span>
 					</div>
-					<input id="dns_port1" type="text" class="dns_port form-control" placeholder="9091" value="', $trans_port, '">
+					<input id="td_port" type="text" class="dns_port form-control" placeholder="9091" value="', $trans_port, '">
 				</div>
 			</div>
 			<div class="col-sm-2">
@@ -81,7 +81,7 @@ echo '
 		</div>
 	</div>
 	<div class="card-footer">
-		<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-success center_50" id="upnp_submit">Apply Changes</button></a>
+		<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-success center_50" id="transmission_submit">Apply Changes</button></a>
 	</div>
 	<!-- /.card-body -->
 </div>';

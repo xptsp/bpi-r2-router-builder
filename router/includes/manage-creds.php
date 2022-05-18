@@ -15,14 +15,20 @@ if (isset($_POST['action']))
 		$oldPass = isset($_POST['oldPass']) ? $_POST['oldPass'] : '';
 		$newPass = isset($_POST['newPass']) ? $_POST['newPass'] : '';
 		$conPass = isset($_POST['conPass']) ? $_POST['conPass'] : '';
-		if ($oldPass != preg_replace("/[^A-Za-z0-9 ]/", '-', $oldPass))
+		if ($oldPass == "")
+			die("ERROR: Old Password cannot be empty!");
+		else if ($oldPass != preg_replace("/[^A-Za-z0-9 ]/", '-', $oldPass))
 			die("ERROR: Old Password cannot contain characters other than alphanumeric characters!");
+		else if ($newPass == "")
+			die("ERROR: New Password cannot be empty!");
+		else if ($conPass == "")
+			die("ERROR: Confirmation Password cannot be empty!");
+		else if ($newPass != $conPass)
+			die("ERROR: New Password and Confirmation Password do not match!");
 		else if ($newPass != preg_replace("/[^A-Za-z0-9 ]/", '-', $newPass))
 			die("ERROR: New Password cannot contain characters other than alphanumeric characters!");
 		else if ($conPass != preg_replace("/[^A-Za-z0-9 ]/", '-', $newPass))
-			die("ERROR: Confirm Password cannot contain characters other than alphanumeric characters!");
-		else if ($newPass != $conPass)
-			die("ERROR: New Password and Confirm Password do not match!");
+			die("ERROR: Confirmation Password cannot contain characters other than alphanumeric characters!");
 		else if ($newPass == $oldPass)
 			die("ERROR: New Password cannot be the same as the Old Password!");
 		die(trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login passwd ' . $oldPass . ' ' . $newPass)));
@@ -77,4 +83,5 @@ echo '
 	</div>
 	<!-- /.card-body -->
 </div>';
+apply_changes_modal('Please wait while changes are pending....', true);
 site_footer('Init_Creds();');

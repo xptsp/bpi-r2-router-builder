@@ -29,9 +29,8 @@ function __Service_Call(cmd, service, state = null)
 function Init_UPnP()
 {
 	__Services_Init('miniupnpd');
-	$("#toggle_service").click(function() {
-		$("#refresh_switch").bootstrapSwitch('state', true);
-	});
+
+	// Handler to refresh current UPnP port forwards:
 	$("#upnp_refresh").click(function() {
 		$.post('/services/upnp', __postdata("list"), function(data) {
 			if (data == "RELOAD")
@@ -40,8 +39,9 @@ function Init_UPnP()
 				$("#upnp-table").html(data);
 		});
 	}).click();
+
+	// Handler to submit UPnP settings:
 	$("#upnp_submit").click(function() {
-		// Assemble the post data for the AJAX call:
 		postdata = {
 			'sid':           SID,
 			'action':        'submit',
@@ -64,6 +64,8 @@ function Init_Bandwidth(tx, rx)
 	barTX = tx;
 	barRX = rx;
 	barChart = false;
+
+	// Handler to submit update bar graph chart:
 	$("#update_chart").click(function() {
 		// Assemble the post data for the AJAX call:
 		postdata = {
@@ -73,7 +75,7 @@ function Init_Bandwidth(tx, rx)
 		};
 		//alert(JSON.stringify(postdata, null, 5)); return;
 
-		// Perform our AJAX request to change the WAN settings:
+		// Perform our AJAX request to update the bar graph chart:
 		$.post("/services/bandwidth", postdata, function(data) {
 			if (data.reload == true)
 				document.location.reload(true);
@@ -154,6 +156,8 @@ function Init_Bandwidth(tx, rx)
 			$("#table_data").html('<tr><td colspan="4"><center><strong>AJAX Call Failed</strong></center></td></tr>');
 		});
 	}).click();
+
+	// Handlers that change what interface and mode the bar graph shows: 
 	$("#interface").change(function() {
 		$("#update_chart").click();
 	});
@@ -168,8 +172,9 @@ function Init_Bandwidth(tx, rx)
 function Init_Multicast()
 {
 	__Services_Init('miniupnpd');
+
+	// Handler to submit form settings:
 	$("#multicast_submit").click(function() {
-		// Assemble the post data for the AJAX call:
 		postdata = {
 			'sid':       SID,
 			'action':    'submit',
@@ -190,3 +195,24 @@ function Init_Compose()
 		WebUI_Post("/services/compose", __postdata("submit", $("#contents-div").val()));
 	}); 
 }
+
+//======================================================================================================
+// Javascript functions for "Services / Transmission Daemon":
+//======================================================================================================
+function Init_Transmission()
+{
+	__Services_Init('transmission-daemon');
+	$("#transmission_submit").click(function() {
+		// Assemble the post data for the AJAX call:
+		postdata = {
+			'sid':       SID,
+			'action':    'submit',
+			'port':      $("#td_port").val(),
+			'username':  $("#username").val(),
+			'password':  $("#password").val(),
+		};
+		//alert(JSON.stringify(postdata, null, 5)); return;
+		WebUI_Post("/services/transmission", postdata); 
+	});
+}
+
