@@ -71,7 +71,7 @@ if (isset($_POST['action']))
 	{
 		$out = validate_params();
 		if (!file_exists('/etc/network/if-up.d/' . $_POST['iface'] . '-route'))
-			$text = 'if [[ "${IFACE}" == "' . $_POST['iface'] . '" ]]; then' . "\n\t" . $out . "\nfi\n";
+			$text = '#!/bin/bash' . "\n" . 'if [[ "${IFACE}" == "' . $_POST['iface'] . '" ]]; then' . "\n\t" . 'echo ""' . "\n\t" . $out . "\nfi\n" . 'exit 0';
 		else
 		{
 			$text = @file_get_contents('/etc/network/if-up.d/' . $_POST['iface'] . '-route');
