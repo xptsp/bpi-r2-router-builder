@@ -31,7 +31,7 @@ if (!isset($_SESSION['dark_mode']))
 	$_SESSION['dark_mode'] = parse_options()['dark_mode'] == "Y";
 
 # If we are logged in but going to the login page, redirect the page request to the "Home" page:
-if ($logged_in && $_GET['action'] == 'login')
+if ($logged_in && ($_GET['action'] == 'login' || $_GET['action'] == 'logout'))
 {
 	header('Location: http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/');
 	die();

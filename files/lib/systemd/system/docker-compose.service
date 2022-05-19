@@ -6,6 +6,7 @@ After=docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=true
+ExecStartPre=/opt/bpi-r2-router-builder/compose-helper.sh docker-compose 
 ExecStart=/usr/local/bin/docker-compose -f /etc/docker-compose.yaml up -d
 ExecStop=/usr/local/bin/docker-compose -f /etc/docker-compose.yaml down
 
