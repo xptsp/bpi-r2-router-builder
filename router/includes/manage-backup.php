@@ -98,7 +98,7 @@ echo trim(@shell_exec("mount | grep ^overlayfs-root")) == "" ?
 			</label>
 			<div class="col-sm-6"><a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-danger" id="restore_settings">Restore Settings</button></a></div>
 		</div>' . (strpos(trim(@shell_exec("mount | grep ' /rw '")), "/dev/") !== false ? '
-		<hr />
+		<hr style="border-width: 2px" />
 		<div class="input-group mb-4">
 			<label class="col-sm-6 col-form-label">Restore to default settings</label>
 			<div class="col-sm-6"><a href="javascript:void(0);"><button type="button" class="btn btn-block btn-outline-danger" data-toggle="modal" data-target="#reboot-modal" id="factory_settings">Erase Settings</button></a></div>

@@ -119,7 +119,7 @@ echo '
 			</div>
 		</div>
 		<div id="dns_settings">
-			<hr />
+			<hr style="border-width: 2px" />
 			<div class="row">
 				<div class="col-sm-6">
 					<label for="ip_address">Primary DNS Server</label>
@@ -155,7 +155,7 @@ echo '
 				</div>
 			</div>
 		</div>
-		<hr />
+		<hr style="border-width: 2px" />
 		', checkbox("redirect_dns", "Redirect all DNS requests to Integrated Pi-Hole"), '
 		', checkbox("block_dot", "Block outgoing DoT (DNS-over-TLS - port 853) requests not from router"), '
 		', checkbox("block_doq", "Block outgoing DoQ (DNS-over-QUIC - port 8853) requests not from router"), '

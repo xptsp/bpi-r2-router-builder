@@ -7,9 +7,22 @@ require_once("services.php");
 #########################################################################################
 # Get everything we need to show the user:
 #########################################################################################
+# Allowable WebUI interface values:
+$webui_allowed = array();
+foreach (array_diff(glob('/usr/share/transmission/*', GLOB_ONLYDIR), array("/usr/share/transmission/web")) as $webui)
+	$webui_allowed[] = basename($webui);
+#echo '<pre>'; print_r($webui_allowed); exit;
+
 $options = parse_options("/etc/default/transmission-default");
 #echo '<pre>'; print_r($options); exit;
 $trans_port = isset($options['TRANS_PORT']) ? $options['TRANS_PORT'] : "9091";
+#echo '<pre>'; print_r($trans_port); exit;
+$trans_user = isset($options['TRANS_USER']) ? $options['TRANS_USER'] : "pi";
+#echo '<pre>'; print_r($trans_user); exit;
+$trans_pass = isset($options['TRANS_PASS']) ? $options['TRANS_PASS'] : "bananapi";
+#echo '<pre>'; print_r($trans_pass); exit;
+$trans_webui = isset($options['TRANS_WEBUI']) ? $options['TRANS_WEBUI'] : $webui_allowed[0];
+#echo '<pre>'; print_r($trans_webui); exit;
 $iface = parse_ifconfig('br0');
 #echo '<pre>'; print_r($iface); exit;
 
@@ -23,6 +36,14 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'submit')
 	{
+		// Apply configuration file changes:
+		$options['TRANS_PORT']  = option_range('TRANS_PORT', 1, 65535);
+		$options['TRANS_USER']  = option_string('TRANS_USER', 'Username');
+		$options['TRANS_PASS']  = option_string('TRANS_PASS', 'Password');
+		$options['TRANS_WEBUI'] = option_allowed('TRANS_WEBUI', $webui_allowed);
+		apply_options("upnp");
+		@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh move transmission-daemon restart');
+		die("OK");
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
@@ -60,14 +81,14 @@ echo '
 				<a href="http://', $iface['inet'], ':', $trans_port,'"><button type="button" class="btn btn-block btn-primary">Visit WebUI</button></a>
 			</div>
 		</div>
-		<hr />
+		<hr style="border-width: 2px" />
 		<div class="input-group mb-2">
 			<label for="username" class="col-sm-6 col-form-label">Transmission User Name:</label>
 			<div class="input-group col-sm-6">
 				<div class="input-group-prepend">
 					<span class="input-group-text"><i class="fas fa-user"></i></span>
 				</div>
-				<input type="text" class="form-control" id="username" name="username" value="', isset($options['TRANS_USER']) ? $options['TRANS_USER'] : "pi", '"  placeholder="Old Password">
+				<input type="text" class="form-control" id="username" name="username" value="', $trans_user, '"  placeholder="Old Password">
 			</div>
 		</div>
 		<div class="input-group mb-2">
@@ -76,7 +97,22 @@ echo '
 				<div class="input-group-prepend">
 					<span class="input-group-text"><i class="fas fa-key"></i></span>
 				</div>
-				<input type="text" class="form-control" id="password" name="password" value="', isset($options['TRANS_PASS']) ? $options['TRANS_PASS'] : "bananapi", '" placeholder="Required">
+				<input type="text" class="form-control" id="password" name="password" value="', $trans_pass, '" placeholder="Required">
+			</div>
+		</div>
+		<hr style="border-width: 2px" />
+		<div class="input-group mb-2">
+			<label for="password" class="col-sm-6 col-form-label">Transmission WebUI:</label>
+			<div class="input-group col-sm-6">
+				<div class="input-group-prepend">
+					<span class="input-group-text"><i class="fas fa-wrench"></i></span>
+				</div>
+				<select class="form-control" id="webui"', count($langs) == 1 ? ' disabled="disabled"' : '', '>';
+foreach ($webui_allowed as $webui)
+	echo '
+					<option value="', $webui, '"', $trans_webui == $webui_allowed ? ' selected="selected"' : '', '>', $webui, '</option>';
+echo '
+				</select>
 			</div>
 		</div>
 	</div>

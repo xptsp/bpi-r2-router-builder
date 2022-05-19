@@ -459,7 +459,7 @@ function option_allowed($name, $allowed = array(), $single = true)
 	return $tmp;
 }
 
-function option_range($name, $min, $max)
+function option_range($name, $min = 0, $max = 65535)
 {
 	global $options, $options_changed;
 	$tmp = isset($_POST[$name]) ? (int) $_POST[$name] : -99999999;
@@ -494,6 +494,19 @@ function option_mac($name)
 	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
 	if (!filter_var($tmp, FILTER_VALIDATE_MAC))
 		die('ERROR: Missing or invalid value for option "' . $name . '"!');
+	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
+	return $tmp;
+}
+
+function option_string($name, $msg = null, $bad_chars = "/[^A-Za-z0-9]/")
+{
+	global $options, $options_changed;
+	$tmp = isset($_POST[$name]) ? $_POST[$name] : '';
+	$msg = ($msg == null ? 'Option "' . $name . '"' : $msg);
+	if ($tmp == "")
+		die('ERROR: ' . $msg . ' cannot be empty!');
+	else if ($tmp != preg_replace($bad_chars, '-', $tmp))
+		die('ERROR: ' . $msg . ' cannot contain characters other than alphanumeric characters!');
 	$options_changed |= !isset($options[$name]) || $options[$name] != $tmp;
 	return $tmp;
 }

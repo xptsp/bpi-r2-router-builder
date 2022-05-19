@@ -42,7 +42,7 @@ echo '
 			', checkbox("log_port_scan",  "Log Port Scan attempts from Internet", false, 'drop_port_scan'), '
 			', checkbox("log_udp_flood",  "Log UDP Floods from Internet", false, 'drop_port_scan'), '
 		</div>
-		<hr />
+		<hr style="border-width: 2px" />
 		', checkbox("drop_ping",      "Do Not Respond to Pings from the Internet"), '
 		', checkbox("drop_ident",     "Do Not Respond to IDENT requests from Internet (port 113)"), '
 		', checkbox("drop_multicast", "Filter Multicast Packets from Internet", false), '

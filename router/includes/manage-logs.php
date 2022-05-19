@@ -84,7 +84,7 @@ echo '
 					</div>
 				</div>
 			</div>
-			<hr />
+			<hr style="border-width: 2px" />
 			<pre id="lines">' . "\n" . $lines . '</pre>
 		</div>
 	</div>

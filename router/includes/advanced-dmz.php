@@ -59,7 +59,7 @@ echo '
 	<div class="card-body">
 		', checkbox("enable_dmz", "DMZ Default Server", false), '
 		<div ', !empty($options['enable_dmz']) && $options['enable_dmz'] == "Y" ? '' : ' class="hidden"', ' id="dmz_info">
-			<hr />
+			<hr style="border-width: 2px" />
 			<div class="row">
 				<div class="col-sm-4">
 					<label>Source IP Address:</label>
@@ -90,7 +90,7 @@ echo '
 					<label for="src_mask"><input id="mask_ip" type="text" value="', isset($config['dmz_mask_ip']) ? $config['dmz_mask_ip'] : $default, '"', $src_type == "mask" ? '' : 'disabled="disabled"', ' class="ip_address form-control" data-inputmask="\'alias\': \'ip\'" data-mask></label>/<label for="src_mask"><input type="text" value="', !empty($options['dmz_mask_bits']) ? $options['dmz_mask_bits'] : 24, '"', $src_type == "mask" ? '' : 'disabled="disabled"', ' id="mask_bits" maxlength="2" style="max-width: 50px" class="form-control" /></label>
 				</div>
 			</div>
-			<hr />
+			<hr style="border-width: 2px" />
 			<div class="row">
 				<div class="col-sm-4">
 					<label>Destination:</label>

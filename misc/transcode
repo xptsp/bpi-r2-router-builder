@@ -1,0 +1,13 @@
+#!/bin/bash
+pushd /mnt/Volume_1
+find ./ -type d | while read dir; do 
+	pushd $dir
+	DEST="/mnt/Volume_1/${dir/\/Series\//\/Backup\/}"
+	mkdir -p "${DEST}"
+	for file in *.avi; do 
+		ffmpeg -i "${file}" -c copy -y "${file/.avi/.mp4}"
+		mv "${file}" "${DEST}/"
+	done
+	popd
+done
+popd

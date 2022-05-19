@@ -205,11 +205,12 @@ function Init_Transmission()
 	$("#transmission_submit").click(function() {
 		// Assemble the post data for the AJAX call:
 		postdata = {
-			'sid':       SID,
-			'action':    'submit',
-			'port':      $("#td_port").val(),
-			'username':  $("#username").val(),
-			'password':  $("#password").val(),
+			'sid':         SID,
+			'action':      'submit',
+			'TRANS_PORT':  $("#td_port").val(),
+			'TRANS_USER':  $("#username").val(),
+			'TRANS_PASS':  $("#password").val(),
+			'TRANS_WEBUI': $("#webui").val(),
 		};
 		//alert(JSON.stringify(postdata, null, 5)); return;
 		WebUI_Post("/services/transmission", postdata); 
