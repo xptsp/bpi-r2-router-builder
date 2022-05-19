@@ -12,9 +12,9 @@ services:
 			- /mnt/Volume_1/Series:/data/tvshows
 			- /mnt/Volume_1/Movies:/data/movies
 		ports:
-			- 192.168.2.1:8096:8096
-			- 192.168.2.1:8920:8920
-			- 192.168.2.1:7359:7359/udp
+			- 8096:8096
+			- 8920:8920
+			- 7359:7359/udp
 		restart: unless-stopped
 
 	sickchill:
@@ -29,7 +29,7 @@ services:
 			- /mnt/Volume_1/Downloads:/downloads
 			- /mnt/Volume_1/Series/:/tv
 		ports:
-			- 192.168.2.1:8081:8081
+			- 8081:8081
 		restart: unless-stopped
 
 	couchpotato:
@@ -45,5 +45,5 @@ services:
 			- /mnt/Volume_1/Downloads:/downloads
 			- /mnt/Volume_1/Movies:/movies
 		ports:
-			- 192.168.2.1:5050:5050
+			- 5050:5050
 		restart: unless-stopped

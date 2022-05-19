@@ -5,7 +5,7 @@ services:
     image: grafana/grafana
     user: "1000"
     ports:
-      - 192.168.2.1:3000:3000
+      - 3000:3000
     volumes:
       - /opt/grafana:/etc/grafana:rw
       - /opt/grafana:/var/lib/grafana:rw
@@ -19,7 +19,7 @@ services:
     container_name: influxdb
     image: influxdb:1.8.4
     ports:
-      - 192.168.2.1:8086:8086
+      - 8086:8086
     volumes:
       - /opt/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
       - /opt/influxdb:/var/lib/influxdb
@@ -54,7 +54,7 @@ services:
     container_name: node-red
     image: nodered/node-red
     ports:
-      - 192.168.2.1:1880:1880
+      - 1880:1880
     volumes:
       - /opt/node-red:/data
       - /etc/localtime:/etc/localtime:ro
@@ -76,7 +76,7 @@ services:
     image: eclipse-mosquitto
     user: "1000:1000"
     ports:
-      - 192.168.2.1:1883:1883
+      - 1883:1883
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /opt/mosquitto:/mosquitto/config:ro
@@ -87,7 +87,7 @@ services:
     container_name: portainer
     image: portainer/portainer-ce
     ports:
-      - 192.168.2.1:9000:9000
+      - 9000:9000
     volumes:
       - /opt/portainer:/data:rw
       - /var/run/docker.sock:/var/run/docker.sock
@@ -97,7 +97,7 @@ services:
     container_name: dockermon
     image: philhawthorne/ha-dockermon
     ports:
-      - 192.168.2.1:8126:8126
+      - 8126:8126
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /opt/dockermon:/config

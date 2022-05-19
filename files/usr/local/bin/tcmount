@@ -107,5 +107,5 @@ fi
 # Start the specified services:
 for service in "${services[@]}"; do 
 	echo -e "${GREEN}[${BLUE}${CHECK}${GREEN}]  Starting service ${service}..."
-	systemctl stop ${service}
+	systemctl start ${service}
 done
