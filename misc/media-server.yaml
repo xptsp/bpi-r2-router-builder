@@ -1,8 +1,8 @@
 version: "2.1"
 services:
-    jellyfin:
-        image: linuxserver/jellyfin
-        container_name: jellyfin
+    emby:
+        image: linuxserver/emby
+        container_name: emby
         environment:
             - PUID=1000
             - PGID=1000
