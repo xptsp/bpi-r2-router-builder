@@ -52,5 +52,5 @@ services:
 
 networks:
     default:
-      driver_opts:
-        com.docker.network.bridge.host_binding_ipv4: 192.168.2.1
+        driver_opts:
+            com.docker.network.bridge.host_binding_ipv4: 192.168.2.1
