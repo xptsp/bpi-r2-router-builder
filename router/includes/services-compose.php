@@ -17,7 +17,7 @@ if (isset($_POST['action']))
 		if (empty($_POST['misc']))
 			die("ERROR: No contents for docker-compose.yaml passed!");
 		$handle = fopen("/tmp/docker-compose.yaml", "w");
-		fwrite($handle, $_POST['misc']);
+		fwrite($handle, str_replace("\t", "    ", $_POST['misc']));
 		fclose($handle);
 		die(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh move docker-compose'));		
 	}
@@ -39,7 +39,7 @@ echo '
 	<div class="card-body">
 		<div class="row" style="margin-top: 5px">
 			<textarea id="contents-div" class="form-control" rows="15" style="overflow-y: scroll;">',
-				str_replace("  ", "\t", @file_get_contents("/etc/docker-compose.yaml")),
+				str_replace("    ", "\t", @file_get_contents("/etc/docker-compose.yaml")),
 			'</textarea>
 		</div>
 	</div>

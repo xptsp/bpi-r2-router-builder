@@ -1,54 +1,56 @@
 version: "2.1"
 services:
-	jellyfin:
-		image: linuxserver/jellyfin
-		container_name: jellyfin
-		environment:
-			- PUID=1000
-			- PGID=1000
-			- TZ=America/Chicago
-		volumes:
-			- /mnt/Volume_1/.docker/jellyfin:/config
-			- /mnt/Volume_1/Series:/data/tvshows
-			- /mnt/Volume_1/Movies:/data/movies
-		ports:
-			- 8096:8096
-			- 8920:8920
-			- 7359:7359/udp
-		restart: unless-stopped
+    jellyfin:
+        image: linuxserver/jellyfin
+        container_name: jellyfin
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=America/Chicago
+        volumes:
+            - /mnt/Volume_1/.docker/jellyfin:/config
+            - /mnt/Volume_1/Series:/data/tvshows
+            - /mnt/Volume_1/Movies:/data/movies
+        ports:
+            - 8096:8096
+            - 8920:8920
+            - 7359:7359/udp
+            - 1900:1900/udp
+        restart: unless-stopped
+        network_mode: host
 
-	sickchill:
-		image: linuxserver/sickchill
-		container_name: sickchill
-		environment:
-			- PUID=1000
-			- PGID=1000
-			- TZ=America/Chicago
-		volumes:
-			- /mnt/Volume_1/.docker/sickchill:/config
-			- /mnt/Volume_1/Downloads:/downloads
-			- /mnt/Volume_1/Series/:/tv
-		ports:
-			- 8081:8081
-		restart: unless-stopped
+    sickchill:
+        image: linuxserver/sickchill
+        container_name: sickchill
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=America/Chicago
+        volumes:
+            - /mnt/Volume_1/.docker/sickchill:/config
+            - /mnt/Volume_1/Downloads:/downloads
+            - /mnt/Volume_1/Series/:/tv
+        ports:
+            - 8081:8081
+        restart: unless-stopped
 
-	couchpotato:
-		image: linuxserver/couchpotato
-		container_name: couchpotato
-		environment:
-			- PUID=1000
-			- PGID=1000
-			- TZ=America/Chicago
-			- UMASK_SET=022
-		volumes:
-			- /mnt/Volume_1/.docker/couchpotato:/config
-			- /mnt/Volume_1/Downloads:/downloads
-			- /mnt/Volume_1/Movies:/movies
-		ports:
-			- 5050:5050
-		restart: unless-stopped
+    couchpotato:
+        image: linuxserver/couchpotato
+        container_name: couchpotato
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=America/Chicago
+            - UMASK_SET=022
+        volumes:
+            - /mnt/Volume_1/.docker/couchpotato:/config
+            - /mnt/Volume_1/Downloads:/downloads
+            - /mnt/Volume_1/Movies:/movies
+        ports:
+            - 5050:5050
+        restart: unless-stopped
 
 networks:
     default:
-        driver_opts:
-            com.docker.network.bridge.host_binding_ipv4: 192.168.2.1
+      driver_opts:
+        com.docker.network.bridge.host_binding_ipv4: 192.168.2.1
