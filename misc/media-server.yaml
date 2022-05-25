@@ -8,7 +8,7 @@ services:
             - PGID=1000
             - TZ=America/Chicago
         volumes:
-            - /mnt/Volume_1/.docker/jellyfin:/config
+            - /mnt/Volume_1/.docker/emby:/config
             - /mnt/Volume_1/Series:/data/tvshows
             - /mnt/Volume_1/Movies:/data/movies
         ports:
