@@ -802,9 +802,10 @@ case $CMD in
 		# Was a filename determined?  If not, abort with error:
 		[[ -z "${FILE}" ]] && echo "ERROR: Invalid option passed!" && exit 1
 
-		# Abort if temporary file not found.  Otherwise, move to destination and change owner to root:
+		# Abort if temporary file not found.  Otherwise, copy to destination, delete original, then change owner to root:
 		if ! test -f /tmp/router-settings; then echo "ERROR: File does not exist!"; exit; fi
-		mv /tmp/router-settings ${FILE} 
+		cp /tmp/router-settings ${FILE}
+		rm /tmp/router-settings 
 		chown root:root ${FILE}
 
 		# Restart service if requested and already running:
