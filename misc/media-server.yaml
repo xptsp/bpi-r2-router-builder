@@ -26,7 +26,7 @@ services:
             - TZ=America/Chicago
         volumes:
             - /mnt/Volume_1/.docker/sickchill:/config
-            - /mnt/Volume_1/Downloads:/downloads
+            - /mnt/Volume_2/Completed:/downloads
             - /mnt/Volume_1/Series/:/tv
         ports:
             - 8081:8081
@@ -42,7 +42,7 @@ services:
             - UMASK_SET=022
         volumes:
             - /mnt/Volume_1/.docker/couchpotato:/config
-            - /mnt/Volume_1/Downloads:/downloads
+            - /mnt/Volume_2/Completed:/downloads
             - /mnt/Volume_1/Movies:/movies
         ports:
             - 5050:5050
