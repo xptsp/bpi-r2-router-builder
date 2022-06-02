@@ -31,7 +31,7 @@ if test -f /etc/default/transmission-daemon; then
 	[[ "${TRANS_IFACE}" != "br0" ]] && NEW_IP=$(cat /etc/network/interfaces.d/${TRANS_IFACE} | grep address | awk '{print $2}')
 	if [[ ! -z "${NEW_IP}" ]]; then
 		OLD_IP=$(cat transmission | grep listen | awk '{print $2}')
-		[[ "${NEW_IP}:${TRANS_PORT};" != "${OLD_IP}" ]] && sed -i "s|listen ${NEW_IP}:.*;|listen ${NEW_IP}\:${TRANS_PORT};|g" transmission
+		[[ "${NEW_IP}:${TRANS_PORT:-"9091"};" != "${OLD_IP}" ]] && sed -i "s|listen ${NEW_IP}:.*;|listen ${NEW_IP}\:${TRANS_PORT:-"9091"};|g" transmission
 	fi
 fi
 
