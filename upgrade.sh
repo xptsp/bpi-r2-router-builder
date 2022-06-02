@@ -38,7 +38,7 @@ fi
 #####################################################################################
 RW=($(mount | grep " /boot " 2> /dev/null))
 if [[ ! -z "${RW[5]}" ]]; then
-	if test -f /boot/bananapi/bpi-r2/linux/uEnv.txt ]]; then
+	if test -f /boot/bananapi/bpi-r2/linux/uEnv.txt; then
 		[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /boot
 		BOOTDEFAULT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "bootmenu_default=" | cut -d"=" -f 2)
 		KERNEL=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "kernel=" | cut -d"=" -f 2)
