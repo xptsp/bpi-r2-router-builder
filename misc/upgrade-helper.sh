@@ -57,6 +57,11 @@ function replace()
 	if [[ "${COPY}" == "true" ]]; then
 		if [[ "${SKIP_COPY}" == "false" ]]; then
 			[[ "${FORCE_COPY}" == "true" ]] && rm "${DEST}" 2> /dev/null
+			if test -f ${DEST}; then
+				MD5_OLD=$(md5sum ${SRC} | cut -d" " -f 1)
+				MD5_NEW=$(md5sum ${DEST} | cut -d" " -f 1)
+				[[ "${MD5_OLD}" != "${MD5_NEW}" ]] && rm ${DEST}
+			fi
 			if ! test -f ${DEST}; then
 				[[ "${QUIET}" == "false" ]] && echo -e -n "Copying ${BLUE}${DEST}${NC}... "
 				if ! cp ${SRC} ${DEST}; then
