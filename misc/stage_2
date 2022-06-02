@@ -116,8 +116,12 @@ chmod +x /usr/local/bin/mmc
 ##############################################################################################
 # Get the file we'll need to flash during SD->EMMC copies:
 ##############################################################################################
-wget https://github.com/BPI-SINOVOIP/BPI-files/raw/master/SD/100MB/BPI-R2-EMMC-boot0-DDR1600-0k-0905.img.gz -O /boot/BPI-R2-EMMC-boot0-DDR1600-0k-0905.img.gz
-echo "WEBUI_SHARE=y" >> /boot/persistent.conf
+RW=($(mount | grep " /boot " 2> /dev/null))
+if [[ ! -z "${RW[5]}" ]]; then
+	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,rw /boot
+	wget https://github.com/BPI-SINOVOIP/BPI-files/raw/master/SD/100MB/BPI-R2-EMMC-boot0-DDR1600-0k-0905.img.gz -O /boot/BPI-R2-EMMC-boot0-DDR1600-0k-0905.img.gz
+	echo "WEBUI_SHARE=y" >> /boot/persistent.conf
+fi
 
 ##################################################################################
 # Create our custom login message:
@@ -140,7 +144,7 @@ systemctl enable --now avahi-daemon
 ##################################################################################
 # Install utility to track internet usage by adapter:
 ##################################################################################
-apt install -y vnstat
+apt install -y vnstat=1.18-2
 systemctl disable --now vnstat
 
 ##################################################################################
@@ -150,7 +154,8 @@ echo "samba-common samba-common/dhcp boolean true" | debconf-set-selections
 apt install -y samba
 echo -e "bananapi\nbananapi" | smbpasswd -a pi
 # NOTE: Modify the Samba configuration to make sharing USB sticks more automatic
-sed -i "s|^|include = /etc/samba/includes.conf\n\n|" /etc/samba/smb.conf
+(echo "include = /etc/samba/includes.conf"; echo ""; cat /etc/samba/smb.conf) > /tmp/smb.conf
+mv /tmp/smb.conf /etc/samba/smb.conf
 sed -i "s|^;   bind interfaces only = yes|    bind interfaces only = yes|" /etc/samba/smb.conf
 sed -i "s|^;   interfaces = 127.0.0.0/8 eth0|   interfaces = br0|g" /etc/samba/smb.conf
 touch /etc/samba/includes.conf
@@ -177,15 +182,17 @@ echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 # Install Transmission-daemon
 ##################################################################################
 mv /etc/transmission-daemon/settings.json /tmp/settings.json
+mv /etc/default/transmission-daemon /tmp/transmission-daemon
 apt install -y transmission-daemon
 mv /tmp/settings.json /etc/transmission-daemon/settings.json
+mv /tmp/transmission-daemon /etc/default/transmission-daemon
 chown -R vpn:vpn /etc/transmission-daemon/
 chown -R vpn:vpn /var/lib/transmission-daemon/
 chmod -R 775 /etc/transmission-daemon/
 chmod -R 775 /var/lib/transmission-daemon/
-mkdir -p /home/vpn/{Incomplete,Download}
-chown -R vpn:vpn /home/vpn/{Incomplete,Download}
-chmod -R 775 /home/vpn/{Incomplete,Download}
+mkdir -p /home/vpn/{Incomplete,Completed}
+chown -R vpn:vpn /home/vpn/{Incomplete,Completed}
+chmod -R 775 /home/vpn/{Incomplete,Completed}
 systemctl enable --now transmission-daemon
 ln -sf /etc/nginx/sites-available/transmission /etc/nginx/sites-enabled/
 
@@ -224,12 +231,9 @@ sed -i "s|PATH=\"|PATH=\"/var/lib/docker/bin:|g" /etc/profile
 ##################################################################################
 # Download docker-compose into the /usr/local/bin directory
 ##################################################################################
-wget https://github.com/tsitle/dockercompose-binary_and_dockerimage-aarch64_armv7l_x86_x64/raw/master/binary/docker-compose-linux-armhf-1.27.4.tgz -O /tmp/docker.tgz
-pushd /tmp
-tar xvzf /tmp/docker.tgz
-mv docker-compose-linux-armhf-1.27.4 /usr/local/bin/
-ln -sf /usr/local/bin/docker-compose-linux-armhf-1.27.4 /usr/local/bin/docker-compose
-popd
+wget https://github.com/docker/compose/releases/download/v2.6.0/docker-compose-linux-armv7 -O /usr/local/bin/docker-compose-linux-armv7_2.6.0
+chmod +x /usr/local/bin/docker-compose-linux-armv7_2.6.0
+ln -sf /usr/local/bin/docker-compose-linux-armv7_2.6.0 /usr/local/bin/docker-compose
 touch /etc/docker-compose.yaml
 
 ##################################################################################
@@ -284,11 +288,11 @@ ln -sf /opt/wireless-regdb/regulatory.db.p7s /lib/firmware/
 # Pull in dependencies to make my SSD1306 front display work:
 ##################################################################################
 # Install support packages:
-apt install -y i2c-tools python3-pil python3-adafruit-pureio python3-adafruit-gpio python3-adafruit-ssd1306 python3-adafruit-bbio python3-psutil python3-spidev
+#apt install -y i2c-tools python3-pil python3-adafruit-pureio python3-adafruit-gpio python3-adafruit-ssd1306 python3-adafruit-bbio python3-psutil python3-spidev
 # Install the stats repo:
-git clone --depth=1 https://github.com/xptsp/bpi-r2-ssd1306-display /opt/stats
-ln -sf /opt/stats/stats.service /etc/systemd/system/stats.service
-systemctl enable --now stats
+#git clone --depth=1 https://github.com/xptsp/bpi-r2-ssd1306-display /opt/stats
+#ln -sf /opt/stats/stats.service /etc/systemd/system/stats.service
+#systemctl enable --now stats
 
 ################################################################################
 # Install and configure miniupnp install
