@@ -8,46 +8,51 @@
 test -f /etc/default/router-settings && source /etc/default/router-settings
  
 #############################################################################
-# Copy the nftables ruleset we're using to the "/tmp" folder, then change
-# to the "/etc/network/interfaces.d/" directory.
+# Are we starting the modified service?
 #############################################################################
-RULES=/tmp/nftables.conf
-cp /etc/nftables.conf ${RULES}
-cd /etc/network/interfaces.d/
+if [[ "$1" == "start" ]]; then
+	#############################################################################
+	# Copy the nftables ruleset we're using to the "/tmp" folder, then change
+	# to the "/etc/network/interfaces.d/" directory.
+	#############################################################################
+	RULES=/tmp/nftables.conf
+	cp /etc/nftables.conf ${RULES}
+	cd /etc/network/interfaces.d/
 
-#############################################################################
-# Get a list of all interfaces that have the "masquerade" line in it.  These
-# are the WAN interfaces that the rules will block incoming new connections on.
-#############################################################################
-IFACES=($(grep "masquerade" * | cut -d: -f 1))
-STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
-sed -i "s|^define DEV_WAN = .*|define DEV_WAN = \{ ${STR:-"no_net"} \}|g" ${RULES}
+	#############################################################################
+	# Get a list of all interfaces that have the "masquerade" line in it.  These
+	# are the WAN interfaces that the rules will block incoming new connections on.
+	#############################################################################
+	IFACES=($(grep "masquerade" * | cut -d: -f 1))
+	STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
+	sed -i "s|^define DEV_WAN = .*|define DEV_WAN = \{ ${STR:-"no_net"} \}|g" ${RULES}
 
-#############################################################################
-# Get a list of all interfaces that DO NOT have the "masquerade" line in it AND
-# have an address assigned.  These are the LAN interfaces that the rules will 
-# allow communications to flow between, and to the WAN interfaces.  The default
-# rules will automatically deny new incoming connections from the WAN interfaces
-# to the LAN interfaces.
-#############################################################################
-IFACES=($(grep address $(grep -L "masquerade" *) | cut -d: -f 1))
-STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
-sed -i "s|^define DEV_LAN = .*|define DEV_LAN = \{ ${STR:-"no_net"} \}|g" ${RULES}
+	#############################################################################
+	# Get a list of all interfaces that DO NOT have the "masquerade" line in it AND
+	# have an address assigned.  These are the LAN interfaces that the rules will 
+	# allow communications to flow between, and to the WAN interfaces.  The default
+	# rules will automatically deny new incoming connections from the WAN interfaces
+	# to the LAN interfaces.
+	#############################################################################
+	IFACES=($(grep address $(grep -L "masquerade" *) | cut -d: -f 1))
+	STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
+	sed -i "s|^define DEV_LAN = .*|define DEV_LAN = \{ ${STR:-"no_net"} \}|g" ${RULES}
 
-#############################################################################
-# Get a list of all interfaces that have the "no_internet" line in it.  These
-# are the WAN interfaces that the rules will block incoming new connections on.
-# Interfaces found can also be a part of the list of LAN interfaces, but never
-# the WAN interfaces.
-#############################################################################
-IFACES=($(grep no_internet $(grep -L "masquerade" *) | cut -d: -f 1))
-STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
-sed -i "s|^define DEV_NO_NET = .*|define DEV_NO_NET = \{ ${STR:-"no_net"} \}|g" ${RULES}
+	#############################################################################
+	# Get a list of all interfaces that have the "no_internet" line in it.  These
+	# are the WAN interfaces that the rules will block incoming new connections on.
+	# Interfaces found can also be a part of the list of LAN interfaces, but never
+	# the WAN interfaces.
+	#############################################################################
+	IFACES=($(grep no_internet $(grep -L "masquerade" *) | cut -d: -f 1))
+	STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
+	sed -i "s|^define DEV_NO_NET = .*|define DEV_NO_NET = \{ ${STR:-"no_net"} \}|g" ${RULES}
 
-#############################################################################
-# Load the ruleset:
-#############################################################################
-nft -f ${RULES}
+	#############################################################################
+	# Load the ruleset:
+	#############################################################################
+	nft -f ${RULES}
+fi
 
 #############################################################################
 # Normally, we exit with an error code of 0.  But loading the ruleset fails,
