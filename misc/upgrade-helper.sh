@@ -35,6 +35,7 @@ COPY_ONLY=(
 	/etc/pihole/
 	/etc/pivpn/
 	/etc/systemd/system/miniupnpd.service
+	/etc/nftables.conf
 	/root/
 	/home/pi/
 	/home/vpn/
