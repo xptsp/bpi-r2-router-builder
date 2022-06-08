@@ -5,6 +5,14 @@
 # found under the "/etc/network/interfaces.d/" directory.  After modifying
 # the rules, the script loads the new nftables rules.  
 #############################################################################
+# How to do certain things with "nft" command:
+# - List a chain in the table:     nft list chain inet firewall <chain_name>
+# - List the elements in a map:    nft list map inet firewall <map_name>
+# - Get handle for rule in chain:  nft -a list chain inet firewall <chain_name> | grep "<search_spec>" | awk '{print $NF}'
+# - Delete rule from a chain:      nft delete rule inet firewall <chain_name} handle <handle>
+# - Add an element to the map:     nft add element inet firewall port_forward { 80 : 192.168.1.1 . 80 }
+# - Remove an element to the map:  nft delete element inet firewall port_forward { 80 : 192.168.1.1 . 80 }
+#############################################################################
 test -f /etc/default/router-settings && source /etc/default/router-settings
  
 #############################################################################
@@ -43,6 +51,11 @@ sed -i "s|^define DEV_LAN = .*|define DEV_LAN = \{ ${STR:-"no_net"} \}|g" ${RULE
 IFACES=($(grep no_internet $(grep -L "masquerade" *) | cut -d: -f 1))
 STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
 sed -i "s|^define DEV_NO_NET = .*|define DEV_NO_NET = \{ ${STR:-"no_net"} \}|g" ${RULES}
+
+#############################################################################
+# Replace the Pi-Hole IP address with the one from the "br0" interface:
+#############################################################################
+sed -i "s|^define PIHOLE = .*|define PIHOLE = \"$(cat br0 | grep "address" | awk '{print $2}')\"|g" ${RULES}
 
 #############################################################################
 # Load the ruleset:
