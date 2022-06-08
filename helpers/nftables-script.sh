@@ -49,6 +49,11 @@ if [[ "$1" == "start" ]]; then
 	sed -i "s|^define DEV_NO_NET = .*|define DEV_NO_NET = \{ ${STR:-"no_net"} \}|g" ${RULES}
 
 	#############################################################################
+	# Replace the value of "PIHOLE_IP" with IP address of the "br0" interface:
+	#############################################################################
+	sed -i "s|^define PIHOLE_IP = .*|define PIHOLE_IP = \"$(cat br0 | grep "address" | awk '{print $2}')\"|g" ${RULES}
+
+	#############################################################################
 	# Load the ruleset:
 	#############################################################################
 	nft -f ${RULES}
