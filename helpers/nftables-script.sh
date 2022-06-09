@@ -52,20 +52,6 @@ STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
 sed -i "s|^define DEV_NO_NET = .*|define DEV_NO_NET = \{ ${STR:-"no_net"} \}|" ${RULES}
 
 #############################################################################
-# Replace the Pi-Hole IP address with the one from the "br0" interface:
-#############################################################################
-sed -i "s|^define PIHOLE_IPv4 = .*|define PIHOLE_IPv4 = \"$(cat br0 | grep "address" | head -1 | awk '{print $2}')\"|" ${RULES}
-
-#############################################################################
-# Modify line with "redirect DNS to PiHole" rule (option "redirect_dns"):
-#############################################################################
-if [[ "${redirect_dns:-"N"}" == "N" ]]; then
-	sed -i '/ dport 53 dnat/s/^#\?/#/' ${RULES}				# Comment out
-else
-	sed -i '/ dport 53 dnat/s/^#//' ${RULES}				# Uncomment
-fi	 
-
-#############################################################################
 # Modify lines with "icmp" rule (option "allow_ping"):
 #############################################################################
 if [[ "${allow_ping:-"N"}" == "N" ]]; then
