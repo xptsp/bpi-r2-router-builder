@@ -19,7 +19,8 @@ test -f /etc/default/router-settings && source /etc/default/router-settings
 # Copy the nftables ruleset we're using to the "/tmp" folder, then change
 # to the "/etc/network/interfaces.d/" directory.
 #############################################################################
-RULES=/etc/nftables.conf
+RULES=/tmp/nftables.conf
+cp /etc/nftables.conf ${RULES}
 cd /etc/network/interfaces.d/
 
 #############################################################################

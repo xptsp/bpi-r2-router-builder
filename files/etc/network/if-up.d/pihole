@@ -4,7 +4,7 @@
 [[ -f /etc/default/router-settings ]] && source /etc/default/router-settings
 
 # Are we dealing with the "br0" interface --AND-- option "redirect_dns" is set to "Y"? 
-if [[ "$IFACE" == "br0" && "${redirect_dns:-"Y"}" == "N" ]]; then
+if [[ "$IFACE" == "br0" && "${redirect_dns:-"Y"}" == "Y" ]]; then
 	# Add rules to redirect IPv4 DNS requests:
 	PIHOLE=$(ifconfig br0 | grep 'inet ' | awk '{print $2}')
 	nft add rule inet firewall prerouting_lan ip saddr != ${PIHOLE} ip daddr != ${PIHOLE} udp dport 53 dnat to ${PIHOLE}
