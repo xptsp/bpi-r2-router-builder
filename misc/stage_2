@@ -154,8 +154,7 @@ echo "samba-common samba-common/dhcp boolean true" | debconf-set-selections
 apt install -y samba
 echo -e "bananapi\nbananapi" | smbpasswd -a pi
 # NOTE: Modify the Samba configuration to make sharing USB sticks more automatic
-(echo "include = /etc/samba/includes.conf"; echo ""; cat /etc/samba/smb.conf) > /tmp/smb.conf
-mv /tmp/smb.conf /etc/samba/smb.conf
+sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" /etc/samba/smb.conf
 sed -i "s|^;   bind interfaces only = yes|    bind interfaces only = yes|" /etc/samba/smb.conf
 sed -i "s|^;   interfaces = 127.0.0.0/8 eth0|   interfaces = br0|g" /etc/samba/smb.conf
 touch /etc/samba/includes.conf

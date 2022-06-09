@@ -59,9 +59,6 @@ function DNS_Submit()
 		'use_cloudflared': ($("[name=dns_server_opt]:checked").val()) == "cloudflared" ? $('#select_cloudflared').find("option:selected").val().slice(-1) : 'N',
 		'dns1':            $("#dns1").val() + (($("#dns_port1").val() != "53" && $("#dns_port1").val() != "") ? "#" + $("#dns_port1").val() : ''),
 		'dns2':            $("#dns2").val() + (($("#dns_port2").val() != "53" && $("#dns_port2").val() != "") ? "#" + $("#dns_port2").val() : ''),
-		'redirect_dns':    $("#redirect_dns").prop("checked") ? "Y" : "N",
-		'block_dot':       $("#block_dot").prop("checked") ? "Y" : "N",
-		'block_doq':       $("#block_doq").prop("checked") ? "Y" : "N",
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
 	WebUI_Post("/setup/dns", postdata);

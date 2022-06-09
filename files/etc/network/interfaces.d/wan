@@ -1,4 +1,3 @@
 auto wan
 iface wan inet dhcp
     masquerade yes
-    config_dns yes

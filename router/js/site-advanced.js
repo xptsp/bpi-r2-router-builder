@@ -16,15 +16,14 @@ function Init_Firewall()
 	// Handler to submit form settings:
 	$("#apply_changes").click(function() {
 		postdata = {
-			'sid':            SID,
-			'action':         'submit',
-			'drop_port_scan': $("#drop_port_scan").prop("checked") ? "Y" : "N",
-			'log_port_scan':  $("#log_port_scan").prop("checked") ? "Y" : "N",
-			'log_udp_flood':  $("#log_udp_flood").prop("checked") ? "Y" : "N",
-			'drop_ping':      $("#drop_ping").prop("checked") ? "Y" : "N",
-			'drop_ident':     $("#drop_ident").prop("checked") ? "Y" : "N",
-			'drop_multicast': $("#drop_multicast").prop("checked") ? "Y" : "N",
-			'redirect_dns':   $("#redirect_dns").prop("checked") ? "Y" : "N",
+			'sid':             SID,
+			'action':          'submit',
+			'allow_ping':      $("#allow_ping").prop("checked") ? "Y" : "N",
+			'allow_ident':     $("#allow_ident").prop("checked") ? "Y" : "N",
+			'allow_multicast': $("#allow_multicast").prop("checked") ? "Y" : "N",
+			'redirect_dns':    $("#redirect_dns").prop("checked") ? "Y" : "N",
+			'allow_dot':       $("#allow_dot").prop("checked") ? "Y" : "N",
+			'allow_doq':       $("#allow_doq").prop("checked") ? "Y" : "N",
 		};
 		//alert(JSON.stringify(postdata, null, 5)); return;
 		WebUI_Post("/advanced/firewall", postdata);

@@ -22,38 +22,26 @@ use_isp=N
 # Use DoH CloudFlare DNS servers.  Accepts "N", "1", "2", "3". Default: N
 use_cloudflared=N
 
-# Use integrated Unbound package for DNS server.  Accepts "Y" or "N". Default: Y
-use_unbound=Y
+##########################################################################
+# WebUI Advanced / Firewall Settings
+##########################################################################
+# Respond to Pings from the Internet.  Accepts "Y" or "N".  Default: N
+allow_ping=Y
+
+# Respond to IDENT requests from Internet (port 113).  Accepts "Y" or "N".  Default: N
+allow_ident=N
+
+# Filter Multicast Packets from Internet.  Accepts "Y" or "N".  Default: N
+allow_multicast=N
 
 # Redirect all DNS requests to Integrated Pi-Hole.  Accepts "Y" or "N".  Default: Y
 redirect_dns=Y
 
-# Block outgoing DoT (DNS-over-TLS - port 853) requests not from router.  Accepts "Y" or "N".  Default: Y
-block_dot=Y
+# Allow outgoing DoT (DNS-over-TLS - port 853) requests not from router.  Accepts "Y" or "N".  Default: N
+allow_dot=N
 
-# Block outgoing DoQ (DNS-over-QUIC - port 8853) requests not from router.  Accepts "Y" or "N".  Default: Y
-block_doq=Y
-
-##########################################################################
-# WebUI Advanced / Firewall Settings
-##########################################################################
-# Enable Port Scan protection from Internet.  Accepts "Y" or "N".  Default: Y
-drop_port_scan=Y
-
-# When Port Scan protection is enabled, log Port Scan attempts from Internet.  Accepts "Y" or "N".  Default: N
-log_port_scan=N
-
-# When Port Scan protection is enabled, log UDP Floods from Internet.  Accepts "Y" or "N".  Default: N
-log_udp_flood=N
-
-# Do Not Respond to Pings from the Internet.  Accepts "Y" or "N".  Default: Y
-drop_ping=Y
-
-# Do Not Respond to IDENT requests from Internet (port 113).  Accepts "Y" or "N".  Default: Y
-drop_ident=Y
-
-# Filter Multicast Packets from Internet.  Accepts "Y" or "N".  Default: N
-drop_multicast=N
+# Allow outgoing DoQ (DNS-over-QUIC - port 8853) requests not from router.  Accepts "Y" or "N".  Default: N
+allow_doq=N
 
 ##########################################################################
 # WebUI Advanced / DMZ Settings

@@ -10,10 +10,9 @@
 # This should allow double-nat configurations to work properly: 
 if [[ ! -z "${IF_MASQUERADE}" ]]; then
 	nft insert rule inet firewall prerouting_private iifname ${IFACE} ip saddr $(ip addr show ${IFACE} | grep " inet " | awk '{print $2}') accept
+	nft insert rule inet firewall prerouting_private iifname ${IFACE} ip6 saddr $(ip addr show ${IFACE} | grep " inet6 " | awk '{print $2}') accept
+	/opt/bpi-r2-router-builder/helpers/router-helper.sh dns config
 fi
-
-# If there is a "get_dns" line in the interface configuration, then set up the DNS at this time:   
-[[ ! -z "${IF_CONFIG_DNS}" ]] && /opt/bpi-r2-router-builder/helpers/router-helper.sh dns config
 
 # Exit with a zero error code:
 exit 0

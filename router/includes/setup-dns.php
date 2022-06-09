@@ -17,9 +17,6 @@ if (isset($_POST['action']))
 		$options['use_cloudflared'] = option_allowed('use_cloudflared', array("N", "1", "2", "3"));
 		$options['dns1']            = option_ip('dns1', false, true);
 		$options['dns2']            = option_ip('dns2', true, true);
-		$options['redirect_dns']    = option('redirect_dns');
-		$options['block_dot']       = option('block_dot');
-		$options['block_doq']       = option('block_doq');
 		#echo '<pre>'; print_r($options); exit;
 		die(apply_options());
 	}
@@ -155,10 +152,6 @@ echo '
 				</div>
 			</div>
 		</div>
-		<hr style="border-width: 2px" />
-		', checkbox("redirect_dns", "Redirect all DNS requests to Integrated Pi-Hole"), '
-		', checkbox("block_dot", "Block outgoing DoT (DNS-over-TLS - port 853) requests not from router"), '
-		', checkbox("block_doq", "Block outgoing DoQ (DNS-over-QUIC - port 8853) requests not from router"), '
 	</div>';
 
 ###################################################################################################

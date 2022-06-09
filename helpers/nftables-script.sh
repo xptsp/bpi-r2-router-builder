@@ -19,8 +19,7 @@ test -f /etc/default/router-settings && source /etc/default/router-settings
 # Copy the nftables ruleset we're using to the "/tmp" folder, then change
 # to the "/etc/network/interfaces.d/" directory.
 #############################################################################
-RULES=/tmp/nftables.conf
-cp /etc/nftables.conf ${RULES}
+RULES=/etc/nftables.conf
 cd /etc/network/interfaces.d/
 
 #############################################################################
@@ -29,7 +28,7 @@ cd /etc/network/interfaces.d/
 #############################################################################
 IFACES=($(grep "masquerade" * | cut -d: -f 1))
 STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
-sed -i "s|^define DEV_WAN = .*|define DEV_WAN = \{ ${STR:-"no_net"} \}|g" ${RULES}
+sed -i "s|^define DEV_WAN = .*|define DEV_WAN = \{ ${STR:-"no_net"} \}|" ${RULES}
 
 #############################################################################
 # Get a list of all interfaces that DO NOT have the "masquerade" line in it AND
@@ -40,7 +39,7 @@ sed -i "s|^define DEV_WAN = .*|define DEV_WAN = \{ ${STR:-"no_net"} \}|g" ${RULE
 #############################################################################
 IFACES=($(grep address $(grep -L "masquerade" *) | cut -d: -f 1))
 STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
-sed -i "s|^define DEV_LAN = .*|define DEV_LAN = \{ ${STR:-"no_net"} \}|g" ${RULES}
+sed -i "s|^define DEV_LAN = .*|define DEV_LAN = \{ ${STR:-"no_net"} \}|" ${RULES}
 
 #############################################################################
 # Get a list of all interfaces that have the "no_internet" line in it.  These
@@ -50,12 +49,68 @@ sed -i "s|^define DEV_LAN = .*|define DEV_LAN = \{ ${STR:-"no_net"} \}|g" ${RULE
 #############################################################################
 IFACES=($(grep no_internet $(grep -L "masquerade" *) | cut -d: -f 1))
 STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
-sed -i "s|^define DEV_NO_NET = .*|define DEV_NO_NET = \{ ${STR:-"no_net"} \}|g" ${RULES}
+sed -i "s|^define DEV_NO_NET = .*|define DEV_NO_NET = \{ ${STR:-"no_net"} \}|" ${RULES}
 
 #############################################################################
 # Replace the Pi-Hole IP address with the one from the "br0" interface:
 #############################################################################
-sed -i "s|^define PIHOLE = .*|define PIHOLE = \"$(cat br0 | grep "address" | awk '{print $2}')\"|g" ${RULES}
+sed -i "s|^define PIHOLE_IPv4 = .*|define PIHOLE_IPv4 = \"$(cat br0 | grep "address" | head -1 | awk '{print $2}')\"|" ${RULES}
+
+#############################################################################
+# Modify line with "redirect DNS to PiHole" rule (option "redirect_dns"):
+#############################################################################
+if [[ "${redirect_dns:-"N"}" == "N" ]]; then
+	sed -i '/ dport 53 dnat/s/^#\?/#/' ${RULES}				# Comment out
+else
+	sed -i '/ dport 53 dnat/s/^#//' ${RULES}				# Uncomment
+fi	 
+
+#############################################################################
+# Modify lines with "icmp" rule (option "allow_ping"):
+#############################################################################
+if [[ "${allow_ping:-"N"}" == "N" ]]; then
+	sed -i '/ icmp/s/^#\?/#/' ${RULES}						# Comment out
+else
+	sed -i '/ icmp/s/^#//' ${RULES}							# Uncomment
+fi	 
+
+#############################################################################
+# Modify line with "drop port 853 from LAN" rule (option "allow_dot")
+#############################################################################
+if [[ "${allow_dot:-"N"}" == "Y" ]]; then
+	sed -i '/ 853 reject$/s/^#\?/#/' ${RULES}				# Comment out
+else
+	sed -i '/ 853 reject$/s/^#//' ${RULES}					# Uncomment
+fi	 
+
+#############################################################################
+# Modify line with "drop port 113 from LAN" rule (option "allow_doq"):
+#############################################################################
+if [[ "${allow_doq:-"N"}" == "Y" ]]; then
+	sed -i '/ 8853 reject$/s/^#\?/#/' ${RULES}				# Comment out
+else
+	sed -i '/ 8853 reject$/s/^#//' ${RULES}					# Uncomment
+fi	 
+
+#############################################################################
+# Modify lines with "pkttype multicast" rules (option "allow_multicast"):
+#############################################################################
+if [[ "${allow_multicast:-"N"}" == "N" ]]; then
+	sed -i '/pkttype multicast allow$/s/^#\?/#/' ${RULES}	# Comment out
+	sed -i '/pkttype multicast reject$/s/^#//' ${RULES}		# Uncomment
+else
+	sed -i '/pkttype multicast allow$/s/^#//' ${RULES}		# Uncomment
+	sed -i '/pkttype multicast reject$/s/^#\?/#/' ${RULES}	# Comment out
+fi
+
+#############################################################################
+# Modify line with "port 113 allow" rule (option "allow_ident"):
+#############################################################################
+if [[ "${allow_ident:-"N"}" == "N" ]]; then
+	sed -i '/ dport 113 allow$/s/^#\?/#/' ${RULES}			# Comment out
+else
+	sed -i '/ dport 113 allow$/s/^#//' ${RULES}				# Uncomment
+fi	 
 
 #############################################################################
 # Load the ruleset:

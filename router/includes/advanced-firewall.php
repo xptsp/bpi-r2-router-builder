@@ -11,12 +11,12 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'submit')
 	{
-		$options['drop_port_scan'] = option('drop_port_scan');
-		$options['log_port_scan']  = option('log_port_scan');
-		$options['log_udp_flood']  = option('log_udp_flood');
-		$options['drop_ping']      = option('drop_ping');
-		$options['drop_ident']     = option('drop_ident');
-		$options['drop_multicast'] = option('drop_multicast');
+		$options['allow_ping']      = option('allow_ping');
+		$options['allow_ident']     = option('allow_ident');
+		$options['allow_multicast'] = option('allow_multicast');
+		$options['redirect_dns']    = option('redirect_dns');
+		$options['allow_dot']       = option('allow_dot');
+		$options['allow_doq']       = option('allow_doq');
 		#echo '<pre>'; print_r($options); exit;
 		apply_options();
 		die("OK");
@@ -37,15 +37,13 @@ echo '
 		<h3 class="card-title">Firewall Settings</h3>
 	</div>
 	<div class="card-body" id="firewall-div">
-		', checkbox("drop_port_scan", "Enable Port Scan protection from Internet"), '
-		<div id="port_scan_options"', empty($options['drop_port_scan']) ? ' class="hidden"' : '', ' style="margin-left: 20px">
-			', checkbox("log_port_scan",  "Log Port Scan attempts from Internet", false, 'drop_port_scan'), '
-			', checkbox("log_udp_flood",  "Log UDP Floods from Internet", false, 'drop_port_scan'), '
-		</div>
+		', checkbox("allow_ping",      "Respond to Pings from the Internet"), '
+		', checkbox("allow_ident",     "Respond to IDENT requests (port 113) from Internet"), '
+		', checkbox("allow_multicast", "Allow Multicast Packets from Internet", false), '
 		<hr style="border-width: 2px" />
-		', checkbox("drop_ping",      "Do Not Respond to Pings from the Internet"), '
-		', checkbox("drop_ident",     "Do Not Respond to IDENT requests from Internet (port 113)"), '
-		', checkbox("drop_multicast", "Filter Multicast Packets from Internet", false), '
+		', checkbox("redirect_dns", "Redirect all DNS requests to Integrated Pi-Hole"), '
+		', checkbox("block_dot", "Block outgoing DoT (DNS-over-TLS - port 853) requests not from router"), '
+		', checkbox("block_doq", "Block outgoing DoQ (DNS-over-QUIC - port 8853) requests not from router"), '
 	</div>
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-block btn-success center_50" id="reboot_button">Apply Changes</button></a>
