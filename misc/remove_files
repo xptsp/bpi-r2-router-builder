@@ -30,11 +30,10 @@ done
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Removing unnecessary files from root partition..."
-rm /etc/network/port_forwarding.rules >& /dev/null
+rm /etc/nftables-added.conf >& /dev/null
 rm -rf /tmp/* >& /dev/null
 rm -rf /root/.config >& /dev/null
 rm -rf /root/.local >& /dev/null
-rm /etc/udev/rules.d/70-persistent-net.rules >& /dev/null
 rm /root/.bash_history >& /dev/null
 rm /root/.ssh/known_hosts >& /dev/null
 rm /var/lib/vnstat/* >& /dev/null

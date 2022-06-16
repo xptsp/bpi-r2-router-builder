@@ -5,13 +5,22 @@
 # found under the "/etc/network/interfaces.d/" directory.  After modifying
 # the rules, the script loads the new nftables rules.  
 #############################################################################
-# How to do certain things with "nft" command:
-# - List a chain in the table:     nft list chain inet firewall <chain_name>
-# - List the elements in a map:    nft list map inet firewall <map_name>
-# - Get handle for rule in chain:  nft -a list chain inet firewall <chain_name> | grep "<search_spec>" | awk '{print $NF}'
-# - Delete rule from a chain:      nft delete rule inet firewall <chain_name} handle <handle>
-# - Add an element to the map:     nft add element inet firewall port_forward { 80 : 192.168.1.1 . 80 }
-# - Remove an element to the map:  nft delete element inet firewall port_forward { 80 : 192.168.1.1 . 80 }
+# Chains:
+# - List a chain in the table:     nft list chain inet firewall <chain>
+# - Add a rule to chain in table:  nft add rule inet firewall <chain> <rule>
+# - Get handle for rule in chain:  nft -a list chain inet firewall <chain> | grep "<search_spec>" | awk '{print $NF}'
+# - Delete rule from a chain:      nft delete rule inet firewall <chain> handle <handle>
+# - Flush a chain:                 nft flush chain inet firewall <chain>
+#############################################################################
+# Maps & Sets:
+# - Add an element:                nft add element inet firewall <map> { <data>, [<data>}... }
+# - Remove an element:             nft delete element inet firewall <map> { data>, [<data>}... }
+# Maps:
+# - List the elements in a map:    nft list map inet firewall <map>
+# - Flush contents of a map:       nft flush map inet firewall <map>
+# Set:
+# - List the elements in a map:    nft list set inet firewall <set>
+# - Flush contents of a map:       nft flush set inet firewall <set>
 #############################################################################
 test -f /etc/default/router-settings && source /etc/default/router-settings
  
@@ -100,12 +109,17 @@ else
 fi	 
 
 #############################################################################
-# Load the ruleset:
+# Load the ruleset and abort if non-zero exit code:
 #############################################################################
-nft -f ${RULES}
+nft -f ${RULES} || exit $?
 
 #############################################################################
-# Normally, we exit with an error code of 0.  But loading the ruleset fails,
-# we normally want the service to fail as well...
+# Load any custom firewall rules and abort if non-zero exit code:
+#############################################################################
+if test -f /etc/nftables-added.conf; then nft -f /etc/nftables-added.conf || exit $?; fi
+
+#############################################################################
+# Normally, we exit with an error code of 0.  But if loading the ruleset 
+# fails, we normally want the service to fail as well...
 #############################################################################
 #exit 0

@@ -52,6 +52,8 @@ function remount_rw()
 	mount --bind /proc /ro/proc
 	mount --bind /sys /ro/sys
 	mount --bind /tmp /ro/tmp
+	mount -t tmpfs tmpfs /ro/var/cache/apt
+	mount -t tmpfs tmpfs /ro/var/lib/apt/list
 	return 0
 }
 
@@ -63,6 +65,8 @@ function remount_ro()
 	umount /ro/proc >& /dev/null
 	umount /ro/run >& /dev/null
 	umount /ro/dev >& /dev/null
+	umount /ro/var/lib/apt/list >& /dev/null
+	umount /ro/var/cache/apt >& /dev/null
 	mount -o remount,ro $RO_DEV /ro
 }
 

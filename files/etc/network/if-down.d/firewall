@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# If we are dealing with the "br0", remove firewall rules relating to port 53 from "prerouting_lan" chain: 
+if [[ "$IFACE" == "br0" ]]; then
+	for HANDLE in $(nft -a list chain inet firewall prerouting_lan | grep " dport 53 " | awk '{print $NF}'); do 
+		nft delete rule inet firewall prerouting_lan handle ${HANDLE}
+	done
+fi
+
+# Remove firewall rules for interface from the "prerouting_private" chain:
+for HANDLE in $(nft -a list chain inet firewall prerouting_private | grep "${IFACE}" | awk '{print $NF}')); do 
+	nft delete rule inet firewall prerouting_private handle ${HANDLE}
+done
+
+exit 0

@@ -1,7 +1,0 @@
-#!/bin/bash
-
-# Remove firewall rule for WAN interfaces from "prerouting_private" chain:
-HANDLE=$(nft -a list chain inet firewall prerouting_private | grep "${IFACE}" | awk '{print $NF}')
-[[ ! -z "${HANDLE}" ]] && nft delete rule inet firewall prerouting_private handle ${HANDLE}
-
-exit 0
