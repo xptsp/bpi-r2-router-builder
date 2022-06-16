@@ -7,8 +7,8 @@
 [[ "${IFACE}" == "wan" ]] && echo 6 > /sys/class/net/${IFACE}/queues/rx-0/rps_cpus
 
 # Determine the IPv4 and IPv6 address of the interface:
-IPv4=$(ip addr show ${IFACE} | grep " inet "  | awk '{print $2}')
-IPv6=$(ip addr show ${IFACE} | grep " inet6 " | awk '{print $2}')
+IPv4=$(ifconfig ${IFACE} | grep " inet "  | awk '{print $2}')
+IPv6=$(ifconfig ${IFACE} | grep " inet6 " | awk '{print $2}')
 
 # Are we dealing with the "br0" interface? 
 if [[ "$IFACE" == "br0" ]]; then
