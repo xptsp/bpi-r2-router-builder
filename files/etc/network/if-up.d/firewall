@@ -17,12 +17,16 @@ if [[ "$IFACE" == "br0" ]]; then
 
 	# Add DNS redirect rules ONLY if option "redirect_dns" is set to "Y":
 	if [[ "${redirect_dns:-"Y"}" == "Y" ]]; then
-		# Add rules to redirect IPv4 DNS requests:
-		PIHOLE=$(ifconfig br0 | grep 'inet ' | awk '{print $2}')
+		# Remove any DNS-related firewall rules relating to port 53 from "prerouting_lan" chain: 
+		for HANDLE in $(nft -a list chain inet firewall prerouting_lan | grep " dport 53 " | awk '{print $NF}'); do 
+			nft delete rule inet firewall prerouting_lan handle ${HANDLE}
+		done
+
+		# Add IPv4 DNS redirection rules:
 		nft add rule inet firewall prerouting_lan ip saddr != ${IPv4} ip daddr != ${IPv4} udp dport 53 dnat to ${IPv4} comment "${IFACE}"
 		nft add rule inet firewall prerouting_lan ip saddr != ${IPv4} ip daddr != ${IPv4} tcp dport 53 dnat to ${IPv4} comment "${IFACE}"
 
-		# Add rules to redirect IPv6 DNS requests:
+		# Add IPv6 DNS redirection rules:
 		nft add rule inet firewall prerouting_lan ip6 saddr != ${IPv6} ip6 daddr != ${IPv6} udp dport 53 dnat to ${IPv6} comment "${IFACE}"
 		nft add rule inet firewall prerouting_lan ip6 saddr != ${IPv6} ip6 daddr != ${IPv6} tcp dport 53 dnat to ${IPv6} comment "${IFACE}"
 	fi
