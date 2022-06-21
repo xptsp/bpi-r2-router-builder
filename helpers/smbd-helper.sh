@@ -113,15 +113,14 @@ case "$1" in
 		;;
 	########################################################################
 	"start")
-		# SUBNET HACK: Figure out which interfaces to bind to:
+		# Figure out which interfaces to bind to:
 		cd /etc/network/interfaces.d
-		IFACES="$(for file in $(grep "inet static" * | cut -d":" -f 1); do grep "firewall" $file >& /dev/null || echo $file; done)"
-		sed -i "s|^    interfaces = .*$|    interfaces = ${IFACES}|" /etc/samba/smb.conf
+		IFACES="$(grep "address" $(grep -L "masquerade" *) | cut -d: -f 1)"
+		sed -i "s|interfaces = .*$|interfaces = ${IFACES}|" ${FILE}
 
-		# SUBNET HACK: Figure out the "local master browsers" IPs to use:
-		BCAST=($(for IFACE in ${IFACES}; do ifconfig $IFACE | grep " inet " | awk '{print $2}' | awk -F"." '{print $1"."$2"."$3".255"}'; done))
-		BCAST="${BCAST[@]}"
-		sed -i "s|^    remote announce = .*$|    remote announce = ${BCAST}|" /etc/samba/smb.conf
+		# Make sure that the include line is at the top of the "smb.conf" file:
+		FILE=/etc/samba/smb.conf
+		grep -q -e "include = /etc/samba/includes.conf" ${FILE} || sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" ${FILE}
 
 		# ADDED FUNCTION: Add the WebUI samba share if requested in "/boot/persistent.conf":
 		test -f /boot/persistent.conf && source /boot/persistent.conf

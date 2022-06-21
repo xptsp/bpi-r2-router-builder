@@ -25,6 +25,11 @@
 test -f /etc/default/router-settings && source /etc/default/router-settings
  
 #############################################################################
+# Wait for the /tmp folder to be mounted before continuing:
+#############################################################################
+while ! mount | grep " /tmp " >& /dev/null; do sleep 1; done
+
+#############################################################################
 # Copy the nftables ruleset we're using to the "/tmp" folder, then change
 # to the "/etc/network/interfaces.d/" directory.
 #############################################################################
@@ -92,25 +97,26 @@ fi
 # Modify lines with "pkttype multicast" rules (option "allow_multicast"):
 #############################################################################
 if [[ "${allow_multicast:-"N"}" == "N" ]]; then
-	sed -i '/pkttype multicast allow$/s/^#\?/#/' ${RULES}	# Comment out
+	sed -i '/pkttype multicast accept$/s/^#\?/#/' ${RULES}	# Comment out
 	sed -i '/pkttype multicast reject$/s/^#//' ${RULES}		# Uncomment
 else
-	sed -i '/pkttype multicast allow$/s/^#//' ${RULES}		# Uncomment
+	sed -i '/pkttype multicast accept$/s/^#//' ${RULES}		# Uncomment
 	sed -i '/pkttype multicast reject$/s/^#\?/#/' ${RULES}	# Comment out
 fi
 
 #############################################################################
-# Modify line with "port 113 allow" rule (option "allow_ident"):
+# Modify line with "port 113 accept" rule (option "allow_ident"):
 #############################################################################
 if [[ "${allow_ident:-"N"}" == "N" ]]; then
-	sed -i '/ dport 113 allow$/s/^#\?/#/' ${RULES}			# Comment out
+	sed -i '/ dport 113 accept$/s/^#\?/#/' ${RULES}			# Comment out
 else
-	sed -i '/ dport 113 allow$/s/^#//' ${RULES}				# Uncomment
+	sed -i '/ dport 113 accept$/s/^#//' ${RULES}			# Uncomment
 fi	 
 
 #############################################################################
 # Load the ruleset and abort if non-zero exit code:
 #############################################################################
+nft add table ip filter {}
 nft -f ${RULES} || exit $?
 
 #############################################################################
