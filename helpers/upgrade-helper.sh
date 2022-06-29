@@ -150,6 +150,11 @@ for DEST in $(cat $TFL); do
 done
 
 #####################################################################################
+# Force the firewall ruleset to be copied over if it has changed:
+#####################################################################################
+FORCE_COPY=true replace etc/nftables.conf /etc/nftables.conf
+
+#####################################################################################
 # Perform same operations in the read-only partition:
 #####################################################################################
 RW=($(mount | grep " /ro " 2> /dev/null))

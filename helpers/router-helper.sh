@@ -16,7 +16,9 @@ fi
 # Check to make sure that a read-only filesystem exists, and diagnose issue if it doesn't:
 function check_ro()
 {
-	if ! test -d /ro; then
+	if test -d /ro; then
+		mount | grep " /ro " | grep "ext4" >& /dev/null || echo "ERROR: Read-only partition is a not a ext4 filesystem!  Aborting!" || exit 1
+	else
 		if [[ "$(cat /etc/debian_chroot)" == "CHROOT" ]]; then
 			echo "ERROR: Already in chroot environment!"
 			exit 1
@@ -25,8 +27,7 @@ function check_ro()
 			echo "Copy '/opt/bpi-r2-router-builder/uEnv.txt' to \"/boot/bananapi/bpi-r2/linux/uEnv.txt\" to enable."
 			exit 1
 		fi
-		DEF=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep bootmenu_default | cut -d= -f 2)
-		if [[ "$DEF" != "2" ]]; then
+		if [[ "$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep bootmenu_default | cut -d= -f 2)" != "2" ]]; then
 			echo "ERROR: Overlay script has been disabled."
 			echo "Change \"bootmenu_default\" to \"2\" in order to enable readonly overlay script."
 		else
@@ -52,8 +53,8 @@ function remount_rw()
 	mount --bind /proc /ro/proc
 	mount --bind /sys /ro/sys
 	mount --bind /tmp /ro/tmp
+	mount --bind /var/lib/apt/lists /ro/var/lib/apt/lists
 	mount -t tmpfs tmpfs /ro/var/cache/apt
-	mount -t tmpfs tmpfs /ro/var/lib/apt/list
 	return 0
 }
 

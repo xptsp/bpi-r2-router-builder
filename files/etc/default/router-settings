@@ -25,8 +25,11 @@ use_cloudflared=N
 ##########################################################################
 # WebUI Advanced / Firewall Settings
 ##########################################################################
+# Disable DDoS protection on WAN interfaces.  Accepts "Y" or "N".  Default: N
+disable_ddos=N
+
 # Respond to Pings from the Internet.  Accepts "Y" or "N".  Default: N
-allow_ping=Y
+allow_ping=N
 
 # Respond to IDENT requests from Internet (port 113).  Accepts "Y" or "N".  Default: N
 allow_ident=N

@@ -1,38 +1,10 @@
 #!/bin/bash
 
-# Load router settings:
-[[ -f /etc/default/router-settings ]] && source /etc/default/router-settings
-
 # Use Receive Packet Steering (RPS) to steer incoming data from "wan" to CPUs 2 and 3:
 [[ "${IFACE}" == "wan" ]] && echo 6 > /sys/class/net/${IFACE}/queues/rx-0/rps_cpus
 
-################################################################################################
-# Process with the "br0" interface 
-################################################################################################
-if [[ "$IFACE" == "br0" ]]; then
-	# Use Receive Packet Steering (RPS) to steer incoming data from "br0" to CPU 4:
-	echo 8 > /sys/class/net/${IFACE}/queues/rx-0/rps_cpus
-
-	# Add DNS redirect rules ONLY if option "redirect_dns" is set to "Y":
-	if [[ "${redirect_dns:-"Y"}" == "Y" ]]; then
-		# Determine the IPv4 and IPv6 address of the interface:
-		IPv4=$(ifconfig ${IFACE} | grep " inet "  | awk '{print $2}')
-		IPv6=$(ifconfig ${IFACE} | grep " inet6 " | awk '{print $2}')
-
-		# Remove any DNS-related firewall rules relating to port 53 from "prerouting_lan" chain: 
-		for HANDLE in $(nft -a list chain inet firewall prerouting_lan | grep " dport 53 " | awk '{print $NF}'); do 
-			nft delete rule inet firewall NAT_PREROUTING_LAN handle ${HANDLE}
-		done
-
-		# Add IPv4 DNS redirection rules:
-		nft add rule inet firewall NAT_PREROUTING_LAN ip saddr != ${IPv4} ip daddr != ${IPv4} udp dport 53 dnat to ${IPv4} comment "${IFACE}"
-		nft add rule inet firewall NAT_PREROUTING_LAN ip saddr != ${IPv4} ip daddr != ${IPv4} tcp dport 53 dnat to ${IPv4} comment "${IFACE}"
-
-		# Add IPv6 DNS redirection rules:
-		nft add rule inet firewall NAT_PREROUTING_LAN ip6 saddr != ${IPv6} ip6 daddr != ${IPv6} udp dport 53 dnat to ${IPv6} comment "${IFACE}"
-		nft add rule inet firewall NAT_PREROUTING_LAN ip6 saddr != ${IPv6} ip6 daddr != ${IPv6} tcp dport 53 dnat to ${IPv6} comment "${IFACE}"
-	fi
-fi
+# Use Receive Packet Steering (RPS) to steer incoming data from "br0" to CPU 4:
+[[ "${IFACE}" == "br0" ]] && echo 8 > /sys/class/net/${IFACE}/queues/rx-0/rps_cpus
 
 ################################################################################################
 # Are we dealing with an USER-defined interface requiring masquerading?
@@ -43,8 +15,8 @@ test -f /etc/network/interfaces.d/${IFACE} && if [[ ! -z "${IF_MASQUERADE}" ]]; 
 	
 	# Put the IP addresses of the interface in the firewall's "prerouting_private" chain.
 	# This should allow double-nat configurations to work properly:
-	nft insert rule inet firewall MANGLE_PREROUTING_PRIVATE iifname ${IFACE} ip saddr $(ip addr show ${IFACE} | grep " inet " | awk '{print $2}') return
-	nft insert rule inet firewall MANGLE_PREROUTING_PRIVATE iifname ${IFACE} ip6 saddr $(ip addr show ${IFACE} | grep " inet6 " | awk '{print $2}') return
+	nft insert rule inet firewall mangle_prerouting_private iifname ${IFACE} ip saddr $(ip addr show ${IFACE} | grep " inet " | awk '{print $2}') return
+	nft insert rule inet firewall mangle_prerouting_private iifname ${IFACE} ip6 saddr $(ip addr show ${IFACE} | grep " inet6 " | awk '{print $2}') return
 fi
 
 ################################################################################################
