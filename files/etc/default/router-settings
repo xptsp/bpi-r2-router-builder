@@ -1,3 +1,6 @@
+# Display debug messages during "nftables" service running if set to "Y".  Default is empty.
+DEBUG=
+
 ##########################################################################
 # WebUI Setup / Router Settings
 ##########################################################################
