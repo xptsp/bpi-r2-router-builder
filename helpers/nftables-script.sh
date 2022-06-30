@@ -16,9 +16,10 @@ function stage()
 }
 function _nft()
 {
-	[[ ! -z "${DEBUG}" ]] && echo -e "${BLUE}Executing:${NC} nft $@"
-	if ! nft ${DEBUG} $@; then
-		ERR=$?
+	[[ ! -z "${DEBUG}" ]] && echo -e "${BLUE}CMD:${NC} nft $@"
+	nft ${DEBUG} $@
+	ERR=$?
+	if [[ ${ERR} -gt 0 ]]; then
 		[[ ! -z "${DEBUG}" ]] && echo -e "${RED}ERROR:${NC} Error code $ERR was returned!  Aborting!"
 		exit $ERR
 	fi
@@ -37,7 +38,7 @@ for PARAM in $@; do
 			[[ -z "${DEBUG}" ]] && DEBUG=-c && echo -e "${GREEN}NOTE:${NC} Debug mode started."
 			;;
 		*)
-			echo "Syntax: $0 [start|reload|stage]"
+			echo "Syntax: $0 [start|reload|debug]"
 			exit 1
 			;;
 	esac
