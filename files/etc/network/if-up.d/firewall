@@ -23,14 +23,19 @@ fi
 # Are we dealing with an USER-defined interface does not require masquerading?
 ################################################################################################
 test -f /etc/network/interfaces.d/${IFACE} && if [[ -z "${IF_MASQUERADE}" ]]; then
-	ADDR=$(ip addr show ${IFACE} | grep " inet " | awk '{print $2}')
-	if [[ ! -z "${ADDR}" ]]; then
-		# Put the IP address range into the firewalls "inside_network" set.
-		# This should allow port triggering to work properly: 
-		nft add element inet firewall INSIDE_NETWORK { ${ADDR} }
+	# Put the IP address range into the firewalls "INSIDE_NETWORK" set.
+	# This should allow port triggering to work properly:
+	nft add element inet firewall INSIDE_NETWORK { $(ip addr show ${IFACE} | grep " inet " | awk '{print $2}') }
 
-		# Add this interface to the list of LAN interfaces:
-		nft add element inet firewall DEV_LAN { ${IFACE} }
+	# Add this interface to the list of LAN interfaces:
+	nft add element inet firewall DEV_LAN { ${IFACE} }
+
+	# If this interface has a captive portal, add it to the captive portal sets and rules:
+	if [[ ! -z "${IF_CAPTIVE_PORTAL}" ]]; then
+		IP_ADDR=$(ifconfig ${IFACE} | grep " inet " | awk '{print $2}')
+		nft add element inet firewall DEV_PORTAL { ${IFACE} }
+		nft add element inet firewall CAPTIVE_PORTAL_IPs { ${IP_ADDR} }
+		nft add rule inet firewall nat_prerouting_portal tcp dport 80 iifname ${IFACE} dnat ip to ${IP_ADDR}
 	fi
 fi
 

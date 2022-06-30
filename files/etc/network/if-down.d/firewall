@@ -1,8 +1,28 @@
 #!/bin/bash
 
-# Remove firewall rules for interface from the "prerouting_private" chain:
-for HANDLE in $(nft -a list chain inet firewall prerouting_private | grep "${IFACE}" | awk '{print $NF}')); do 
+# Remove firewall rules for interface from the "mangle_prerouting_private" chain:
+for HANDLE in $(nft -a list chain inet firewall mangle_prerouting_private | grep "\"${IFACE}\"" | awk '{print $NF}')); do 
 	nft delete rule inet firewall mangle_prerouting_private handle ${HANDLE}
 done
 
+# Remove captive portal firewall rules for interface from the "nat_prerouting_portal" chain:
+for HANDLE in $(nft -a list chain inet firewall nat_prerouting_portal | grep "\"${IFACE}\"" | awk '{print $NF}')); do 
+	nft delete rule inet firewall nat_prerouting_portal handle ${HANDLE}
+done
+
+# Remove captive portal address from "CAPTIVE_PORTAL_IPs" set: 
+IP_ADDR=$(ip addr show ${IFACE} | grep " inet " | awk '{print $2}')
+nft delete element inet firewall CAPTIVE_PORTAL_IPs { $(echo ${IP_ADDR} | cut -d\/ -f 1) } >& /dev/null
+
+# Remove interface from the "INSIDE_NETWORK" set:
+nft delete element inet firewall INSIDE_NETWORK { ${IP_ADDR} } >& /dev/null
+
+# Remove the interface from all interface lists:
+nft delete element inet firewall DEV_LAN { ${IFACE} } >& /dev/null
+nft delete element inet firewall DEV_LAN_DENY { ${IFACE} } >& /dev/null
+nft delete element inet firewall DEV_WAN { ${IFACE} } >& /dev/null
+nft delete element inet firewall DEV_WAN_DENY { ${IFACE} } >& /dev/null
+nft delete element inet firewall DEV_PORTAL { ${IFACE} } >& /dev/null
+
+# Exit script with error code 0:
 exit 0

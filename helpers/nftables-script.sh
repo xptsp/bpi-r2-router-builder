@@ -53,17 +53,21 @@ if [[ "$CMD" == "start" ]]; then
 fi
 
 #############################################################################
+# If we are reloading the ruleset, remove any script-generated rules: 
+#############################################################################
+if [[ "$CMD" == "reload" ]]; then
+	for TABLE in $(_nft list table inet firewall | grep chain | awk '{print $2}'); do
+		for HANDLE in $(_nft -a list chain inet firewall ${TABLE} | grep "${TXT}" | awk '{print $NF}'); do 
+			_nft delete rule inet firewall ${TABLE} handle ${HANDLE}
+		done
+	done
+fi
+
+#############################################################################
 # Add any rules to make our firewall settings work as expected:
 #############################################################################
 # This is the string we are going to use to identify rules added by this script: 
 TXT=nftables-script
-
-# Remove script-generated rules from the ruleset: 
-for TABLE in $(_nft list table inet firewall | grep chain | awk '{print $2}'); do
-	for HANDLE in $(_nft -a list chain inet firewall ${TABLE} | grep "${TXT}" | awk '{print $NF}'); do 
-		_nft delete rule inet firewall ${TABLE} handle ${HANDLE}
-	done
-done
 
 # Add rules to allow pings from WAN at a rate of 5 pings per second if option "allow_ping" is "Y":
 stage 1a "Option allow_ping=${allow_ping:-"N"}"
@@ -110,8 +114,8 @@ fi
 # are the WAN interfaces that the rules will block incoming new connections on.
 #############################################################################
 IFACES=($(grep "masquerade" * | cut -d: -f 1))
-DEV_WAN="$(echo ${IFACES[@]} | sed "s| |, |g")"
-ELEMENTS="$([[ ! -z "${DEV_WAN}" ]] && echo " elements = { ${DEV_WAN} }")"
+STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
+ELEMENTS="$([[ ! -z "${STR}" ]] && echo " elements = { ${STR} }")"
 stage 2 "DEV_WAN ${ELEMENTS/ =/}"
 _nft flush set inet firewall DEV_WAN
 [[ ! -z "${DEV_WAN}" ]] && _nft add element inet firewall DEV_WAN { ${DEV_WAN} }
@@ -121,8 +125,8 @@ _nft flush set inet firewall DEV_WAN
 # are the WAN interfaces that the rules will block new outgoing connections on.
 #############################################################################
 IFACES=($(grep no_internet $(grep -L "masquerade" *) | cut -d: -f 1))
-DEV_WAN_DENY="$(echo ${IFACES[@]} | sed "s| |, |g")"
-ELEMENTS="$([[ ! -z "${DEV_WAN_DENY}" ]] && echo " elements = { ${DEV_WAN_DENY} }")"
+STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
+ELEMENTS="$([[ ! -z "${STR}" ]] && echo " elements = { ${STR} }")"
 stage 3 "DEV_WAN_DENY ${ELEMENTS/ =/}"
 _nft flush set inet firewall DEV_WAN_DENY
 [[ ! -z "${DEV_WAN_DENY}" ]] && _nft add element inet firewall DEV_WAN_DENY { ${DEV_WAN_DENY} }
@@ -132,8 +136,8 @@ _nft flush set inet firewall DEV_WAN_DENY
 # are the LAN interfaces that the rules will block new outgoing connections on.
 #############################################################################
 IFACES=($(grep no_local $(grep -L "masquerade" *) | cut -d: -f 1))
-DEV_LAN_DENY="$(echo ${IFACES[@]} | sed "s| |, |g")"
-ELEMENTS="$([[ ! -z "${DEV_LAN_DENY}" ]] && echo " elements = { ${DEV_LAN_DENY} }")"
+STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
+ELEMENTS="$([[ ! -z "${STR}" ]] && echo " elements = { ${STR} }")"
 stage 4 "DEV_LAN_DENY ${ELEMENTS/ =/}"
 _nft flush set inet firewall DEV_LAN_DENY
 [[ ! -z "${DEV_LAN_DENY}" ]] && _nft add element inet firewall DEV_LAN_DENY { ${DEV_LAN_DENY} }
@@ -146,8 +150,8 @@ _nft flush set inet firewall DEV_LAN_DENY
 # to the LAN interfaces.
 #############################################################################
 IFACES=($(grep address $(grep -L "masquerade" *) | cut -d: -f 1))
-DEV_LAN="$(echo ${IFACES[@]} | sed "s| |, |g")"
-ELEMENTS="$([[ ! -z "${DEV_LAN}" ]] && echo " elements = { ${DEV_LAN} }")"
+STR="$(echo ${IFACES[@]} | sed "s| |, |g")"
+ELEMENTS="$([[ ! -z "${STR}" ]] && echo " elements = { ${STR} }")"
 stage 5 "DEV_LAN ${ELEMENTS/ =/}"
 _nft flush set inet firewall DEV_LAN
 [[ ! -z "${DEV_LAN}" ]] && _nft add element inet firewall DEV_LAN { ${DEV_LAN} }
@@ -158,8 +162,8 @@ _nft flush set inet firewall DEV_LAN
 # combination from the "/etc/network/interfaces.d/" files...
 #############################################################################
 ADDR=($(for IFACE in ${IFACES[@]}; do ip addr show $IFACE 2> /dev/null | grep " inet " | awk '{print $2}'; done))
-INSIDE_NETWORK="$(echo ${ADDR[@]} | sed "s| |, |g")"
-ELEMENTS="$([[ ! -z "${INSIDE_NETWORK}" ]] && echo " elements = { ${INSIDE_NETWORK} }")"
+STR="$(echo ${ADDR[@]} | sed "s| |, |g")"
+ELEMENTS="$([[ ! -z "${STR} ]] && echo " elements = { ${STR} }")"
 stage 6 "INSIDE_NETWORK ${ELEMENTS/ =/}"
 _nft flush set inet firewall INSIDE_NETWORK
 [[ ! -z "${INSIDE_NETWORK}" ]] && _nft add element inet firewall INSIDE_NETWORK { ${INSIDE_NETWORK} }
