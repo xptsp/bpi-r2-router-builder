@@ -153,22 +153,3 @@ done
 # Force the firewall ruleset to be copied over if it has changed:
 #####################################################################################
 FORCE_COPY=true replace etc/nftables.conf etc/nftables.conf
-
-#####################################################################################
-# Perform same operations in the read-only partition:
-#####################################################################################
-RW=($(mount | grep " /ro " 2> /dev/null))
-if [[ ! -z "${RW[5]}" ]]; then
-	#####################################################################################
-	# Reload the system daemons and enable any services deemed necessary by the script:
-	#####################################################################################
-	systemctl daemon-reload
-	[[ "${RW[5]}" == *ro,* ]] && NOW="--now" && mount -o remount,rw /ro
-	systemctl is-enabled cloudflared@1 >& /dev/null || systemctl enable ${NOW} cloudflared@1
-	systemctl is-enabled cloudflared@2 >& /dev/null || systemctl enable ${NOW} cloudflared@2
-	systemctl is-enabled cloudflared@3 >& /dev/null || systemctl enable ${NOW} cloudflared@3
-	systemctl is-enabled multicast-relay >& /dev/null || systemctl enable ${NOW} multicast-relay
-	systemctl is-enabled wifi >& /dev/null || systemctl enable ${NOW} wifi
-	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f
-	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /ro
-fi
