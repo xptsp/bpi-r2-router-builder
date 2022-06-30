@@ -5,35 +5,36 @@
 # found under the "/etc/network/interfaces.d/" directory.  After modifying
 # the rules, the script loads the new nftables rules.  
 #############################################################################
-# Chains:
-# - List a chain in the table:     nft list chain inet firewall <chain>
-# - Add a rule to chain in table:  nft add rule inet firewall <chain> <rule>
-# - Get handle for rule in chain:  nft -a list chain inet firewall <chain> | grep "<search_spec>" | awk '{print $NF}'
-# - Delete rule from a chain:      nft delete rule inet firewall <chain> handle <handle>
-# - Flush a chain:                 nft flush chain inet firewall <chain>
+function debug()
+{
+	STAGE=$1
+	shift
+	[[ ! -z "${DEBUG}" ]] && echo -n -e "\nDEBUG $STAGE: $@... "
+}
+function _nft()
+{
+	if ! nft ${DEBUG} $@; then
+		echo "ERROR $?"
+		exit $?
+	fi
+}
+
 #############################################################################
-# Maps & Sets:
-# - Add an element:                nft add element inet firewall <map> { <data>, [<data>}... }
-# - Remove an element:             nft delete element inet firewall <map> { data>, [<data>}... }
-# Maps:
-# - List the elements in a map:    nft list map inet firewall <map>
-# - Flush contents of a map:       nft flush map inet firewall <map>
-# Set:
-# - List the elements in a map:    nft list set inet firewall <set>
-# - Flush contents of a map:       nft flush set inet firewall <set>
-#############################################################################
-case $1 in
-	start|reload)
-		;;
-	debug)
-		DEBUG=-c && echo "NOTE: Debug mode started."
-		;;
-	*)
-		echo "Syntax: $0 [start|reload|debug]"
-		exit 1
-		;;
-esac
- 
+for PARAM in $@; do
+	case $PARAM in
+		start|reload)
+			CMD=$PARAM
+			;;
+		debug)
+			DEBUG=-c && echo "NOTE: Debug mode started."
+			;;
+		*)
+			echo "Syntax: $0 [start|reload|debug]"
+			exit 1
+			;;
+	esac
+done
+
 #############################################################################
 # Load router settings, copy the nftables ruleset we're using to the "/tmp" 
 # folder, then change to the "/etc/network/interfaces.d/" directory.
@@ -50,7 +51,7 @@ cd /etc/network/interfaces.d/
 IFACES=($(grep "masquerade" * | cut -d: -f 1))
 DEV_WAN="$(echo ${IFACES[@]} | sed "s| |, |g")"
 ELEMENTS="$([[ ! -z "${DEV_WAN}" ]] && echo " elements = { ${DEV_WAN} }")"
-[[ ! -z "$DEBUG" ]] && echo "DEBUG 1a: DEV_WAN ${ELEMENTS}"
+debug 1a DEV_WAN ${ELEMENTS}
 sed -i "s|set DEV_WAN .*|set DEV_WAN \{ type ifname; ${ELEMENTS} \}|" ${RULES}
 
 #############################################################################
@@ -60,7 +61,7 @@ sed -i "s|set DEV_WAN .*|set DEV_WAN \{ type ifname; ${ELEMENTS} \}|" ${RULES}
 IFACES=($(grep no_internet $(grep -L "masquerade" *) | cut -d: -f 1))
 DEV_WAN_DENY="$(echo ${IFACES[@]} | sed "s| |, |g")"
 ELEMENTS="$([[ ! -z "${DEV_WAN_DENY}" ]] && echo " elements = { ${DEV_WAN_DENY} }")"
-[[ ! -z "$DEBUG" ]] && echo "DEBUG 1b: DEV_WAN_DENY ${ELEMENTS}"
+debug 1b DEV_WAN_DENY ${ELEMENTS}
 sed -i "s|set DEV_WAN_DENY .*|set DEV_WAN_DENY { type ifname; ${ELEMENTS} }|" ${RULES}
 
 #############################################################################
@@ -70,7 +71,7 @@ sed -i "s|set DEV_WAN_DENY .*|set DEV_WAN_DENY { type ifname; ${ELEMENTS} }|" ${
 IFACES=($(grep no_local $(grep -L "masquerade" *) | cut -d: -f 1))
 DEV_LAN_DENY="$(echo ${IFACES[@]} | sed "s| |, |g")"
 ELEMENTS="$([[ ! -z "${DEV_LAN_DENY}" ]] && echo " elements = { ${DEV_LAN_DENY} }")"
-[[ ! -z "$DEBUG" ]] && echo "DEBUG 1c: DEV_LAN_DENY ${ELEMENTS}"
+debug 1c DEV_LAN_DENY ${ELEMENTS}
 sed -i "s|set DEV_LAN_DENY .*|set DEV_LAN_DENY { type ifname; ${ELEMENTS} }|" ${RULES}
 
 #############################################################################
@@ -83,7 +84,7 @@ sed -i "s|set DEV_LAN_DENY .*|set DEV_LAN_DENY { type ifname; ${ELEMENTS} }|" ${
 IFACES=($(grep address $(grep -L "masquerade" *) | cut -d: -f 1))
 DEV_LAN="$(echo ${IFACES[@]} | sed "s| |, |g")"
 ELEMENTS="$([[ ! -z "${DEV_LAN}" ]] && echo " elements = { ${DEV_LAN} }")"
-[[ ! -z "$DEBUG" ]] && echo "DEBUG 1d: DEV_LAN ${ELEMENTS}"
+debug 1d DEV_LAN ${ELEMENTS}
 sed -i "s|set DEV_LAN .*|set DEV_LAN { type ifname; ${ELEMENTS} }|" ${RULES}
 
 #############################################################################
@@ -94,39 +95,54 @@ sed -i "s|set DEV_LAN .*|set DEV_LAN { type ifname; ${ELEMENTS} }|" ${RULES}
 ADDR=($(for IFACE in ${IFACES[@]}; do ip addr show $IFACE 2> /dev/null | grep " inet " | awk '{print $2}'; done))
 INSIDE_NETWORK="$(echo ${ADDR[@]} | sed "s| |, |g")"
 ELEMENTS="$([[ ! -z "${INSIDE_NETWORK}" ]] && echo " elements = { ${INSIDE_NETWORK} }")"
-[[ ! -z "$DEBUG" ]] && echo "DEBUG 1e: DEV_IPs ${ELEMENTS}"
+debug 1e DEV_IPs ${ELEMENTS}
 sed -i "s|set INSIDE_NETWORK .*|set INSIDE_NETWORK { type ipv4_addr; flags interval; ${ELEMENTS} }|" ${RULES}
 
 #############################################################################
 # If we are starting or reloading the ruleset, do so.  Abort if errors:
 #############################################################################
-[[ "$1" != "reload" ]] && nft -f ${RULES} ${DEBUG} || exit $?
-if [[ "$1" == "debug" ]]; then nano ${RULES}; exit; fi
-if test -f /etc/nftables-added.conf; then nft -f /etc/nftables-added.conf || exit $?; fi
+if [[ "$CMD" != "reload" ]]; then
+	debug 2a Applying ruleset ${RULES}
+	_nft -f ${RULES} ${DEBUG}
+	if test -f /etc/persistent-nftables.conf; then 
+		debug 2b Applying ruleset /etc/persistent-nftables.conf
+		_nft -f /etc/persistent-nftables.conf 
+	fi
+fi
 
 #############################################################################
 # If we are reloading, reload the sets as necessary:
 #############################################################################
-if [[ "$1" == "reload" ]]; then
-	# Refresh the list of WAN interfaces: 
-	nft flush set inet firewall DEV_WAN
-	[[ ! -z "${DEV_WAN}" ]] && nft add element inet firewall DEV_WAN { ${DEV_WAN} }
+if [[ "$CMD" == "reload" ]]; then
+	# Refresh the list of WAN interfaces:
+	debug 3a Purging DEV_WAN 
+	_nft flush set inet firewall DEV_WAN
+	debug 3b Adding elements to DEV_WAN 
+	[[ ! -z "${DEV_WAN}" ]] && _nft add element inet firewall DEV_WAN { ${DEV_WAN} }
 
 	# Refresh the list of LAN interfaces: 
-	nft flush set inet firewall DEV_LAN
-	[[ ! -z "${DEV_LAN}" ]] && nft add element inet firewall DEV_LAN { ${DEV_LAN} }
+	debug 3c Purging DEV_LAN
+	_nft flush set inet firewall DEV_LAN
+	debug 3d Adding elements to DEV_LAN 
+	[[ ! -z "${DEV_LAN}" ]] && _nft add element inet firewall DEV_LAN { ${DEV_LAN} }
 
 	# Refresh the list of LAN interfaces denied access to WAN interfaces:
-	nft flush set inet firewall DEV_LAN
-	[[ ! -z "${DEV_WAN_DENY}" ]] && nft add element inet firewall DEV_WAN_DENY { ${DEV_WAN_DENY} }
+	debug 3e Purging DEV_WAN_DENY
+	_nft flush set inet firewall DEV_WAN_DENY
+	debug 3f Adding elements to DEV_WAN_DENY	
+	[[ ! -z "${DEV_WAN_DENY}" ]] && _nft add element inet firewall DEV_WAN_DENY { ${DEV_WAN_DENY} }
 
 	# Refresh the list of LAN interfaces denied access to other LAN interfaces: 
-	nft flush set inet firewall DEV_LAN
-	[[ ! -z "${DEV_LAN_DENY}" ]] && nft add element inet firewall DEV_LAN_DENY { ${DEV_LAN_DENY} }
+	debug 3g Purging DEV_LAN_DENY
+	_nft flush set inet firewall DEV_LAN_DENY
+	debug 3h Adding elements to DEV_LAN_DENY	
+	[[ ! -z "${DEV_LAN_DENY}" ]] && _nft add element inet firewall DEV_LAN_DENY { ${DEV_LAN_DENY} }
 
 	# Refresh the list of IP addresses of LAN interfaces: 
-	nft flush set inet firewall INSIDE_NETWORK
-	[[ ! -z "${INSIDE_NETWORK}" ]] && nft add element inet firewall INSIDE_NETWORK { ${INSIDE_NETWORK} }
+	debug 3i Purging INSIDE_NETWORK
+	_nft flush set inet firewall INSIDE_NETWORK
+	debug 3j Adding elements to INSIDE_NETWORK	
+	[[ ! -z "${INSIDE_NETWORK}" ]] && _nft add element inet firewall INSIDE_NETWORK { ${INSIDE_NETWORK} }
 fi
 
 #############################################################################
@@ -136,45 +152,56 @@ fi
 TXT=nftables-script
 
 # Remove script-generated rules from the ruleset: 
-for TABLE in $(nft list table inet firewall | grep chain | awk '{print $2}'); do
-	for HANDLE in $(nft -a list chain inet firewall ${TABLE} | grep "${TXT}" | awk '{print $NF}'); do 
-		nft delete rule inet firewall ${TABLE} handle ${HANDLE}
+for TABLE in $(_nft list table inet firewall | grep chain | awk '{print $2}'); do
+	for HANDLE in $(_nft -a list chain inet firewall ${TABLE} | grep "${TXT}" | awk '{print $NF}'); do 
+		debug '4 ' Purging rule handle $HANDLE 
+		_nft delete rule inet firewall ${TABLE} handle ${HANDLE}
 	done
 done
 
 # Add rules to allow pings from WAN at a rate of 5 pings per second if option "allow_ping" is "Y":
+debug 4a Option allow_ping=${allow_ping:-"N"}
 if [[ "${allow_ping:-"N"}" == "Y" ]]; then
-	nft add rule inet firewall input_wan icmp type echo-request limit rate 5/second accept
-	nft add rule inet firewall input_wan icmpv6 type echo-request limit rate 5/second accept
+	_nft add rule inet firewall input_wan icmp type echo-request limit rate 5/second accept
+	_nft add rule inet firewall input_wan icmpv6 type echo-request limit rate 5/second accept
 fi
 
 # Add rule accepting IDENT requests if option "allow_ident" is "Y": 
-[[ "${allow_ident:-"N"}" == "Y" ]] && nft add rule inet firewall input_wan tcp dport 113 counter accept comment \"${TXT}\"
+debug 4b Option allow_ident=${allow_ident:-"N"}
+[[ "${allow_ident:-"N"}" == "Y" ]] && _nft add rule inet firewall input_wan tcp dport 113 counter accept comment \"${TXT}\"
 
 # Add rule accepting multicast packets from WAN if option "allow_multicast" is "Y":
-[[ "${allow_multicast:-"N"}" == "Y" ]] && nft add rule inet firewall input_wan pkttype multicast counter accept comment \"${TXT}\"
-
-# Add rule rejecting multicast packets to WAN if option "allow_multicast" is "N":
-[[ "${allow_multicast:-"N"}" == "N" ]] && nft add rule inet firewall output_wan pkttype multicast counter reject comment \"${TXT}\"
+if [[ "${allow_multicast:-"N"}" == "Y" ]]; then
+	debug 4c-1 Option allow_multicast=${allow_multicast:-"N"}
+	_nft add rule inet firewall input_wan pkttype multicast counter accept comment \"${TXT}\"
+else
+	debug 4c-2 Option allow_multicast=${allow_multicast:-"N"}
+	_nft add rule inet firewall output_wan pkttype multicast counter reject comment \"${TXT}\"
+fi
 
 # Add rule rejecting DoT (port 853) packets from LAN if option "allow_dot" is "N":
-[[ "${allow_dot:-"N"}" == "N" ]] && nft add rule inet firewall forward_wan meta l4proto {tcp, udp} @th,16,16 853 counter reject comment \"${TXT}\"
+debug 4d Option allow_dot=${allow_dot:-"N"}
+[[ "${allow_dot:-"N"}" == "N" ]] && _nft add rule inet firewall forward_wan meta l4proto {tcp, udp} @th,16,16 853 counter reject comment \"${TXT}\"
 
 # Add rule rejecting DoQ (port 8853) packets from LAN if option "allow_doq" is "N":
-[[ "${allow_doq:-"N"}" == "N" ]] && nft add rule inet firewall forward_wan meta l4proto {tcp, udp} @th,16,16 8853 counter reject comment \"${TXT}\"
+debug 4d Option allow_doq=${allow_doq:-"N"}
+[[ "${allow_doq:-"N"}" == "N" ]] && _nft add rule inet firewall forward_wan meta l4proto {tcp, udp} @th,16,16 8853 counter reject comment \"${TXT}\"
 
 # Add a jump to the DDoS protection rules in "mangle_prerouting" chain if option "disable_ddos" is "N":
-[[ "${disable_ddos:-"N"}" == "N" ]] && nft add rule inet firewall mangle_prerouting jump mangle_prerouting_ddos comment \"${TXT}\"
+debug 4e Option disable_ddos=${disable_ddos:-"N"}
+[[ "${disable_ddos:-"N"}" == "N" ]] && _nft add rule inet firewall mangle_prerouting jump mangle_prerouting_ddos comment \"${TXT}\"
 
 # Add DNS redirect rules ONLY if option "redirect_dns" is "Y":
+debug 4f Option redirect_dns=${redirect_dns:-"Y"}
 if [[ "${redirect_dns:-"Y"}" == "Y" ]]; then
 	IP=$(cat /etc/network/interfaces.d/br0 | grep address | awk '{print $NF}')
-	nft add rule inet firewall nat_prerouting_lan ip saddr != ${IP} ip daddr != ${IP} udp dport 53 counter dnat to ${IP} comment \"${TXT}\"
-	nft add rule inet firewall nat_prerouting_lan ip saddr != ${IP} ip daddr != ${IP} tcp dport 53 counter dnat to ${IP} comment \"${TXT}\"
+	_nft add rule inet firewall nat_prerouting_lan ip saddr != ${IP} ip daddr != ${IP} udp dport 53 counter dnat to ${IP} comment \"${TXT}\"
+	_nft add rule inet firewall nat_prerouting_lan ip saddr != ${IP} ip daddr != ${IP} tcp dport 53 counter dnat to ${IP} comment \"${TXT}\"
 fi
 
 #############################################################################
 # Normally, we exit with an error code of 0.  But if loading the ruleset 
 # fails, we normally want the service to fail as well...
 #############################################################################
+echo ""
 #exit 0

@@ -11,6 +11,7 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'submit')
 	{
+		$options['disable_ddos']    = option('disable_ddos');
 		$options['allow_ping']      = option('allow_ping');
 		$options['allow_ident']     = option('allow_ident');
 		$options['allow_multicast'] = option('allow_multicast');
@@ -37,9 +38,10 @@ echo '
 		<h3 class="card-title">Firewall Settings</h3>
 	</div>
 	<div class="card-body" id="firewall-div">
-		', checkbox("allow_ping",      "Respond to Pings from the Internet"), '
-		', checkbox("allow_ident",     "Respond to IDENT requests (port 113) from Internet"), '
-		', checkbox("allow_multicast", "Allow Multicast Packets from Internet", false), '
+		', checkbox("disable_ddos",    "Disable DDoS protection from WAN interfaces", false), '
+		', checkbox("allow_ping",      "Respond to Pings from WAN interfaces"), '
+		', checkbox("allow_ident",     "Respond to IDENT requests (port 113) from WAN interfaces"), '
+		', checkbox("allow_multicast", "Allow Multicast Packets to/from WAN interfaces", false), '
 		<hr style="border-width: 2px" />
 		', checkbox("redirect_dns", "Redirect all DNS requests to Integrated Pi-Hole"), '
 		', checkbox("block_dot", "Block outgoing DoT (DNS-over-TLS - port 853) requests not from router"), '

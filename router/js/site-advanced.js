@@ -18,6 +18,7 @@ function Init_Firewall()
 		postdata = {
 			'sid':             SID,
 			'action':          'submit',
+			'disable_ddos':    $("#disable_ddos").prop("checked") ? "Y" : "N",
 			'allow_ping':      $("#allow_ping").prop("checked") ? "Y" : "N",
 			'allow_ident':     $("#allow_ident").prop("checked") ? "Y" : "N",
 			'allow_multicast': $("#allow_multicast").prop("checked") ? "Y" : "N",

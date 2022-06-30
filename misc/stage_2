@@ -86,6 +86,8 @@ systemctl disable --now hostapd
 apt install -y wget git toilet pmount eject lsb-release dialog mosquitto-clients sudo gnupg curl gnupg nftables
 apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance wireless-regdb crda
 git config --global pull.rebase false
+# Set a placeholder file for persistent nftables rules and settings:
+touch /etc/persistent-nftables.conf
 
 ##############################################################################################
 # Install files from the GitHub repository to build this image:
