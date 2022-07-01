@@ -163,7 +163,7 @@ _nft flush set inet firewall DEV_LAN
 #############################################################################
 ADDR=($(for IFACE in ${IFACES[@]}; do ip addr show $IFACE 2> /dev/null | grep " inet " | awk '{print $2}'; done))
 STR="$(echo ${ADDR[@]} | sed "s| |, |g")"
-ELEMENTS="$([[ ! -z "${STR} ]] && echo " elements = { ${STR} }")"
+ELEMENTS="$([[ ! -z "${STR}" ]] && echo " elements = { ${STR} }")"
 stage 6 "INSIDE_NETWORK ${ELEMENTS/ =/}"
 _nft flush set inet firewall INSIDE_NETWORK
 [[ ! -z "${INSIDE_NETWORK}" ]] && _nft add element inet firewall INSIDE_NETWORK { ${INSIDE_NETWORK} }
