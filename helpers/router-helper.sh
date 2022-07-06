@@ -74,8 +74,8 @@ function remount_ro()
 # Function to ask whether to do a particular action:
 # Src: https://stackoverflow.com/a/31939275
 function askYesNo {
-	QUESTION=$1
-	DEFAULT=$2
+	local QUESTION=$1
+	local DEFAULT=$2
 	if [ "$DEFAULT" = true ]; then
 		OPTIONS="[Y/n]"
 		DEFAULT="y"
@@ -84,7 +84,7 @@ function askYesNo {
 		DEFAULT="n"
 	fi
 	read -p "$QUESTION $OPTIONS " -n 1 -s -r INPUT
-	INPUT=${INPUT:-${DEFAULT}}
+	local INPUT=${INPUT:-${DEFAULT}}
 	echo ${INPUT}
 	ANSWER=false
 	[[ "$INPUT" =~ ^[yY]$ ]] && ANSWER=true
@@ -92,29 +92,12 @@ function askYesNo {
 
 function valid_ip()
 {
-    local  ip=$1
-    local  stat=1
-
-    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-        OIFS=$IFS
-        IFS='.'
-        ip=($ip)
-        IFS=$OIFS
-        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
-        stat=$?
-    fi
-    return $stat
-}
-
-function forward_help()
-{
-	if [[ ! -z "${1}" ]]; then echo $@; fi
-	echo "SYNTAX: $(basename $0) forward [list|add|del]"
-	echo "Where:"
-	echo "    add [iface] [method] [min] [max] [ip] [port] [enable] [comment] - Insert specified port-forwarding rule"
-	echo "    del [iface] [method] [min] [max] [ip] [port] [enable] [comment] - Remove specified port-forwarding rule"
-	echo "    list                                                            - List all port-forwarding rules"
-	exit 1
+	local ip=(${1/:/ })
+	[[ "${2:-"N"}" == "N" && ! -z "${ip[1]}" ]] && return 1
+	if [[ "${2:-"N"}" == "Y" ]]; then [[ ${ip[1]} -le 65535 ]] 2> /dev/null || return 1; fi  
+	ip=(${ip//./ })
+	[[ ! -z "${ip[3]}" && ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]] 2> /dev/null && return 0
+	return 1
 }
 
 ###########################################################################
@@ -718,7 +701,7 @@ case $CMD in
 				test -f /etc/nginx/sites-enabled/default-https && rm /etc/nginx/sites-enabled/default-https
 			elif [[ "${action}" == "restart" ]]; then
 				systemctl restart nginx
-			elif [[ "${action}" == "samba-on" || "${action}" == "samba-off" ]]; then
+			elif [[ "${action}" =~ samba-(on|off) ]]; then
 				mount -o remount,rw /boot
 				[[ "${action}" == "samba-on" ]] && SETTING=y || SETTING=n
 				sed -i "s|WEBUI_SHARE=.*|WEBUI_SHARE=${SETTING}|g" /boot/persistent.conf
@@ -733,60 +716,62 @@ case $CMD in
 		;;
 
 	###########################################################################
-	forward)
+	forward_port|forward_range|trigger_port)
 		#####################################################################
-		# ACTION: ADD/DEL ==> Adds or deletes specified port-forward rule
+		# ADD/DELETE - Add/delete the port from the list in question:
 		#####################################################################
-		if [[ "${1}" == "add" || "${1}" == "del" ]]; then
-			#####################################################################
-			# Validate the parameters:
-			IFACE=${2}
-			METHOD=${3}
-			DST_MIN=${4}
-			DST_MAX=${5:-"${DST_MIN}"}
-			if ! ifconfig ${IFACE} >& /dev/null; then forward_help "ERROR: Invalid interface specified for 2nd param!"; fi
-			if [[ "${METHOD}" != "tcp" && "${METHOD}" != "udp" && "${METHOD}" != "both" ]]; then forward_help "ERROR: Must be either tcp, udp or both for 3rd param!"; fi
-			if [[ -z "${DST_MIN}" || "${DST_MIN}" -lt 0 || "${DST_MIN}" -gt 65535 ]]; then forward_help "ERROR: Invalid port number for 4th param!"; fi
-			if [[ -z "${DST_MAX}" || "${DST_MAX}" -lt "${DST_MIN}" || "${DST_MAX}" -gt 65535 ]]; then forward_help "ERROR: Invalid port number for 5th param!"; fi
-
-			if [[ "${1}" == "add" ]]; then
-				IP_ADDR=${6}
-				SRC_PORT=${7}
-				ENABLE=${8:="Y"}
-				COMMENT=${9}
-				if ! valid_ip ${IP_ADDR}; then forward_help "ERROR: Invalid IP Address specified as 5th param!"; fi
-				if [[ -z "${SRC_PORT}" || "${SRC_PORT}" -lt 0 || "${SRC_PORT}" -gt 65535 ]]; then forward_help "ERROR: Invalid port number for 6th param!"; fi
-				if [[ "${ENABLE}" != "Y" && "${ENABLE}" != "N" ]]; then forward_help "ERROR: Must be either Y or N for 8th param!"; fi
-			fi
-
-			#####################################################################
-			# If we haven't failed out yet, perform the actions:
-			#####################################################################
-			[[ "${ENABLE:="Y"}" == "Y" ]] && ACTION="-j ACCEPT" || unset ACTION
-			[[ "${DST_MIN}" == "${DST_MAX}" ]] && DST_PORT="--dport ${DST_MIN}" || DST_PORT="-m multiport --dports ${DST_MIN}:${DST_MAX}"
-
-			#####################################################################
-			# ADD => Add port forwarding rule
-			if [[ "${1}" == "add" ]]; then
-				[[ "${METHOD:="both"}" != "both" ]] && METHOD="-p ${METHOD}" || unset METHOD
-				iptables -t nat -A PORT_FORWARD -i ${IFACE} ${METHOD} ${DST_PORT} -j DNAT --to-destination ${IP_ADDR}$([[ "${DST_MIN}" == "${DST_MAX}" ]] && echo ":${SRC_PORT}") -m comment --comment "${COMMENT:-" "}"
-				iptables -A PORT_FORWARD ${METHOD} -d ${IP_ADDR} $([[ "${DST_MIN}" == "${DST_MAX}" ]] && echo "--dport ${SRC_PORT}") ${ACTION} -m comment --comment "${COMMENT:-""}"
-				iptables-save | egrep -e "^(COMMIT|\-A PORT_FORWARD|\*)" > /etc/network/port_forwarding.rules
-				echo "OK"
-			#####################################################################
-			# REM => Add port forwarding rule
+		if [[ "${1,,}" =~ (add|delete) ]]; then
+			# Validate the incoming information:
+			[[ "${1^^}" == "Y" ]] && ENABLED= || ENABLED='# '
+			NFT="${2,,} element inet firewall ${CMD^^}"
+			PROTO=${3^^}
+			if [[ ! "${PROTO}" =~ (TCP|UDP|BOTH) ]]; then echo "ERROR: 2nd param must be \"tcp\", \"udp\" or \"both\"."; exit 1; fi
+			EXT_PORT=${4}
+			if [[ "${EXT_PORT}" -lt 65535 ]] 2> /dev/null; then echo "ERROR: 3rd param must be an integer!"; exit 1; fi
+			if [[ "${CMD}" == "trigger_port" ]]; then
+				INT_ADDR=
+				shift 4
 			else
-				iptables --list-rules | grep PORT_FORWARD | egrep "\-(dports|dport) ${DST_MIN}" | grep "${METHOD:-" "}" | while read line; do iptables ${line/\-A/\-D}; done
-				iptables -t nat --list-rules | grep PORT_FORWARD | grep ${IFACE} | egrep "\-(dports|dport) ${DST_MIN}" | grep "${METHOD:-" "}" | while read line; do iptables -t nat ${line/\-A/\-D}; done
-				iptables-save | egrep -e "^(COMMIT|\-A PORT_FORWARD|\*)" > /etc/network/port_forwarding.rules
-				echo "OK"
+				[[ "${CMD}" == "forward_port" ]] && INT_PORT=Y || INT_PORT=N
+				valid_ip $5 ${INT_PORT} || echo "ERROR: 4th param must have a valid IP address and port$([[ "$INT_PORT" == "N" ]] && echo " range")!"; exit 1
+				INT_ADDR=": ${5/:/ . }"
+				shift 5
+			fi
+			[[ -z "$@" ]] && COMMENT= || COMMENT=" \# ${@}"
+
+			# Remove the port mapping to the persistent rules file:
+			FILE=/etc/persistent-nftables.conf
+			if [[ "${PROTO}" =~ BOTH ]]; then
+				sed -i "/ ${NFT/delete/add}_(TCP|UDP) { ${EXT_PORT} /d" ${FILE}
+			else
+				sed -i "/ ${NFT/delete/add}_${PROTO} { ${EXT_PORT} /d" ${FILE}
 			fi
 
+			# Add the port mapping to the persistent rules file:
+			if [[ "${1}" == "add" ]]; then
+				if [[ "${PROTO}" =~ BOTH ]]; then
+					echo "${ENABLED}${NFT}_TCP { ${EXT_PORT} ${DATA} } ${COMMENT}" >> ${FILE}
+					echo "${ENABLED}${NFT}_UDP { ${EXT_PORT} ${DATA} } ${COMMENT}" >> ${FILE}
+				else
+					echo "${ENABLED}${CMD}_${PROTO} { ${EXT_PORT} ${DATA} } ${COMMENT}" >> ${FILE}
+				fi
+			fi
+			nft -f ${FILE} || exit $?
+			echo "OK"
+
 		#####################################################################
-		# Everything else: Set fail flag
+		# Otherwise, display help:
 		#####################################################################
 		else
-			forward_help $@
+			echo "SYNTAX: $(basename $0) ${CMD} [add|delete] [...]"
+			[[ "$CMD" == "forward_port" ]] && MSG=" [ip]"
+			[[ "$CMD" == "forward_range" ]] && MSG=" [ip:port]"
+			[[ "$CMD" == "trigger_port" ]] && MSG=""
+			echo "Add ports to the list:"
+			echo "    ${CMD} add [enable] [proto] [ports] ${MSG}[comment]"
+			echo "Delete ports from the list:"
+			echo "    ${CMD} delete [proto] [ports]"
+			exit 1
 		fi
 		;;
 
@@ -850,28 +835,30 @@ case $CMD in
 		[[ "$1" != "-h" ]] && echo "ERROR: Invalid command passed!"
 		echo "Syntax: $(basename $0) [command] [options]"
 		echo "Where:"
-		(echo "    chroot       - Enters chroot environment in system partition"
-		 echo "    remount      - Remounts system partition as read-only or writable"
-		 echo "    reformat     - Reformats persistent storage"
-		 echo "    overlay      - Enables or Disables overlay script"
-		 echo "    apt          - Debian package installer"
-		 echo "    login        - Login actions"
-		 echo "    device       - Device Setings actions"
-		 echo "    backup       - Settings Backup and Restore actions"
-		 echo "    git          - Repository actions"
-		 echo "    iface        - Network Interface Setup actions"
-		 echo "    dhcp         - DHCP actions"
-		 echo "    systemctl    - System Services Control actions"
-		 echo "    mac          - Onboard Ethernet MAC address actions"
-		 echo "    firewall     - Firewall actions"
-		 echo "    dns          - Domain Name Server actions"
-		 echo "    route        - Network Routing actions"
-		 echo "    upgrade      - Pulls the lastest version of WebUI from GitHub"
-		 echo "    remove_files - Removes unnecessary files from system partition"
-		 echo "    webui        - WebUI actions"
-		 echo "    forward      - Port forwarding actions"
-		 echo "    move         - Move configuration files into position"
-		 echo "    portal       - Captive Portal actions"
+		(echo "    chroot        - Enters chroot environment in system partition"
+		 echo "    remount       - Remounts system partition as read-only or writable"
+		 echo "    reformat      - Reformats persistent storage"
+		 echo "    overlay       - Enables or Disables overlay script"
+		 echo "    apt           - Debian package installer"
+		 echo "    login         - Login actions"
+		 echo "    device        - Device Setings actions"
+		 echo "    backup        - Settings Backup and Restore actions"
+		 echo "    git           - Repository actions"
+		 echo "    iface         - Network Interface Setup actions"
+		 echo "    dhcp          - DHCP actions"
+		 echo "    systemctl     - System Services Control actions"
+		 echo "    mac           - Onboard Ethernet MAC address actions"
+		 echo "    firewall      - Firewall actions"
+		 echo "    dns           - Domain Name Server actions"
+		 echo "    route         - Network Routing actions"
+		 echo "    upgrade       - Pulls the lastest version of WebUI from GitHub"
+		 echo "    remove_files  - Removes unnecessary files from system partition"
+		 echo "    webui         - WebUI actions"
+		 echo "    forward_port  - Port forwarding actions"
+		 echo "    forward_range - Port forwarding actions"
+		 echo "    trigger_port  - Port triggering actions"
+		 echo "    move          - Move configuration files into position"
+		 echo "    portal        - Captive Portal actions"
 		) | sort
 		echo ""
 		echo "NOTE: Use \"-h\" after the command to see what options are available for that command."

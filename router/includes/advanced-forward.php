@@ -1,6 +1,30 @@
 <?php
-// Detect which interfaces have the masquerade option set in it's configuration file:
-$ifaces = explode("\n", trim(@shell_exec("grep masquerade /etc/network/interfaces.d/* | cut -d: -f 1 | cut -d/ -f 5")));
+#################################################################################################
+# Internal functions:
+#################################################################################################
+function deduplicate_proto(&$arr, $ext_port)
+{
+	if (isset($arr['TCP'][$ext_port], $arr['UDP'][$ext_port]) && $arr['TCP'][$ext_port]['enabled'] == $arr['UDP'][$ext_port]['enabled'])
+	{
+		$arr['Both'][$ext_port] = $arr['UDP'][$ext_port];
+		unset($arr['UDP'], $arr['TCP']);
+	}
+}
+
+function output_port($proto, $arr)
+{
+	return	'<tr>' .
+				'<td class="proto"><center>' . $proto . '</center></td>' .
+				'<td class="ext_port"><span class="float-right" style="margin-right: 10px">' . $arr['ext_port'] . '</span></td>' .
+				'<td class="ip_addr">' . $arr['int_addr'] . '</td>' .
+				'<td class="int_port"><span class="float-right" style="margin-right: 10px">' . $arr['int_port'] . '</span></td>' .
+				'<td class="comment">' . $arr['comment'] . '</td>' .
+				'<td class="enabled"><center>' . $arr['enabled'] . '</center></td>' .
+				'<td class="persistent"><center>' . $arr['persistent'] . '</center></td>' .
+				'<td><center><a href="javascript:void(0);" title="Edit Rule"><i class="fas fa-pencil-alt"></i></a></center></td>' .
+				'<td><center><a href="javascript:void(0);" title="Delete Rule"><i class="fas fa-trash-alt"></i></a></center></td>' .
+			'</tr>';
+} 
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
@@ -12,44 +36,63 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'list')
 	{
-		$str = '';
-		foreach (explode("\n", trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh forward list"))) as $id => $line)
+		$ports = array('FORWARD_PORT' => array('Both' => array(), 'TCP' => array(), 'UDP' => array()));
+		$ports['TRIGGER_PORT'] = $ports['FORWARD_RANGE'] = $ports['FORWARD_PORT'];
+
+		#################################################################################################
+		# Process the persistent nftables rules at this time:
+		#################################################################################################
+		foreach (@file("/etc/persistent-nftables.conf") as $line)
 		{
-			if (!empty($line))
+			#################################################################################################
+			# Process the nftables statement as a line:
+			#################################################################################################
+			if (preg_match("/(\#\s*|)add element inet firewall (FORWARD_PORT|FORWARD_RANGE|TRIGGER_PORT)_(TCP|UDP) { (\d+\-\d+|\d+)( : (\d+\.\d+\.\d+\.\d+)( \. (\d+)|)|) }( \# (.+)|)/", $line, $regex))
 			{
-				$iface    = preg_match('/-i ([^\s]+)/', $line, $regex) ? $regex[1] : 'ERROR';
-				$ext_port = preg_match('/--(dport|dports) (\d+\:\d+|\d+)/', $line, $regex) ? $regex[2] : 'ERROR';
-				$ip_addr  = preg_match('/--to-destination (\d+\.\d+\.\d+\.\d+\:\d+|\d+\.\d+\.\d+\.\d+)/', $line, $regex) ? $regex[1] : 'ERROR';
-				$int_port = preg_match('/\:(\d+)/', $ip_addr, $regex) ? $regex[1] : $ext_port;
-				$proto    = preg_match('/-p (tcp|udp)/', $line, $regex) ? $regex[1] : 'both';
-				$comment  = preg_match('/--comment (".*?"|.*) -j/', $line, $regex) ? str_replace('"', '', str_replace("\'", "", $regex[1])) : '';
-				$enabled  = preg_match('/-j ([^\s]+)/', $line, $regex);
-				$str .=
-					'<tr>' .
-						'<td class="iface"><center>' . $iface . '</center></td>' .
-						'<td class="proto"><center>' . $proto . '</center></td>' .
-						'<td class="ext_port"><span class="float-right" style="margin-right: 10px">' . $ext_port . '</span></td>' .
-						'<td class="ip_addr">' . explode(":", $ip_addr)[0] . '</td>' .
-						'<td class="int_port"><span class="float-right" style="margin-right: 10px">' . $int_port . '</span></td>' .
-						'<td class="comment">' . $comment . '</td>' .
-						'<td class="enabled"><center>' . ($enabled ? 'Y' : 'N') . '</center></td>' .
-						'<td><center><a href="javascript:void(0);" title="Edit Rule"><i class="fas fa-pencil-alt"></i></a></center></td>' .
-						'<td><center><a href="javascript:void(0);" title="Delete Rule"><i class="fas fa-trash-alt"></i></a></center></td>' .
-					'</tr>';
+				#echo '<pre>'; print_r($regex); exit;
+				$elem     = $regex[2];
+				$proto    = $regex[3];
+				$ext_port = $regex[4];
+				$ports[$elem][$proto][$ext_port] = array(
+					'ext_port'   => $ext_port,
+					'int_addr'   => $regex[6],
+					'int_port'   => empty($regex[8]) ? $port : $regex[8],
+					'enabled'    => empty($regex[1]) ? 'Y' : 'N', 
+					'comment'    => $regex[10],
+					'persistent' => 'Y'
+				);
+				#echo '<pre>'; print_r($ports[$elem][$proto][$ext_port]); exit;
+				deduplicate_proto($ports[$elem], $ext_port);
 			}
 		}
-		die( !empty($str) ? $str : '<tr><td colspan="9"><center>No Ports Forwarded</center></td></tr>' );
+		#echo '<pre>'; print_r($ports); exit;
+
+		#################################################################################################
+		# Output the nftables rules so that the user can understand it:
+		#################################################################################################
+		$str = array();
+		foreach ($ports as $elem)
+		{
+			foreach ($elem as $proto => $proto_data)
+			{
+				foreach ($proto_data as $ext_port => $info)
+					$str[ strval($ext_port) . '_' . $proto ] = output_port($proto, $info);
+			}
+		}				 
+		ksort($str);
+		die( !empty($str) ? implode('', $str) : '<tr><td colspan="9"><center>No Ports Forwarded</center></td></tr>' );
 	}
 	#################################################################################################
 	# ACTION: ADD => Add the new port forwarding rule
 	#################################################################################################
 	else if ($_POST['action'] == 'add')
 	{
+		$ext_min  = option_range("ext_min", 0, 65535);
+		$ext_max  = option_range("ext_max", (int) $options['ext_min'], 65535);
 		$param = array();
-		$param['iface']    = option_allowed("iface", $ifaces);
+		$param['type'] = ($ext_min == $ext_max) ? 'port' : 'range';
 		$param['protocol'] = option("protocol", "/^(tcp|udp|both)/");
-		$param['ext_min']  = option_range("ext_min", 0, 65535);
-		$param['ext_max']  = option_range("ext_max", (int) $options['ext_min'], 65535);
+		$param['ext_port'] = strval($ext_min) . ($ext_min != $ext_max ? '-' . str_val($ext_max) : ''); 
 		$param['ip_addr']  = option_ip("ip_addr");
 		$param['int_port'] = option_range("int_port", 0, 65535);
 		$param['enabled']  = option("enabled");
@@ -63,7 +106,6 @@ if (isset($_POST['action']))
 	else if ($_POST['action'] == 'del')
 	{
 		$param = array();
-		$param['iface']    = option_allowed("iface", $ifaces);
 		$param['protocol'] = option("protocol", "/^(tcp|udp|both)/");
 		$param['ext_min']  = option_range("ext_min", 0, 65535);
 		//echo '<pre>'; print_r($param); exit;
@@ -92,13 +134,13 @@ echo '
 		<div class="table-responsive p-0">
 			<table class="table table-hover text-nowrap table-sm table-striped table-bordered">
 				<thead class="bg-primary">
-					<td width="10%"><center>Interface</center></td>
 					<td width="10%"><center>Protocol</center></td>
 					<td width="10%"><center>Ext. Port</center></td>
 					<td width="10%"><center>IP Address</center></td>
 					<td width="10%"><center>Int. Port</center></td>
 					<td width="35%">Description</td>
 					<td width="10%"><center>Enabled</center></td>
+					<td width="10%"><center>Persistent</center></td>
 					<td width="3%">&nbsp;</td>
 					<td width="3%">&nbsp;</td>
 				</thead>
@@ -129,19 +171,6 @@ echo '
 					</button></a>
 				</div>
 				<div class="modal-body">
-					<div class="row', count($ifaces) == 1 ? ' hidden' : '', '" style="margin-top: 5px">
-						<div class="col-sm-6">
-							<label for="iface">Interface:</label>
-						</div>
-						<div class="col-sm-6">
-							<select id="iface" class="form-control">';
-foreach ($ifaces as $iface)
-	echo '
-								<option value="', $iface, '">', $iface, '</option>';
-echo '
-							</select>
-						</div>
-					</div>
 					<div class="row" style="margin-top: 5px">
 						<div class="col-sm-6">
 							<label for="app_select">Application:</label>

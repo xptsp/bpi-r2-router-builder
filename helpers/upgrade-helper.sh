@@ -35,7 +35,7 @@ COPY_ONLY=(
 	/etc/pihole/
 	/etc/pivpn/
 	/etc/systemd/system/miniupnpd.service
-	/etc/nftables.conf
+	/etc/persistent-nftables.conf
 	/root/
 	/home/pi/
 	/home/vpn/
@@ -148,8 +148,4 @@ for DEST in $(cat $TFL); do
 	[[ "$DEST" =~ /(lib|etc)/systemd/system/ ]] && systemctl disable --now $(basename $DEST)
 	test -f ${DEST} && rm ${DEST}
 done
-
-#####################################################################################
-# Force the firewall ruleset to be copied over if it has changed:
-#####################################################################################
-FORCE_COPY=true replace etc/nftables.conf etc/nftables.conf
+systemctl daemon-reload
