@@ -29,7 +29,6 @@ COPY_ONLY=(
 	/etc/fstab
 	/etc/tcmount.ini
 	/etc/rc.local
-	/etc/transmission-daemon/settings.json
 	/etc/default/
 	/etc/overlayRoot.conf
 	/etc/pihole/
