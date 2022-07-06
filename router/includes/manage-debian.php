@@ -141,7 +141,7 @@ if (isset($_POST['action']))
 		@ob_end_flush();
 
 		$buffer = str_repeat(' ', 2048);
-		foreach (explode("\n", trim(@file_get_contents("/opt/bpi-r2-router-builder/misc/apt-test.txt"))) as $s)
+		foreach (explode("\n", trim(@file_get_contents("/opt/bpi-r2-router-builder/misc/old/apt-test.txt"))) as $s)
 		{
 			print rtrim($s) . $buffer;
 			sleep(250);

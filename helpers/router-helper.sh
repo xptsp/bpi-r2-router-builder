@@ -412,7 +412,7 @@ case $CMD in
 		#####################################################################
 		# SCAN-TEST => Restart the specified interface:
 		elif [[ "$1" == "scan-test" ]]; then
-			cat /opt/bpi-r2-router-builder/misc/scan-test.txt
+			cat /opt/bpi-r2-router-builder/misc/old/wifi-test.txt
 		#####################################################################
 		# AP_MOVE => Move specified configuration file from "/tmp" to "/etc/network/interfaces.d/":
 		elif [[ "$1" == "ap_move" ]]; then
