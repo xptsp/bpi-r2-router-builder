@@ -45,7 +45,7 @@ if (isset($_POST['action']))
 	#################################################################################################
 	# Add the MAC address associated with the calling IP address to valid portal clients list:
 	#################################################################################################
-	die(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh portal allow ' . $_SERVER['REMOTE_ADDR']));
+	die(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh portal accept ' . $_SERVER['REMOTE_ADDR']));
 }
 
 #################################################################################################

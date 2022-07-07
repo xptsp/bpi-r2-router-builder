@@ -11,17 +11,12 @@ if [[ "${UID}" -ne 0 ]]; then
 fi
 
 # Forward all traffic on the peer port to the transmission daemon:
+[[ "$1" == "start" ]] && ACTION=add || ACTION=delete
 PEER=$(cat /etc/transmission-daemon/settings.json | egrep -o '"peer-port": [0-9]*' | awk '{print $2}')
-BR0=$(cat /etc/network/interfaces.d/br0 | grep 'address' | awk '{print $2}')
-if [[ "$1" == "start" ]]; then
-	ip route add 127.0.0.0/8 via ${BR0}
-	iptables -I PREROUTING -t nat -p tcp --dport ${PEER:-"51543"} -j DNAT --to 127.0.0.1:${PEER:-"51543"}
-	iptables -I FORWARD -p tcp -d 127.0.0.1 --dport ${PEER:-"51543"} -j ACCEPT
-elif [[ "$1" == "stop" ]]; then
-	ip route del 127.0.0.0/8 via ${BR0}
-	iptables -D PREROUTING -t nat -p tcp --dport ${PEER:-"51543"} -j DNAT --to 127.0.0.1:${PEER:-"51543"}
-	iptables -D FORWARD -p tcp -d 127.0.0.1 --dport ${PEER:-"51543"} -j ACCEPT
-fi
+nft ${ACTION} element inet firewall ACCEPT_PORT_TCP { ${PEER:-"51543"} } 
+
+# Add routing to the network routing table so "lo" goes through "br0"... (?)
+ip route ${ACTION/delete/del} 127.0.0.0/8 via $(cat /etc/network/interfaces.d/br0 | grep 'address' | awk '{print $2}')
 
 # Change the transmission-daemon WebUI to choice in Router WebUI:
 DIR=/usr/share/transmission

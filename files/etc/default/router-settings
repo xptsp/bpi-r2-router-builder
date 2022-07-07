@@ -135,3 +135,12 @@ captive_portal_mode=accept
 
 # URL to direct user to after captive portal acceptance.  Default: "https://google.com"
 captive_portal_url=https://google.com
+
+# Timeout for MAC addresses that pass Captive Portal.  Default: empty (forever allowed)
+captive_portal_accept_timeout=
+
+# Timeout for MAC addresses that are rejected by Captive Portal.  Default: "1h" (1 hour)
+captive_portal_reject_timeout=1h
+
+# Persistent mode for Captive Portal.  Overridden if timeout is specified.  Default: "Y".
+captive_portal_persistent=Y

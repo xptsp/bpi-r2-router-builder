@@ -802,31 +802,62 @@ case $CMD in
 	###########################################################################
 	# Code adapted from https://andrewwippler.com/2016/03/11/wifi-captive-portal/
 	portal)
+		#####################################################################
+		# CHECK => Check to see if captive portal is required for IP address:
+		#####################################################################
 		if [[ "$1" == "check" ]]; then
+			# Return error if IP address passed is invalid:
 			IP=${2}
 			if ! valid_ip ${IP}; then echo "ERROR: Invalid IP Address specified as 2rd param!"; exit 1; fi
+			# Return error if IP address isn't in the ARP table:
+			ARP=($(arp | grep ${IP}))
+			if [[ -z "${ARP[@]}" ]]; then echo "ERROR: No MAC address found for specified IP address!"; exit 1; fi
 			# Not required if the interface isn't part of the captive portal configuration:
-			if ! iptables --list-rules -t mangle | grep PORTAL | grep $(arp | grep ${IP} | awk '{print $NF}') >& /dev/null; then echo "Y"; exit; fi
+			if ! nft get element inet firewall DEV_PORTAL { ${ARP[6]} } >& /dev/null; then echo "Y"; exit; fi
 			# Not required if MAC address has already been approved:
-			ADDR=($(arp -a ${IP} | grep -o '..:..:..:..:..:..'))
-			iptables --list-rules -t mangle | grep PORTAL | grep ${ADDR} >& /dev/null && echo "Y" || echo "N"
-		elif [[ "$1" == "allow" ]]; then
+			nft get element inet firewall PORTAL_PASS { ${ARP[3]} } >& /dev/null && echo "Y" || echo "N"
+		#####################################################################
+		# ACCEPT/REJECT => Accept or reject MAC address for IP address specified:
+		#####################################################################
+		elif [[ "$1" == "accept" || "$1" == "reject" ]]; then
+			# Return error if IP address passed is invalid:
 			IP=${2}
 			if ! valid_ip ${IP}; then echo "ERROR: Invalid IP Address specified as 2rd param!"; exit 1; fi
+			# Return error if IP address isn't in the ARP table:
 			ADDR=($(arp -a ${IP} | grep -o '..:..:..:..:..:..'))
 			if [[ -z "${ADDR[@]}" ]]; then echo "ERROR: No MAC address found for specified IP address!"; exit 1; fi
+			# Remove any conntrack information about this IP address:
 			conntrack -L | grep ${IP} | grep ESTAB | grep 'dport=80' | awk "{ system(\"conntrack -D --orig-src $1 --orig-dst \" substr(\$6,5) \" -p tcp --orig-port-src \" substr(\$7,7) \" --orig-port-dst 80\"); }"
+
+			# If persistence is NOT required, set the timeout if required:
+			TIMEOUT=
+			if [[ "${captive_portal_persistent:-"Y"}" != "Y" ]]; then
+				[[ ! -z "${captive_portal_${1}_timeout}" ]] && TIMEOUT=" timeout ${captive_portal_${1}_timeout}"
+			fi
+
+			# Add the MAC address(es) here:
 			for MAC in ${ADDR[@]}; do
-				iptables -t mangle -D PORTAL -m mac --mac-source ${MAC} -j MARK --set-mark 0x2 2> /dev/null
-				iptables -t mangle -A PORTAL -m mac --mac-source ${MAC} -j MARK --set-mark 0x2
+				# Add the MAC address(es) to either "PORTAL_ACCEPT" or "PORTAL_REJECT" set, along with timeout (if any):				
+				nft add element inet firewall PORTAL_${1^^} { ${MAC} ${TIMEOUT} }
+				
+				# If Captive Portal persistence is required, add it to "/etc/persistent-nftables.conf": 
+				if [[ -z "${TIMEOUT}" ]]; then
+					FILE=/etc/persistent-nftables.conf
+					sed -i "/PORTAL_${1^^} { ${MAC} }/d" ${FILE}
+					echo "nft add element inet firewall PORTAL_${1^^} { ${MAC} }" >> ${FILE}
+				fi
 			done
 			echo "OK"
+		#####################################################################
+		# Otherwise, display help:
+		#####################################################################
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-			echo "SYNTAX: $(basename $0) portal [check|allow] (options)"
+			echo "SYNTAX: $(basename $0) portal [check|allow|reject] [ip]"
 			echo "Where:"
-			echo "    check [ip]  - Shows if captive portal is required for interface"
-			echo "    allow [ip]  - Allows MAC address associated with specified IP address access to network"
+			echo "    check [ip]   - Shows if captive portal is required for specified IP address"
+			echo "    accept [ip]  - Accepts MAC address associated with specified IP address for access to network"
+			echo "    reject [ip]  - Rejects MAC address associated with specified IP address for access to network"
 		fi
 		;;
 
