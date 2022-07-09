@@ -22,7 +22,6 @@ TFL=/tmp/bpiwrt-builder.filelist
 # Files to copy only:
 #####################################################################################
 COPY_ONLY=(
-	/etc/hosts.adblock
 	/etc/network/interfaces.d/
 	/etc/dnsmasq.d/
 	/etc/hostapd/
@@ -30,6 +29,7 @@ COPY_ONLY=(
 	/etc/tcmount.ini
 	/etc/rc.local
 	/etc/default/
+	/etc/backup-file.list
 	/etc/overlayRoot.conf
 	/etc/pihole/
 	/etc/pivpn/

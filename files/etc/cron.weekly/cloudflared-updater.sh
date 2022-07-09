@@ -1,8 +1,9 @@
 #!/bin/bash
-wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm
-sudo systemctl stop cloudflared
-sudo cp ./cloudflared-linux-arm /usr/local/bin/cloudflared
-sudo chmod +x /usr/local/bin/cloudflared
-sudo systemctl start cloudflared
-cloudflared -v
-sudo systemctl status cloudflared
+systemctl stop cloudflared@1
+systemctl stop cloudflared@2
+systemctl stop cloudflared@3
+wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm -O /usr/local/bin/cloudflared
+chmod +x /usr/local/bin/cloudflared
+systemctl start cloudflared@1
+systemctl start cloudflared@2
+systemctl start cloudflared@3

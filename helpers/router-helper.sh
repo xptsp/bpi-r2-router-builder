@@ -335,8 +335,18 @@ case $CMD in
 		# SQUASH => Create settings backup in the /tmp folder:
 		if [[ "$1" == "squash" ]]; then
 			$0 backup unlink
-			cd /rw/upper/etc
-			mksquashfs ./ /tmp/bpiwrt.cfg -e ./pihole/*.db
+			BACKUP=/tmp/bpiwrt
+			test -d ${BACKUP} && rm -rf ${BACKUP}
+			mkdir -p ${BACKUP}
+			for file in $(cat /etc/backup-file.list); do 
+				DIR=${BACKUP}/$(dirname ${file})
+				mkdir -p ${DIR}
+				[[ "$file" =~ ^/ ]] && ROOT=/ || ROOT=/rw/upper/
+				cp -a ${ROOT}/${file} ${DIR}/ 2> /dev/null
+			done
+			cd ${BACKUP}
+			mksquashfs ./ /tmp/bpiwrt.cfg -quiet
+			rm -rf ${BACKUP}
 		#####################################################################
 		# REMOVE => Remove uploaded configuration backup:
 		elif [[ "$1" == "unlink" ]]; then
@@ -885,8 +895,8 @@ case $CMD in
 		 echo "    upgrade       - Pulls the lastest version of WebUI from GitHub"
 		 echo "    remove_files  - Removes unnecessary files from system partition"
 		 echo "    webui         - WebUI actions"
-		 echo "    forward_port  - Port forwarding actions"
-		 echo "    forward_range - Port forwarding actions"
+		 echo "    forward_port  - Single Port forwarding actions"
+		 echo "    forward_range - Port Range forwarding actions"
 		 echo "    trigger_port  - Port triggering actions"
 		 echo "    move          - Move configuration files into position"
 		 echo "    portal        - Captive Portal actions"

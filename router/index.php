@@ -28,7 +28,10 @@ if ((!$logged_in && $_GET['action'] != 'login') || $_GET['action'] == 'logout')
 # Set dark mode if not already set:
 require_once('includes/subs/site.php');
 if (!isset($_SESSION['dark_mode']))
-	$_SESSION['dark_mode'] = parse_options()['dark_mode'] == "Y";
+{
+	$local = parse_options();
+	$_SESSION['dark_mode'] = isset($local['dark_mode']) && $local['dark_mode'] == "Y";
+}
 
 # If we are logged in but going to the login page, redirect the page request to the "Home" page:
 if ($logged_in && ($_GET['action'] == 'login' || $_GET['action'] == 'logout'))
