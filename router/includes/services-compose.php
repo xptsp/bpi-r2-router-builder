@@ -19,7 +19,7 @@ if (isset($_POST['action']))
 		$handle = fopen("/tmp/docker-compose.yaml", "w");
 		fwrite($handle, str_replace("\t", "    ", $_POST['misc']));
 		fclose($handle);
-		die(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh move docker-compose'));		
+		die(@shell_exec('router-helper move docker-compose'));		
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:

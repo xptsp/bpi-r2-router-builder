@@ -46,7 +46,7 @@ if (isset($_POST['action']))
 	#################################################################################################
 	# Create the network configuration for each of the bound network adapters:
 	#################################################################################################
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface delete " . $iface);
+	@shell_exec("router-helper iface delete " . $iface);
 	$_POST['bridge'] = isset($_POST['bridge']) ? $_POST['bridge'] : '';
 	$bridged = array_diff( explode(" ", trim($_POST['bridge'])), array("undefined") );
 	if (empty($bridged))
@@ -60,7 +60,7 @@ if (isset($_POST['action']))
 			$handle = fopen("/tmp/" . $adapter, "w");
 			fwrite($handle, str_replace('{iface}', $adapter, trim($text)) . "\n");
 			fclose($handle);
-			$tmp = trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface move " . $adapter));
+			$tmp = trim(@shell_exec("router-helper iface move " . $adapter));
 			if ($tmp != "")
 				die($tmp);
 		}
@@ -102,7 +102,7 @@ if (isset($_POST['action']))
 	$handle = fopen("/tmp/" . $iface, "w");
 	fwrite($handle, trim($text) . "\n");
 	fclose($handle);
-	$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface move " . $iface);
+	$tmp = @shell_exec("router-helper iface move " . $iface);
 	if ($tmp != "")
 		die($tmp);
 
@@ -110,9 +110,9 @@ if (isset($_POST['action']))
 	# Output the DNSMASQ configuration file related to the network adapter:
 	#################################################################################################
 	if ($_POST['action'] == 'dhcp' || $_POST['use_dhcp'] == "N")
-		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp del " . $_POST['iface']);
+		$tmp = @shell_exec("router-helper dhcp del " . $_POST['iface']);
 	else
-		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp set " . $_POST['iface'] . " " . $ip_addr . " " . $dhcp_start . " " . $dhcp_end . ' ' . $dhcp_lease);
+		$tmp = @shell_exec("router-helper dhcp set " . $_POST['iface'] . " " . $ip_addr . " " . $dhcp_start . " " . $dhcp_end . ' ' . $dhcp_lease);
 	if ($tmp != "")
 		die($tmp);
 
@@ -121,8 +121,8 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($reboot == "false")
 	{
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart networking");
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole restartdns");
+		@shell_exec("router-helper systemctl restart networking");
+		@shell_exec("router-helper pihole restartdns");
 		die("OK");
 	}
 	else

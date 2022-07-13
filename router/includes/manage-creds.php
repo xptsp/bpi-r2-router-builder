@@ -19,7 +19,7 @@ if (isset($_POST['action']))
 			die("ERROR: New Password and Confirm Password do not match!");
 		else if ($newPass == $oldPass)
 			die("ERROR: New Password cannot be the same as the Old Password!");
-		die(trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh login passwd ' . $oldPass . ' ' . $newPass)));
+		die(trim(@shell_exec('router-helper login passwd ' . $oldPass . ' ' . $newPass)));
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:

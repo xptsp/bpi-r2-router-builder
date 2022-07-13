@@ -118,7 +118,7 @@ function do_dhcp_actions()
 		$ip_addr = option_ip('ip_addr');
 		$mac_addr = option_mac('mac_addr');
 		$hostname = option('hostname', "/^([0-9a-zA-Z]|[0-9a-zA-Z][0-9a-zA-Z0-9\-]+)$/");
-		die( @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp ' . $_POST['action'] . ' ' . $iface . ' ' . $mac_addr . ' ' . $ip_addr . ' ' . $hostname) );
+		die( @shell_exec('router-helper dhcp ' . $_POST['action'] . ' ' . $iface . ' ' . $mac_addr . ' ' . $ip_addr . ' ' . $hostname) );
 	}
 	###################################################################################################
 	# ACTION: CHECK ==> Check to see if the IP and/or MAC have already been assigned.

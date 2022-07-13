@@ -37,7 +37,7 @@ if (isset($_POST['action']))
 	{
 		$networks = array();
 		$number = 0;
-		$cmd = '/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ' . (option("test") == "N" ? 'scan ' . $iface : 'scan-test');
+		$cmd = 'router-helper iface ' . (option("test") == "N" ? 'scan ' . $iface : 'scan-test');
 		#echo '<pre>'; print_r(explode("\n", trim(@shell_exec($cmd)))); exit;
 		foreach (explode("\n", trim(@shell_exec($cmd))) as $id => $line)
 		{
@@ -129,7 +129,7 @@ if (isset($_POST['action']))
 	#################################################################################################
 	# Shut down the wireless interface right now, before modifying the configuration:
 	#################################################################################################
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ifdown " . $iface);
+	@shell_exec("router-helper iface ifdown " . $iface);
 
 	#################################################################################################
 	# Validate AP options, then configure the hostapd configuration file for the interface:
@@ -172,10 +172,10 @@ if (isset($_POST['action']))
 		$handle = fopen("/tmp/" . $iface, "w");
 		fwrite($handle, trim($text) . "\n");
 		fclose($handle);
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ap_move " . $iface);
+		@shell_exec("router-helper iface ap_move " . $iface);
 	}
 	else
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ap_del " . $iface);
+		@shell_exec("router-helper iface ap_del " . $iface);
 
 	#################################################################################################
 	# Decide what the interface configuration text will look like:
@@ -210,28 +210,28 @@ if (isset($_POST['action']))
 	$handle = fopen("/tmp/" . $iface, "w");
 	fwrite($handle, trim($text) . "\n");
 	fclose($handle);
-	$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface move " . $iface);
+	$tmp = @shell_exec("router-helper iface move " . $iface);
 
 	#################################################################################################
 	# Output the DNSMASQ configuration file related to the network adapter:
 	#################################################################################################
 	if ($_POST['action'] == 'disabled' || $_POST['action'] == 'client_static' || $_POST['action'] == 'client_dhcp')
-		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp del " . $_POST['iface']);
+		$tmp = @shell_exec("router-helper dhcp del " . $_POST['iface']);
 	else
-		$tmp = @shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp set " . $_POST['iface'] . " " . $ip_addr . " " . $dhcp_start . " " . $dhcp_end . ' ' . $dhcp_lease);
+		$tmp = @shell_exec("router-helper dhcp set " . $_POST['iface'] . " " . $ip_addr . " " . $dhcp_start . " " . $dhcp_end . ' ' . $dhcp_lease);
 	if (!empty($tmp))
 		die($tmp);
 
 	#################################################################################################
 	# (Re)start the wireless interface and restart pihole-FTL:
 	#################################################################################################
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl stop hostapd@" . $iface);
+	@shell_exec("router-helper systemctl stop hostapd@" . $iface);
 	if ($action == 'ap')
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl enable --now hostapd@" . $iface);
+		@shell_exec("router-helper systemctl enable --now hostapd@" . $iface);
 	else
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl disable hostapd@" . $iface);
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh iface ifup " . $iface);
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh pihole restartdns " . $iface);
+		@shell_exec("router-helper systemctl disable hostapd@" . $iface);
+	@shell_exec("router-helper iface ifup " . $iface);
+	@shell_exec("router-helper pihole restartdns " . $iface);
 	die("OK");
 }
 

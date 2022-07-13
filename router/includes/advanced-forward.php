@@ -98,7 +98,7 @@ if (isset($_POST['action']))
 		$param['enabled']  = option("enabled");
 		$param['comment']  = '"' . option("comment", "/^([^\"\']*)$/") . '"';
 		//echo '<pre>'; print_r($param); exit;
-		die(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh forward add " . implode(" ", $param)));
+		die(@shell_exec("router-helper forward add " . implode(" ", $param)));
 	}
 	#################################################################################################
 	# ACTION: ADD => Delete the specified port forwarding rule
@@ -109,7 +109,7 @@ if (isset($_POST['action']))
 		$param['protocol'] = option("protocol", "/^(tcp|udp|both)/");
 		$param['ext_min']  = option_range("ext_min", 0, 65535);
 		//echo '<pre>'; print_r($param); exit;
-		die(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh forward del " . implode(" ", $param)));
+		die(@shell_exec("router-helper forward del " . implode(" ", $param)));
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:

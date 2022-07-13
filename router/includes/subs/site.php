@@ -52,12 +52,12 @@ $sidebar_menu = array(
 ################################################################################################################
 if (!isset($_SESSION['webui_version']))
 {
-	$time = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current'));
+	$time = trim(@shell_exec('router-helper git current'));
 	$_SESSION['webui_version'] = ($time == (int) $time ? date('Y.md.Hi', (int) $time) : "Invalid Data");
 }
 if (!isset($_SESSION['regdb_version']))
 {
-	$time = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current wireless-regdb'));
+	$time = trim(@shell_exec('router-helper git current wireless-regdb'));
 	$_SESSION['regdb_version'] = ($time == (int) $time ? date('Y.md.Hi', (int) $time) : "Invalid Data");
 }
 
@@ -530,9 +530,9 @@ function apply_options($mode = "reload")
 	fclose($handle);
 	if ($mode != "upnp")
 	{
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh firewall " . $mode);
+		@shell_exec("router-helper firewall " . $mode);
 		if ($mode == "reload" && isset($options['use_isp']) && isset($options['dns1']))
-			@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dns " . ($options['use_isp'] == 'Y' ? 'config' : $options['dns1'] . ' ' . $options['dns2']));
+			@shell_exec("router-helper dns " . ($options['use_isp'] == 'Y' ? 'config' : $options['dns1'] . ' ' . $options['dns2']));
 	}
 	return "OK";
 }

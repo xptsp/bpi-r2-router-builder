@@ -113,7 +113,7 @@ if (isset($_POST['action']))
 		$ip_addr = option_ip('ip_addr');
 		$mac_addr = option_mac('mac_addr');
 		$hostname = option('hostname', "/^([0-9a-zA-Z]|[0-9a-zA-Z][0-9a-zA-Z0-9\-]+)$/");
-		die( @shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp ' . $_POST['action'] . ' ' . $iface . ' ' . $mac_addr . ' ' . $ip_addr . ' ' . $hostname) );
+		die( @shell_exec('router-helper dhcp ' . $_POST['action'] . ' ' . $iface . ' ' . $mac_addr . ' ' . $ip_addr . ' ' . $hostname) );
 	}
 	###################################################################################################
 	# ACTION: CHECK ==> Check to see if the IP and/or MAC have already been assigned.
@@ -143,7 +143,7 @@ if (isset($_POST['action']))
 ###################################################################################################
 # Assemble a list of all of the network adapters that have a DHCP range assigned:
 ###################################################################################################
-$ifaces = explode("\n", trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp ifaces")));
+$ifaces = explode("\n", trim(@shell_exec("router-helper dhcp ifaces")));
 #echo '<pre>'; print_r($ifaces); exit();
 $iface = isset($_GET['iface']) ? $_GET['iface'] : $ifaces[0];
 #echo $iface; exit();

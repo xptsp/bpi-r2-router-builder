@@ -8,7 +8,7 @@ if (empty($called_as_sub) && isset($_POST['action']))
 	# "systemctl" needs superuser permission to execute actions on specified service:
 	if (in_array($_POST['action'], array('enable', 'disable', 'start', 'stop')))
 	{
-		@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl ' . $_POST['action'] . ' ' . $_POST['misc']);
+		@shell_exec('router-helper systemctl ' . $_POST['action'] . ' ' . $_POST['misc']);
 		die('OK');
 	}
 	if ($_POST['action'] == 'status')

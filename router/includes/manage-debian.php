@@ -13,7 +13,7 @@ if (isset($_POST['action']))
 	{
 		# Get current list of packages for Debian:
 		#################################################################################
-		//@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt update');
+		//@shell_exec('router-helper apt update');
 		die("OK");
 	}
 	#################################################################################################
@@ -41,7 +41,7 @@ if (isset($_POST['action']))
 
 		# Run a simulated upgrade to get the packages that can actually be installed:
 		#################################################################################
-		foreach (explode("\n", trim(trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh apt upgrade -s")))) as $id => $line)
+		foreach (explode("\n", trim(trim(@shell_exec("router-helper apt upgrade -s")))) as $id => $line)
 		{
 			if (preg_match("/^\s\s(.*)/", $line, $regex))
 			{
@@ -65,7 +65,7 @@ if (isset($_POST['action']))
 
 		# Gather a complete list of upgradable packages:
 		#################################################################################
-		foreach (explode("\n", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh apt list --upgradable'))) as $line)
+		foreach (explode("\n", trim(@shell_exec('router-helper apt list --upgradable'))) as $line)
 		{
 			if (preg_match("/(.*)\/.*\s(.*)\s.*\s\[upgradable from: (.*)\]/", $line, $matches))
 			{
@@ -112,7 +112,7 @@ if (isset($_POST['action']))
 			2 => array("pipe", "w")    // stderr is a pipe that the child will write to
 		);
 		flush();
-		$cmd = '/opt/bpi-r2-router-builder/helpers/router-helper.sh apt ' . $_POST['action'] . ($_POST['action'] == 'install' ? ' ' . $_POST['packages']  : '');
+		$cmd = 'router-helper apt ' . $_POST['action'] . ($_POST['action'] == 'install' ? ' ' . $_POST['packages']  : '');
 		$process = proc_open($cmd, $descriptorspec, $pipes, realpath('./'), array());
 		if (is_resource($process))
 		{

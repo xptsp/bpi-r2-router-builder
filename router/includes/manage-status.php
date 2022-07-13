@@ -128,7 +128,7 @@ if (isset($_POST['action']))
 	###################################################################################################
 	if ($_POST['action'] == 'reboot' || $_POST['action'] == 'poweroff')
 	{
-		die(@exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh status ' . $_POST['action']));
+		die(@exec('router-helper status ' . $_POST['action']));
 	}
 	###################################################################################################
 	# ACTION: STATUS ==> Return information for the "Router Status" page:
@@ -140,7 +140,7 @@ if (isset($_POST['action']))
 			unset($_SESSION[$iface . '_dhcp']);
 		if (!isset($_SESSION[$iface . '_dhcp']))
 		{
-			$dhcp = explode(' ', trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh dhcp info ' . $iface)) . " 0 0");
+			$dhcp = explode(' ', trim(@shell_exec('router-helper dhcp info ' . $iface)) . " 0 0");
 
 			$year = date("Y");
 			$dhcp_begin = strtotime("$dhcp[1] $dhcp[2] $year $dhcp[3]");
@@ -226,7 +226,7 @@ if (isset($_POST['action']))
 #######################################################################################################
 $dns = get_dns_servers();
 if (!isset($_SESSION['machine_name']))
-	$_SESSION['machine_name'] = str_replace("Bananapi", "Banana Pi", trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh status machine')));
+	$_SESSION['machine_name'] = str_replace("Bananapi", "Banana Pi", trim(@shell_exec('router-helper status machine')));
 $init_str = array();
 
 #######################################################################################################
@@ -279,7 +279,7 @@ foreach (array("webui", "regdb", "stats", "multicast-relay") as $repo)
 {
 	if (!isset($_SESSION[$repo . '_version']))
 	{
-		$time = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current ' . $repo));
+		$time = trim(@shell_exec('router-helper git current ' . $repo));
 		$_SESSION[$repo . '_version'] = ($time == (int) $time ? date('Y.md.Hi', (int) $time) : "Invalid Data");
 	}
 }

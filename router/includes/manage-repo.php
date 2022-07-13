@@ -18,7 +18,7 @@ if (isset($_POST['action']))
 	#################################################################################################
 	if ($_POST['action'] == 'check')
 	{
-		$time = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git remote ' . $misc));
+		$time = trim(@shell_exec('router-helper git remote ' . $misc));
 		die(json_encode(array(
 			'elem' => $_POST['misc'],
 			'time' => $time ? date('Y.md.Hi', $time) : 'Invalid Data',
@@ -31,7 +31,7 @@ if (isset($_POST['action']))
 	{
 		unset($_SESSION[$_POST['misc'] . '_version']);
 		unset($_SESSION[$_POST['misc'] . '_version_last']);
-		$out = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git update ' . $misc));
+		$out = trim(@shell_exec('router-helper git update ' . $misc));
 		$lines = explode("\n", $out);
 		die($lines[ count($lines) - 1 ] == "ERROR" ? '<pre>' . $out . '</pre>' : "OK");
 	}
@@ -48,7 +48,7 @@ function show_repo($title, $repo, $url, $alt_desc = null)
 {
 	if (!isset($_SESSION[$repo . '_version']))
 	{
-		$time = trim(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh git current ' . $repo));
+		$time = trim(@shell_exec('router-helper git current ' . $repo));
 		$_SESSION[$repo . '_version'] = ($time == (int) $time ? date('Y.md.Hi', (int) $time) : "Invalid Data");
 	}
 	echo '

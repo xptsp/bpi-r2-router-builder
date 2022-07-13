@@ -4,7 +4,7 @@
 #################################################################################################
 if (isset($_GET['download']))
 {
-	@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup squash");
+	@shell_exec("router-helper backup squash");
 	$cfg = "/tmp/bpiwrt.cfg";
 	header('Content-Disposition: attachment; filename="' . basename($cfg) . '"');
 	header("Content-Length: " . filesize($cfg));
@@ -33,9 +33,9 @@ if (isset($_POST['action']))
 			die('ERROR: File extension must be "cfg"!');
 		else
 		{
-			@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup unlink");
+			@shell_exec("router-helper backup unlink");
 			if (@move_uploaded_file($_FILES['file']['tmp_name'], '/tmp/bpiwrt.cfg'))
-				die(trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup prep")));
+				die(trim(@shell_exec("router-helper backup prep")));
 			die("ERROR: File prep failed");
 		}
 	}
@@ -43,12 +43,12 @@ if (isset($_POST['action']))
 	# ACTION: FACTORY ==> Signal a reformat is needed and return to caller:
 	####################################################################################
 	else if ($_POST['action'] == "factory")
-		die(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh reformat -y"));
+		die(@shell_exec("router-helper reformat -y"));
 	####################################################################################
 	# ACTION: FILE ==> Process the uploaded file:
 	####################################################################################
 	else if ($_POST['action'] == "file")
-		die(trim(@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh backup copy")));
+		die(trim(@shell_exec("router-helper backup copy")));
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
 	#################################################################################################

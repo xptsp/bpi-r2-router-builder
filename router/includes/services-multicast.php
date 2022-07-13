@@ -35,7 +35,7 @@ if (isset($_POST['action']))
 	{
 		$options['MULTICAST_IFACES'] = '"' . str_replace(",", " ", option_allowed("listen_on", $valid_listen, false)) . '"';
 		apply_options("upnp");
-		die(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh move multicast-relay restart'));
+		die(@shell_exec('router-helper move multicast-relay restart'));
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:

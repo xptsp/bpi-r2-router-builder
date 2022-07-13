@@ -42,7 +42,7 @@ if (isset($_POST['action']))
 		$options['TRANS_PASS']  = option_string('TRANS_PASS', 'Password');
 		$options['TRANS_WEBUI'] = option_allowed('TRANS_WEBUI', $webui_allowed);
 		apply_options("upnp");
-		@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh move transmission-daemon restart');
+		@shell_exec('router-helper move transmission-daemon restart');
 		die("OK");
 	}
 	#################################################################################################

@@ -44,7 +44,7 @@ if (isset($_POST['action']))
 		$options['onboard_wifi'] = $tmp; 
 		apply_options();
 		if ($restart)
-			@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh systemctl restart networking");
+			@shell_exec("router-helper systemctl restart networking");
 
 		// Set the other options:
 		$mac = option_mac('mac');
@@ -52,8 +52,8 @@ if (isset($_POST['action']))
 		$locale = option_allowed('locale', array_keys(get_os_locales()) );
 		$hostname = option('hostname', "/^([0-9a-zA-Z]|[0-9a-zA-Z][0-9a-zA-Z0-9\-]+)$/");
 
-		@shell_exec("/opt/bpi-r2-router-builder/helpers/router-helper.sh mac " . $mac);
-		die(@shell_exec('/opt/bpi-r2-router-builder/helpers/router-helper.sh device ' . $hostname . ' ' . $timezone . ' ' . $locale));
+		@shell_exec("router-helper mac " . $mac);
+		die(@shell_exec('router-helper device ' . $hostname . ' ' . $timezone . ' ' . $locale));
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:
