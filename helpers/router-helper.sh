@@ -344,9 +344,6 @@ case $CMD in
 				[[ "$file" =~ ^/ ]] && ROOT=/ || ROOT=/rw/upper/
 				cp -a ${ROOT}/${file} ${DIR}/ 2> /dev/null
 			done
-			DIR=etc/systemd/system/
-			mkdir -p ${BACKUP}/${DIR}
-			cp -aR /rw/upper/${DIR}/* ${BACKUP}/${DIR}/
 			cd ${BACKUP}
 			mksquashfs ./ /tmp/bpiwrt.cfg -quiet
 			rm -rf ${BACKUP}

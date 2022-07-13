@@ -205,27 +205,6 @@ run_protected_command(){
 	fi
 }
 
-# Unpack default configuration stored in the boot partition:
-unpack_default_config(){
-	read_fstab_entry "/boot"
-	log_info "[BOOT] Found $MNT_FSNAME for boot"
-	resolve_device $MNT_FSNAME
-	log_info "[BOOT] Resolved [$MNT_FSNAME] as [$DEV]"
-	BOOT=/mnt/boot
-	mkdir -p ${BOOT}
-	mount -t $MNT_TYPE -o $MNT_OPTS $DEV ${BOOT}
-	test -f ${BOOT}/bpiwrt.cfg && run_protected_command "unsquashfs -f -d ${RW} ${BOOT}/bpiwrt.cfg" 
-	umount ${BOOT}
-}
-
-copy_builder(){
-	local DIR=opt/bpi-r2-router-builder
-	if ! test -d ${RW}/${DIR}; then
-		log_info "[INFO] Copying bpi-r2-router-builder onto RW partition"
-		cp -aR /mnt/lower/${DIR} ${RW}/${DIR}
-	fi
-}
-
 ################## BASIC SETUP ################################################################################
 
 run_protected_command "mount -t proc proc /proc"
@@ -330,8 +309,6 @@ mkdir /mnt/newroot
 [[ ! -z "$RW_FORMAT" ]] && run_protected_command "$RW_FORMAT"
 run_protected_command "$RW_MOUNT"
 run_protected_command "$ROOT_MOUNT"
-[[ ! -z "$RW_FORMAT" ]] && run_protected_command "unpack_default_config"
-copy_builder
 
 # we need to see if we need to format and/or mount an image file on the rw partition:
 if [[ ! -z "${RW_IMAGE_FILE}" && "${RW_IMAGE_FILE}" != "none" ]]; then
@@ -353,6 +330,25 @@ run_protected_command "mount -t overlay -o lowerdir=/mnt/lower,upperdir=$RW/uppe
 # create mountpoints inside the new root filesystem-overlay
 mkdir -p /mnt/newroot/ro
 mkdir -p /mnt/newroot/rw
+
+# If we reformatted the persistent storage, then we need to do the following:
+if [[ ! -z "$RW_FORMAT" ]]; then
+	# Unpack router configuration file if present:
+	read_fstab_entry "/boot"
+	log_info "[BOOT] Found $MNT_FSNAME for boot"
+	resolve_device $MNT_FSNAME
+	log_info "[BOOT] Resolved [$MNT_FSNAME] as [$DEV]"
+	BOOT=/mnt/boot
+	mkdir -p ${BOOT}
+	run_protected_command "mount -t $MNT_TYPE -o $MNT_OPTS $DEV ${BOOT}"
+	test -f ${BOOT}/bpiwrt.cfg && run_protected_command "unsquashfs -f -d /mnt/newroot ${BOOT}/bpiwrt.cfg" 
+	run_protected_command "umount ${BOOT}"
+
+	# Copy toolkit into newroot:
+	local DIR=opt/bpi-r2-router-builder
+	log_info "[INFO] Copying bpi-r2-router-builder onto new root"
+	run_protected_command "cp -aR /mnt/lower/${DIR} /mnt/newroot/${DIR}"
+fi
 
 # remove root mount from fstab (non-permanent modification on tmpfs rw media)
 if ! test -e /mnt/newroot/etc/fstab || cat /mnt/newroot/etc/fstab | grep -e "^$RO_DEV" >& /dev/null; then
