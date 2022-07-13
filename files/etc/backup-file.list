@@ -1,4 +1,3 @@
-/boot/persistent.conf
 etc/avahi/{hosts,avahi-daemon.conf}
 etc/backup-file.list
 etc/default/*

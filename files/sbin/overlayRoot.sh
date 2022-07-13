@@ -205,6 +205,16 @@ run_protected_command(){
 	fi
 }
 
+# Unpack default configuration stored in the boot partition:
+unpack_default_config() {
+	[[ -z "${RO_DEV}" ]] && return
+	BOOT=/mnt/boot
+	mkdir ${BOOT}
+	mount ${DEV/p2/p1} ${BOOT} || return
+	test -f ${BOOT}/bpiwrt.cfg && unsquashfs -d ${RW} ${BOOT}/bpiwrt.cfg 
+	umount ${BOOT}
+}
+
 
 ################## BASIC SETUP ################################################################################
 
@@ -273,11 +283,11 @@ if read_fstab_entry $RW; then
 
 	if [ -n $DEV ] && [ -e "$DEV" ]; then
 
-			RW_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS $DEV $RW"
+		RW_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS $DEV $RW"
 
-			# If reformatting has been requested, change the flag back to "do not reformat":
-			unset RW_FORMAT
-			[[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]] && RW_FORMAT="mkfs.$MNT_TYPE -F $DEV -L $RW_NAME"
+		# If reformatting has been requested, change the flag back to "do not reformat":
+		unset RW_FORMAT
+		[[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]] && RW_FORMAT="mkfs.$MNT_TYPE -F $DEV -L $RW_NAME"
 	else
 		if ! test -e $DEV; then
 			log_warning "Resolved root to $DEV but can't find the device"
@@ -310,6 +320,7 @@ mkdir /mnt/newroot
 [[ ! -z "$RW_FORMAT" ]] && run_protected_command "$RW_FORMAT"
 run_protected_command "$RW_MOUNT"
 run_protected_command "$ROOT_MOUNT"
+[[ ! -z "$RW_FORMAT" ]] && run_protected_command "unpack_default_config"
 
 # we need to see if we need to format and/or mount an image file on the rw partition:
 if [[ ! -z "${RW_IMAGE_FILE}" && "${RW_IMAGE_FILE}" != "none" ]]; then
