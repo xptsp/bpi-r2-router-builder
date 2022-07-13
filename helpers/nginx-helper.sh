@@ -38,7 +38,7 @@ fi
 #############################################################################
 # Change IP address that PiHole admin server is assigned to:  
 #############################################################################
-SECOND=$(cat /etc/network/interfaces.d/br0:1 | grep address | awk '{print $2}')
+SECOND=$(ifconfig br0:1 | grep " inet " | awk '{print $2}')
 [[ ! -z "${SECOND}" ]] && NEW_IP=${SECOND}
 OLD_IP=$(cat pihole | grep listen | head -1 | awk '{print $2}' | cut -d: -f 1)
 [[ "${NEW_IP}" != "${OLD_IP}" ]] && sed -i "s|${OLD_IP}|${NEW_IP}|g" pihole
