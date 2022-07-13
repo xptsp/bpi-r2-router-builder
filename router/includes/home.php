@@ -41,7 +41,11 @@ if (isset($_GET['sid']))
 	# Get the number of domains blocked by our adblock script:
 	##########################################################################################
 	if (empty($_SESSION['pihole_json']))
-		$_SESSION['pihole_json'] = @json_decode( @file_get_contents( "http://pi.hole/admin/api.php?summary" ) );
+	{
+		if (empty($_SESSION['pihole_addr']))
+			$_SESSION['pihole_addr'] = trim(@shell_exec("ifconfig br0:1 | grep inet | awk '{print $2}'"));
+		$_SESSION['pihole_json'] = @json_decode( @file_get_contents( "http://" . $_SESSION['pihole_addr'] . "/admin/api.php?summary" ) );
+	}
 	$pihole = $_SESSION['pihole_json'];
 
 	##########################################################################################

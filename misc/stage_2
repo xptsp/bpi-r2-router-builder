@@ -58,7 +58,6 @@ echo "bpiwrt" > /etc/hostname
 hostname bpiwrt
 
 # Set IP address of both hostname and pi.hole
-echo "192.168.2.1     pi.hole" >> /etc/hosts
 echo "192.168.2.1     bpiwrt" >> /etc/hosts
 
 # Refreshes the certificates:
