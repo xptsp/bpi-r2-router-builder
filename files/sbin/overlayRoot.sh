@@ -220,7 +220,10 @@ unpack_default_config(){
 
 copy_builder(){
 	local DIR=opt/bpi-r2-router-builder
-	! test -d ${RW}/${DIR} && cp -aR /mnt/lower/${DIR} ${RW}/${DIR}
+	if ! test -d ${RW}/${DIR}; then
+		log_info "[INFO] Copying bpi-r2-router-builder onto RW partition"
+		cp -aR /mnt/lower/${DIR} ${RW}/${DIR}
+	fi
 }
 
 ################## BASIC SETUP ################################################################################
@@ -328,7 +331,7 @@ mkdir /mnt/newroot
 run_protected_command "$RW_MOUNT"
 run_protected_command "$ROOT_MOUNT"
 [[ ! -z "$RW_FORMAT" ]] && run_protected_command "unpack_default_config"
-run_protected_command "copy_builder"
+copy_builder
 
 # we need to see if we need to format and/or mount an image file on the rw partition:
 if [[ ! -z "${RW_IMAGE_FILE}" && "${RW_IMAGE_FILE}" != "none" ]]; then
