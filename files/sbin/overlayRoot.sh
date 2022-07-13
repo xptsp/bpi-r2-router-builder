@@ -206,15 +206,22 @@ run_protected_command(){
 }
 
 # Unpack default configuration stored in the boot partition:
-unpack_default_config() {
-	[[ -z "${RO_DEV}" ]] && return
+unpack_default_config(){
+	read_fstab_entry "/boot"
+	log_info "[BOOT] Found $MNT_FSNAME for boot"
+	resolve_device $MNT_FSNAME
+	log_info "[BOOT] Resolved [$MNT_FSNAME] as [$DEV]"
 	BOOT=/mnt/boot
-	mkdir ${BOOT}
-	mount ${DEV/p2/p1} ${BOOT} || return
-	test -f ${BOOT}/bpiwrt.cfg && unsquashfs -d ${RW} ${BOOT}/bpiwrt.cfg 
+	mkdir -p ${BOOT}
+	mount -t $MNT_TYPE -o $MNT_OPTS $DEV ${BOOT}
+	test -f ${BOOT}/bpiwrt.cfg && run_protected_command "unsquashfs -f -d ${RW} ${BOOT}/bpiwrt.cfg" 
 	umount ${BOOT}
 }
 
+copy_builder(){
+	local DIR=opt/bpi-r2-router-builder
+	! test -d ${RW}/${DIR} && cp -aR /mnt/lower/${DIR} ${RW}/${DIR}
+}
 
 ################## BASIC SETUP ################################################################################
 
@@ -321,6 +328,7 @@ mkdir /mnt/newroot
 run_protected_command "$RW_MOUNT"
 run_protected_command "$ROOT_MOUNT"
 [[ ! -z "$RW_FORMAT" ]] && run_protected_command "unpack_default_config"
+run_protected_command "copy_builder"
 
 # we need to see if we need to format and/or mount an image file on the rw partition:
 if [[ ! -z "${RW_IMAGE_FILE}" && "${RW_IMAGE_FILE}" != "none" ]]; then
