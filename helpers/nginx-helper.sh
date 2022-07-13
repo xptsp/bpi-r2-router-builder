@@ -16,7 +16,7 @@ fi
 cd /etc/nginx/sites-available
 NEW_IP=$(cat /etc/network/interfaces.d/br0 | grep address | awk '{print $2}')
 if [[ ! -z "${NEW_IP}" ]]; then
-	for FILE in $(ls | egrep -ve "(default|transmission)"); do
+	for FILE in $(ls | egrep -ve "(default|transmission|pihole)"); do
 		OLD_IP=$(cat ${FILE} | grep listen | head -1 | awk '{print $2}' | cut -d: -f 1)
 		[[ "${NEW_IP}" != "${OLD_IP}" ]] && sed -i "s|${OLD_IP}|${NEW_IP}|g" ${FILE}
 	done
@@ -34,6 +34,14 @@ if test -f /etc/default/transmission-daemon; then
 		[[ "${NEW_IP}:${TRANS_PORT:-"9091"};" != "${OLD_IP}" ]] && sed -i "s|listen ${NEW_IP}:.*;|listen ${NEW_IP}\:${TRANS_PORT:-"9091"};|g" transmission
 	fi
 fi
+
+#############################################################################
+# Change IP address that PiHole admin server is assigned to:  
+#############################################################################
+SECOND=$(cat /etc/network/interfaces.d/br0:1 | grep address | awk '{print $2}')
+[[ ! -z "${SECOND}" ]] && NEW_IP=${SECOND}
+OLD_IP=$(cat pihole | grep listen | head -1 | awk '{print $2}' | cut -d: -f 1)
+[[ "${NEW_IP}" != "${OLD_IP}" ]] && sed -i "s|${OLD_IP}|${NEW_IP}|g" pihole
 
 #############################################################################
 # We are done rewrite the configuration files.  If requesting a reload, then
