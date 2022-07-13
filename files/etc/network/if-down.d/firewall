@@ -12,8 +12,8 @@ done
 
 # Remove captive portal address from "CAPTIVE_PORTAL_IPs" set: 
 ADDR=$(ifconfig ${IFACE} | grep " inet " | awk '{print $2}')
-nft delete element inet firewall DEV_PORTAL { ${IFACE} }
-nft delete element inet firewall CAPTIVE_PORTAL_IPs { ${ADDR} }
+nft delete element inet firewall DEV_PORTAL { ${IFACE} } >& /dev/null
+nft delete element inet firewall CAPTIVE_PORTAL_IPs { ${ADDR} } >& /dev/null
 
 # Remove interface from the "INSIDE_NETWORK" set:
 nft delete element inet firewall INSIDE_NETWORK { $(ip addr show ${IFACE} | grep " inet " | head -1 | awk '{print $2}') } >& /dev/null

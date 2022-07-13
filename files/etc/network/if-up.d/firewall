@@ -14,8 +14,8 @@ test -f /etc/network/interfaces.d/${IFACE} && if [[ ! -z "${IF_MASQUERADE}" ]]; 
 	
 	# Put the IP addresses of the interface in the firewall's "prerouting_private" chain.
 	# This should allow double-nat configurations to work properly:
-	nft insert rule inet firewall mangle_prerouting_private iifname ${IFACE} ip saddr $(ip addr show ${IFACE} | grep " inet " | awk '{print $2}') return
-	nft insert rule inet firewall mangle_prerouting_private iifname ${IFACE} ip6 saddr $(ip addr show ${IFACE} | grep " inet6 " | awk '{print $2}') return
+	nft insert rule inet firewall mangle_prerouting_private iifname ${IFACE} ip saddr $(ip addr show ${IFACE} | grep " inet " | awk '{print $2}') return >& /dev/null
+	nft insert rule inet firewall mangle_prerouting_private iifname ${IFACE} ip6 saddr $(ip addr show ${IFACE} | grep " inet6 " | awk '{print $2}') return >& /dev/null
 fi
 
 ################################################################################################
@@ -31,9 +31,9 @@ test -f /etc/network/interfaces.d/${IFACE} && if [[ -z "${IF_MASQUERADE}" ]]; th
 
 	# If this interface has a captive portal, add it to the captive portal sets and rules:
 	if [[ ! -z "${IF_CAPTIVE_PORTAL}" ]]; then
-		nft add element inet firewall DEV_PORTAL { ${IFACE} }
-		nft add element inet firewall CAPTIVE_PORTAL_IPs { ${IP_ADDR} }
-		nft add rule inet firewall nat_prerouting_portal tcp dport 80 iifname ${IFACE} dnat ip to ${IP_ADDR}
+		nft add element inet firewall DEV_PORTAL { ${IFACE} } >& /dev/null
+		nft add element inet firewall CAPTIVE_PORTAL_IPs { ${IP_ADDR} } >& /dev/null
+		nft add rule inet firewall nat_prerouting_portal tcp dport 80 iifname ${IFACE} dnat ip to ${IP_ADDR} >& /dev/null
 	fi
 fi
 
@@ -52,7 +52,7 @@ if [[ "${IFACE}" == "br0" ]]; then
 
 	# Change the PiHole admin web interface, then reload nginx configuration if active:
 	sed -i "s|^IPV4_ADDRESS=.*|IPV4_ADDRESS=${IP2}|" /etc/pihole/setupVars.conf
-	systemctl is-active nginx && systemctl reload nginx
+	systemctl is-active nginx && /opt/bpi-r2-router-builder/helpers/nginx-helper.sh reload
 fi
 
 # Exit with a zero error code:
