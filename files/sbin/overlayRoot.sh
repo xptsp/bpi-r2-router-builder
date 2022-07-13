@@ -205,6 +205,7 @@ run_protected_command(){
 	fi
 }
 
+
 ################## BASIC SETUP ################################################################################
 
 run_protected_command "mount -t proc proc /proc"
@@ -272,11 +273,11 @@ if read_fstab_entry $RW; then
 
 	if [ -n $DEV ] && [ -e "$DEV" ]; then
 
-		RW_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS $DEV $RW"
+			RW_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS $DEV $RW"
 
-		# If reformatting has been requested, change the flag back to "do not reformat":
-		unset RW_FORMAT
-		[[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]] && RW_FORMAT="mkfs.$MNT_TYPE -F $DEV -L $RW_NAME"
+			# If reformatting has been requested, change the flag back to "do not reformat":
+			unset RW_FORMAT
+			[[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]] && RW_FORMAT="mkfs.$MNT_TYPE -F $DEV -L $RW_NAME"
 	else
 		if ! test -e $DEV; then
 			log_warning "Resolved root to $DEV but can't find the device"
@@ -330,25 +331,6 @@ run_protected_command "mount -t overlay -o lowerdir=/mnt/lower,upperdir=$RW/uppe
 # create mountpoints inside the new root filesystem-overlay
 mkdir -p /mnt/newroot/ro
 mkdir -p /mnt/newroot/rw
-
-# If we reformatted the persistent storage, then we need to do the following:
-if [[ ! -z "$RW_FORMAT" ]]; then
-	# Unpack router configuration file if present:
-	read_fstab_entry "/boot"
-	log_info "[BOOT] Found $MNT_FSNAME for boot"
-	resolve_device $MNT_FSNAME
-	log_info "[BOOT] Resolved [$MNT_FSNAME] as [$DEV]"
-	BOOT=/mnt/boot
-	mkdir -p ${BOOT}
-	run_protected_command "mount -t $MNT_TYPE -o $MNT_OPTS $DEV ${BOOT}"
-	test -f ${BOOT}/bpiwrt.cfg && run_protected_command "unsquashfs -f -d /mnt/newroot ${BOOT}/bpiwrt.cfg" 
-	run_protected_command "umount ${BOOT}"
-
-	# Copy toolkit into newroot:
-	local DIR=opt/bpi-r2-router-builder
-	log_info "[INFO] Copying bpi-r2-router-builder onto new root"
-	run_protected_command "cp -aR /mnt/lower/${DIR} /mnt/newroot/${DIR}"
-fi
 
 # remove root mount from fstab (non-permanent modification on tmpfs rw media)
 if ! test -e /mnt/newroot/etc/fstab || cat /mnt/newroot/etc/fstab | grep -e "^$RO_DEV" >& /dev/null; then
