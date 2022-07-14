@@ -7,6 +7,8 @@ server {
 
 	index pihole/index.php index.php index.html index.htm;
 
+	error_page 404 /pihole/index.php;
+
 	location / {
 		expires max;
 		try_files $uri $uri/ =404;

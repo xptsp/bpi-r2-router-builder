@@ -10,7 +10,13 @@ export LANG=C
 ##############################################################################################
 # Install some packages that Frank-W had in his image:
 ##############################################################################################
-apt install -y apt-transport-https bridge-utils dnsmasq hostapd ca-certificates openssh-server ppp pppoeconf pppoe
+apt install -y apt-transport-https bridge-utils dnsmasq hostapd ca-certificates openssh-server ppp pppoeconf
+
+##############################################################################################
+# Install some support packages required for our image:
+##############################################################################################
+apt install -y --reinstall debian-keyring debian-archive-keyring nftables sudo pv git
+systemctl --now enable nftables
 
 ##############################################################################################
 # Correctly configure SSH:
@@ -75,6 +81,26 @@ sed -i "s|# en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen
 locale-gen
 
 ##############################################################################################
+# Install files from the GitHub repository to build this image:
+##############################################################################################
+git clone https://github.com/xptsp/bpiwrt-builder /opt/bpi-r2-router-builder/
+pushd /opt/bpi-r2-router-builder
+./upgrade.sh --force-copy
+git config pull.rebase false
+popd
+update-rc.d wifi start 99 5
+
+#=============================================================================================
+# <<NOTE TO SELF>> 2022-07-14: Bullseye base image complete up to here!
+#=============================================================================================
+
+##############################################################################################
+# Install xptsp's Debian APT repository on GitHub:
+##############################################################################################
+curl -SsL https://xptsp.github.io/ppa/KEY.gpg | gpg --dearmor > /usr/share/keyrings/xptsp.gpg
+curl -SsL -o /etc/apt/sources.list.d/bpiwrt_repo.list https://xptsp.github.io/ppa/ppa.list
+
+##############################################################################################
 # Upgrade any packages needing upgrading:
 ##############################################################################################
 apt update
@@ -84,23 +110,8 @@ systemctl disable --now hostapd
 ##############################################################################################
 # Install some necessary packages:
 ##############################################################################################
-apt install -y wget git toilet pmount eject lsb-release dialog mosquitto-clients sudo gnupg curl gnupg nftables squashfs-tools
-apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance wireless-regdb crda
-git config --global pull.rebase false
-
-##############################################################################################
-# Install files from the GitHub repository to build this image:
-##############################################################################################
-git clone https://github.com/xptsp/bpiwrt-builder /opt/bpi-r2-router-builder/
-/opt/bpi-r2-router-builder/upgrade.sh --force-copy
-systemctl enable --now firewall
-update-rc.d wifi start 99 5
-
-##############################################################################################
-# Install xptsp's Debian APT repository on GitHub:
-##############################################################################################
-curl -SsL https://xptsp.github.io/ppa/KEY.gpg | apt-key add -
-curl -SsL -o /etc/apt/sources.list.d/bpiwrt_repo.list https://xptsp.github.io/ppa/ppa.list
+apt install -y wget toilet pmount eject lsb-release dialog mosquitto-clients gnupg curl gnupg squashfs-tools
+apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance
 
 ##############################################################################################
 # Place a list of english words in "/usr/share/dict/" for our password generator:
@@ -134,7 +145,7 @@ ln -s /var/run/motd /etc/motd
 ##################################################################################
 # Install some new utilities
 ##################################################################################
-apt install -y pciutils usbutils iw wireless-tools net-tools curl unzip debconf-utils tree screen parted device-tree-compiler bluez
+apt install -y pciutils usbutils wireless-tools net-tools unzip debconf-utils tree screen parted device-tree-compiler bluez
 
 ##################################################################################
 # Install avahi utilities
@@ -182,6 +193,7 @@ echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 # Install Transmission-daemon
 ##################################################################################
 apt install -y transmission-daemon
+systemctl stop transmission-daemon
 mkdir -p /home/vpn/.config/transmission-daemon/
 cp /opt/bpi-r2-router-builder/misc/services/transmission.json /home/vpn/.config/transmission-daemon/settings.json
 test -e /etc/transmission-daemon/settings.json && rm /etc/transmission-daemon/settings.json
@@ -232,9 +244,9 @@ sed -i "s|PATH=\"|PATH=\"/var/lib/docker/bin:|g" /etc/profile
 ##################################################################################
 # Download docker-compose into the /usr/local/bin directory
 ##################################################################################
-wget https://github.com/docker/compose/releases/download/v2.6.0/docker-compose-linux-armv7 -O /usr/local/bin/docker-compose-linux-armv7_2.6.0
-chmod +x /usr/local/bin/docker-compose-linux-armv7_2.6.0
-ln -sf /usr/local/bin/docker-compose-linux-armv7_2.6.0 /usr/local/bin/docker-compose
+wget https://github.com/docker/compose/releases/download/v2.6.1/docker-compose-linux-armv7 -O /usr/local/bin/docker-compose-linux-armv7_2.6.1
+chmod +x /usr/local/bin/docker-compose-linux-armv7_2.6.1
+ln -sf /usr/local/bin/docker-compose-linux-armv7_2.6.1 /usr/local/bin/docker-compose
 touch /etc/docker-compose.yaml
 
 ##################################################################################
@@ -272,6 +284,8 @@ rm /var/www/html/index.nginx-debian.html
 usermod -aG pihole www-data
 # NOTE: Set default administrative password to "bananapi"
 pihole -a -p bananapi
+# NOTE: Fix the hostname resolution issue found:
+echo "PIHOLE_PTR=HOSTNAME" >> /etc/pihole/pihole-FTL.conf
 # NOTE: Set default DNS to cloudflare port 5051
 sed -i "/PIHOLE_DNS_.*/d" /etc/pihole/setupVars.conf
 echo "PIHOLE_DNS_1=127.0.0.1#5051" >> /etc/pihole/setupVars.conf
@@ -330,6 +344,10 @@ git clone https://github.com/alsmith/multicast-relay /opt/multicast-relay
 # Configure and start the service:
 cp /opt/bpi-r2-router-builder/misc/services/multicast-relay /etc/default/multicast-relay
 systemctl enable --now multicast-relay
+
+#=============================================================================================
+# <<NOTE TO SELF>> 2022-07-14: Needs fixing from here on!
+#=============================================================================================
 
 ##################################################################################
 # Install PiVPN, modifying files and installing packages as required:

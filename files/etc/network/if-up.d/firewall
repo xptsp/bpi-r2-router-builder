@@ -1,5 +1,4 @@
 #!/bin/bash
-IP_ADDR=$(ifconfig ${IFACE} | grep " inet " | awk '{print $2}')
 
 ################################################################################################
 # Use Receive Packet Steering (RPS) to steer incoming data from "wan" to CPUs 2 and 3:
@@ -32,6 +31,7 @@ test -f /etc/network/interfaces.d/${IFACE} && if [[ -z "${IF_MASQUERADE}" ]]; th
 
 	# If this interface has a captive portal, add it to the captive portal sets and rules:
 	if [[ ! -z "${IF_CAPTIVE_PORTAL}" ]]; then
+ 		IP_ADDR=$(ifconfig ${IFACE} | grep " inet " | awk '{print $2}')
 		nft add element inet firewall DEV_PORTAL { ${IFACE} } >& /dev/null
 		nft add element inet firewall CAPTIVE_PORTAL_IPs { ${IP_ADDR} } >& /dev/null
 		nft add rule inet firewall nat_prerouting_portal tcp dport 80 iifname ${IFACE} dnat ip to ${IP_ADDR} >& /dev/null
