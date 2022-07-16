@@ -1,11 +1,13 @@
 server {
-	listen 192.168.2.1:80;
+	listen 192.168.2.2:80;
 
 	root /var/www/html;
-	server_name pi.hole;
+	server_name _;
 	autoindex off;
 
 	index pihole/index.php index.php index.html index.htm;
+
+	error_page 404 /pihole/index.php;
 
 	location / {
 		expires max;

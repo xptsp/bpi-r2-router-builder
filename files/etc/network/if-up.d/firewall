@@ -1,10 +1,10 @@
 #!/bin/bash
+IP_ADDR=$(ifconfig ${IFACE} | grep " inet " | awk '{print $2}')
 
+################################################################################################
 # Use Receive Packet Steering (RPS) to steer incoming data from "wan" to CPUs 2 and 3:
+################################################################################################
 [[ "${IFACE}" == "wan" ]] && echo 6 > /sys/class/net/${IFACE}/queues/rx-0/rps_cpus
-
-# Use Receive Packet Steering (RPS) to steer incoming data from "br0" to CPU 4:
-[[ "${IFACE}" == "br0" ]] && echo 8 > /sys/class/net/${IFACE}/queues/rx-0/rps_cpus
 
 ################################################################################################
 # Are we dealing with an USER-defined interface requiring masquerading?
@@ -15,8 +15,8 @@ test -f /etc/network/interfaces.d/${IFACE} && if [[ ! -z "${IF_MASQUERADE}" ]]; 
 	
 	# Put the IP addresses of the interface in the firewall's "prerouting_private" chain.
 	# This should allow double-nat configurations to work properly:
-	nft insert rule inet firewall mangle_prerouting_private iifname ${IFACE} ip saddr $(ip addr show ${IFACE} | grep " inet " | awk '{print $2}') return
-	nft insert rule inet firewall mangle_prerouting_private iifname ${IFACE} ip6 saddr $(ip addr show ${IFACE} | grep " inet6 " | awk '{print $2}') return
+	nft insert rule inet firewall mangle_prerouting_private iifname ${IFACE} ip saddr $(ip addr show ${IFACE} | grep " inet " | head -1 | awk '{print $2}') return >& /dev/null
+	nft insert rule inet firewall mangle_prerouting_private iifname ${IFACE} ip6 saddr $(ip addr show ${IFACE} | grep " inet6 " | head -1 | awk '{print $2}') return >& /dev/null
 fi
 
 ################################################################################################
@@ -25,18 +25,34 @@ fi
 test -f /etc/network/interfaces.d/${IFACE} && if [[ -z "${IF_MASQUERADE}" ]]; then
 	# Put the IP address range into the firewalls "INSIDE_NETWORK" set.
 	# This should allow port triggering to work properly:
-	nft add element inet firewall INSIDE_NETWORK { $(ip addr show ${IFACE} | grep " inet " | awk '{print $2}') }
+	nft add element inet firewall INSIDE_NETWORK { $(ip addr show ${IFACE} | grep " inet " | head -1 | awk '{print $2}') } >& /dev/null
 
 	# Add this interface to the list of LAN interfaces:
 	nft add element inet firewall DEV_LAN { ${IFACE} }
 
 	# If this interface has a captive portal, add it to the captive portal sets and rules:
 	if [[ ! -z "${IF_CAPTIVE_PORTAL}" ]]; then
-		IP_ADDR=$(ifconfig ${IFACE} | grep " inet " | awk '{print $2}')
-		nft add element inet firewall DEV_PORTAL { ${IFACE} }
-		nft add element inet firewall CAPTIVE_PORTAL_IPs { ${IP_ADDR} }
-		nft add rule inet firewall nat_prerouting_portal tcp dport 80 iifname ${IFACE} dnat ip to ${IP_ADDR}
+		nft add element inet firewall DEV_PORTAL { ${IFACE} } >& /dev/null
+		nft add element inet firewall CAPTIVE_PORTAL_IPs { ${IP_ADDR} } >& /dev/null
+		nft add rule inet firewall nat_prerouting_portal tcp dport 80 iifname ${IFACE} dnat ip to ${IP_ADDR} >& /dev/null
 	fi
+fi
+
+################################################################################################
+# Do this section if we are dealing with interface "br0":
+################################################################################################
+if [[ "${IFACE}" == "br0" ]]; then
+	# Use Receive Packet Steering (RPS) to steer incoming data from "br0" to CPU 4:
+	echo 8 > /sys/class/net/${IFACE}/queues/rx-0/rps_cpus
+
+	# Add a second IP address to interface "br0":
+	IP2=(${IP_ADDR//./ })
+	IP2=${IP2[0]}.${IP2[1]}.${IP2[2]}.$(( ${IP2[3]} + 1 ))
+	ifconfig br0:1 ${IP2} up
+
+	# Change the PiHole admin web interface, then reload nginx configuration if active:
+	sed -i "s|^IPV4_ADDRESS=.*|IPV4_ADDRESS=${IP2}|" /etc/pihole/setupVars.conf
+	systemctl is-active nginx >& /dev/null && /opt/bpi-r2-router-builder/helpers/nginx-helper.sh reload
 fi
 
 # Exit with a zero error code:

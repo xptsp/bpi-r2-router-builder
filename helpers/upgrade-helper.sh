@@ -57,7 +57,7 @@ function replace()
 	if [[ "${COPY}" == "true" ]]; then
 		if [[ "${SKIP_COPY}" == "false" ]]; then
 			if [[ "${FORCE_COPY}" == "true" ]]; then
-				MD5_OLD=$(md5sum ${SRC} | cut -d" " -f 1)
+				MD5_OLD=$(md5sum ${SRC} 2> /dev/null| cut -d" " -f 1)
 				MD5_NEW=$(md5sum ${DEST} | cut -d" " -f 1)
 				[[ "${MD5_OLD}" != "${MD5_NEW}" ]] && test -f ${DEST} && rm "${DEST}" 2> /dev/null
 			fi
@@ -147,4 +147,22 @@ for DEST in $(cat $TFL); do
 	[[ "$DEST" =~ /(lib|etc)/systemd/system/ ]] && systemctl disable --now $(basename $DEST)
 	test -f ${DEST} && rm ${DEST}
 done
-systemctl daemon-reload
+
+#####################################################################################
+# Perform same operations in the read-only partition:
+#####################################################################################
+RW=($(mount | grep " /ro " 2> /dev/null))
+if [[ ! -z "${RW[5]}" ]]; then
+	#####################################################################################
+	# Reload the system daemons and enable any services deemed necessary by the script:
+	#####################################################################################
+	systemctl daemon-reload
+	[[ "${RW[5]}" == *ro,* ]] && NOW="--now" && mount -o remount,rw /ro
+	systemctl is-enabled cloudflared@1 >& /dev/null || systemctl enable ${NOW} cloudflared@1
+	systemctl is-enabled cloudflared@2 >& /dev/null || systemctl enable ${NOW} cloudflared@2
+	systemctl is-enabled cloudflared@3 >& /dev/null || systemctl enable ${NOW} cloudflared@3
+	systemctl is-enabled multicast-relay >& /dev/null || systemctl enable ${NOW} multicast-relay
+	systemctl is-enabled wifi >& /dev/null || systemctl enable ${NOW} wifi
+	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f
+	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /ro
+fi

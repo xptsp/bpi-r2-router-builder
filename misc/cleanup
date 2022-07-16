@@ -44,20 +44,19 @@ echo -e "${GREEN}NOTE:${NC} Mounting partitions within the image..."
 DEV=$(los ${FILE})
 
 ####################################################################################################
-echo -e "${GREEN}NOTE:${NC} Cleaning up boot partition..."
-mount -o remount,rw ${DEV}/boot
-test -f ${DEV}/boot/bananapi/bpi-r2/linux/uImage && rm ${DEV}/boot/bananapi/bpi-r2/linux/uImage >& /dev/null
-test -f ${DEV}/boot/*.conf && rm ${DEV}/boot/*.conf >& /dev/null
-test -f ${DEV}/boot/settings.dat && rm ${DEV}/boot/settings.dat >& /dev/null
-DTB=${DEV}/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
-[[ -f ${DTB}.old ]] && mv ${DTB}.old ${DTB}
-
-####################################################################################################
 chroot ${DEV} /opt/bpi-r2-router-builder/misc/remove_files
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Copy root files to empty image..."
 cp -aR ${DEV}/* ${OUT}/
+
+####################################################################################################
+echo -e "${GREEN}NOTE:${NC} Cleaning up boot partition..."
+rm ${OUT}/boot/bananapi/bpi-r2/linux/uImage >& /dev/null
+rm ${OUT}/boot/{bpiwrt.cfg,*.conf} >& /dev/null
+mv ${OUT}/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.{dtb.old,dtb} >& /dev/null
+cp /dev/null ${OUT}/null.file
+rm ${OUT}/null.file
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Unmount partitions from system..."

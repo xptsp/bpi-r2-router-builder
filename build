@@ -73,7 +73,9 @@ while :; do
 			mount --bind /proc ${target}/proc
 			mount --bind /sys ${target}/sys
 			mount --bind /tmp ${target}/tmp
+			mount --bind /dev ${target}/dev
 			chroot ${target} /opt/bpi-r2-router-builder/misc/stage_2
+			umount ${target}/dev >& /dev/null
 			umount ${target}/tmp >& /dev/null
 			umount ${target}/sys >& /dev/null
 			umount ${target}/proc >& /dev/null
