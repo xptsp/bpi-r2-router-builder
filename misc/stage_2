@@ -17,6 +17,7 @@ apt install -y apt-transport-https bridge-utils dnsmasq hostapd ca-certificates 
 ##############################################################################################
 apt install -y --reinstall debian-keyring debian-archive-keyring nftables sudo pv git
 systemctl --now enable nftables
+git config --global pull.rebase false
 
 ##############################################################################################
 # Correctly configure SSH:
@@ -204,7 +205,7 @@ chown -R vpn:vpn /var/lib/transmission-daemon/
 chmod -R 775 /etc/transmission-daemon/
 chmod -R 775 /var/lib/transmission-daemon/
 mkdir -p /home/vpn/{Incomplete,Completed}
-chown -R vpn:vpn /home/vpn/{Incomplete,Completed}
+chown -R vpn:vpn /home/vpn/*
 chmod -R 775 /home/vpn/{Incomplete,Completed}
 systemctl enable --now transmission-daemon
 ln -sf /etc/nginx/sites-available/transmission /etc/nginx/sites-enabled/
@@ -360,7 +361,7 @@ cp /opt/bpi-r2-router-builder/misc/services/pivpn.conf /etc/pivpn/setupVars.conf
 DIR=/usr/local/src/pivpn
 git clone https://github.com/pivpn/pivpn.git ${DIR}
 
-# Set repository head to commit "f80b0a7962d91862132c0a4abd65c1e67bd37bd7":
+# Set repository head to commit "f80b0a7962d91862132c0a4abd65c1e67bd37bd7" (Dec 3rd, 2021):
 cd ${DIR}
 git reset --hard f80b0a7962d91862132c0a4abd65c1e67bd37bd7
 
