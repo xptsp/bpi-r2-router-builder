@@ -296,10 +296,6 @@ ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl restart nginx
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
-# Set global DNS nameserver to PiHole and make it immutable:
-echo "nameserver 127.0.0.1" > /etc/resolv.conf
-chattr +i /etc/resolv.conf
-
 ##################################################################################
 # Install the wireless regulatory table
 ##################################################################################
