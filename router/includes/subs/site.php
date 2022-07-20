@@ -530,7 +530,7 @@ function apply_options($mode = "reload")
 	fclose($handle);
 	if ($mode != "upnp")
 	{
-		@shell_exec("router-helper firewall " . $mode);
+		@shell_exec("router-helper systemctl reload nftables");
 		if ($mode == "reload" && isset($options['use_isp']) && isset($options['dns1']))
 			@shell_exec("router-helper dns " . ($options['use_isp'] == 'Y' ? 'config' : $options['dns1'] . ' ' . $options['dns2']));
 	}

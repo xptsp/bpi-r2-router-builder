@@ -592,12 +592,6 @@ case $CMD in
 		;;
 
 	###########################################################################
-	firewall)
-		systemctl reload nftables
-		echo "OK"
-		;;
-
-	###########################################################################
 	pihole)
 		if [[ "$1" == "restartdns" && ! -z "$2" ]]; then
 			echo "  [✓] Waiting for interface $2 to become available...."
@@ -608,32 +602,18 @@ case $CMD in
 
 	###########################################################################
 	dns)
-		# If we are being requested to set the DNS servers from the ISP, do so then exit
+		# Validate first IP address passed as parameter:
 		unset DNS1 DNS2
-		if [[ "$1" == "config" ]]; then
-			test -f /etc/default/router-settings && source /etc/default/router-settings
-			if [[ "${use_cloudflared:="N"}" == "Y" ]]; then
-				DNS1=127.0.0.1#5051
-			elif [[ "${use_isp:="N"}" == "Y" ]]; then
-				IP=($(cat /etc/resolv.conf | grep "nameserver" | head -2 | awk '{print $2}'))
-				DNS1=${IP[0]}
-				DNS2=${IP[1]}
-			else
-				exit 0
-			fi
-		else
-			# Validate first IP address passed as parameter:
-			IP=(${1/"#"/" "})
-			if ! valid_ip ${IP[0]}; then echo "ERROR: Invalid IP Address specified as 1st param!"; exit; fi
-			if [[ ! -z "${IP[1]}" ]]; then if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 1st param!"; exit; fi; fi
-			DNS1=${IP[0]}$([[ ! -z "${IP[1]}" ]] && echo "#${IP[1]}")
+		IP=(${1/"#"/" "})
+		if ! valid_ip ${IP[0]}; then echo "ERROR: Invalid IP Address specified as 1st param!"; exit; fi
+		if [[ ! -z "${IP[1]}" ]]; then if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 1st param!"; exit; fi; fi
+		DNS1=${IP[0]}$([[ ! -z "${IP[1]}" ]] && echo "#${IP[1]}")
 
-			IP=(${2/"#"/" "})
-			if [[ ! -z "${IP[@]}" ]]; then
-				if ! valid_ip ${IP[0]}; then echo "ERROR: Invalid IP Address specified as 2nd param!"; exit; fi
-				if [[ ! -z "${IP[1]}" ]]; then if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 2nd param!"; exit; fi; fi
-				DNS2=${IP[0]}$([[ ! -z "${IP[1]}" ]] && echo "#${IP[1]}")
-			fi
+		IP=(${2/"#"/" "})
+		if [[ ! -z "${IP[@]}" ]]; then
+			if ! valid_ip ${IP[0]}; then echo "ERROR: Invalid IP Address specified as 2nd param!"; exit; fi
+			if [[ ! -z "${IP[1]}" ]]; then if [[ "${IP[1]}" -lt 0 || "${IP[1]}" -gt 65535 ]]; then echo "ERROR: Invalid port number for 2nd param!"; exit; fi; fi
+			DNS2=${IP[0]}$([[ ! -z "${IP[1]}" ]] && echo "#${IP[1]}")
 		fi
 
 		# Remove existing IP addresses and add the included ones:

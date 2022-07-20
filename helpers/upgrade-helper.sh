@@ -151,7 +151,7 @@ done
 #####################################################################################
 # Perform same operations in the read-only partition:
 #####################################################################################
-RW=($(mount | grep " /ro " 2> /dev/null))
+RW=($(mount | grep " /ro " >& /dev/null))
 if [[ ! -z "${RW[5]}" ]]; then
 	#####################################################################################
 	# Reload the system daemons and enable any services deemed necessary by the script:
