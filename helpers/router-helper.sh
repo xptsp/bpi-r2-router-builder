@@ -140,10 +140,18 @@ case $CMD in
 			test -d /ro && DIR=/ro
 			source ${DIR}/etc/overlayRoot.conf
 			if [[ "$SECONDARY_REFORMAT" == "yes" ]]; then
-				echo "Yeah"
+				# Remove the reformatting flag from "/etc/overlayRoot.conf"
 				test -d /ro && mount -o remount,rw /ro
 				sed -i "/SECONDARY_REFORMAT=/d" ${DIR}/etc/overlayRoot.conf
 				test -d /ro && mount -o remount,ro /ro
+				
+				# If user-defined defaults exist, copy them to file system:
+				if [[ -f /boot/bpiwrt.cfg ]]; then
+					DIR=/boot/bananapi
+					mount /boot/bpiwrt.cfg ${DIR} 
+					cp -aR ${DIR}/* /
+					umount ${DIR}
+				fi
 			fi
 			exit 0
 		fi
