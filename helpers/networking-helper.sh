@@ -39,7 +39,7 @@ fi
 #############################################################################
 # Clear the reformatting flag in "/etc/overlayRoot.conf":
 #############################################################################
-/opt/bpi-r2-router-builder/helpers/router-helper.sh reformat clear
+/opt/bpi-r2-router-builder/helpers/router-helper.sh defaults unpack
 
 #############################################################################
 # Bring the "eth0" interface up if not already up:

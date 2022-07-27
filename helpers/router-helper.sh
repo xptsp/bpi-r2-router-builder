@@ -94,7 +94,7 @@ function valid_ip()
 {
 	local ip=(${1/:/ })
 	[[ "${2:-"N"}" == "N" && ! -z "${ip[1]}" ]] && return 1
-	if [[ "${2:-"N"}" == "Y" ]]; then [[ ${ip[1]} -le 65535 ]] 2> /dev/null || return 1; fi  
+	if [[ "${2:-"N"}" == "Y" ]]; then [[ ${ip[1]} -le 65535 ]] 2> /dev/null || return 1; fi
 	ip=(${ip//./ })
 	[[ ! -z "${ip[3]}" && ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]] 2> /dev/null && return 0
 	return 1
@@ -136,25 +136,6 @@ case $CMD in
 
 	###########################################################################
 	reformat)
-		if [[ "$1" == "clear" ]]; then
-			test -d /ro && DIR=/ro
-			source ${DIR}/etc/overlayRoot.conf
-			if [[ "$SECONDARY_REFORMAT" == "yes" ]]; then
-				# Remove the reformatting flag from "/etc/overlayRoot.conf"
-				test -d /ro && mount -o remount,rw /ro
-				sed -i "/SECONDARY_REFORMAT=/d" ${DIR}/etc/overlayRoot.conf
-				test -d /ro && mount -o remount,ro /ro
-				
-				# If user-defined defaults exist, copy them to file system:
-				if [[ -f /boot/bpiwrt.cfg ]]; then
-					DIR=/boot/bananapi
-					mount /boot/bpiwrt.cfg ${DIR} 
-					cp -aR ${DIR}/* /
-					umount ${DIR}
-				fi
-			fi
-			exit 0
-		fi
 		check_ro
 		if [[ ! "$1" =~ -(h|y|-yes) ]]; then
 			echo "Usage: $(basename $0) reformat [-y]"
@@ -231,7 +212,7 @@ case $CMD in
 		# PASSWD => Changes the password for user 1000:
 		elif [[ "$1" == "passwd" ]]; then
 			OK=$($0 login check ${USER} $2)
-			[[ "${OK}" == "No match" ]] && echo "ERROR: Incorrect Password" && exit 1  
+			[[ "${OK}" == "No match" ]] && echo "ERROR: Incorrect Password" && exit 1
 			[[ -z "${3}" ]] && echo "ERROR: Password not specified" && exit 1
 			(echo $3; echo $3) | passwd ${3:-"${USER}"} >& /dev/null && echo "OK" || echo "Password change failed"
 		#####################################################################
@@ -343,15 +324,39 @@ case $CMD in
 		# SQUASH => Create settings backup in the /tmp folder:
 		if [[ "$1" == "squash" ]]; then
 			$0 backup unlink
+
+			# Copy all files (if present) from overlay upper layer to temporary storage:
 			BACKUP=/tmp/bpiwrt
 			test -d ${BACKUP} && rm -rf ${BACKUP}
 			mkdir -p ${BACKUP}
-			for file in $(cat /etc/backup-file.list); do 
+			for file in $(cat /etc/backup-file.list); do
 				DIR=${BACKUP}/$(dirname ${file})
 				mkdir -p ${DIR}
 				[[ "$file" =~ ^/ ]] && ROOT=/ || ROOT=/rw/upper/
 				cp -a ${ROOT}/${file} ${DIR}/ 2> /dev/null
 			done
+
+			# Create a list of services to start, stop, or reload:
+			cd /rw/upper/etc
+			FILE=${BACKUP}/var/opt/init_services.sh
+			mkdir -p $(dirname ${FILE})
+			echo '#!/bin/bash' > ${FILE}
+			find systemd/system/ -type c -exec basename {} \; | sort | uniq | while read LINE; do echo "systemctl disable --now ${LINE}"; done >> ${FILE}
+			find systemd/system/ -type l -exec basename {} \; | sort | uniq | while read LINE; do echo "systemctl enable --now ${LINE}"; done >> ${FILE}
+
+			# Load any firewall settings that need to be updated:
+			test -f persistent-nftables.conf && echo "nft -f etc/persistent-nftables.conf" >> ${FILE}
+			test -f default/router-settings && echo "systemctl reload nftables" >> ${FILE}
+
+			# Save any differences in "/etc/passwd", "/etc/group" and "/etc/shadow":
+			for CHK in shadow passwd group; do
+				grep -Fxvf /ro/etc/${CHK} ${CHK} 2> /dev/null | while read LINE; do
+					USER=$(echo $LINE | cut -d: -f 1)
+					echo "sed -i \"s|^${USER}:.*|${LINE//$/\\\$}|\" /etc/${CHK}" >> ${FILE}
+				done
+			done
+
+			# Make a squashfs archive of all files copied/created:
 			cd ${BACKUP}
 			mksquashfs ./ /tmp/bpiwrt.cfg -quiet
 			rm -rf ${BACKUP}
@@ -371,14 +376,50 @@ case $CMD in
 		# RESTORE => Copy the files from the uploaded configuration backup into place:
 		elif [[ "$1" == "copy" ]]; then
 			if ! mount | grep ' /tmp/bpiwrt ' >& /dev/null; then $0 backup prep || exit 1; fi
-			cp -aR /tmp/bpiwrt/* /etc/
+			cp -aR /tmp/bpiwrt/* /
+			test -f /var/opt/init_services.sh && source /var/opt/init_services.sh
 		#####################################################################
-		# DEFAULT => Create "persistent" default settings in the /boot partition:
-		elif [[ "$1" == "default" ]]; then
+		# Everything else:
+		else
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "Usage: $(basename $0) backup [squash|unlink|prep|copy]"
+			echo "Where:"
+			echo "    squash  - Creates a backup of critical settings in /tmp/bpiwrt.cfg "
+			echo "    unlink  - Unmount and remove /tmp/bpiwrt.cfg"
+			echo "    prep    - Prepares the uploaded backup found in /tmp/bpiwrt.cfg"
+			echo "    copy    - Restores the files from the uploaded configuration backup"
+		fi
+		;;
+
+	###########################################################################
+	defaults)
+		# CREATE => Create "persistent" default settings in the /boot partition:
+		if [[ "$1" == "create" ]]; then
 			$0 backup squash
 			mount -o remount,rw /boot
 			mv /tmp/bpiwrt.cfg /boot/bpiwrt.cfg || rm /boot/bpiwrt.cfg
 			mount -o remount,ro /boot
+		#####################################################################
+		# UNPACK => Clear reformat flag and unpack custom default settings:
+		elif [[ "$1" == "unpack" ]]; then
+			test -d /ro && DIR=/ro
+			source ${DIR}/etc/overlayRoot.conf
+			if [[ "$SECONDARY_REFORMAT" == "yes" ]]; then
+				# Remove the reformatting flag from "/etc/overlayRoot.conf":
+				test -d /ro && mount -o remount,rw /ro
+				sed -i "/SECONDARY_REFORMAT=/d" ${DIR}/etc/overlayRoot.conf
+				if [[ -d /ro ]]; then
+					mount -o remount,ro /ro
+
+					# If user-defined defaults exist, copy them to file system:
+					if [[ -f /boot/bpiwrt.cfg ]]; then
+						mount /boot/bpiwrt.cfg /mnt
+						cp -aRv /mnt/* /
+						umount /mnt
+					fi
+				fi
+			fi
+			exit 0
 		#####################################################################
 		# REMOVE => Create "persistent" settings backup from the /boot partition:
 		elif [[ "$1" == "remove" ]]; then
@@ -393,16 +434,14 @@ case $CMD in
 		# Everything else:
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-			echo "Usage: $(basename $0) backup [squash|unlink|prep|copy|default|remove]"
+			echo "Usage: $(basename $0) defaults [create|unpack|remove]"
 			echo "Where:"
-			echo "    squash  - Creates a backup of critical settings in /tmp/bpiwrt.cfg "
-			echo "    unlink  - Unmount and remove /tmp/bpiwrt.cfg"
-			echo "    prep    - Prepares the uploaded backup found in /tmp/bpiwrt.cfg"
-			echo "    copy    - Restores the files from the uploaded configuration backup"
-			echo "    default - Creates default override settings config in /boot/bpiwrt.cfg"
+			echo "    create  - Creates default override settings config in /boot/bpiwrt.cfg"
+			echo "    unpack  - Unpack default override settings config from /boot/bpiwrt.cfg"
 			echo "    remove  - Unmount and remove /boot/bpiwrt.cfg"
 		fi
 		;;
+
 
 	###########################################################################
 	iface)
@@ -780,22 +819,22 @@ case $CMD in
 		[[ "$1" == "miniupnpd" ]] && FILE=/etc/miniupnpd/miniupnpd.conf
 		[[ "$1" == "multicast-relay" ]] && FILE=/etc/default/multicast-relay
 		[[ "$1" == "docker-compose" ]] && FILE=/etc/docker-compose.yaml
-		
+
 		# Was a filename determined?  If not, abort with error:
 		[[ -z "${FILE}" ]] && echo "ERROR: Invalid option passed!" && exit 1
 
 		# Abort if temporary file not found.  Otherwise, copy to destination, delete original, then change owner to root:
 		if ! test -f /tmp/router-settings; then echo "ERROR: File does not exist!"; exit; fi
 		cp /tmp/router-settings ${FILE}
-		rm /tmp/router-settings 
+		rm /tmp/router-settings
 		chown root:root ${FILE}
 
 		# Restart service if requested and already running:
 		if [[ "$2" == "restart" ]]; then
 			[[ "$(systemctl is-active $1)" == "active" ]] && systemctl restart $1
 		fi
-		echo "OK" 
-		;;		
+		echo "OK"
+		;;
 
 	###########################################################################
 	# Code adapted from https://andrewwippler.com/2016/03/11/wifi-captive-portal/
@@ -835,10 +874,10 @@ case $CMD in
 
 			# Add the MAC address(es) here:
 			for MAC in ${ADDR[@]}; do
-				# Add the MAC address(es) to either "PORTAL_ACCEPT" or "PORTAL_REJECT" set, along with timeout (if any):				
+				# Add the MAC address(es) to either "PORTAL_ACCEPT" or "PORTAL_REJECT" set, along with timeout (if any):
 				nft add element inet firewall PORTAL_${1^^} { ${MAC} ${TIMEOUT} }
-				
-				# If Captive Portal persistence is required, add it to "/etc/persistent-nftables.conf": 
+
+				# If Captive Portal persistence is required, add it to "/etc/persistent-nftables.conf":
 				if [[ -z "${TIMEOUT}" ]]; then
 					FILE=/etc/persistent-nftables.conf
 					sed -i "/PORTAL_${1^^} { ${MAC} }/d" ${FILE}

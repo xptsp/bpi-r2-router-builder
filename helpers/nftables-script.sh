@@ -9,6 +9,7 @@ RED='\033[1;31m'
 GREEN='\033[1;32m'
 BLUE='\033[1;34m'
 NC='\033[0m'
+TXT=nftables-script  # String used to identify rules added by this script!
 
 function stage()
 {
@@ -56,9 +57,9 @@ fi
 # If we are reloading the ruleset, remove any script-generated rules: 
 #############################################################################
 if [[ "$CMD" == "reload" ]]; then
-	for TABLE in $(_nft list table inet firewall | grep chain | awk '{print $2}'); do
-		for HANDLE in $(_nft -a list chain inet firewall ${TABLE} | grep "${TXT}" | awk '{print $NF}'); do 
-			_nft delete rule inet firewall ${TABLE} handle ${HANDLE}
+	for TABLE in $(_nft list table inet firewall | grep -v chain | grep "${TXT}" | awk '{print $2}'); do
+		_nft -a list chain inet firewall ${TABLE} | grep "${TXT}" | awk '{print $NF}' | while read HANDLE; do
+			[[ "${HANDLE}" -gt 0 ]] 2> /dev/null && _nft delete rule inet firewall ${TABLE} handle ${HANDLE}
 		done
 	done
 fi
@@ -66,8 +67,6 @@ fi
 #############################################################################
 # Add any rules to make our firewall settings work as expected:
 #############################################################################
-# This is the string we are going to use to identify rules added by this script: 
-TXT=nftables-script
 
 # Add rules to allow pings from WAN at a rate of 5 pings per second if option "allow_ping" is "Y":
 stage 1a "Option allow_ping=${allow_ping:-"N"}"
