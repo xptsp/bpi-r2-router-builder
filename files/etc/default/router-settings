@@ -1,6 +1,9 @@
 # Display debug messages during "nftables" service running if set to "Y".  Default is empty.
 DEBUG=
 
+# Path to use for chroot environment creation (aka for creating a compilation environment)
+OVERLAY_ROOT=/var/lib/docker/persistent
+
 ##########################################################################
 # WebUI Setup / Router Settings
 ##########################################################################

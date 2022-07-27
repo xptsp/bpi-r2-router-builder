@@ -40,35 +40,38 @@ function check_ro()
 # Remount readonly lower filesystem as writable:
 function remount_rw()
 {
-	if ! mount -o remount,rw $RO_DEV /ro; then
-		echo "ERROR: Unable to remount root filesystem!"
-		exit 1
-	fi
-	if [[ ! "$1" == "notrap" ]]; then
+	RO=${1:-"/ro"}
+	if [[ "${RO}" != "notrap" ]]; then
+		if ! mount -o remount,rw $RO_DEV /ro; then
+			echo "ERROR: Unable to remount root filesystem!"
+			exit 1
+		fi
 		trap 'remount_ro' SIGINT
 		trap 'remount_ro' EXIT
+		RO=/ro
 	fi
-	mount --bind /dev /ro/dev
-	mount --bind /run /ro/run
-	mount --bind /proc /ro/proc
-	mount --bind /sys /ro/sys
-	mount --bind /tmp /ro/tmp
-	mount --bind /var/lib/apt/lists /ro/var/lib/apt/lists
-	mount -t tmpfs tmpfs /ro/var/cache/apt
+	mount --bind /dev ${RO}/dev
+	mount --bind /run ${RO}/run
+	mount --bind /proc ${RO}/proc
+	mount --bind /sys ${RO}/sys
+	mount --bind /tmp ${RO}/tmp
+	mount --bind /var/lib/apt/lists ${RO}/var/lib/apt/lists
+	[[ "${RO}" == "/ro" ]] && mount -t tmpfs tmpfs ${RO}/var/cache/apt
 	return 0
 }
 
 # Remount writable lower filesystem as readonly:
 function remount_ro()
 {
-	umount /ro/tmp >& /dev/null
-	umount /ro/sys >& /dev/null
-	umount /ro/proc >& /dev/null
-	umount /ro/run >& /dev/null
-	umount /ro/dev >& /dev/null
-	umount /ro/var/lib/apt/list >& /dev/null
-	umount /ro/var/cache/apt >& /dev/null
-	mount -o remount,ro $RO_DEV /ro
+	RO=${1:-"/ro"}
+	umount ${RO}/tmp >& /dev/null
+	umount ${RO}/sys >& /dev/null
+	umount ${RO}/proc >& /dev/null
+	umount ${RO}/run >& /dev/null
+	umount ${RO}/dev >& /dev/null
+	umount ${RO}/var/lib/apt/lists >& /dev/null
+	umount ${RO}/var/cache/apt >& /dev/null
+	[[ "$RO" == "/ro" ]] && mount -o remount,ro $RO_DEV /ro
 }
 
 # Function to ask whether to do a particular action:
@@ -111,7 +114,7 @@ case $CMD in
 	chroot)
 		check_ro
 		remount_rw
-		echo "CHROOT" > /tmp/debian_chroot
+		echo "RO" > /tmp/debian_chroot
 		mount --bind /tmp/debian_chroot /ro/etc/debian_chroot
 		chroot /ro $@
 		umount /ro/etc/debian_chroot >& /dev/null
@@ -154,6 +157,8 @@ case $CMD in
 
 	###########################################################################
 	overlay)
+		test -f /etc/default/router-settings && source /etc/default/router-settings
+		DIR=${OVERLAY_ROOT:-"/var/lib/docker/persistent"} 
 		#####################################################################
 		# ENABLE/DISABLE => Set overlay status to either ennabled or disabled:
 		if [[ "$1" == "enable" || "$1" == "disable" ]]; then
@@ -175,14 +180,41 @@ case $CMD in
 			IN_USE=$(mount | grep " /ro " >& /dev/null || echo " not")
 			echo "Overlay Root script is ${STAT} for next boot, currently${IN_USE} active."
 		#####################################################################
+		# CREATE => Creates overlayfs for chroot environment (aka for compiling stuff)
+		elif [[ "$1" == "mount" ]]; then
+			mkdir -p ${DIR}/{upper,work,merged}			
+			mount -t overlay chroot_env -o lowerdir=/ro,upperdir=${DIR}/upper,workdir=${DIR}/work ${DIR}/merged
+			echo "CE" > ${DIR}/merged/etc/debian_chroot
+		#####################################################################
+		# ENTER => Creates overlayfs for compilation environment
+		elif [[ "$1" == "enter" ]]; then
+			DIR=${DIR}/merged
+			test -d ${DIR} || $0 overlay mount
+			remount_rw ${DIR}
+			chroot ${DIR}
+			remount_ro ${DIR}
+		#####################################################################
+		# UMOUNT => Creates overlayfs for compilation environment
+		elif [[ "$1" == "umount" ]]; then
+			umount ${DIR}/merged 2> /dev/null
+		#####################################################################
+		# DESTROY => Creates overlayfs for compilation environment
+		elif [[ "$1" == "destroy" ]]; then
+			$0 overlay umount
+			rm -rf ${DIR}
+		#####################################################################
 		# Everything else:
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-			echo "Usage: $(basename $0) overlay [enable|disable|status]"
+			echo "Usage: $(basename $0) overlay [enable|disable|status|mount|enter|umount|destroy]"
 			echo "Where:"
-			echo "    enable    Enables overlay script upon next boot"
-			echo "    disable   Disables overlay script upon next boot"
-			echo "    status    Displays current status and next boot status of overlay script"
+			echo "    enable  - Enables overlay script upon next boot"
+			echo "    disable - Disables overlay script upon next boot"
+			echo "    status  - Displays current status and next boot status of overlay script"
+			echo "    mount   - Create separate overlayfs environment" 
+			echo "    enter   - Enter created separate overlayfs environment" 
+			echo "    umount  - Remove created separate overlayfs environment" 
+			echo "    destroy - Remove created separate overlayfs environment" 
 		fi
 		;;
 
@@ -927,6 +959,7 @@ case $CMD in
 		 echo "    trigger_port  - Port triggering actions"
 		 echo "    move          - Move configuration files into position"
 		 echo "    portal        - Captive Portal actions"
+		 echo "    defaults      - User-Defined Persistent Settings Backup and Restore actions"
 		) | sort
 		echo ""
 		echo "NOTE: Use \"-h\" after the command to see what options are available for that command."
