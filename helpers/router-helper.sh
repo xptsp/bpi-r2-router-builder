@@ -41,14 +41,15 @@ function check_ro()
 function remount_rw()
 {
 	RO=${1:-"/ro"}
-	if [[ "${RO}" != "notrap" ]]; then
+	if [[ "${RO}" == "notrap" ]]; then
+		RO=/ro
+	elif [[ "${RO}" == "/ro" ]]; then
 		if ! mount -o remount,rw $RO_DEV /ro; then
 			echo "ERROR: Unable to remount root filesystem!"
 			exit 1
 		fi
 		trap 'remount_ro' SIGINT
 		trap 'remount_ro' EXIT
-		RO=/ro
 	fi
 	mount --bind /dev ${RO}/dev
 	mount --bind /run ${RO}/run
@@ -180,16 +181,16 @@ case $CMD in
 			IN_USE=$(mount | grep " /ro " >& /dev/null || echo " not")
 			echo "Overlay Root script is ${STAT} for next boot, currently${IN_USE} active."
 		#####################################################################
-		# CREATE => Creates overlayfs for chroot environment (aka for compiling stuff)
+		# MOUNT => Creates overlayfs for chroot environment (aka for compiling stuff)
 		elif [[ "$1" == "mount" ]]; then
-			mkdir -p ${DIR}/{upper,work,merged}			
+			mkdir -p ${DIR}/{upper,work,merged}
 			mount -t overlay chroot_env -o lowerdir=/ro,upperdir=${DIR}/upper,workdir=${DIR}/work ${DIR}/merged
 			echo "CE" > ${DIR}/merged/etc/debian_chroot
 		#####################################################################
 		# ENTER => Creates overlayfs for compilation environment
 		elif [[ "$1" == "enter" ]]; then
 			DIR=${DIR}/merged
-			test -d ${DIR} || $0 overlay mount
+			mount | grep " ${DIR} " >& /dev/null || $0 overlay mount
 			remount_rw ${DIR}
 			chroot ${DIR}
 			remount_ro ${DIR}
