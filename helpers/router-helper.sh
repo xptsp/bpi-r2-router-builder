@@ -159,7 +159,7 @@ case $CMD in
 	###########################################################################
 	overlay)
 		test -f /etc/default/router-settings && source /etc/default/router-settings
-		DIR=${OVERLAY_ROOT:-"/var/lib/docker/persistent"} 
+		DIR=${OVERLAY_ROOT:-"/var/lib/docker/persistent"}
 		#####################################################################
 		# ENABLE/DISABLE => Set overlay status to either ennabled or disabled:
 		if [[ "$1" == "enable" || "$1" == "disable" ]]; then
@@ -183,14 +183,23 @@ case $CMD in
 		#####################################################################
 		# MOUNT => Creates overlayfs for chroot environment (aka for compiling stuff)
 		elif [[ "$1" == "mount" ]]; then
-			mkdir -p ${DIR}/{upper,work,merged}
-			mount -t overlay chroot_env -o lowerdir=/ro,upperdir=${DIR}/upper,workdir=${DIR}/work ${DIR}/merged
-			echo "CE" > ${DIR}/merged/etc/debian_chroot
+			! test -d /ro && echo "ERROR: No read-only partition exists to base chroot environment on!" && exit 1
+			mkdir -p ${DIR}
+			cd ${DIR}
+			mkdir -p {upper,work,merged}
+			LOW=/ro
+			if [[ -d ${DIR}/sub_upper ]]; then
+				mkdir ${DIR}/sub_{work,merged}
+				mount -t overlay sub_chroot_env -o lowerdir=/ro,upperdir=}/sub_upper,workdir=./sub_work .}/sub_merged
+				LOW=./sub_merged
+			fi
+			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
+			echo "CE" > merged/etc/debian_chroot
 		#####################################################################
 		# ENTER => Creates overlayfs for compilation environment
 		elif [[ "$1" == "enter" ]]; then
-			DIR=${DIR}/merged
-			mount | grep " ${DIR} " >& /dev/null || $0 overlay mount
+			DIR=${DIR}/${2:-"merged"}
+			if ! mount | grep "${DIR}" >& /dev/null; then $0 overlay mount || exit 1; fi
 			remount_rw ${DIR}
 			chroot ${DIR}
 			remount_ro ${DIR}
@@ -198,9 +207,14 @@ case $CMD in
 		# UMOUNT => Creates overlayfs for compilation environment
 		elif [[ "$1" == "umount" ]]; then
 			umount ${DIR}/merged 2> /dev/null
+			umount ${DIR}/sub_merged 2> /dev/null
 		#####################################################################
 		# DESTROY => Creates overlayfs for compilation environment
 		elif [[ "$1" == "destroy" ]]; then
+			if [[ ! "$2" =~ -(y|-yes) ]]; then
+				echo "WARNING: The router will delete the chroot environment built.  This action cannot be undone!"
+				askYesNo "Are you SURE you want to do this?" || exit 0
+			fi
 			$0 overlay umount
 			rm -rf ${DIR}
 		#####################################################################
@@ -212,10 +226,10 @@ case $CMD in
 			echo "    enable  - Enables overlay script upon next boot"
 			echo "    disable - Disables overlay script upon next boot"
 			echo "    status  - Displays current status and next boot status of overlay script"
-			echo "    mount   - Create separate overlayfs environment" 
-			echo "    enter   - Enter created separate overlayfs environment" 
-			echo "    umount  - Remove created separate overlayfs environment" 
-			echo "    destroy - Remove created separate overlayfs environment" 
+			echo "    mount   - Create separate overlayfs environment"
+			echo "    enter   - Enter created separate overlayfs environment"
+			echo "    umount  - Remove created separate overlayfs environment"
+			echo "    destroy - Remove created separate overlayfs environment"
 		fi
 		;;
 
