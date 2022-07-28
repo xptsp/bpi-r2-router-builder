@@ -189,8 +189,8 @@ case $CMD in
 			mkdir -p {upper,work,merged}
 			LOW=/ro
 			if [[ -d ${DIR}/sub_upper ]]; then
-				mkdir ${DIR}/sub_{work,merged}
-				mount -t overlay sub_chroot_env -o lowerdir=/ro,upperdir=}/sub_upper,workdir=./sub_work .}/sub_merged
+				mkdir -p ${DIR}/sub_{work,merged}
+				mount -t overlay sub_chroot_env -o lowerdir=/ro,upperdir=./sub_upper,workdir=./sub_work ./sub_merged
 				LOW=./sub_merged
 			fi
 			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
@@ -226,6 +226,7 @@ case $CMD in
 			echo "    enable  - Enables overlay script upon next boot"
 			echo "    disable - Disables overlay script upon next boot"
 			echo "    status  - Displays current status and next boot status of overlay script"
+			echo "Overlayfs options:"
 			echo "    mount   - Create separate overlayfs environment"
 			echo "    enter   - Enter created separate overlayfs environment"
 			echo "    umount  - Remove created separate overlayfs environment"
