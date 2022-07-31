@@ -1,97 +1,235 @@
 #!/bin/bash
 
 #################################################################################
-# Install the packages we need to compile the software, then setup what we need:
+# Internal functions used in this script:
 #################################################################################
-apt-get install -y --no-install-recommends git make gcc dh-autoreconf bison flex asciidoc pkg-config docbook-xsl xsltproc libxml2-utils
-apt-get install -y --no-install-recommends checkinstall python3-distutils
-BASE=/var/lib/docker/tmp
-test -d ${BASE} && rm -rf ${BASE}
-mkdir -p ${BASE}
+git_version() {
+	cd ${BASE}/$1 2> /dev/null || return
+	echo $(git log | grep build: | grep -m 1 -o "[0-9]*\.[0-9]*\.[0-9]*")-${2:-"1"}~git$(git log | grep -m 1 -e "^commit " | awk '{print $2}' | cut -c1-7)
+}
+deb_version() {
+	apt list $1 -a 2> /dev/null | grep -v local | grep $1 | awk '{print $2}'	
+}
 
 #################################################################################
-# Compile libmnl version 1.0.5:
+# Install the packages we need to compile the software:
+#################################################################################
+apt-get install -y --no-install-recommends git make gcc dh-autoreconf bison flex asciidoc pkg-config docbook-xsl xsltproc libxml2-utils python3-distutils
+
+#================================================================================
+# Create the directories and gather the information we need:
+BASE=/root/build
+test -d ${BASE} && rm -rf ${BASE}
+mkdir -p ${BASE}
+  
+#################################################################################
+# Compile latest version of "libmnl" from the netfilter project:
 #################################################################################
 cd ${BASE}
 git clone https://git.netfilter.org/libmnl
 cd libmnl
-git checkout 493aacf2ec9cc61a5b30d77cd55ec248f033bc74 -q
+mkdir -p {install,modded}
 ./autogen.sh
-./configure
+./configure --host=arm-linux-gnueabihf --prefix=$PWD/install
 make
+make install
+
+#================================================================================
+# Get version and build numbers for these packages:
+LIBMNL_BUILD=1
+OLD_LIBMNL_VER=$(deb_version libmnl0)
+NEW_LIBMNL_VER=$(git_version libmnl ${LIBMNL_BUILD})
+
+#================================================================================
+# Modify existing deb package for "libmnl0" with our compiled files:
+cd ${BASE}/libmnl/modded
+DIR=libmnl0_${NEW_LIBMNL_VER}_armhf
+apt download libmnl0=${OLD_LIBMNL_VER}
+dpkg-deb -R libmnl0_${OLD_LIBMNL_VER}_armhf.deb ${DIR}
+rm libmnl0_${OLD_LIBMNL_VER}_armhf.deb
+cd ${BASE}/libmnl/modded/${DIR}
+rm -rf usr/share/doc/libmnl0/*
+cp ${BASE}/libmnl/{README,COPYING} usr/share/doc/libmnl0/
+cp -a ${BASE}/libmnl/install/lib/libmnl.*.0 usr/lib/arm-linux-gnueabihf/
+sed -i "s|^Version: .*|Version: ${NEW_LIBMNL_VER}|" DEBIAN/control
+sed -i "s|^Installed-Size: .*|Installed-Size: $(du -s usr | awk '{print $2}')|" DEBIAN/control
+find usr -type f -exec md5sum {} \; > DEBIAN/md5sums
+rm DEBIAN/{shlibs,symbols,triggers}
+cd ..
+dpkg-deb --build --root-owner-group ${DIR}
+apt install -y ./${DIR}.deb
+mv ${DIR}.deb ${BASE}
+
+#================================================================================
+# Modify existing deb package for "libmnl-dev" with our compiled files:
+cd ${BASE}/libmnl/modded
+DIR=libmnl-dev_${NEW_LIBMNL_VER}_armhf
+apt download libmnl-dev=${OLD_LIBMNL_VER}
+dpkg-deb -R libmnl-dev_${OLD_LIBMNL_VER}_armhf.deb ${DIR}
+rm libmnl-dev_${OLD_LIBMNL_VER}_armhf.deb
+cd ${BASE}/libmnl/modded/${DIR}
+rm -rf usr/share/doc/libmnl-dev/*
+cp ${BASE}/libmnl/{README,COPYING} usr/share/doc/libmnl-dev/
+cp ${BASE}/libmnl/install/include/libmnl/libmnl.h usr/include/libmnl/
+rm usr/lib/arm-linux-gnueabihf//libmnl.so
+cp -a ${BASE}/libmnl/install/lib/libmnl.so usr/lib/arm-linux-gnueabihf/
+cp ${BASE}/libmnl/install/lib/pkgconfig/libmnl.pc usr/lib/arm-linux-gnueabihf/pkgconfig/
+sed -i "s|^Version: .*|Version: ${NEW_LIBMNL_VER}|" DEBIAN/control
+sed -i "s|^Installed-Size: .*|Installed-Size: $(du -s usr | awk '{print $1}')|" DEBIAN/control
+sed -i "s|^Depends: .*|Depends: libmnl0 (= ${NEW_LIBMNL_VER})|" DEBIAN/control
+find usr -type f -exec md5sum {} \; > DEBIAN/md5sums
+cd ..
+dpkg-deb --build --root-owner-group ${DIR}
+apt install -y ./${DIR}.deb
+mv ${DIR}.deb ${BASE}
 
 #################################################################################
-# Build the libmnl0 package for armhf:
-#################################################################################
-checkinstall -y --pkgname=libmnl0 --pkgsource=libmnl --pkgversion=1.0.5 --pkgrelease=git20210807.493aacf --requires='"libc6 (>= 2.4)"'
-cat << EOF > description-pak
-minimalistic Netlink communication library
-libmnl is a minimalistic user-space library oriented to Netlink developers.
-There are a lot of common tasks in parsing, validating, constructing of
-both the Netlink header and TLVs that are repetitive and easy to get wrong.
-This library aims to provide simple helpers that allows you to re-use code
-and to avoid re-inventing the wheel.
-.
-The main features of this library are:
-.
-Small: the shared library requires around 30KB for an x86-based computer.
-.
-Simple: this library avoids complexity and elaborated abstractions that
-tend to hide Netlink details.
-.
-Easy to use: the library simplifies the work for Netlink-wise developers.
-It provides functions to make socket handling, message building,
-validating, parsing and sequence tracking, easier.
-.
-Easy to re-use: you can use the library to build your own abstraction
-layer on top of this library.
-.
-Decoupling: the interdependency of the main bricks that compose the
-library is reduced, i.e. the library provides many helpers, but the
-programmer is not forced to use them.
-.
-This package contains the shared libraries needed to run programs that use
-the minimalistic Netlink communication library.
-EOF
-checkinstall -y --pkgname=libmnl0 --pkgsource=libmnl --pkgversion=1.0.5 --pkgrelease=git20210807.493aacf --requires='"libc6 (>= 2.4)"'
-mv libmnl0_1.0.5-git20210807.493aacf_armhf.deb ../
-
-#################################################################################
-# Compile libnftnl for armhf:
+# Compile lastest version of libnftnl for armhf:
 #################################################################################
 cd ${BASE}
 git clone git://git.netfilter.org/libnftnl
 cd libnftnl
-git checkout 0926cbe870187432fe7e1c227a44b59afbb4c6c5 -q
+mkdir -p {install,modded}
 ./autogen.sh
-./configure --host=arm-linux-gnueabihf
+./configure --host=arm-linux-gnueabihf --prefix=$PWD/install
 make clean
 make
+make install
+
+#================================================================================
+# Get version and build numbers for these packages:
+LIBNFTNL_BUILD=1
+OLD_LIBNFTNL_VER=$(deb_version libnftnl11)
+NEW_LIBNFTNL_VER=$(git_version libnftnl ${LIBNFTNL_BUILD})
+
+#================================================================================
+# Modify existing deb package for "libnftnl11" with our compiled files:
+cd ${BASE}/libnftnl/modded
+DIR=libnftnl11_${NEW_LIBNFTNL_VER}_armhf
+apt download libnftnl11=${OLD_LIBNFTNL_VER}
+dpkg-deb -R libnftnl11_${OLD_LIBNFTNL_VER}_armhf.deb ${DIR}
+rm libnftnl11_${OLD_LIBNFTNL_VER}_armhf.deb
+cd ${BASE}/libnftnl/modded/${DIR}
+rm -rf usr/share/doc/libnftnl11/*
+cp ${BASE}/libmnl/{README,COPYING} usr/share/doc/libnftnl11/
+rm usr/lib/arm-linux-gnueabihf/*
+cp -a ${BASE}/libnftnl/install/lib/*.11* usr/lib/arm-linux-gnueabihf/ 
+rm DEBIAN/{shlibs,symbols,triggers}
+sed -i "s|^Version: .*|Version: ${NEW_LIBNFTNL_VER}|" DEBIAN/control
+sed -i "s|^Installed-Size: .*|Installed-Size: $(du -s usr | awk '{print $1}')|" DEBIAN/control
+OLD_DEPENDS=($(grep Depends DEBIAN/control))
+sed -i "s|${OLD_DEPENDS[-1]}|${NEW_LIBMNL_VER}\)|" DEBIAN/control
+find usr -type f -exec md5sum {} \; > DEBIAN/md5sums
+cd ..
+dpkg-deb --build --root-owner-group ${DIR}
+apt install -y ./${DIR}.deb
+mv ${DIR}.deb ${BASE}
+
+#================================================================================
+# Modify existing deb package for "libnftnl-dev" with our compiled files:
+DIR=libnftnl-dev_${NEW_LIBNFTNL_VER}_armhf
+apt download libnftnl-dev=${OLD_LIBNFTNL_VER}
+dpkg-deb -R libnftnl-dev_${OLD_LIBNFTNL_VER}_armhf.deb ${DIR}
+rm libnftnl-dev_${OLD_LIBNFTNL_VER}_armhf.deb
+cd ${BASE}/libnftnl/modded/${DIR}
+rm usr/share/doc/libnftnl-dev/*
+cp ${BASE}/libnftnl/install/include/libnftnl/* usr/include/libnftnl/
+rm usr/lib/arm-linux-gnueabihf/{lib*,*.a}
+cp -a ${BASE}/libnftnl/install/lib/libnftnl.so usr/lib/arm-linux-gnueabihf/
+cp -a ${BASE}/libnftnl/install/lib/pkgconfig/* usr/lib/arm-linux-gnueabihf/pkgconfig/
+sed -i "s|^Version: .*|Version: ${NEW_LIBNFTNL_VER}|" DEBIAN/control
+sed -i "s|^Installed-Size: .*|Installed-Size: $(du -s usr | awk '{print $1}')|" DEBIAN/control
+sed -i "s|$(grep -o "libnftnl11 (= [^)]*)" DEBIAN/control)|libnftnl11 (= ${NEW_LIBNFTNL_VER})|" DEBIAN/control
+find usr -type f -exec md5sum {} \; > DEBIAN/md5sums
+cd ..
+dpkg-deb --build --root-owner-group ${DIR}
+apt install -y ./${DIR}.deb
+mv ${DIR}.deb ${BASE}
 
 #################################################################################
-# Build the libnftnl11 package for armhf:
-#################################################################################
-checkinstall -y --pkgname=libnftnl11 --pkgsource=libnftnl --pkgversion=1.2.2 --pkgrelease=git20220615.84d12cf --requires='"libc6 (>= 2.4), libmnl0 (>= 1.0.5)"'
-cat << EOF > description-pak
-Netfilter nftables userspace API library
-libnftnl is the low-level library for Netfilter 4th generation
-framework nftables.
-.
-Is the user-space library for low-level interaction with
-nftables Netlink's API over libmnl.
-EOF
-checkinstall -y --pkgname=libnftnl11 --pkgsource=libnftnl --pkgversion=1.2.2 --pkgrelease=git20220615.84d12cf --requires='"libc6 (>= 2.4), libmnl0 (>= 1.0.5)"'
-mv libnftnl11_1.2.2-git20220615.84d12cf_armhf.deb ../
-
-#################################################################################
-# Compile nft for armhf:
+# Compile latest version of nft for armhf:
 #################################################################################
 cd ${BASE}
-git clone https://github.com/frank-w/nftables-bpi.git nftables
-cd nftables/
-git checkout 68dccd7f63dc3d9fa16acd1821b716af8dc24dce -q
-mkdir -p install
+git clone git://git.netfilter.org/nftables
+cd ${BASE}/nftables/
+mkdir -p {install,modded}
 ./autogen.sh
-./configure --host=arm-linux-gnueabihf  --prefix=$(pwd)/install --with-mini-gmp --without-cli
+./configure --host=arm-linux-gnueabihf --prefix=$PWD/install --with-mini-gmp --without-cli
 make
 make install
+
+#================================================================================
+# Get version and build numbers for these packages:
+NFTABLES_BUILD=1
+OLD_NFTABLES_VER=$(deb_version nftables)
+NEW_NFTABLES_VER=$(git_version nftables ${LIBNFTNL_BUILD})
+
+#================================================================================
+# Modify existing deb package for "libnftnl-dev" with our compiled files:
+cd ${BASE}/nftables/modded
+DIR=nftables_${NEW_NFTABLES_VER}_armhf
+apt download nftables=${OLD_NFTABLES_VER}
+dpkg-deb -R nftables_${OLD_NFTABLES_VER}_armhf.deb ${DIR}
+rm nftables_${OLD_NFTABLES_VER}_armhf.deb
+cd ${BASE}/nftables/modded/${DIR}
+cp ${BASE}/nftables/install/sbin/nft usr/sbin/
+rm usr/share/doc/nftables/{changelog,copyright}*
+rm usr/share/doc/nftables/examples/*.nft
+cp ${BASE}/nftables/install/share/nftables/*.nft usr/share/doc/nftables/examples/
+cp ${BASE}/nftables/install/share/doc/nftables/examples/*.nft usr/share/doc/nftables/examples/
+cp ${BASE}/nftables/install/share/man/man8/* usr/share/man/man8/
+gzip -f usr/share/man/man8/nft.8
+sed -i "s|^Version: .*|Version: ${NEW_NFTABLES_VER}|" DEBIAN/control
+sed -i "s|^Installed-Size: .*|Installed-Size: $(( $(du -s . | awk '{print $1}') - $(du -s DEBIAN | awk '{print $1}') ))|" DEBIAN/control
+LIBNFTABLES1_VER=$(grep -o "libnftables1 (= [^)]*)" DEBIAN/control)
+sed -i "s|${LIBNFTABLES1_VER}|libnftables1 (= ${NEW_NFTABLES_VER})|" DEBIAN/control
+find usr -type f -exec md5sum {} \; > DEBIAN/md5sums
+cd ..
+dpkg-deb --build --root-owner-group ${DIR}
+
+#================================================================================
+# Modify existing deb package for "libnftables1" with our compiled files:
+cd ${BASE}/nftables/modded
+DIR=libnftables1_${NEW_NFTABLES_VER}_armhf
+apt download libnftables1=${OLD_NFTABLES_VER}
+dpkg-deb -R libnftables1_${OLD_NFTABLES_VER}_armhf.deb ${DIR}
+rm libnftables1_${OLD_NFTABLES_VER}_armhf.deb
+cd ${BASE}/nftables/modded/${DIR}
+rm usr/lib/arm-linux-gnueabihf/*
+rm -rf usr/share/doc/libnftables1/*
+cp ${BASE}/nftables/COPYING usr/share/doc/libnftables1/ 
+cp -a ${BASE}/nftables/install/lib/libnftables.so.1* usr/lib/arm-linux-gnueabihf/
+cp ${BASE}/nftables/install/share/man/man3/libnftables.3 usr/share/man/man3/
+gzip -f usr/share/man/man3/libnftables.3
+cp ${BASE}/nftables/install/share/man/man5/libnftables-json.5 usr/share/man/man5/
+gzip -f usr/share/man/man5/libnftables-json.5
+rm DEBIAN/{shlibs,triggers}
+sed -i "s|^Version: .*|Version: ${NEW_NFTABLES_VER}|" DEBIAN/control
+sed -i "s|^Installed-Size: .*|Installed-Size: $(du -s usr | awk '{print $1}')|" DEBIAN/control
+sed -i "s|$(grep -o "libmnl0 (>= [^)]*)" DEBIAN/control)|libmnl0 (>= ${NEW_LIBMNL_VER})|" DEBIAN/control
+sed -i "s|$(grep -o "libnftnl11 (>= [^)]*)" DEBIAN/control)|libnftnl11 (>= ${NEW_LIBNFTNL_VER})|" DEBIAN/control
+find usr -type f -exec md5sum {} \; > DEBIAN/md5sums
+cd ..
+dpkg-deb --build --root-owner-group ${DIR}
+
+#================================================================================
+# Modify existing deb package for "libnftables-dev" with our compiled files:
+cd ${BASE}/nftables/modded
+DIR=libnftables-dev_${NEW_NFTABLES_VER}_armhf
+apt download libnftables-dev=${OLD_NFTABLES_VER}
+dpkg-deb -R libnftables-dev_${OLD_NFTABLES_VER}_armhf.deb ${DIR}
+rm libnftables-dev_${OLD_NFTABLES_VER}_armhf.deb
+cd ${BASE}/nftables/modded/${DIR}
+rm -rf usr/share/doc/libnftables-dev/*
+cp ${BASE}/nftables/COPYING usr/share/doc/libnftables-dev/
+cp ${BASE}/nftables/install/include/nftables/* usr/include/nftables/
+cp -a ${BASE}/nftables/install/lib/*.so usr/lib/arm-linux-gnueabihf/
+cp ${BASE}/nftables/install/lib/pkgconfig/* usr/lib/arm-linux-gnueabihf/pkgconfig/
+sed -i "s|^Version: .*|Version: ${NEW_NFTABLES_VER}|" DEBIAN/control
+sed -i "s|^Installed-Size: .*|Installed-Size: $(du -s usr | awk '{print $1}')|" DEBIAN/control
+sed -i "s|$(grep -o "libnftables1 (= [^)]*)" DEBIAN/control)|libnftables1 (= ${NEW_NFTABLES_VER})|" DEBIAN/control
+find usr -type f -exec md5sum {} \; > DEBIAN/md5sums
+cd ..
+dpkg-deb --build --root-owner-group ${DIR}
+apt install -y ./*.deb
+mv *.deb ${BASE}
