@@ -187,7 +187,7 @@ case $CMD in
 			mkdir -p ${DIR}
 			cd ${DIR}
 			mkdir -p {upper,work,merged}
-			LOW=/ro
+			test -d ${DIR}/lower && LOW=${DIR}/lower || LOW=/ro
 			if [[ -d ${DIR}/sub_upper ]]; then
 				mkdir -p ${DIR}/sub_{work,merged}
 				mount -t overlay sub_chroot_env -o lowerdir=/ro,upperdir=./sub_upper,workdir=./sub_work ./sub_merged
