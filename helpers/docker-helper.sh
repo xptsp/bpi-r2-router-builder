@@ -21,12 +21,5 @@ if [[ ! -z "${NEW_IP}" ]]; then
 	[[ "${NEW_IP}" != "${OLD_IP}" ]] && sed -i "s|\"ip\":.*|\"ip\": \"${NEW_IP}\",|g" /etc/docker/daemon.json
 fi
 
-# Try and fix docker issue with nftables:
-iptables -N DOCKER-USER
-if ! iptables --list-rules | grep DOCKER-USER | grep 0x44636b72 >& /dev/null; then
-	iptables -I DOCKER-USER -j MARK --set-mark 0x44636b72
-	iptables -A FORWARD -m mark --mark 0x44636b72 -j MARK --set-mark 0
-fi
-
 # Return error code 0 to caller:
 exit 0

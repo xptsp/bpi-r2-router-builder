@@ -22,7 +22,7 @@ fi
 ################################################################################################
 # Are we dealing with an USER-defined interface does not require masquerading?
 ################################################################################################
-test -f /etc/network/interfaces.d/${IFACE} && if [[ -z "${IF_MASQUERADE}" ]]; then
+test -f /etc/network/interfaces.d/${IFACE} && if [[ -z "${IF_MASQUERADE}" && ! -z "${IF_ADDRESS}" ]]; then
 	# Put the IP address range into the firewalls "INSIDE_NETWORK" set.
 	# This should allow port triggering to work properly:
 	nft add element inet firewall INSIDE_NETWORK { $(ip addr show ${IFACE} | grep " inet " | head -1 | awk '{print $2}') } >& /dev/null

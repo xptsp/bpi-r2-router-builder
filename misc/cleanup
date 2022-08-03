@@ -47,16 +47,18 @@ DEV=$(los ${FILE})
 chroot ${DEV} /opt/bpi-r2-router-builder/misc/remove_files
 
 ####################################################################################################
-echo -e "${GREEN}NOTE:${NC} Copy root files to empty image..."
-cp -aR ${DEV}/* ${OUT}/
+echo -e "${GREEN}NOTE:${NC} Copying necessary boot partition files..."
+find ${DEV}/boot -type f | grep -v "uImage$" | egrep -v ".(cfg|dtb|conf)$" | while read file; do
+	DEST=$(echo $file | sed "s|${DEV}/boot|${OUT}/boot|")
+	mkdir -p $(dirname ${DEST})
+	cp ${file} ${DEST}
+done
+mv ${OUT}/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb.old ${OUT}/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
+umount ${DEV}/boot
 
 ####################################################################################################
-echo -e "${GREEN}NOTE:${NC} Cleaning up boot partition..."
-rm ${OUT}/boot/bananapi/bpi-r2/linux/uImage >& /dev/null
-rm ${OUT}/boot/{bpiwrt.cfg,*.conf} >& /dev/null
-mv ${OUT}/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.{dtb.old,dtb} >& /dev/null
-cp /dev/null ${OUT}/null.file
-rm ${OUT}/null.file
+echo -e "${GREEN}NOTE:${NC} Copying root files to empty image..."
+cp -aR ${DEV}/* ${OUT}/
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Unmount partitions from system..."
