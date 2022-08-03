@@ -56,15 +56,19 @@ rm /etc/pihole/gravity_old.db >& /dev/null
 ####################################################################################################
 GIT=($(whereis git | cut -d":" -f 2))
 if [[ ! -z "${GIT[@]}" ]]; then
-	echo -e "${GREEN}NOTE:${NC} Repulling SSD1306 Stats repo to minimize size..."
-	rm -rf /opt/stats
-	git clone --depth=1 https://github.com/xptsp/bpi-r2-ssd1306-display /opt/stats
+	echo -e "${GREEN}NOTE:${NC} Resetting bpi-r2-router-builder repo..."
+	cd /opt/bpi-r2-router-builder
+	git reset --hard
 
-	echo -e "${GREEN}NOTE:${NC} Repulling wireless-regdb repo to minimize size..."
-	rm -rf /opt/wireless-regdb
-	git clone --depth=1 https://git.kernel.org/pub/scm/linux/kernel/git/sforshee/wireless-regdb.git/ /opt/wireless-regdb
+	echo -e "${GREEN}NOTE:${NC} Resetting SSD1306 Stats repo..."
+	cd /opt/stats
+	git reset --hard
 
-	echo -e "${GREEN}NOTE:${NC} Repulling multicast-relay repo to minimize size..."
-	rm -rf /opt/multicast-relay
-	git clone --depth=1 https://github.com/alsmith/multicast-relay /opt/multicast-relay
+	echo -e "${GREEN}NOTE:${NC} Repulling wireless-regdb repo..."
+	cd /opt/wireless-regdb
+	git reset --hard
+
+	echo -e "${GREEN}NOTE:${NC} Repulling multicast-relay repo..."
+	/opt/multicast-relay
+	git reset --hard
 fi

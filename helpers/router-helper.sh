@@ -187,12 +187,7 @@ case $CMD in
 			mkdir -p ${DIR}
 			cd ${DIR}
 			mkdir -p {upper,work,merged}
-			test -d ${DIR}/lower && LOW=${DIR}/lower || LOW=/ro
-			if [[ -d ${DIR}/sub_upper ]]; then
-				mkdir -p ${DIR}/sub_{work,merged}
-				mount -t overlay sub_chroot_env -o lowerdir=/ro,upperdir=./sub_upper,workdir=./sub_work ./sub_merged
-				LOW=./sub_merged
-			fi
+			test -d ${DIR}/lower && LOW=./lower || LOW=/ro
 			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
 			echo "CE" > merged/etc/debian_chroot
 		#####################################################################
@@ -208,6 +203,22 @@ case $CMD in
 		elif [[ "$1" == "umount" ]]; then
 			umount ${DIR}/merged 2> /dev/null
 			umount ${DIR}/sub_merged 2> /dev/null
+		#####################################################################
+		# MKLOWER => Copies merged overlay filesystem into overlay directory "lower":
+		elif [[ "$1" == "mklower" ]]; then
+			if ! mount | grep "${DIR}" >& /dev/null; then $0 overlay mount || exit 1; fi
+			if [[ ! "$2" =~ -(y|-yes) && -d ${DIR}/lower ]]; then
+				echo "WARNING: The router will merge the existing lower overlay directory with the existing"
+				echo "upper directory.  This action cannot be undone!"
+				askYesNo "Are you SURE you want to do this?" || exit 0
+				rm -rf ${DIR}/lower2
+			fi
+			cp -aR ${DIR}/merged ${DIR}/lower2
+			$0 overlay umount
+			test -d ${DIR}/lower && rm -rf ${DIR}/lower
+			mv ${DIR}/lower2 ${DIR}/lower
+			$0 overlay mount
+			echo "INFO: New lower overlay directory is ready for use." 
 		#####################################################################
 		# DESTROY => Creates overlayfs for compilation environment
 		elif [[ "$1" == "destroy" ]]; then

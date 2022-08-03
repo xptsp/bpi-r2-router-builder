@@ -8,13 +8,13 @@ git_version() {
 	echo $(git log | grep build: | grep -m 1 -o "[0-9]*\.[0-9]*\.[0-9]*")-${2:-"1"}~git$(git log | grep -m 1 -e "^commit " | awk '{print $2}' | cut -c1-7)
 }
 deb_version() {
-	apt list $1 -a 2> /dev/null | grep -v local | grep $1 | awk '{print $2}'	
+	apt list $1 -a 2> /dev/null | grep -v local | grep -v git | grep $1 | head -1 | awk '{print $2}'	
 }
 
 #################################################################################
 # Install the packages we need to compile the software:
 #################################################################################
-apt-get install -y --no-install-recommends git make gcc dh-autoreconf bison flex asciidoc pkg-config docbook-xsl xsltproc libxml2-utils python3-distutils
+apt-get install -y --no-install-recommends git make gcc dh-autoreconf bison flex asciidoc pkg-config docbook-xsl xsltproc libxml2-utils python3-distutils dpkg-dev
 
 #================================================================================
 # Create the directories and gather the information we need:
@@ -27,7 +27,7 @@ mkdir -p ${BASE}
 #################################################################################
 cd ${BASE}
 git clone https://git.netfilter.org/libmnl
-cd libmnl
+cd ${BASE}/libmnl
 mkdir -p {install,modded}
 ./autogen.sh
 ./configure --host=arm-linux-gnueabihf --prefix=$PWD/install
@@ -88,7 +88,7 @@ mv ${DIR}.deb ${BASE}
 #################################################################################
 cd ${BASE}
 git clone git://git.netfilter.org/libnftnl
-cd libnftnl
+cd ${BASE}/libnftnl
 mkdir -p {install,modded}
 ./autogen.sh
 ./configure --host=arm-linux-gnueabihf --prefix=$PWD/install
