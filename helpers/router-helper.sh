@@ -194,7 +194,7 @@ case $CMD in
 		elif [[ "$1" == "enter" ]]; then
 			DIR=${DIR}/${2:-"merged"}
 			$0 overlay umount
-			$0 overlay mount || exit 1; fi
+			$0 overlay mount || exit 1
 			remount_rw ${DIR}
 			chroot ${DIR}
 			remount_ro ${DIR}
