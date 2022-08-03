@@ -1,0 +1,3 @@
+[submodule "misc/builders"]
+	path = misc/builders
+	url = https://github.com/xptsp/building-scripts
