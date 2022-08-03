@@ -183,36 +183,35 @@ case $CMD in
 		#####################################################################
 		# MOUNT => Creates overlayfs for chroot environment (aka for compiling stuff)
 		elif [[ "$1" == "mount" ]]; then
-			! test -d /ro && echo "ERROR: No read-only partition exists to base chroot environment on!" && exit 1
 			mkdir -p ${DIR}
 			cd ${DIR}
 			mkdir -p {upper,work,merged}
-			test -d ${DIR}/lower && LOW=./lower || LOW=/ro
+			test -d ${DIR}/lower && LOW=./lower || LOW=$(test -d /ro && echo "/ro" || echo "/")
 			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
 			echo "CE" > merged/etc/debian_chroot
 		#####################################################################
 		# ENTER => Creates overlayfs for compilation environment
 		elif [[ "$1" == "enter" ]]; then
 			DIR=${DIR}/${2:-"merged"}
-			if ! mount | grep "${DIR}" >& /dev/null; then $0 overlay mount || exit 1; fi
+			$0 overlay umount
+			$0 overlay mount || exit 1; fi
 			remount_rw ${DIR}
 			chroot ${DIR}
 			remount_ro ${DIR}
 		#####################################################################
 		# UMOUNT => Creates overlayfs for compilation environment
 		elif [[ "$1" == "umount" ]]; then
+			mount | grep "${DIR}/merged" | awk '{print $3}' | while read mount; do umount $mount; done
 			umount ${DIR}/merged 2> /dev/null
-			umount ${DIR}/sub_merged 2> /dev/null
 		#####################################################################
-		# MKLOWER => Copies merged overlay filesystem into overlay directory "lower":
-		elif [[ "$1" == "mklower" ]]; then
+		# MERGE => Copies merged overlay filesystem into overlay directory "lower":
+		elif [[ "$1" == "merge" ]]; then
 			if ! mount | grep "${DIR}" >& /dev/null; then $0 overlay mount || exit 1; fi
 			if [[ ! "$2" =~ -(y|-yes) && -d ${DIR}/lower ]]; then
-				echo "WARNING: The router will merge the existing lower overlay directory with the existing"
-				echo "upper directory.  This action cannot be undone!"
+				echo "WARNING: This will merge the overlay filesystem into a new lower overlay directory and cannot be undone!"
 				askYesNo "Are you SURE you want to do this?" || exit 0
-				rm -rf ${DIR}/lower2
 			fi
+			test -d ${DIR}/lower2 && rm -rf ${DIR}/lower2
 			cp -aR ${DIR}/merged ${DIR}/lower2
 			$0 overlay umount
 			test -d ${DIR}/lower && rm -rf ${DIR}/lower
@@ -242,6 +241,7 @@ case $CMD in
 			echo "    enter   - Enter created separate overlayfs environment"
 			echo "    umount  - Remove created separate overlayfs environment"
 			echo "    destroy - Remove created separate overlayfs environment"
+			echo "    merge   - Merges current lower and upper levels into new lower level" 
 		fi
 		;;
 
