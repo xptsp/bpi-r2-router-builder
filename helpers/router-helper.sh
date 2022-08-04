@@ -188,20 +188,25 @@ case $CMD in
 			mkdir -p {upper,work,merged}
 			test -d ${DIR}/lower && LOW=./lower || LOW=$(test -d /ro && echo "/ro" || echo "/")
 			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
+			find . -maxdepth 1 -type d | egrep -v "/(lower|upper|merged|work|)$" | grep -v "^.$" | while read mount; do 
+				mkdir -p ./merged/${mount}
+				mount --bind ${mount} ./merged/${mount}
+			done  
 			echo "CE" > merged/etc/debian_chroot
 		#####################################################################
 		# ENTER => Creates overlayfs for compilation environment
 		elif [[ "$1" == "enter" ]]; then
 			DIR=${DIR}/${2:-"merged"}
-			$0 overlay umount
+			mount | grep "${DIR}/merged" >& /dev/null && $0 overlay umount
 			$0 overlay mount || exit 1
 			remount_rw ${DIR}
 			chroot ${DIR}
 			remount_ro ${DIR}
+			$0 overlay umount
 		#####################################################################
 		# UMOUNT => Creates overlayfs for compilation environment
 		elif [[ "$1" == "umount" ]]; then
-			mount | grep "${DIR}/merged" | awk '{print $3}' | while read mount; do umount $mount; done
+			mount | grep "${DIR}/merged" | awk '{print $3}' | tac | while read mount; do umount $mount; done
 			umount ${DIR}/merged 2> /dev/null
 		#####################################################################
 		# MERGE => Copies merged overlay filesystem into overlay directory "lower":
@@ -226,7 +231,7 @@ case $CMD in
 				askYesNo "Are you SURE you want to do this?" || exit 0
 			fi
 			$0 overlay umount
-			rm -rf ${DIR}
+			rm -rf ${DIR}/{lower,upper,work,merged}
 		#####################################################################
 		# Everything else:
 		else
