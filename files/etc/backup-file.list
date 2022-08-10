@@ -31,3 +31,4 @@ etc/timezone
 etc/vnstat.conf
 home/vpn/.config/transmission-daemon/settings.json
 usr/share/transmission/web
+root/.ssh/*

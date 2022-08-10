@@ -9,6 +9,7 @@ if [[ "${UID}" -ne 0 ]]; then
 	sudo $0 $@
 	exit $?
 fi
+TABLE=$(grep "^TABLE=" $(dirname $0)/nftables-script.sh | cut -d= -f 2)
 
 ###########################################################################
 # Supporting functions
@@ -835,7 +836,7 @@ case $CMD in
 		if [[ "${1,,}" =~ (add|delete) ]]; then
 			# Validate the incoming information:
 			[[ "${1^^}" == "Y" ]] && ENABLED= || ENABLED='# '
-			NFT="${2,,} element inet firewall ${CMD^^}"
+			NFT="${2,,} element inet ${TABLE} ${CMD^^}"
 			PROTO=${3^^}
 			if [[ ! "${PROTO}" =~ (TCP|UDP|BOTH) ]]; then echo "ERROR: 2nd param must be \"tcp\", \"udp\" or \"both\"."; exit 1; fi
 			EXT_PORT=${4}
@@ -925,9 +926,9 @@ case $CMD in
 			ARP=($(arp | grep ${IP}))
 			if [[ -z "${ARP[@]}" ]]; then echo "ERROR: No MAC address found for specified IP address!"; exit 1; fi
 			# Not required if the interface isn't part of the captive portal configuration:
-			if ! nft get element inet firewall DEV_PORTAL { ${ARP[6]} } >& /dev/null; then echo "Y"; exit; fi
+			if ! nft get element inet ${TABLE} DEV_PORTAL { ${ARP[6]} } >& /dev/null; then echo "Y"; exit; fi
 			# Not required if MAC address has already been approved:
-			nft get element inet firewall PORTAL_PASS { ${ARP[3]} } >& /dev/null && echo "Y" || echo "N"
+			nft get element inet ${TABLE} PORTAL_PASS { ${ARP[3]} } >& /dev/null && echo "Y" || echo "N"
 		#####################################################################
 		# ACCEPT/REJECT => Accept or reject MAC address for IP address specified:
 		#####################################################################
@@ -950,13 +951,13 @@ case $CMD in
 			# Add the MAC address(es) here:
 			for MAC in ${ADDR[@]}; do
 				# Add the MAC address(es) to either "PORTAL_ACCEPT" or "PORTAL_REJECT" set, along with timeout (if any):
-				nft add element inet firewall PORTAL_${1^^} { ${MAC} ${TIMEOUT} }
+				nft add element inet ${TABLE} PORTAL_${1^^} { ${MAC} ${TIMEOUT} }
 
 				# If Captive Portal persistence is required, add it to "/etc/persistent-nftables.conf":
 				if [[ -z "${TIMEOUT}" ]]; then
 					FILE=/etc/persistent-nftables.conf
 					sed -i "/PORTAL_${1^^} { ${MAC} }/d" ${FILE}
-					echo "nft add element inet firewall PORTAL_${1^^} { ${MAC} }" >> ${FILE}
+					echo "nft add element inet ${TABLE} PORTAL_${1^^} { ${MAC} }" >> ${FILE}
 				fi
 			done
 			echo "OK"
