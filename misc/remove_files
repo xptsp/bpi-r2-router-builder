@@ -69,6 +69,6 @@ if [[ ! -z "${GIT[@]}" ]]; then
 	git reset --hard
 
 	echo -e "${GREEN}NOTE:${NC} Repulling multicast-relay repo..."
-	/opt/multicast-relay
+	cd /opt/multicast-relay
 	git reset --hard
 fi

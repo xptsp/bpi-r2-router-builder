@@ -200,14 +200,13 @@ case $CMD in
 			mount | grep "${DIR}/merged" >& /dev/null && $0 overlay umount
 			$0 overlay mount || exit 1
 			remount_rw ${DIR}
-			chroot ${DIR}
+			chroot ${DIR} screen -l
 			remount_ro ${DIR}
 			$0 overlay umount
 		#####################################################################
 		# UMOUNT => Creates overlayfs for compilation environment
 		elif [[ "$1" == "umount" ]]; then
 			mount | grep "${DIR}/merged" | awk '{print $3}' | tac | while read mount; do umount $mount; done
-			umount ${DIR}/merged 2> /dev/null
 		#####################################################################
 		# MERGE => Copies merged overlay filesystem into overlay directory "lower":
 		elif [[ "$1" == "merge" ]]; then
@@ -221,13 +220,23 @@ case $CMD in
 			$0 overlay umount
 			test -d ${DIR}/lower && rm -rf ${DIR}/lower
 			mv ${DIR}/lower2 ${DIR}/lower
+			rm -rf ${DIR}/{upper,work}
 			$0 overlay mount
 			echo "INFO: New lower overlay directory is ready for use." 
 		#####################################################################
-		# DESTROY => Creates overlayfs for compilation environment
+		# RESET => Remove changes made to the overlayfs environment
+		elif [[ "$1" == "reset" ]]; then
+			if [[ ! "$2" =~ -(y|-yes) ]]; then
+				echo "WARNING: The router will remove changes made to overlay environment and cannot be undone!"
+				askYesNo "Are you SURE you want to do this?" || exit 0
+			fi
+			$0 overlay umount
+			rm -rf ${DIR}/upper
+		#####################################################################
+		# DESTROY => Destroys entire overlayfs for compilation environment
 		elif [[ "$1" == "destroy" ]]; then
 			if [[ ! "$2" =~ -(y|-yes) ]]; then
-				echo "WARNING: The router will delete the chroot environment built.  This action cannot be undone!"
+				echo "WARNING: The router will delete the ENTIRE overlay environment built and cannot be undone!"
 				askYesNo "Are you SURE you want to do this?" || exit 0
 			fi
 			$0 overlay umount
@@ -236,17 +245,19 @@ case $CMD in
 		# Everything else:
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-			echo "Usage: $(basename $0) overlay [enable|disable|status|mount|enter|umount|destroy]"
+			echo "Usage: $(basename $0) overlay [enable|disable|status|mount|enter|umount|merge|clear|destroy]"
 			echo "Where:"
 			echo "    enable  - Enables overlay script upon next boot"
 			echo "    disable - Disables overlay script upon next boot"
 			echo "    status  - Displays current status and next boot status of overlay script"
-			echo "Overlayfs options:"
+			echo ""
+			echo "Additional overlayfs action:"
 			echo "    mount   - Create separate overlayfs environment"
 			echo "    enter   - Enter created separate overlayfs environment"
 			echo "    umount  - Remove created separate overlayfs environment"
-			echo "    destroy - Remove created separate overlayfs environment"
 			echo "    merge   - Merges current lower and upper levels into new lower level" 
+			echo "    reset   - Remove all changes made to the overlayfs environment" 
+			echo "    destroy - Remove ENTIRE overlayfs environment"
 		fi
 		;;
 
