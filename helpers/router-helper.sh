@@ -9,7 +9,7 @@ if [[ "${UID}" -ne 0 ]]; then
 	sudo $0 $@
 	exit $?
 fi
-TABLE=$(grep "^TABLE=" $(dirname $0)/nftables-script.sh | cut -d= -f 2)
+TABLE=$(grep -m 1 "^table inet " /etc/nftables.conf | awk '{print $3}')
 
 ###########################################################################
 # Supporting functions

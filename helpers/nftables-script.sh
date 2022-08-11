@@ -10,7 +10,7 @@ GREEN='\033[1;32m'
 BLUE='\033[1;34m'
 NC='\033[0m'
 TXT=nftables-script  # String used to identify rules added by this script!
-TABLE=filter
+TABLE=$(grep -m 1 "^table inet " /etc/nftables.conf | awk '{print $3}')
 
 function stage()
 {
