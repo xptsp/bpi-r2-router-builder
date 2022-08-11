@@ -1,4 +1,6 @@
 #!/bin/bash
+TABLE=$(grep -m 1 "^table inet " /etc/nftables.conf | awk '{print $3}')
+
 #############################################################################
 # This helper script takes care of any tasks that should occur before the 
 # transmission service officially starts.  Tasks that occur here should not
@@ -13,7 +15,7 @@ fi
 # Forward all traffic on the peer port to the transmission daemon:
 [[ "$1" == "start" ]] && ACTION=add || ACTION=delete
 PEER=$(cat /etc/transmission-daemon/settings.json | egrep -o '"peer-port": [0-9]*' | awk '{print $2}')
-nft ${ACTION} element inet firewall ACCEPT_PORT_TCP { ${PEER:-"51543"} } 
+nft ${ACTION} element inet ${TABLE} ACCEPT_PORT_TCP { ${PEER:-"51543"} } 
 
 # Add routing to the network routing table so "lo" goes through "br0"... (?)
 ip route ${ACTION/delete/del} 127.0.0.0/8 via $(cat /etc/network/interfaces.d/br0 | grep 'address' | awk '{print $2}')

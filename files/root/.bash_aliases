@@ -2,7 +2,7 @@ nft_test()
 {
 	test -f /root/nftables.conf || rm /root/nftables.conf
 	nano /root/nftables.conf
-	sudo nft flush table inet firewall
+	sudo nft flush table inet filter
 	sudo nft -f /root/nftables.conf || sudo nft -f /etc/nftables.conf
 }
 nft_list()

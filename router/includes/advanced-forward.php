@@ -47,18 +47,18 @@ if (isset($_POST['action']))
 			#################################################################################################
 			# Process the nftables statement as a line:
 			#################################################################################################
-			if (preg_match("/(\#\s*|)add element inet firewall (FORWARD_PORT|FORWARD_RANGE|TRIGGER_PORT)_(TCP|UDP) { (\d+\-\d+|\d+)( : (\d+\.\d+\.\d+\.\d+)( \. (\d+)|)|) }( \# (.+)|)/", $line, $regex))
+			if (preg_match("/(\#\s*|)add element inet ([^\s]*)(FORWARD_PORT|FORWARD_RANGE|TRIGGER_PORT)_(TCP|UDP) { (\d+\-\d+|\d+)( : (\d+\.\d+\.\d+\.\d+)( \. (\d+)|)|) }( \# (.+)|)/", $line, $regex))
 			{
 				#echo '<pre>'; print_r($regex); exit;
-				$elem     = $regex[2];
-				$proto    = $regex[3];
-				$ext_port = $regex[4];
+				$elem     = $regex[3];
+				$proto    = $regex[4];
+				$ext_port = $regex[5];
 				$ports[$elem][$proto][$ext_port] = array(
 					'ext_port'   => $ext_port,
-					'int_addr'   => $regex[6],
-					'int_port'   => empty($regex[8]) ? $port : $regex[8],
-					'enabled'    => empty($regex[1]) ? 'Y' : 'N', 
-					'comment'    => $regex[10],
+					'int_addr'   => $regex[5],
+					'int_port'   => empty($regex[9]) ? $port : $regex[8],
+					'enabled'    => empty($regex[2]) ? 'Y' : 'N', 
+					'comment'    => $regex[11],
 					'persistent' => 'Y'
 				);
 				#echo '<pre>'; print_r($ports[$elem][$proto][$ext_port]); exit;

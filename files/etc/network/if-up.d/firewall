@@ -1,4 +1,5 @@
 #!/bin/bash
+TABLE=$(grep -m 1 "^table inet " /etc/nftables.conf | awk '{print $3}')
 IP_ADDR=$(ifconfig ${IFACE} | grep " inet " | awk '{print $2}')
 
 ################################################################################################
@@ -11,30 +12,30 @@ IP_ADDR=$(ifconfig ${IFACE} | grep " inet " | awk '{print $2}')
 ################################################################################################
 test -f /etc/network/interfaces.d/${IFACE} && if [[ ! -z "${IF_MASQUERADE}" ]]; then
 	# Add this interface to the list of WAN interfaces:
-	nft add element inet firewall DEV_WAN { ${IFACE} }
+	nft add element inet ${TABLE} DEV_WAN { ${IFACE} }
 	
 	# Put the IP addresses of the interface in the firewall's "prerouting_private" chain.
 	# This should allow double-nat configurations to work properly:
-	nft insert rule inet firewall mangle_prerouting_private iifname ${IFACE} ip saddr $(ip addr show ${IFACE} | grep " inet " | head -1 | awk '{print $2}') return >& /dev/null
-	nft insert rule inet firewall mangle_prerouting_private iifname ${IFACE} ip6 saddr $(ip addr show ${IFACE} | grep " inet6 " | head -1 | awk '{print $2}') return >& /dev/null
+	nft insert rule inet ${TABLE} mangle_prerouting_private iifname ${IFACE} ip saddr $(ip addr show ${IFACE} | grep " inet " | head -1 | awk '{print $2}') return >& /dev/null
+	nft insert rule inet ${TABLE} mangle_prerouting_private iifname ${IFACE} ip6 saddr $(ip addr show ${IFACE} | grep " inet6 " | head -1 | awk '{print $2}') return >& /dev/null
 fi
 
 ################################################################################################
 # Are we dealing with an USER-defined interface does not require masquerading?
 ################################################################################################
 test -f /etc/network/interfaces.d/${IFACE} && if [[ -z "${IF_MASQUERADE}" && ! -z "${IF_ADDRESS}" ]]; then
-	# Put the IP address range into the firewalls "INSIDE_NETWORK" set.
+	# Put the IP address range into the firewall's "INSIDE_NETWORK" set.
 	# This should allow port triggering to work properly:
-	nft add element inet firewall INSIDE_NETWORK { $(ip addr show ${IFACE} | grep " inet " | head -1 | awk '{print $2}') } >& /dev/null
+	nft add element inet ${TABLE} INSIDE_NETWORK { $(ip addr show ${IFACE} | grep " inet " | head -1 | awk '{print $2}') } >& /dev/null
 
 	# Add this interface to the list of LAN interfaces:
-	nft add element inet firewall DEV_LAN { ${IFACE} }
+	nft add element inet ${TABLE} DEV_LAN { ${IFACE} }
 
 	# If this interface has a captive portal, add it to the captive portal sets and rules:
 	if [[ ! -z "${IF_CAPTIVE_PORTAL}" ]]; then
-		nft add element inet firewall DEV_PORTAL { ${IFACE} } >& /dev/null
-		nft add element inet firewall CAPTIVE_PORTAL_IPs { ${IP_ADDR} } >& /dev/null
-		nft add rule inet firewall nat_prerouting_portal tcp dport 80 iifname ${IFACE} dnat ip to ${IP_ADDR} >& /dev/null
+		nft add element inet ${TABLE} DEV_PORTAL { ${IFACE} } >& /dev/null
+		nft add element inet ${TABLE} CAPTIVE_PORTAL_IPs { ${IP_ADDR} } >& /dev/null
+		nft add rule inet ${TABLE} nat_prerouting_portal tcp dport 80 iifname ${IFACE} dnat ip to ${IP_ADDR} >& /dev/null
 	fi
 fi
 
