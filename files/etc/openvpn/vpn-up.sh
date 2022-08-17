@@ -22,4 +22,4 @@ ip route flush cache
 ########################################################################################
 # Run update-systemd-resolved script to set VPN DNS
 ########################################################################################
-/etc/openvpn/update-systemd-resolved
+/etc/openvpn/update-resolv-conf
