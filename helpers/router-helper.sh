@@ -18,7 +18,7 @@ TABLE=$(grep -m 1 "^table inet " /etc/nftables.conf | awk '{print $3}')
 function check_ro()
 {
 	if test -d /ro; then
-		mount | grep " /ro " | grep "ext4" >& /dev/null || echo "ERROR: Read-only partition is a not a ext4 filesystem!  Aborting!" || exit 1
+		mount | grep " /ro " | grep -q "ext4" || echo "ERROR: Read-only partition is a not a ext4 filesystem!  Aborting!" || exit 1
 	else
 		if [[ "$(cat /etc/debian_chroot)" == "CHROOT" ]]; then
 			echo "ERROR: Already in chroot environment!"
@@ -66,13 +66,13 @@ function remount_rw()
 function remount_ro()
 {
 	RO=${1:-"/ro"}
-	umount ${RO}/tmp >& /dev/null
-	umount ${RO}/sys >& /dev/null
-	umount ${RO}/proc >& /dev/null
-	umount ${RO}/run >& /dev/null
-	umount ${RO}/dev >& /dev/null
-	umount ${RO}/var/lib/apt/lists >& /dev/null
-	umount ${RO}/var/cache/apt >& /dev/null
+	umount -q ${RO}/tmp
+	umount -q ${RO}/sys
+	umount -q ${RO}/proc
+	umount -q ${RO}/run
+	umount -q ${RO}/dev
+	umount -q ${RO}/var/lib/apt/lists
+	umount -q ${RO}/var/cache/apt
 	[[ "$RO" == "/ro" ]] && mount -o remount,ro $RO_DEV /ro
 }
 
@@ -119,7 +119,7 @@ case $CMD in
 		echo "RO" > /tmp/debian_chroot
 		mount --bind /tmp/debian_chroot /ro/etc/debian_chroot
 		chroot /ro $@
-		umount /ro/etc/debian_chroot >& /dev/null
+		umount -q /ro/etc/debian_chroot
 		rm /tmp/debian_chroot
 		remount_ro || echo "Setting RO Failed"
 		;;
@@ -178,8 +178,8 @@ case $CMD in
 		#####################################################################
 		# STATUS => Returns status of overlay setting:
 		elif [[ "$1" == "status" ]]; then
-			STAT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep "^bootmenu_default=[2|4]" >& /dev/null && echo "enabled" || echo "disabled")
-			IN_USE=$(mount | grep " /ro " >& /dev/null || echo " not")
+			STAT=$(cat /boot/bananapi/bpi-r2/linux/uEnv.txt | grep -q "^bootmenu_default=[2|4]" && echo "enabled" || echo "disabled")
+			IN_USE=$(mount | grep -q " /ro " || echo " not")
 			echo "Overlay Root script is ${STAT} for next boot, currently${IN_USE} active."
 		#####################################################################
 		# MOUNT => Creates overlayfs for chroot environment (aka for compiling stuff)
@@ -198,7 +198,7 @@ case $CMD in
 		# ENTER => Creates overlayfs for compilation environment
 		elif [[ "$1" == "enter" ]]; then
 			DIR=${DIR}/${2:-"merged"}
-			mount | grep "${DIR}/merged" >& /dev/null && $0 overlay umount
+			mount | grep -q "${DIR}/merged" && $0 overlay umount
 			$0 overlay mount || exit 1
 			remount_rw ${DIR}
 			chroot ${DIR} screen -l
@@ -211,7 +211,7 @@ case $CMD in
 		#####################################################################
 		# MERGE => Copies merged overlay filesystem into overlay directory "lower":
 		elif [[ "$1" == "merge" ]]; then
-			if ! mount | grep "${DIR}" >& /dev/null; then $0 overlay mount || exit 1; fi
+			if ! mount | grep -q "${DIR}"; then $0 overlay mount || exit 1; fi
 			if [[ ! "$2" =~ -(y|-yes) && -d ${DIR}/lower ]]; then
 				echo "WARNING: This will merge the overlay filesystem into a new lower overlay directory and cannot be undone!"
 				askYesNo "Are you SURE you want to do this?" || exit 0
@@ -395,7 +395,7 @@ case $CMD in
 
 	###########################################################################
 	backup)
-		if ! mount | grep ^overlayfs-root >& /dev/null; then echo "ERROR: Overlay is disabled."; exit; fi
+		if ! mount | grep -q "^overlayfs-root"; then echo "ERROR: Overlay is disabled."; exit; fi
 		#####################################################################
 		# SQUASH => Create settings backup in the /tmp folder:
 		if [[ "$1" == "squash" ]]; then
@@ -439,19 +439,19 @@ case $CMD in
 		#####################################################################
 		# REMOVE => Remove uploaded configuration backup:
 		elif [[ "$1" == "unlink" ]]; then
-			umount /tmp/bpiwrt >& /dev/null
+			umount -q /tmp/bpiwrt
 			test -f /tmp/bpiwrt.cfg && rm /tmp/bpiwrt.cfg
 		#####################################################################
 		# PREP => Prep the uploaded configuration backup to be restored:
 		elif [[ "$1" == "prep" ]]; then
-			umount /tmp/bpiwrt >& /dev/null
+			umount -q /tmp/bpiwrt
 			mkdir -p /tmp/bpiwrt
 			if ! test -f /tmp/bpiwrt.cfg; then echo "ERROR: Missing /tmp/bpiwrt.cfg file!"; exit 1; fi
 			if ! mount -o loop -t squashfs /tmp/bpiwrt.cfg /tmp/bpiwrt >& /dev/null; then echo "ERROR: Corrupted or invalid settings backup!"; exit 1; fi
 		#####################################################################
 		# RESTORE => Copy the files from the uploaded configuration backup into place:
 		elif [[ "$1" == "copy" ]]; then
-			if ! mount | grep ' /tmp/bpiwrt ' >& /dev/null; then $0 backup prep || exit 1; fi
+			if ! mount | grep -q ' /tmp/bpiwrt '; then $0 backup prep || exit 1; fi
 			cp -aR /tmp/bpiwrt/* /
 			test -f /var/opt/init_services.sh && source /var/opt/init_services.sh
 		#####################################################################
@@ -749,7 +749,7 @@ case $CMD in
 			[[ ! -z "${DNS2}" ]] && echo "server=${DNS2}" >> /etc/dnsmasq.d/01-pihole.conf
 
 			# Restart the PiHole FTL service if running:
-			if [[ "$3" != "norestart" ]]; then if systemctl is-active pihole-FTL >& /dev/null; then pihole restartdns; else true; fi; fi
+			if [[ "$3" != "norestart" ]]; then if systemctl -q is-active pihole-FTL; then pihole restartdns; else true; fi; fi
 			[[ $? -eq 0 ]] && echo "OK"
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
