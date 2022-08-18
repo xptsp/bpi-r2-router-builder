@@ -16,9 +16,12 @@ fi
 # Change the default IP address that containers are bound to:
 test -f /etc/default/docker && source /etc/default/docker
 NEW_IP=$(cat /etc/network/interfaces.d/${CONTAINER_IFACE:-"br0"} 2>&1 | grep "address" | head -1 | awk '{print $2}')
-if [[ ! -z "${NEW_IP}" ]]; then
-	OLD_IP=$(cat /etc/docker/daemon.json | grep '"ip"' | awk '{print $2}' | cut -d\" -f 2)
-	[[ "${NEW_IP}" != "${OLD_IP}" ]] && sed -i "s|\"ip\":.*|\"ip\": \"${NEW_IP}\",|g" /etc/docker/daemon.json
+FILE=/etc/docker/daemon.json
+if test -f ${FILE}; then 
+	if [[ ! -z "${NEW_IP}" ]]; then
+		OLD_IP=$(cat ${FILE} | grep '"ip"' | awk '{print $2}' | cut -d\" -f 2)
+		[[ "${NEW_IP}" != "${OLD_IP}" ]] && sed -i "s|\"ip\":.*|\"ip\": \"${NEW_IP}\",|g" ${FILE}
+	fi
 fi
 
 # Return error code 0 to caller:

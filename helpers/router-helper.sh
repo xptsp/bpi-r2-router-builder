@@ -187,7 +187,7 @@ case $CMD in
 			mkdir -p ${DIR}
 			cd ${DIR}
 			mkdir -p {upper,work,merged}
-			test -d ${DIR}/lower && LOW=./lower || LOW=$(test -d /ro && echo "/ro" || echo "/")
+			if [[ -d ${DIR}/lower ]]; then LOW=./lower; elif [[ -d /ro ]]; then LOW=/ro; else LOW=/; fi
 			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
 			find . -maxdepth 1 -type d | egrep -v "/(lower|upper|merged|work|)$" | grep -v "^.$" | while read mount; do 
 				mkdir -p ./merged/${mount}
