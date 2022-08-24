@@ -36,5 +36,6 @@ down-pre
 
 # prevent DNS leakage
 dhcp-option DOMAIN-ROUTE .
+dhcp-option DNS $(route -n | grep "127.0.0.0" | awk '{print $2}')
 EOF
 exit 0
