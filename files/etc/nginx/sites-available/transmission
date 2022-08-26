@@ -4,7 +4,7 @@ server {
 	root /data/www;
 	autoindex on;
 
-	server_name localhost;
+	server_name bpiwrt;
 
 	location / {
 		proxy_pass_header  X-Transmission-Session-Id;

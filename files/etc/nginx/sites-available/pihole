@@ -2,7 +2,7 @@ server {
 	listen 192.168.2.2:80;
 
 	root /var/www/html;
-	server_name _;
+	server_name pi.hole;
 	autoindex off;
 
 	index pihole/index.php index.php index.html index.htm;
