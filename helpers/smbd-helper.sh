@@ -118,7 +118,8 @@ case "$1" in
 		# Figure out which interfaces to bind to:
 		cd /etc/network/interfaces.d
 		IFACES=($(grep "address" $(grep -L "masquerade" *) | cut -d: -f 1))
-		sed -i "s|interfaces = .*$|interfaces = ${IFACES[@]}|" ${FILE}
+		IFACES="${IFACES[@]}"
+		sed -i "s|interfaces = .*$|interfaces = ${IFACES}|" ${FILE}
 
 		# Make sure that the include line is at the top of the "smb.conf" file:
 		grep -q -e "include = /etc/samba/includes.conf" ${FILE} || sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" ${FILE}
