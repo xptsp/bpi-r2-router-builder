@@ -1,19 +1,8 @@
-nft_test()
-{
-	test -f /root/nftables.conf || rm /root/nftables.conf
-	nano /root/nftables.conf
-	sudo nft flush table inet filter
-	sudo nft -f /root/nftables.conf || sudo nft -f /etc/nftables.conf
-}
-nft_list()
-{
-	sudo nft list ruleset | less
-}
 mksquashfs()
 {
 	/usr/bin/mksquashfs $@ -b 1048576 -comp xz -Xdict-size 100%
 }
-alias losl='losetup -l'
+alias losl='losetup -l | sort -V'
 los()
 {
 	img="$1"
@@ -31,8 +20,9 @@ los()
 		else
 			sudo mkdir -p ${dest}
 			sudo mount ${dev}p2 ${dest}
-			sudo mkdir ${dest}/boot 2> /dev/null
-			sudo mount ${dev}p1 ${dest}/boot
+			[[ -d ${dest}/@/boot ]] && DIR=${dest}/@ || DIR=${dest}
+			sudo mkdir -p ${DIR}/boot 2> /dev/null
+			sudo mount ${dev}p1 ${DIR}/boot
 		fi
 	fi
 }
@@ -67,8 +57,8 @@ losd()
 bpiwrt()
 {
 	XasBvxdfsF=0
-	while :; do
-		ifconfig enp6s0 | grep "inet " >& /dev/null && break
+	IFACE=$(ls /sys/class/net | grep -m 1 -v lo)
+	while ! ifconfig ${IFACE} | grep "inet " >& /dev/null ; do
 		clear
 		echo -e "\033[1;32m============ Waiting $(printf "%3d" ${XasBvxdfsF}) seconds ============\033[0m"
 		XasBvxdfsF=$(( XasBvxdfsF + 1))

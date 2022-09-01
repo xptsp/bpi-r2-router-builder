@@ -9,8 +9,14 @@
 # If a partition isn't mounted for docker image storage, try and mount a partition 
 # with the label "DOCKER" at "/var/lib/docker": 
 if ! mount | grep " /var/lib/docker " >& /dev/null; then
+	unset OPT
 	DEV=$(blkid | grep "LABEL=\"DOCKER\"" | cut -d: -f 1)
-	[[ ! -z "${DEV}" ]] && mount ${DEV} /var/lib/docker
+	if [[ -z "${DEV}" ]]; then
+		DEV=$(mount | grep " /ro " | cut -d" " -f 1)
+		[[ -z "${DEV}" ]] && DEV=$(mount | grep " / " | cut -d" " -f 1)
+		[[ "$(blkid -o export $DEV | grep TYPE | cut -d= -f 2)" == "btrfs" ]] && OPT='-o noatime,subvol=/@docker' || DEV=
+	fi		 
+	[[ ! -z "${DEV}" ]] && mount ${OPT} ${DEV} /var/lib/docker
 fi
 
 # Change the default IP address that containers are bound to:
