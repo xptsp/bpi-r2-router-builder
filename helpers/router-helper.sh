@@ -792,7 +792,7 @@ case $CMD in
 		;;
 
 	###########################################################################
-	remove_files)
+	cleanup)
 		CMD=/opt/bpi-r2-router-builder/misc/remove_files
 		$CMD $@
 		[[ -d /ro ]] && $0 chroot $CMD $@
@@ -996,7 +996,7 @@ case $CMD in
 		 echo "    dns           - Domain Name Server actions"
 		 echo "    route         - Network Routing actions"
 		 echo "    upgrade       - Pulls the lastest version of WebUI from GitHub"
-		 echo "    remove_files  - Removes unnecessary files from system partition"
+		 echo "    cleanup       - Removes unnecessary files from system partition"
 		 echo "    webui         - WebUI actions"
 		 echo "    forward_port  - Single Port forwarding actions"
 		 echo "    forward_range - Port Range forwarding actions"

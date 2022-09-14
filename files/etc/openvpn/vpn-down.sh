@@ -6,10 +6,20 @@
 ip route flush table vpn
 
 ########################################################################################
+# Flush IP routing cache:
+########################################################################################
+ip route flush cache
+
+########################################################################################
 # Remove interface from the list of VPN client interfaces:
 ########################################################################################
 TABLE=$(grep -m 1 "^table inet " /etc/nftables.conf | awk '{print $3}')
 nft delete element inet ${TABLE} DEV_VPN_CLIENT { ${dev} } 
+
+########################################################################################
+# Restart transmission-daemon if running:
+########################################################################################
+systemctl -q is-active transmission-daemon && systemctl restart transmission-daemon
 
 ########################################################################################
 # Run update-resolv-conf script to set VPN DNS

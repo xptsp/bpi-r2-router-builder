@@ -26,10 +26,10 @@ if [[ "$1" == "start" ]]; then
 	nft add rule inet ${TABLE} input_vpn_client tcp dport ${PEER:-"51543"} accept comment "transmission-daemon"
 
 	# Set IPv4 and IPv6 addresses to bind to:
-	BIND_IPv4=$(ip addr show ${IFACE} | grep -m 1 inet | awk '{print $2}')
+	BIND_IPv4=$(ip addr show ${IFACE:-"lo"} | grep -m 1 inet | awk '{print $2}' | cut -d/ -f 1)
 	BIND_IPv4=${BIND_IPv4:-"255.255.255.1"}
 	sed -i "s|\"bind-address-ipv4\": \".*|\"bind-address-ipv4\": \"${BIND_IPv4}\",|" ${SETTINGS}
-	BIND_IPv6=$(ip addr show ${IFACE} | grep -m 1 inet6 | awk '{print $2}' | cut -d/ -f 1)
+	BIND_IPv6=$(ip addr show ${IFACE:-"lo"} | grep -m 1 inet6 | awk '{print $2}' | cut -d/ -f 1)
 	BIND_IPv6=${BIND_IPv6:-"fe80::"}
 	sed -i "s|\"bind-address-ipv6\": \".*|\"bind-address-ipv6\": \"${BIND_IPv6}\",|" ${SETTINGS}
 
@@ -54,11 +54,14 @@ if [[ "$1" == "start" ]]; then
 		unlink ${WEB}
 		ln -sf ${DIR}/${TRANS_WEBUI} ${WEB}
 	fi
+	
+	# Start the daemon:
+	exec /usr/bin/transmission-daemon -f --log-error --bind-address-ipv4=${BIND_IPv4} --bind-address-ipv6=${BIND_IPv6}
 
 #############################################################################
 # Otherwise, then we need to remove the firewall rule for VPN traffic:
 #############################################################################
-else
+elif [[ "$1" == "stop" ]]; then
 	HANDLE=$(nft -a list chain inet ${TABLE} input_vpn_client | grep "transmission-daemon" | awk '{print $NF}')
 	nft delete rule inet ${TABLE} input_vpn_client handle ${HANDLE}
 fi
