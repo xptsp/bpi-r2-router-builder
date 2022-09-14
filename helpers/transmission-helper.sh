@@ -23,8 +23,8 @@ if [[ "$1" == "start" ]]; then
 		BIND_IPv4=$(ip addr show ${IFACE} | grep -m 1 inet | awk '{print $2}' | cut -d/ -f 1)
 		BIND_IPv6=$(ip addr show ${IFACE} | grep -m 1 inet6 | awk '{print $2}' | cut -d/ -f 1)
 	fi
-	sed -i "s|\"bind-address-ipv4\": \".*|\"bind-address-ipv4\": \"${IPs[0]:-"255.255.255.1"}\",|" ${SETTINGS}
-	sed -i "s|\"bind-address-ipv6\": \".*|\"bind-address-ipv6\": \"${IPs[1]:-"fe80::"}\",|" ${SETTINGS}
+	sed -i "s|\"bind-address-ipv4\": \".*|\"bind-address-ipv4\": \"${BIND_IPv4:-"255.255.255.1"}\",|" ${SETTINGS}
+	sed -i "s|\"bind-address-ipv6\": \".*|\"bind-address-ipv6\": \"${BIND_IPv6:-"fe80::"}\",|" ${SETTINGS}
 
 	# Read transmission-daemon defaults and set credentials for WebUI:
 	# << Defaults >> Username: pi    Password: bananapi
