@@ -332,7 +332,7 @@ sed -i "s|^#enable_natpmp=yes|enable_natpmp=yes|g" ${FILE}
 sed -i -e '/^allow / s/^#*/#/' ${FILE}
 sed -i -e '/^deny / s/^#*/#/' ${FILE}
 sed -i "s|^force_igd_desc_v1=.*|#force_igd_desc_v1=no|" ${FILE}
-sed -i -e "/upnp_/ s/^#*/#/'" ${FILE}
+sed -i -e "/upnp_/s/^#*//" ${FILE}
 # Enable and restart the service:
 systemctl enable miniupnpd
 systemctl restart miniupnpd

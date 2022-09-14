@@ -15,11 +15,11 @@ if [[ "$1" == "start" ]]; then
 	[[ ! -f /etc/hostapd/$2.conf ]] && echo "ERROR: Hostapd configuration for interface $2 is missing!  Aborting!" && exit 3
 	IFACE=$(grep "^interface=" /etc/hostapd/$2.conf | cut -d= -f 2)
 	[[ -z "${IFACE}" ]] && echo "ERROR: Missing interface line in hostapd configuration!  Aborting!" && exit 4
-	info=($(ip -br addr show ${IFACE}))
-	[[ -z "${info[0]}" ]] && echo "ERROR: Interface ${IFACE} is missing!  Aborting!" && exit 5
-	[[ "${info[1]}" != "UP" ]] && echo "ERROR: Interface ${IFACE} is not up!  Aborting!" && exit 6
-	[[ -z "${info[2]}" ]] && echo "ERROR: Interface ${IFACE} does not have an IP address!  Aborting!" && exit 7
-fi
+	if ! ifconfig ${IFACE} 2> /dev/null >& /dev/null; then 
+		echo "ERROR: Interface ${IFACE} is missing!  Aborting!" && exit 5
+	elif ! ifconfig ${IFACE} | grep "inet" >& /dev/null; then
+		echo "ERROR: Interface ${IFACE} does not have an IP address!  Aborting!" && exit 6
+	fi
 
 ##############################################################################
 # If we stopping the "ap0" interface, reset the interface correctly:
