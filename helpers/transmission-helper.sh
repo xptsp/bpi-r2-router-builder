@@ -5,25 +5,24 @@
 # take very long to execute and should not rely on other services being up
 # and running.
 #############################################################################
-if [[ "${UID}" -ne 0 ]]; then
-	sudo $0 $@
-	exit $?
-fi
-
 #############################################################################
 # Our global variables:
 #############################################################################
 TABLE=$(grep -m 1 "^table inet " /etc/nftables.conf | awk '{print $3}')
 SETTINGS=/etc/transmission-daemon/settings.json
-IFACE=$(nft list set inet ${TABLE} DEV_VPN_CLIENT | grep "elements" | cut -d\" -f 2)
 
 #############################################################################
 # Are we starting the service?
 #############################################################################
 if [[ "$1" == "start" ]]; then
 	# Add a firewall rule allowing inbound traffic over the VPN client:
-	PEER=$(grep '"peer-port": [0-9]*' ${SETTINGS} | awk '{print $2}' | sed "s|,||")
-	nft add rule inet ${TABLE} input_vpn_client tcp dport ${PEER:-"51543"} accept comment "transmission-daemon"
+	if [[ "${UID}" -eq 0 ]]; then
+		IFACE=$(nft list set inet ${TABLE} DEV_VPN_CLIENT | grep "elements" | cut -d\" -f 2)
+		PEER=$(grep '"peer-port": [0-9]*' ${SETTINGS} | awk '{print $2}' | sed "s|,||")
+		nft add rule inet ${TABLE} input_vpn_client tcp dport ${PEER:-"51543"} accept comment "transmission-daemon"
+		exit $?
+	fi
+	sudo $0 start
 
 	# Set IPv4 and IPv6 addresses to bind to:
 	BIND_IPv4=$(ip addr show ${IFACE:-"lo"} | grep -m 1 inet | awk '{print $2}' | cut -d/ -f 1)
@@ -62,8 +61,12 @@ if [[ "$1" == "start" ]]; then
 # Otherwise, then we need to remove the firewall rule for VPN traffic:
 #############################################################################
 elif [[ "$1" == "stop" ]]; then
-	HANDLE=$(nft -a list chain inet ${TABLE} input_vpn_client | grep "transmission-daemon" | awk '{print $NF}')
-	nft delete rule inet ${TABLE} input_vpn_client handle ${HANDLE}
+	if [[ "${UID}" -ne 0 ]]; then
+		sudo $0 stop
+	else
+		HANDLE=$(nft -a list chain inet ${TABLE} input_vpn_client | grep "transmission-daemon" | awk '{print $NF}')
+		nft delete rule inet ${TABLE} input_vpn_client handle ${HANDLE}
+	fi
 fi
 
 #############################################################################
