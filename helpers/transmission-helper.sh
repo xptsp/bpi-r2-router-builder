@@ -1,6 +1,6 @@
 #!/bin/bash
 #############################################################################
-# This helper script takes care of any tasks that should occur before 
+# This helper script takes care of any tasks that should occur before
 # launching the transmission-daemon program.  Tasks that occur here should not
 # take very long to execute and should not rely on other services being up
 # and running.
@@ -18,7 +18,8 @@ test -f /etc/default/transmission-daemon && source /etc/default/transmission-dae
 #############################################################################
 if [[ "$1" == "start" ]]; then
 	# Get IPv4 and IPv6 address from the VPN client interface to bind to.
-	IFACE=$(sudo $0 init | grep "^VPN=" | cut -d= -f 2) 
+	IFACE=$(sudo $0 init | grep "^VPN=" | cut -d= -f 2)
+	unset BIND_IPv4 BIND_IPv6
 	if [[ ! -z "${IFACE}" ]]; then
 		BIND_IPv4=$(ip addr show ${IFACE} | grep -m 1 inet | awk '{print $2}' | cut -d/ -f 1)
 		BIND_IPv6=$(ip addr show ${IFACE} | grep -m 1 inet6 | awk '{print $2}' | cut -d/ -f 1)
@@ -30,9 +31,9 @@ if [[ "$1" == "start" ]]; then
 	# << Defaults >> Username: pi    Password: bananapi
 	sed -i "s|\"rpc-username\": \".*|\"rpc-username\": \"${TRANS_USER:-"pi"}\",|" ${SETTINGS}
 	sed -i "s|\"rpc-password\": \".*|\"rpc-password\": \"${TRANS_PASS:-"bananapi"}\",|" ${SETTINGS}
-	
+
 	# Start the daemon:
-	exec /usr/bin/transmission-daemon -f --log-error --bind-address-ipv4=${BIND_IPv4} --bind-address-ipv6=${BIND_IPv6}
+	exec /usr/bin/transmission-daemon -f --log-error --bind-address-ipv4=${BIND_IPv4:-"255.255.255.1"} --bind-address-ipv6=${BIND_IPv6:-"fe80::"}
 
 #############################################################################
 # Are we stopping the service?
