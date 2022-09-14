@@ -6,8 +6,8 @@
 #############################################################################
 TABLE=$(grep -m 1 "^table " /etc/nftables.conf | awk '{print $3}')
 FWD_CHAIN=forward_miniupnpd
-PRE_CHAIN=prerouting_miniupnpd
-PST_CHAIN=upnp_nat_postrouting_chain
+PRE_CHAIN=nat_prerouting_miniupnpd
+PST_CHAIN=nat_postrouting_miniupnpd
 
 ##################################################################################
 # START => Set up the service to start correctly with my firewall:
