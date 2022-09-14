@@ -171,7 +171,7 @@ function Init_Bandwidth(tx, rx)
 //======================================================================================================
 function Init_Multicast()
 {
-	__Services_Init('miniupnpd');
+	__Services_Init('multicast-relay');
 
 	// Handler to submit form settings:
 	$("#multicast_submit").click(function() {

@@ -25,6 +25,11 @@ ip route append default via 127.0.0.1 dev lo table vpn
 ip route flush cache
 
 ########################################################################################
+# Restart transmission-daemon if running:
+########################################################################################
+systemctl -q is-active transmission-daemon && systemctl restart transmission-daemon
+
+########################################################################################
 # Run update-resolv-resolved script to set VPN DNS
 ########################################################################################
 /etc/openvpn/update-resolv-conf

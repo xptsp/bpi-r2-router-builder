@@ -1,71 +1,64 @@
-mksquashfs()
-{
-	/usr/bin/mksquashfs $@ -b 1048576 -comp xz -Xdict-size 100%
-}
+alias dpkg-deb='dpkg-deb -Zxz $@'
 alias losl='losetup -l | sort -V'
-los()
+function los
 {
-	img="$1"
-	if [[ -z "$img" || ! -f "$img" ]]; then
+	if [[ -z "$1" || ! -f "$1" ]]; then
 		echo "Syntax: los [filename]"
 	else
-		dev="$(sudo losetup --show -f -P "$img")"
-		dest=${dev/dev/mnt}
+		local dev=$(sudo losetup --show -f -P $1)
+		local dest=${dev/dev/mnt}
 		echo $dest
-		base=$(basename $1)
-		if [[ ! "${base}" =~ "bpiwrt_" && ! $"{base}" =~ "bpi-r2" ]]; then
+		if [[ ! "$(basename $1)" =~ ^(bpiwrt|bpi-r2) ]]; then
 			for part in ${dev}p*; do
-				sudo mkdir -p ${dest} && sudo mount ${part} ${dest}
+				sudo mkdir -p ${dest}
+				sudo mount ${part} ${dest}
 			done
 		else
 			sudo mkdir -p ${dest}
 			sudo mount ${dev}p2 ${dest}
 			[[ -d ${dest}/@/boot ]] && DIR=${dest}/@ || DIR=${dest}
-			sudo mkdir -p ${DIR}/boot 2> /dev/null
+			sudo mkdir -p ${DIR}/boot
 			sudo mount ${dev}p1 ${DIR}/boot
+			sudo mount --bind /proc ${DIR}/proc
+			sudo mount --bind /sys ${DIR}/sys
+			sudo mount --bind /tmp ${DIR}/tmp
+			sudo mount --bind /dev ${DIR}/dev
+			sudo mount -t tmpfs tmpfs ${DIR}/var/lib/apt/lists
+			sudo mount -t tmpfs tmpfs ${DIR}/var/cache/apt
 		fi
 	fi
 }
-losd()
+function losd
 {
-	if [[ -z "$1" ]]; then
-		echo "Syntax: losd [loop device number]"
+	local dev="${1/^mnt/dev}"
+	local mnt=$(basename ${dev})
+	if [[ -z "${dev}" ]]; then
+		echo "Syntax: losd [loop device path]"
 		return 0
 	fi
-	[[ "$1" =~ "{$1/mnt/dev}" ]] && dev=${1/mnt/dev}
-	if [[ -f /dev/loop${1} ]]; then
-		dev=/dev/loop${1}
-	else
-		[[ ! -z "$1" ]] && dev=$(losetup -l | grep "${1}" | cut -d" " -f 1)
-		if [[ -z "${dev}" ]]; then
-			dev=$(mount | grep "${1} " | head -1 | awk '{print $1}')
-			dev=${dev/p2/}
-		fi
-	fi
+	dev=$(losetup -l | grep "${mnt} " | cut -d" " -f 1)
+	[[ -z "${dev}" ]] && dev=$(mount | grep "${mnt} " | head -1 | awk '{print $1}' | sed "s|p[0-9]$||")
 	if [[ -z "${dev}" ]]; then
 		echo "ERROR: No image mounted for \"${1}\".  Aborting..."
-	elif ! losetup -l | grep "${dev}" >& /dev/null; then
-		echo "ERROR: No image mounted for \"${1}\".  Aborting..."
 	else
-		for part in $(mount | grep ${dev}p | awk '{print $3}' | sort -r); do 
-			sudo umount $part
-			[[ ! "${part}" =~ /boot$ ]] && sudo rmdir $part 2> /dev/null
-		done
-		sudo losetup -d "$dev"
+		for part in $(mount | grep -e "${dev/dev/mnt}/" | awk '{print $3}' | tac); do sudo umount $part; done
+		sudo umount ${dev/dev/mnt}
+		sudo losetup -d ${dev}
+		sudo rmdir ${dev/dev/mnt}
 	fi
 }
-bpiwrt()
+function bpiwrt
 {
-	XasBvxdfsF=0
-	IFACE=$(ls /sys/class/net | grep -m 1 -v lo)
-	while ! ifconfig ${IFACE} | grep "inet " >& /dev/null ; do
+	local count=0
+	local dev=""
+	while true; do
+		ifconfig | grep -B1 -e "192\.168\.2\.[0-9]*" | grep -o "^\w*" >& /dev/null && break
 		clear
-		echo -e "\033[1;32m============ Waiting $(printf "%3d" ${XasBvxdfsF}) seconds ============\033[0m"
-		XasBvxdfsF=$(( XasBvxdfsF + 1))
-		ifconfig enp6s0
+		echo -e "\033[1;32m============ Waiting $(printf "%3d" ${count}) seconds ============\033[0m"
+		count=$(( count + 1))
+		ls /sys/class/net | grep -v lo | while read iface; do ifconfig ${iface}; done
 		echo -e "\033[1;32m=============================================\033[0m"
 		sleep 1
 	done
-	unset XasBvxdfsF
-	ssh root@192.168.2.1
+	ssh root@bpiwrt.local
 }
