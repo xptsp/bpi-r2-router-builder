@@ -6,8 +6,8 @@
 #############################################################################
 TABLE=$(grep -m 1 "^table " /etc/nftables.conf | awk '{print $3}')
 FWD_CHAIN=forward_miniupnpd
-PRE_CHAIN=prerouting_miniupnpd
-PST_CHAIN=upnp_nat_postrouting_chain
+PRE_CHAIN=nat_prerouting_miniupnpd
+PST_CHAIN=nat_postrouting_miniupnpd
 
 ##################################################################################
 # START => Set up the service to start correctly with my firewall:
@@ -16,7 +16,7 @@ if [[ "$1" == "start" ]]; then
 	# Set table and chain names for compatibility with the firewall:
 	FILE=/etc/miniupnpd/miniupnpd.conf
 	sed -i "s|^upnp_table_name=.*|upnp_table_name=${TABLE}|" ${FILE}
-	sed -i "s|^upnp_nat_table_name=.*|upnp_TABLE_name=${TABLE}|" ${FILE}
+	sed -i "s|^upnp_nat_table_name=.*|upnp_nat_table_name=${TABLE}|" ${FILE}
 	sed -i "s|^upnp_forward_chain=.*|upnp_forward_chain=${FWD_CHAIN}|" ${FILE}
 	sed -i "s|^upnp_nat_chain=.*|upnp_nat_chain=${PRE_CHAIN}|" ${FILE}
 	sed -i "s|^upnp_nat_postrouting_chain=.*|upnp_nat_postrouting_chain=${PST_CHAIN}|" ${FILE}
