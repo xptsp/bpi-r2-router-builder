@@ -8,7 +8,7 @@ function los
 		local dev=$(sudo losetup --show -f -P $1)
 		local dest=${dev/dev/mnt}
 		echo $dest
-		if [[ ! "$(basename $1)" =~ ^(bpiwrt|bpi-r2) ]]; then
+		if [[ ! "$(basename $1)" =~ ^(bpiwrt_|img_|btrfs_|bpi-r2) ]]; then
 			for part in ${dev}p*; do
 				sudo mkdir -p ${dest}
 				sudo mount ${part} ${dest}
@@ -16,15 +16,18 @@ function los
 		else
 			sudo mkdir -p ${dest}
 			sudo mount ${dev}p2 ${dest}
-			[[ -d ${dest}/@/boot ]] && DIR=${dest}/@ || DIR=${dest}
-			sudo mkdir -p ${DIR}/boot
-			sudo mount ${dev}p1 ${DIR}/boot
-			sudo mount --bind /proc ${DIR}/proc
-			sudo mount --bind /sys ${DIR}/sys
-			sudo mount --bind /tmp ${DIR}/tmp
-			sudo mount --bind /dev ${DIR}/dev
-			sudo mount -t tmpfs tmpfs ${DIR}/var/lib/apt/lists
-			sudo mount -t tmpfs tmpfs ${DIR}/var/cache/apt
+			if [[ -d ${dest}/@ ]]; then
+				sudo umount ${dev}p2
+				sudo mount -o subvol=@ ${dev}p2 ${dest}
+			fi 
+			sudo mkdir -p ${dest}/boot
+			sudo mount ${dev}p1 ${dest}/boot
+			test -d ${dest}/proc && sudo mount --bind /proc ${dest}/proc
+			test -d ${dest}/sys && sudo mount --bind /sys ${dest}/sys
+			test -d ${dest}/tmp && sudo mount --bind /tmp ${dest}/tmp
+			test -d ${dest}/dev && sudo mount --bind /dev ${dest}/dev
+			test -d ${dest}/var/lib/apt/lists && sudo mount -t tmpfs tmpfs ${dest}/var/lib/apt/lists
+			test -d ${dest}/var/cache/apt && sudo mount -t tmpfs tmpfs ${dest}/var/cache/apt
 		fi
 	fi
 }
