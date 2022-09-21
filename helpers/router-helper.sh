@@ -580,8 +580,8 @@ case $CMD in
 		# INFO => Get DHCP information from the system logs:
 		if [[ "$1" == "info" ]]; then
 			IFACE=${2:-"wan"}
-			request=($(journalctl | grep dhclient | grep DHCPREQUEST | grep ${IFACE} | tail -1))
-			bound=($(journalctl | grep dhclient | grep bound | grep ${request[8]} | tail -1))
+			request=($(journalctl --unit=networking | grep dhclient | grep DHCPREQUEST | grep ${IFACE} | tail -1))
+			bound=($(journalctl --unit=networking | grep dhclient | grep bound | grep ${request[8]} | tail -1))
 			from=$(route -n | grep -e '^0.0.0.0' | grep ${IFACE} | head -1 | awk '{print $2}')
 			[[ -z "${bound[-2]}" ]] && exit
 			echo ${from} ${bound[0]} ${bound[1]} ${bound[2]} ${bound[-2]}
