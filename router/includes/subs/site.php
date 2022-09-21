@@ -22,7 +22,6 @@ $sidebar_menu = array(
 	)),
 	'advanced' => array('Advanced', 'fas fa-shield-alt', array(
 		'firewall'  => menu_link('/advanced/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
-		'dmz'       => menu_link('/advanced/dmz', 'DMZ Setup', 'fas fa-server'),
 		'dhcp'      => menu_link('/advanced/dhcp', 'DHCP Reservations', 'fas fa-address-card'),
 		'forward'   => menu_link('/advanced/forward', 'Port Forwarding', 'fas fa-forward'),
 		'notify'    => menu_link('/advanced/notify', 'DHCP Notifications', 'fas fa-bullhorn', file_exists("/usr/bin/mosquitto_pub")),
