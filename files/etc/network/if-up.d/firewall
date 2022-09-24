@@ -13,11 +13,6 @@ IP_ADDR=$(ifconfig ${IFACE} | grep " inet " | awk '{print $2}')
 test -f /etc/network/interfaces.d/${IFACE} && if [[ ! -z "${IF_MASQUERADE}" ]]; then
 	# Add this interface to the list of WAN interfaces:
 	nft add element inet ${TABLE} DEV_WAN { ${IFACE} }
-	
-	# Put the IP addresses of the interface in the firewall's "prerouting_private" chain.
-	# This should allow double-nat configurations to work properly:
-	nft insert rule inet ${TABLE} mangle_prerouting_private iifname ${IFACE} ip saddr $(ip addr show ${IFACE} | grep " inet " | head -1 | awk '{print $2}') return >& /dev/null
-	nft insert rule inet ${TABLE} mangle_prerouting_private iifname ${IFACE} ip6 saddr $(ip addr show ${IFACE} | grep " inet6 " | head -1 | awk '{print $2}') return >& /dev/null
 fi
 
 ################################################################################################
