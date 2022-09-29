@@ -375,6 +375,8 @@ sed -i "s|^#AUTOSTART=\"none\"|AUTOSTART=\"none\"|" /etc/default/openvpn
 # Install Squid and Privoxy:
 ##################################################################################
 apt install -y privoxy squid-openssl
+systemctl disable --now privoxy
+systemctl disable --now squid
 
 #=============================================================================================
 # <<NOTE TO SELF>> 2022-09-29: Needs fixing from here on!

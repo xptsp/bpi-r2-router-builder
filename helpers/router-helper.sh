@@ -242,7 +242,7 @@ case $CMD in
 				askYesNo "Are you SURE you want to do this?" || exit 0
 			fi
 			$0 overlay umount
-			rm -rf ${DIR}/upper
+			rm -rf ${DIR}/{upper,work}
 		#####################################################################
 		# DESTROY => Destroys entire overlayfs for compilation environment
 		elif [[ "$1" == "destroy" ]]; then
@@ -422,17 +422,24 @@ case $CMD in
 				cp -a ${ROOT}/${file} ${DIR}/ 2> /dev/null
 			done
 
+			# Remove any empty directories from the newly copied directory tree:
+			find ${BACKUP} -type d | sort -r | while read dir; do rmdir ${dir} 2> /dev/null; done
+
 			# Create a list of services to start, stop, or reload:
 			cd /rw/upper/etc
-			FILE=${BACKUP}/var/opt/init_services.sh
-			mkdir -p $(dirname ${FILE})
+			DIR=${BACKUP}/var/opt
+			FILE=${DIR}/init_services.sh
+			mkdir -p ${DIR}
 			echo '#!/bin/bash' > ${FILE}
 			find systemd/system/ -type c -exec basename {} \; | sort | uniq | while read LINE; do echo "systemctl disable --now ${LINE}"; done >> ${FILE}
 			find systemd/system/ -type l -exec basename {} \; | sort | uniq | while read LINE; do echo "systemctl enable --now ${LINE}"; done >> ${FILE}
 
 			# Load any firewall settings that need to be updated:
-			test -f persistent-nftables.conf && echo "nft -f etc/persistent-nftables.conf" >> ${FILE}
-			test -f default/router-settings && echo "systemctl reload nftables" >> ${FILE}
+			if [[ -f default/router-settings ]]; then
+				echo "systemctl reload nftables" >> ${FILE}
+			elif [[ -f persistent-nftables.conf ]]; then
+				echo "nft -f etc/persistent-nftables.conf" >> ${FILE}
+			fi
 
 			# Save any differences in "/etc/passwd", "/etc/group" and "/etc/shadow":
 			for CHK in shadow passwd group; do
