@@ -203,7 +203,7 @@ function Init_Routing()
 			'iface':     $("#iface").val(),
 		};
 		//alert(JSON.stringify(postdata, null, 5)); return;
-		WebUI_Post("/setup/routing", postdata, null, false);
+		WebUI_Post("/setup/routing", postdata);
 	});
 }
 
@@ -220,7 +220,7 @@ function Routing_Delete()
 		'iface':     line.find(".iface").html(),
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
-	WebUI_Post("/setup/routing", postdata, null, false);
+	WebUI_Post("/setup/routing", postdata);
 }
 
 //======================================================================================================
@@ -393,7 +393,7 @@ function Wireless_Submit()
 		'ap_no_net':  $("#ap_no_net").is(":checked") ? 'Y' : 'N',
 	};
 	//alert(JSON.stringify(postdata, null, 5)); return;
-	WebUI_Post("/setup/wireless", postdata, null, false, Reboot_Confirmed);
+	WebUI_Post("/setup/wireless", postdata);
 }
 
 function Wireless_Scan()

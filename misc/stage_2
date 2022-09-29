@@ -371,8 +371,13 @@ echo "200	vpn" >> /etc/iproute2/rt_tables
 # Stop VPN connections from automatically starting:
 sed -i "s|^#AUTOSTART=\"none\"|AUTOSTART=\"none\"|" /etc/default/openvpn
 
+##################################################################################
+# Install Squid and Privoxy:
+##################################################################################
+apt install -y privoxy squid-openssl
+
 #=============================================================================================
-# <<NOTE TO SELF>> 2022-07-14: Needs fixing from here on!
+# <<NOTE TO SELF>> 2022-09-29: Needs fixing from here on!
 #=============================================================================================
 
 ##################################################################################

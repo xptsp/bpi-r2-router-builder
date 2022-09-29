@@ -127,8 +127,9 @@ if (isset($_POST['action']))
 	}
 
 	#################################################################################################
-	# Shut down the wireless interface right now, before modifying the configuration:
+	# Shut down the wireless AP & interface right now, before modifying the configuration:
 	#################################################################################################
+	@shell_exec("router-helper systemctl disable --now hostapd@" . $iface);
 	@shell_exec("router-helper iface ifdown " . $iface);
 
 	#################################################################################################

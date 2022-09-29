@@ -187,7 +187,17 @@ case $CMD in
 			mkdir -p ${DIR}
 			cd ${DIR}
 			mkdir -p {upper,work,merged}
-			if [[ -d ${DIR}/lower ]]; then LOW=./lower; elif [[ -d /ro ]]; then LOW=/ro; else LOW=/; fi
+			if [[ -f ${DIR}/lower.squashfs ]]; then
+				mkdir -p ${DIR}/lower
+				mount ${DIR}/lower.squashfs ${DIR}/lower
+			fi
+			if [[ -d ${DIR}/lower ]]; then 
+				LOW=./lower
+			elif [[ -d /ro ]]; then 
+				LOW=/ro
+			else
+				LOW=/
+			fi
 			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
 			find . -maxdepth 1 -type d | egrep -v "/(lower|upper|merged|work|)$" | grep -v "^.$" | while read mount; do 
 				mkdir -p ./merged/${mount}
@@ -439,12 +449,13 @@ case $CMD in
 		#####################################################################
 		# REMOVE => Remove uploaded configuration backup:
 		elif [[ "$1" == "unlink" ]]; then
-			umount -q /tmp/bpiwrt
+			umount -q /tmp/bpiwrt 2> /dev/null
 			test -f /tmp/bpiwrt.cfg && rm /tmp/bpiwrt.cfg
 		#####################################################################
 		# PREP => Prep the uploaded configuration backup to be restored:
 		elif [[ "$1" == "prep" ]]; then
-			umount -q /tmp/bpiwrt
+			umount -q /tmp/bpiwrt 2> /dev/null
+			rm -rf /tmp/bpiwrt
 			mkdir -p /tmp/bpiwrt
 			if ! test -f /tmp/bpiwrt.cfg; then echo "ERROR: Missing /tmp/bpiwrt.cfg file!"; exit 1; fi
 			if ! mount -o loop -t squashfs /tmp/bpiwrt.cfg /tmp/bpiwrt >& /dev/null; then echo "ERROR: Corrupted or invalid settings backup!"; exit 1; fi
