@@ -377,6 +377,11 @@ sed -i "s|^#AUTOSTART=\"none\"|AUTOSTART=\"none\"|" /etc/default/openvpn
 apt install -y privoxy squid-openssl
 systemctl disable --now privoxy
 systemctl disable --now squid
+# Download adblock list downloading script:
+FILE=/etc/privoxy/privoxy-blocklist.sh
+wget https://raw.github.com/Andrwe/privoxy-blocklist/master/privoxy-blocklist.sh -O ${FILE} 
+chmod +x ${FILE}
+sed -i "s/^SCRIPTCONF.*/SCRIPTCONF=\\/etc\\/privoxy\\/blocklist.conf/" ${FILE}
 
 #=============================================================================================
 # <<NOTE TO SELF>> 2022-09-29: Needs fixing from here on!

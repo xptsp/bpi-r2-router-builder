@@ -218,6 +218,7 @@ case $CMD in
 		# UMOUNT => Creates overlayfs for compilation environment
 		elif [[ "$1" == "umount" ]]; then
 			mount | grep "${DIR}/merged" | awk '{print $3}' | tac | while read mount; do umount $mount; done
+			umount -q ${DIR}/lower 2> /dev/null
 		#####################################################################
 		# MERGE => Copies merged overlay filesystem into overlay directory "lower":
 		elif [[ "$1" == "merge" ]]; then
@@ -414,13 +415,15 @@ case $CMD in
 			# Copy all files (if present) from overlay upper layer to temporary storage:
 			BACKUP=/tmp/bpiwrt
 			test -d ${BACKUP} && rm -rf ${BACKUP}
-			mkdir -p ${BACKUP}
+			mkdir -p ${BACKUP}/boot
+			cp /boot/persistent.conf ${BACKUP}/boot/ 2> /dev/null
 			for file in $(cat /etc/backup-file.list); do
 				DIR=${BACKUP}/$(dirname ${file})
 				mkdir -p ${DIR}
 				[[ "$file" =~ ^/ ]] && ROOT=/ || ROOT=/rw/upper/
 				cp -a ${ROOT}/${file} ${DIR}/ 2> /dev/null
 			done
+			cp /etc/backup-file.list ${BACKUP}/etc/
 
 			# Remove any empty directories from the newly copied directory tree:
 			find ${BACKUP} -type d | sort -r | while read dir; do rmdir ${dir} 2> /dev/null; done
@@ -449,9 +452,12 @@ case $CMD in
 				done
 			done
 
+			# If any CA certificates exist, add them to the system so it's trusted by default:
+			[[ -f ${BACKUP}/usr/local/share/ca-certificates/* ]] && echo "update-ca-certificates" >> ${FILE}
+
 			# Make a squashfs archive of all files copied/created:
 			cd ${BACKUP}
-			mksquashfs ./ /tmp/bpiwrt.cfg -quiet
+			mksquashfs ./ /tmp/bpiwrt.cfg -quiet -b 1048576 -comp xz -Xdict-size 100%
 			rm -rf ${BACKUP}
 		#####################################################################
 		# REMOVE => Remove uploaded configuration backup:

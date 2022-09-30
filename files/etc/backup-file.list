@@ -38,3 +38,4 @@ etc/squid/squid.conf
 etc/squid/cert/*
 etc/privoxy/*
 usr/local/share/ca-certificates/*
+/boot/persistent.conf

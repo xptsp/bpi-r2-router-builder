@@ -9,7 +9,8 @@ if [[ -z "$1" || "$1" == "-4" ]]; then
 	echo -ne "${BLUE}"
 	cat /tmp/peanut | head -2 | tail -1
 	echo -ne "${NC}"
-	cat /tmp/peanut | grep LISTEN | grep -v "::" | sort -t":" -k2 -g
+	cat /tmp/peanut | grep LISTEN | grep -v "::" | sort -t":" -k2 -V -k1 | awk '{print $4}' | cut -d: -f 2 | sort -V | uniq > /tmp/output
+	while read port; do grep ":${port} " /tmp/peanut | grep LISTEN | grep -v "::" | sort -V -t: -k1,1; done < /tmp/output
 fi
 [[ -z "$1" ]] && echo ""
 if [[ -z "$1" || "$1" == "-6" ]]; then
@@ -17,7 +18,7 @@ if [[ -z "$1" || "$1" == "-6" ]]; then
 	echo -ne "${BLUE}"
 	cat /tmp/peanut | head -2 | tail -1
 	echo -ne "${NC}"
-	cat /tmp/peanut | grep LISTEN | grep "::" | sort -t":" -k4 -g
+	cat /tmp/peanut | grep LISTEN | grep "::" | sort -t":" -k4 -V
 fi
 echo ""
-rm /tmp/peanut
+rm /tmp/{peanut,output}
