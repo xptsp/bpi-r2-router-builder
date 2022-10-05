@@ -11,6 +11,7 @@ BLUE='\033[1;34m'
 NC='\033[0m'
 TXT=nftables-script  # String used to identify rules added by this script!
 TABLE=$(grep -m 1 "^table inet " /etc/nftables.conf | awk '{print $3}')
+IP=$(cat /etc/network/interfaces.d/br0 | grep address | awk '{print $NF}')
 
 function stage()
 {
@@ -93,10 +94,6 @@ fi
 stage 1d "Option allow_dot=${allow_dot:-"N"}"
 [[ "${allow_dot:-"N"}" == "N" ]] && _nft add rule inet ${TABLE} forward_wan meta l4proto {tcp, udp} @th,16,16 853 counter reject comment \"${TXT}\"
 
-# Add rule rejecting DoQ (port 8853) packets from LAN if option "allow_doq" is "N":
-stage 1d "Option allow_doq=${allow_doq:-"N"}"
-[[ "${allow_doq:-"N"}" == "N" ]] && _nft add rule inet ${TABLE} forward_wan meta l4proto {tcp, udp} @th,16,16 8853 counter reject comment \"${TXT}\"
-
 # Add a jump to the DDoS protection rules in "mangle_prerouting" chain if option "disable_ddos" is "N":
 stage 1e "Option disable_ddos=${disable_ddos:-"N"}"
 [[ "${disable_ddos:-"N"}" == "N" ]] && _nft add rule inet ${TABLE} mangle_prerouting jump mangle_prerouting_ddos comment \"${TXT}\"
@@ -104,10 +101,17 @@ stage 1e "Option disable_ddos=${disable_ddos:-"N"}"
 # Add DNS redirect rules ONLY if option "redirect_dns" is "Y":
 stage 1f "Option redirect_dns=${redirect_dns:-"Y"}"
 if [[ "${redirect_dns:-"Y"}" == "Y" ]]; then
-	IP=$(cat /etc/network/interfaces.d/br0 | grep address | awk '{print $NF}')
 	_nft add rule inet ${TABLE} nat_prerouting_lan ip saddr != ${IP} ip daddr != ${IP} udp dport 53 counter dnat to ${IP} comment \"${TXT}\"
 	_nft add rule inet ${TABLE} nat_prerouting_lan ip saddr != ${IP} ip daddr != ${IP} tcp dport 53 counter dnat to ${IP} comment \"${TXT}\"
 fi
+
+# Add HTTP redirect rules ONLY if option "redirect_http_to_proxy" is "N":
+stage 1g "Option redirect_http_to_proxy=${redirect_http_to_proxy:-"N"}"
+[[ "${redirect_http_to_proxy:="N"}" == "Y" ]] && add rule inet ${TABLE} nat_prerouting_lan tcp dport 80 counter dnat to ${IP}:3128 
+
+# Add HTTPS redirect rules ONLY if option "redirect_http_to_proxy" is "N":
+stage 1h "Option redirect_https_to_proxy=${redirect_https_to_proxy:-"N"}"
+[[ "${redirect_https_to_proxy:="N"}" == "Y" ]] && add rule inet ${TABLE} nat_prerouting_lan tcp dport 443 counter dnat to ${IP}:3129 
 
 #############################################################################
 # Get a list of all interfaces that have the "masquerade" line in it.  These

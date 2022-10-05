@@ -434,8 +434,8 @@ case $CMD in
 			FILE=${DIR}/init_services.sh
 			mkdir -p ${DIR}
 			echo '#!/bin/bash' > ${FILE}
-			find systemd/system/ -type c -exec basename {} \; | sort | uniq | while read LINE; do echo "systemctl disable --now ${LINE}"; done >> ${FILE}
-			find systemd/system/ -type l -exec basename {} \; | sort | uniq | while read LINE; do echo "systemctl enable --now ${LINE}"; done >> ${FILE}
+			find systemd/system/ -type c -exec basename {} \; 2> /dev/null | sort | uniq | while read LINE; do echo "systemctl disable --now ${LINE}"; done >> ${FILE}
+			find systemd/system/ -type l -exec basename {} \; 2> /dev/null | sort | uniq | while read LINE; do echo "systemctl enable --now ${LINE}"; done >> ${FILE}
 
 			# Load any firewall settings that need to be updated:
 			if [[ -f default/router-settings ]]; then
@@ -457,7 +457,7 @@ case $CMD in
 
 			# Make a squashfs archive of all files copied/created:
 			cd ${BACKUP}
-			mksquashfs ./ /tmp/bpiwrt.cfg -quiet -b 1048576 -comp xz -Xdict-size 100%
+			mksquashfs ./ /tmp/bpiwrt.cfg -quiet
 			rm -rf ${BACKUP}
 		#####################################################################
 		# REMOVE => Remove uploaded configuration backup:

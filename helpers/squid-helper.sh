@@ -12,7 +12,7 @@ CA_DIR=/usr/local/share/ca-certificates
 CA_CERT=${CA_DIR}/squid_proxyCA.crt
 
 # Return with error code 0 if this process is already done:
-test -f ${CERT} && test -d ${CA_CERT} && exit 0
+test -f ${CERT} && test -f ${CA_CERT} && exit 0
 
 # We need to be root in order to execute everything after this:
 if [[ "${UID}" -ne 0 ]]; then
@@ -67,7 +67,3 @@ if [[ $? -ne 0 ]]; then
 	exit 2
 fi
 update-ca-certificates
-
-# Configure squid to generate certs on the fly:
-/usr/lib/squid/security_file_certgen -c -s /var/spool/squid/ssl_db -M 4MB
-chown -R proxy:proxy /var/spool/squid

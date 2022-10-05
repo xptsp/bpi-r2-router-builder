@@ -56,12 +56,19 @@ if [[ ! -z "${LIST[@]}" ]]; then
 	for IFACE in ${LIST[@]}; do
 		DEV="$(lspci -s $(basename $(ls -l ${IFACE}/device | awk '{print $NF}')) | grep MEDIATEK | awk '{print $NF}')"
 		if [[ ! -z "${DEV}" ]]; then
+			# Rename wireless interface:
 			[[ -f /sys/kernel/debug/ieee80211/$(basename $(ls -l ${IFACE}/phy80211 | awk '{print $NF}'))/mt76/dbdc ]] && POST=24g || POST=5g
 			NEW=mt${DEV}_${POST}
 			ip link set ${IFACE} name ${NEW}
+			
+			# Create secondary wireless interface on wireless cards (if possible):
 			iw dev ${NEW} interface add ${NEW}_0 type managed
 			REN=$(dmesg | grep ${NEW}_0 | head -1 | awk '{print $5}' | sed 's|:||g')
 			[[ "$REN" != "${NEW}_0" ]] && ip link set ${REN} name ${NEW}_0
+			
+			# Increment last digit of MAC address of new secondary wireless interface:
+			MAC=$(ip addr show ${NEW} | grep ether | awk '{print $2}')
+			ip link set dev ${NEW}_0 address ${MAC:0:16}$(( (${MAC:16:1} + 1) % 10 ))			
 		fi
 	done
 fi

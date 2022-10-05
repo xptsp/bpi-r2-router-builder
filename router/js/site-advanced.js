@@ -24,7 +24,6 @@ function Init_Firewall()
 			'allow_multicast': $("#allow_multicast").prop("checked") ? "Y" : "N",
 			'redirect_dns':    $("#redirect_dns").prop("checked") ? "Y" : "N",
 			'allow_dot':       $("#allow_dot").prop("checked") ? "Y" : "N",
-			'allow_doq':       $("#allow_doq").prop("checked") ? "Y" : "N",
 		};
 		//alert(JSON.stringify(postdata, null, 5)); return;
 		WebUI_Post("/advanced/firewall", postdata);

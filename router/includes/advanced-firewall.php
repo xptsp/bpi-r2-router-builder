@@ -17,7 +17,6 @@ if (isset($_POST['action']))
 		$options['allow_multicast'] = option('allow_multicast');
 		$options['redirect_dns']    = option('redirect_dns');
 		$options['allow_dot']       = option('allow_dot');
-		$options['allow_doq']       = option('allow_doq');
 		#echo '<pre>'; print_r($options); exit;
 		apply_options();
 		die("OK");
@@ -45,7 +44,6 @@ echo '
 		<hr style="border-width: 2px" />
 		', checkbox("redirect_dns", "Redirect all DNS requests to Integrated Pi-Hole"), '
 		', checkbox("block_dot", "Block outgoing DoT (DNS-over-TLS - port 853) requests not from router"), '
-		', checkbox("block_doq", "Block outgoing DoQ (DNS-over-QUIC - port 8853) requests not from router"), '
 	</div>
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" id="apply_changes" class="btn btn-block btn-success center_50" id="reboot_button">Apply Changes</button></a>

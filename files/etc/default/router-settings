@@ -49,9 +49,6 @@ redirect_dns=Y
 # Allow outgoing DoT (DNS-over-TLS - port 853) requests not from router.  Accepts "Y" or "N".  Default: N
 allow_dot=N
 
-# Allow outgoing DoQ (DNS-over-QUIC - port 8853) requests not from router.  Accepts "Y" or "N".  Default: N
-allow_doq=N
-
 ##########################################################################
 # WebUI Advanced / DMZ Settings
 ##########################################################################

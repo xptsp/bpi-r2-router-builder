@@ -30,6 +30,9 @@ done
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Removing unnecessary files from root partition..."
+umount /var/lib/apt/lists >& /dev/null
+umount /var/cache/apt >& /dev/null
+umount /tmp >& /dev/null
 rm /etc/nftables-added.conf >& /dev/null
 rm -rf /tmp/* >& /dev/null
 rm -rf /root/.config >& /dev/null
