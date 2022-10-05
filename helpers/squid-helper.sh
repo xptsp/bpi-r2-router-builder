@@ -6,13 +6,13 @@
 # and running.
 #############################################################################
 # Variables for our script:
-CERT_DIR=/etc/squid/cert
-CERT=${CERT_DIR}/squid_proxyCA.pem
+SQUID_CERT_DIR=/etc/squid/cert
+SQUID_CERT=${SQUID_CERT_DIR}/squid_proxyCA.pem
 CA_DIR=/usr/local/share/ca-certificates
 CA_CERT=${CA_DIR}/squid_proxyCA.crt
 
 # Return with error code 0 if this process is already done:
-test -f ${CERT} && test -f ${CA_CERT} && exit 0
+test -f ${SQUID_CERT} && test -f ${CA_CERT} && exit 0
 
 # We need to be root in order to execute everything after this:
 if [[ "${UID}" -ne 0 ]]; then
@@ -21,9 +21,9 @@ if [[ "${UID}" -ne 0 ]]; then
 fi
 
 # Create the openssl configuration file if it doesn't already exist:
-rm -rf ${CERT_DIR}
-mkdir -p ${CERT_DIR}
-CONFIG=${CERT_DIR}/openssl.config
+rm -rf ${SQUID_CERT_DIR}
+mkdir -p ${SQUID_CERT_DIR}
+CONFIG=${SQUID_CERT_DIR}/openssl.config
 if [[ ! -f ${CONFIG} ]]; then
 	# Try to get information from ipinfo.io about our IP address:
 	IPINFO=/tmp/ipinfo.tmp
@@ -50,20 +50,23 @@ if [[ ! -f ${CONFIG} ]]; then
 fi
 
 # Generate self-signed CA certificate/key, both in the same file:
-openssl req -new -newkey rsa:4096 -sha256 -days 3650 -nodes -x509 -keyout ${CERT} -out ${CERT} -config ${CONFIG}
+openssl req -new -newkey rsa:4096 -sha256 -days 3650 -nodes -x509 -keyout ${SQUID_CERT} -out ${SQUID_CERT} -config ${CONFIG}
 if [[ $? -ne 0 ]]; then
-	echo "ERROR: Failed to generate ${CERT}"
+	echo "ERROR: Failed to generate ${SQUID_CERT}"
 	exit 1
 fi
-chown -R proxy:proxy ${CERT_DIR}
-chmod 0400 ${CERT}*
+chown -R proxy:proxy ${SQUID_CERT_DIR}
+chmod 0400 ${SQUID_CERT}*
 
 # Add squid_proxyCA cert to system so it's trusted by default:
 rm -rf ${CA_DIR}
 mkdir -p ${CA_DIR}
-openssl x509 -inform PEM -in ${CERT} -out ${CA_CERT}
+openssl x509 -inform PEM -in ${SQUID_CERT} -out ${CA_CERT}
 if [[ $? -ne 0 ]]; then
 	echo "ERROR: Failed to generate ${CA_CERT}"
 	exit 2
 fi
 update-ca-certificates
+
+# Call the "privoxy-blocklist.sh" script to load everything we need:
+/etc/privoxy/privoxy-blocklist.sh

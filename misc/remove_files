@@ -29,6 +29,17 @@ for file in /etc/network/interfaces.d/* /etc/dnsmasq.d/[a-z]*.conf /etc/hostapd/
 done
 
 ####################################################################################################
+echo -e "${GREEN}NOTE:${NC} Clearing Squid certificate from root partition..."
+rm -rf /etc/squid/cert
+rm -rf /usr/local/share/ca-certificates/squid*.crt
+update-ca-certificates
+
+####################################################################################################
+echo -e "${GREEN}NOTE:${NC} Clearing Privoxy configuration of Adblock files..."
+rm /etc/privoxy/*.script.{action,filter}
+sed -i "/^actionsfile .*\.script\..*/d" /etc/privoxy/config
+
+####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Removing unnecessary files from root partition..."
 umount /var/lib/apt/lists >& /dev/null
 umount /var/cache/apt >& /dev/null
