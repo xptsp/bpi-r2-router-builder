@@ -144,3 +144,9 @@ captive_portal_reject_timeout=1h
 
 # Persistent mode for Captive Portal.  Overridden if timeout is specified.  Default: "Y".
 captive_portal_persistent=Y
+
+##########################################################################
+# WebUI adblocking proxy settings: 
+##########################################################################
+# Redirect port 80 and 443 to Squid/Privoxy proxy?  Accepts: "Y" or "N".  Default: "N"
+redirect_to_proxy=N
