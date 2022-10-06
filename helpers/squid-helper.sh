@@ -27,7 +27,7 @@ test -f ${SQUID_CERT} && rm ${SQUID_CERT}
 
 # Generate a 2048-bit self-signed certificate key:
 openssl genrsa -out ${SQUID_CERT/pem/key} 2048
-if [[ $? -ne 0 ]]; then echo "ERROR: Failed to generate ${SQUID_CERT/pem/key}"; exit 1; fi
+[[ $? -ne 0 ]] && echo "ERROR: Failed to generate ${SQUID_CERT/pem/key}" && exit 1
 
 # Generate configuration file to use with openssl.  If we couldn't get information about
 # our IP, list the requested information is "Unspecified" and the country as "US":
@@ -57,17 +57,19 @@ fi
 
 # Generate the certificate PEM file:
 openssl req -x509 -new -nodes -sha256 -days 3650 -key ${SQUID_CERT/pem/key} -out ${SQUID_CERT}  -config ${CONFIG}
-if [[ $? -ne 0 ]]; then echo "ERROR: Failed to generate ${SQUID_CERT}"; exit 2; fi
+[[ $? -ne 0 ]] && echo "ERROR: Failed to generate ${SQUID_CERT}" && exit 2
 
 # Generate the DER file used from the PEM file: 
 openssl x509 -in ${SQUID_CERT} -outform DER -out ${SQUID_CERT/pem/der}
-if [[ $? -ne 0 ]]; then echo "ERROR: Failed to generate ${SQUID_CERT/pem/der}"; exit 3; fi
+[[ $? -ne 0 ]] && echo "ERROR: Failed to generate ${SQUID_CERT/pem/der}" && exit 3
 
 # Download a randomly selected 2048-bit dhparam file.  If that fails, generate one! 
 # This takes long time, though.  If it still fails, abort with error message! 
 wget -q -O ${DHPARAM} https://2ton.com.au/getprimes/random/dhparam/2048
-[[ $? -ne 0 ]] && openssl dhparam -outform PEM -out ${DHPARAM} 2048
-if [[ $? -ne 0 ]]; then echo "ERROR: Failed to generate ${DHPARAM}"; exit 4; fi
+if [[ $? -ne 0 ]]; then
+	openssl dhparam -outform PEM -out ${DHPARAM} 2048
+	[[ $? -ne 0 ]] && echo "ERROR: Failed to generate ${DHPARAM}" && exit 4
+fi
 
 # Change ownership and visibility of generated certificates:
 chown -R proxy:proxy ${SQUID_CERT_DIR}
@@ -77,5 +79,5 @@ chmod 0400 ${SQUID_CERT}*
 mkdir -p ${CA_DIR}
 test -f ${CA_CERT} && rm ${CA_CERT}
 openssl x509 -inform PEM -in ${SQUID_CERT} -out ${CA_CERT}
-if [[ $? -ne 0 ]]; then echo "ERROR: Failed to generate ${CA_CERT}"; exit 5; fi
+[[ $? -ne 0 ]] && echo "ERROR: Failed to generate ${CA_CERT}" && exit 5
 update-ca-certificates
