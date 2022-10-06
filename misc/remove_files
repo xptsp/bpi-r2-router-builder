@@ -29,15 +29,18 @@ for file in /etc/network/interfaces.d/* /etc/dnsmasq.d/[a-z]*.conf /etc/hostapd/
 done
 
 ####################################################################################################
-echo -e "${GREEN}NOTE:${NC} Clearing Squid certificate from root partition..."
-rm -rf /etc/squid/cert
-rm -rf /usr/local/share/ca-certificates/squid*.crt
-update-ca-certificates
+if [[ -f /usr/local/share/ca-certificates/squid*.crt ]]; then
+	echo -e "${GREEN}NOTE:${NC} Clearing Squid certificates from root partition..."
+	rm -rf /usr/local/share/ca-certificates/squid*.crt
+	update-ca-certificates
+fi
 
 ####################################################################################################
-echo -e "${GREEN}NOTE:${NC} Clearing Privoxy configuration of Adblock files..."
-rm /etc/privoxy/*.script.{action,filter}
-sed -i "/^actionsfile .*\.script\..*/d" /etc/privoxy/config
+if [[ -f /etc/privoxy/*.adblock.{action,filter ]]; then 
+	echo -e "${GREEN}NOTE:${NC} Clearing Privoxy configuration of Adblock files..."
+	rm /etc/privoxy/*.adblock.{action,filter} >& /dev/null
+	sed -i "/^actionsfile .*\.adblock\./d" /etc/privoxy/config
+fi
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Removing unnecessary files from root partition..."
@@ -66,6 +69,7 @@ echo "WEBUI_SHARE=n" > /boot/persistent.conf
 rm /boot/bpiwrt.cfg >& /dev/null
 cp /dev/null /var/lib/dhcp/dhclient.wan.leases
 rm /etc/pihole/gravity_old.db >& /dev/null
+rm -rf /etc/squid/cert >& /dev/null
 
 ####################################################################################################
 GIT=($(whereis git | cut -d":" -f 2))

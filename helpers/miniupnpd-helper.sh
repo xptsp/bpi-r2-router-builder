@@ -15,11 +15,21 @@ PST_CHAIN=nat_postrouting_miniupnpd
 if [[ "$1" == "start" ]]; then
 	# Set table and chain names for compatibility with the firewall:
 	FILE=/etc/miniupnpd/miniupnpd.conf
-	sed -i "s|^upnp_table_name=.*|upnp_table_name=${TABLE}|" ${FILE}
-	sed -i "s|^upnp_nat_table_name=.*|upnp_nat_table_name=${TABLE}|" ${FILE}
-	sed -i "s|^upnp_forward_chain=.*|upnp_forward_chain=${FWD_CHAIN}|" ${FILE}
-	sed -i "s|^upnp_nat_chain=.*|upnp_nat_chain=${PRE_CHAIN}|" ${FILE}
-	sed -i "s|^upnp_nat_postrouting_chain=.*|upnp_nat_postrouting_chain=${PST_CHAIN}|" ${FILE}
+	if [[ "$(grep "^upnp_table_name=" $FILE | cut -d= -f 2)" != "${TABLE}" ]]; then
+		sed -i "s|^upnp_table_name=.*|upnp_table_name=${TABLE}|" ${FILE}
+	fi
+	if [[ "$(grep "^upnp_nat_table_name=" $FILE | cut -d= -f 2)" != "${TABLE}" ]]; then
+		sed -i "s|^upnp_nat_table_name=.*|upnp_nat_table_name=${TABLE}|" ${FILE}
+	fi
+	if [[ "$(grep "^upnp_forward_chain=" $FILE | cut -d= -f 2)" != "${FWD_CHAIN}" ]]; then
+		sed -i "s|^upnp_forward_chain=.*|upnp_forward_chain=${FWD_CHAIN}|" ${FILE}
+	fi
+	if [[ "$(grep "^upnp_nat_chain=" $FILE | cut -d= -f 2)" != "${PRE_CHAIN}" ]]; then
+		 sed -i "s|^upnp_nat_chain=.*|upnp_nat_chain=${PRE_CHAIN}|" ${FILE}
+	fi
+	if [[ "$(grep "^upnp_nat_postrouting_chain=" $FILE | cut -d= -f 2)" != "${PST_CHAIN}" ]]; then
+		sed -i "s|^upnp_nat_postrouting_chain=.*|upnp_nat_postrouting_chain=${PST_CHAIN}|" ${FILE}
+	fi
 
 	# Add a route for 239.0.0.0 for each interface that miniupnpd listens on:
 	for iface in $(cat ${FILE} | grep "^listening_ip" | cut -d= -f 2); do

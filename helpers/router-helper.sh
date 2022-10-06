@@ -425,6 +425,14 @@ case $CMD in
 			done
 			cp /etc/backup-file.list ${BACKUP}/etc/
 
+			# Remove any Adblock privoxy rules that we added automagically, then remove the privoxy
+			# configuration file if it is the same as the unmodified one:
+			rm etc/privoxy/*.adblock.{action,filter} >& /dev/null
+			if [[ -f etc/privoxy/config ]]; then
+				sed -i "/^actionsfile .*\.adblock\./d" etc/privoxy/config
+				cmp -s /etc/privoxy/config /ro/etc/privoxy/config >& /dev/null && rm etc/privoxy/config
+			fi
+
 			# Remove any empty directories from the newly copied directory tree:
 			find ${BACKUP} -type d | sort -r | while read dir; do rmdir ${dir} 2> /dev/null; done
 

@@ -58,6 +58,7 @@ umount ${DEV}/boot
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Copying root files to empty image..."
+mount | grep "${DEV}" | grep -v "/boot " | awk '{print $3}' | while read DIR; do umount ${DIR}; done
 cp -aR ${DEV}/* ${OUT}/
 
 ####################################################################################################

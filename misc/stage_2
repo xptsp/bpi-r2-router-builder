@@ -390,6 +390,7 @@ FILE=/usr/local/bin/privoxy-blocklist.sh
 wget https://raw.github.com/Andrwe/privoxy-blocklist/master/privoxy-blocklist.sh -O ${FILE} 
 chmod +x ${FILE}
 sed -i "s|SCRIPTCONF=\"/etc\/privoxy-.*|SCRIPTCONF=\"/etc/privoxy/blocklist.conf\"|" ${FILE}
+sed -i "s|\.script\.|\.adblock\.|g" ${FILE}
 
 #=============================================================================================
 # <<NOTE TO SELF>> 2022-09-29: Needs fixing from here on!
