@@ -199,7 +199,7 @@ case $CMD in
 				LOW=/
 			fi
 			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
-			find . -maxdepth 1 -type d | egrep -v "/(lower|upper|merged|work|)$" | grep -v "^.$" | while read mount; do 
+			find . -maxdepth 1 -type d | egrep -v "/(lower|upper|merged|work|)$" | grep -v "^.$" | grep -v ".old$" | while read mount; do 
 				mkdir -p ./merged/${mount}
 				mount --bind ${mount} ./merged/${mount}
 			done  
@@ -211,7 +211,7 @@ case $CMD in
 			mount | grep -q "${DIR}/merged" && $0 overlay umount
 			$0 overlay mount || exit 1
 			remount_rw ${DIR}
-			chroot ${DIR} screen -l
+			chroot ${DIR}
 			remount_ro ${DIR}
 			$0 overlay umount
 		#####################################################################
@@ -465,7 +465,7 @@ case $CMD in
 
 			# Make a squashfs archive of all files copied/created:
 			cd ${BACKUP}
-			mksquashfs ./ /tmp/bpiwrt.cfg -quiet
+			mksquashfs ./ /tmp/bpiwrt.cfg -quiet -b 1048576 -comp xz -Xdict-size 100%
 			rm -rf ${BACKUP}
 		#####################################################################
 		# REMOVE => Remove uploaded configuration backup:

@@ -182,7 +182,7 @@ systemctl enable --now nmbd
 ##################################################################################
 # Install NGINX and PHP 7.4
 ##################################################################################
-apt install -y nginx php7.4-fpm php7.4-cgi php7.4-xml php7.4-sqlite3 php7.4-intl apache2-utils php7.4-mysql php7.4-sqlite3 sqlite3 php7.4-zip php7.4-curl
+apt install -y nginx php7.4-fpm php7.4-cgi php7.4-xml php7.4-sqlite3 php7.4-intl apache2-utils php7.4-mysql php7.4-sqlite3 sqlite3 php7.4-zip php7.4-curl fcgiwrap
 FILE=/etc/php/7.4/fpm/php.ini
 sed -i "s|^display_errors = .*|display_errors = On|g" ${FILE}
 sed -i "s|^session.gc_maxlifetime = .*|session.gc_maxlifetime = 86400|g" ${FILE}

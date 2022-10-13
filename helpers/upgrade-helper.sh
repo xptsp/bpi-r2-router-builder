@@ -140,12 +140,6 @@ done
 chmod +x /home/{pi,vpn}/.bash* /etc/skel/{.bash*,.profile}
 
 #####################################################################################
-# Add any files to the list of files to backup: 
-#####################################################################################
-CHK=/etc/backup-file.list
-grep -Fxvf ${CHK} /ro/${CHK} | while read line; do echo $line >> ${CHK}; done
-
-#####################################################################################
 # Remove any files listed within the old file list:
 #####################################################################################
 for DEST in $(cat $TFL); do 
@@ -159,6 +153,12 @@ done
 #####################################################################################
 RW=($(mount | grep " /ro "))
 if [[ ! -z "${RW[5]}" ]]; then
+	#####################################################################################
+	# Add any files to the list of files to backup: 
+	#####################################################################################
+	CHK=/etc/backup-file.list
+	grep -Fxvf ${CHK} /ro/${CHK} | while read line; do echo $line >> ${CHK}; done
+
 	#####################################################################################
 	# Reload the system daemons and enable any services deemed necessary by the script:
 	#####################################################################################
