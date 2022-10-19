@@ -33,7 +33,7 @@ COPY_ONLY=(
 	/etc/overlayRoot.conf
 	/etc/pihole/
 	/etc/pivpn/
-	/etc/systemd/system/miniupnpd.service
+	/etc/systemd/system/*.service
 	/etc/persistent-nftables.conf
 	/root/
 	/home/pi/
@@ -96,11 +96,11 @@ for i in "$@"; do
 		-f|--force-copy)
 			FORCE_COPY=true
 			;;
-		
+
 		-s|--skip-copy)
 			SKIP_COPY=true
 			;;
-		
+
 		-q|--quiet)
 			QUIET=true
 			;;

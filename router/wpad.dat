@@ -1,0 +1,17 @@
+function FindProxyForURL(url, host) 
+{
+	// Set "no_proxy" flag if the requested website is hosted within the internal network:
+	ip_addr = dnsResolve(host);
+	no_proxy = isPlainHostName(host) ||
+        shExpMatch(host, "*.local") ||
+        isInNet(ip_addr, "10.0.0.0", "255.0.0.0") ||
+        isInNet(ip_addr, "172.16.0.0",  "255.240.0.0") ||
+        isInNet(ip_addr, "192.168.0.0",  "255.255.0.0") ||
+        isInNet(ip_addr, "127.0.0.0", "255.255.255.0");
+
+	// If "no_proxy" flag is set, return "DIRECT".  Otherwise, return address of proxy:
+    if (no_proxy)    
+        return "DIRECT";
+    else
+    	return "PROXY 192.168.2.1:3128; DIRECT";
+}

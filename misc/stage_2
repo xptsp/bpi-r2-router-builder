@@ -301,8 +301,11 @@ ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl restart nginx
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
-# Set global DNS nameserver to PiHole and make it immutable:
+# Set global DNS nameserver to PiHole:
 echo "nameserver 127.0.0.1" > /etc/resolv.conf
+
+# Modify init.d service script to call helper script before starting service:
+sed -i "s|start$|/opt/bpi-r2-router-builder/helpers/pihole-helper.sh\n\tstart|" /etc/init.d/pihole-FTL
 
 ##################################################################################
 # Install the wireless regulatory table
