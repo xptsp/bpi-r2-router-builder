@@ -101,15 +101,15 @@ stage 1e "Option disable_ddos=${disable_ddos:-"N"}"
 # Add DNS redirect rules ONLY if option "redirect_dns" is "Y":
 stage 1f "Option redirect_dns=${redirect_dns:-"Y"}"
 if [[ "${redirect_dns:-"Y"}" == "Y" ]]; then
-	_nft add rule inet ${TABLE} nat_prerouting_lan ip saddr != ${IP} ip daddr != ${IP} udp dport 53 counter dnat to ${IP} comment \"${TXT}\"
-	_nft add rule inet ${TABLE} nat_prerouting_lan ip saddr != ${IP} ip daddr != ${IP} tcp dport 53 counter dnat to ${IP} comment \"${TXT}\"
+	_nft add rule inet ${TABLE} nat_prerouting ip saddr != ${IP} ip daddr != ${IP} udp dport 53 counter dnat to ${IP} comment \"${TXT}\"
+	_nft add rule inet ${TABLE} nat_prerouting ip saddr != ${IP} ip daddr != ${IP} tcp dport 53 counter dnat to ${IP} comment \"${TXT}\"
 fi
 
 # Add HTTP/HTTPS proxying redirect rules ONLY if option "redirect_http_to_proxy" is "N":
 stage 1g "Option redirect_to_proxy=${redirect_to_proxy:-"N"}"
 if [[ "${redirect_to_proxy:-"N"}" == "Y" ]]; then
-	_nft add rule inet ${TABLE} nat_prerouting_lan ether saddr @PROXY_ACCEPT ip saddr != ${IP} ip daddr != ${IP} tcp dport 80 redirect to ${IP}:3138 comment \"${TXT}\"
-	_nft add rule inet ${TABLE} nat_prerouting_lan ether saddr @PROXY_ACCEPT ip saddr != ${IP} ip daddr != ${IP} tcp dport 443 redirect to ${IP}:3139 comment \"${TXT}\"
+	_nft add rule inet ${TABLE} nat_prerouting_lan ether saddr @PROXY_ACCEPT ip saddr != ${IP} ip daddr != ${IP} tcp dport 80 counter redirect to ${IP}:3138 comment \"${TXT}\"
+	_nft add rule inet ${TABLE} nat_prerouting_lan ether saddr @PROXY_ACCEPT ip saddr != ${IP} ip daddr != ${IP} tcp dport 443 counter redirect to ${IP}:3139 comment \"${TXT}\"
 fi
 
 #############################################################################

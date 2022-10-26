@@ -202,10 +202,10 @@ echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 apt install -y transmission-daemon
 systemctl stop transmission-daemon
 mkdir -p /home/vpn/.config/transmission-daemon/
-cp /opt/bpi-r2-router-builder/misc/services/transmission.json /home/vpn/.config/transmission-daemon/settings.json
+cp /opt/bpi-r2-router-builder/misc/config/transmission.json /home/vpn/.config/transmission-daemon/settings.json
 test -e /etc/transmission-daemon/settings.json && rm /etc/transmission-daemon/settings.json
 ln -sf /home/vpn/.config/transmission-daemon/settings.json /etc/transmission-daemon/settings.json
-cp /opt/bpi-r2-router-builder/misc/services/transmission-daemon /etc/default/transmission-daemon
+cp /opt/bpi-r2-router-builder/misc/config/transmission-daemon /etc/default/transmission-daemon
 chown -R vpn:vpn /etc/transmission-daemon/
 chown -R vpn:vpn /var/lib/transmission-daemon/
 chmod -R 775 /etc/transmission-daemon/
@@ -231,7 +231,7 @@ cd /
 # Install TrueCrypt and HD-Idle
 ##################################################################################
 apt install -y truecrypt-cli hd-idle
-cp /opt/bpi-r2-router-builder/misc/services/hd-idle /etc/default/hd-idle
+cp /opt/bpi-r2-router-builder/misc/config/hd-idle /etc/default/hd-idle
 systemctl enable --now hd-idle
 
 ##################################################################################
@@ -273,8 +273,8 @@ systemctl enable --now cloudflared@3
 ##################################################################################
 # Copy the default configuration to the "/etc/pihole" directory:
 mkdir -p /etc/pihole
-cp /opt/bpi-r2-router-builder/misc/services/pihole.conf /etc/pihole/setupVars.conf
-cp /opt/bpi-r2-router-builder/misc/services/pihole-custom.list /etc/pihole/custom.list
+cp /opt/bpi-r2-router-builder/misc/config/pihole.conf /etc/pihole/setupVars.conf
+cp /opt/bpi-r2-router-builder/misc/config/pihole-custom.list /etc/pihole/custom.list
 
 # Install Pi-Hole on this machine:
 curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
@@ -363,7 +363,7 @@ apt install python3-netifaces
 # Clone the multicast-relay repo:
 git clone https://github.com/alsmith/multicast-relay /opt/multicast-relay
 # Configure and start the service:
-cp /opt/bpi-r2-router-builder/misc/services/multicast-relay /etc/default/multicast-relay
+cp /opt/bpi-r2-router-builder/misc/config/multicast-relay /etc/default/multicast-relay
 systemctl enable --now multicast-relay
 
 ##################################################################################
@@ -384,12 +384,12 @@ apt install -y privoxy squid-openssl
 # Copy new Squid configuration file into place:
 FILE=/etc/squid/squid.conf
 test -f ${FILE} || cp ${FILE} ${FILE}.bak
-cp /opt/bpi-r2-router-builder/misc/services/squid.conf ${FILE}
+cp /opt/bpi-r2-router-builder/misc/config/squid.conf ${FILE}
 # Copy new Privoxy configuration files into place:
 FILE=/etc/privoxy/config
 test -f ${FILE} || cp ${FILE} ${FILE}.bak
-cp /opt/bpi-r2-router-builder/misc/services/privoxy-config.conf ${FILE} 
-cp /opt/bpi-r2-router-builder/misc/services/privoxy-blocklist.conf $(dirname ${FILE})/blocklist.conf 
+cp /opt/bpi-r2-router-builder/misc/config/privoxy-config.conf ${FILE} 
+cp /opt/bpi-r2-router-builder/misc/config/privoxy-blocklist.conf $(dirname ${FILE})/blocklist.conf 
 # Download AdBlock list downloading script for Privoxy:
 FILE=/usr/local/bin/privoxy-blocklist.sh
 wget https://raw.github.com/Andrwe/privoxy-blocklist/master/privoxy-blocklist.sh -O ${FILE} 
@@ -411,7 +411,7 @@ systemctl restart squid
 ##################################################################################
 # Copy the default configuration to the "/etc/pihole" directory:
 mkdir -p /etc/pivpn
-cp /opt/bpi-r2-router-builder/misc/services/pivpn.conf /etc/pivpn/setupVars.conf
+cp /opt/bpi-r2-router-builder/misc/config/pivpn.conf /etc/pivpn/setupVars.conf
 
 # Clone the PiVPN repository:
 DIR=/usr/local/src/pivpn
