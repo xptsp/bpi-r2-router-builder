@@ -1,5 +1,5 @@
 server {
-	listen 192.168.2.2:80;
+	listen 192.168.2.2:80 default_server;
 
 	root /var/www/html;
 	server_name pi.hole;
@@ -31,5 +31,15 @@ server {
 
 	location ~ /\.ht {
 		deny all;
+	}
+}
+server {
+	listen 192.168.2.2:80;
+
+	server_name bpiwrt bpiwrt.local;
+
+	location / {
+		proxy_pass_header  X-Transmission-Session-Id;
+		proxy_pass         http://192.168.2.1;
 	}
 }

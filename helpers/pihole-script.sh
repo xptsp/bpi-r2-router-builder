@@ -1,26 +1,48 @@
 #!/bin/bash
 
-# Figure out what the IP addresses should be:
-FILE=/etc/dnsmasq.d/03-bpiwrt.conf
+##############################################################################
+# Function dealing with IP addresses
+##############################################################################
+check_ip()
+{
+	local OLD=$(grep -m 1 "$1$" ${FILE} | awk '{print $1}')
+	[[ "${OLD}" != "$2" ]] && sed -i "s|${OLD} $1$|$2 $1|g" ${FILE}
+}	
+
+##############################################################################
+# Figure out what the IP addresses for interface "br0" are:
+##############################################################################
 IP=($(ip addr show br0 | grep "inet " | awk '{print $2}' | cut -d/ -f 1))
 IP1=${IP[0]}
 IP2=${IP[1]:-"${IP[0]}"}
 
-# If file exists and existing IP addresses are correct, then exit with code 0:  
-if test -f ${FILE}; then
-	OLD1=$(grep "/bpiwrt/" ${FILE} | cut -d/ -f 3) 
-	OLD2=$(grep "/wpad/" ${FILE} | cut -d/ -f 3)
-	OLD3=$(grep "/pi.hole/" ${FILE} | cut -d/ -f 3)
-	[[ "${OLD1}" == "${IP1}" && "${OLD2}" == "${IP1}" && "${OLD3}" == "${IP2}" ]] && exit 0
-fi
+##############################################################################
+# If WPAD URL is incorrect, fix the URL:  
+##############################################################################
+FILE=/etc/dnsmasq.d/wpad.conf
+OLD=$(grep "dhcp-option" ${FILE} | cut -d\" -f 2 | cut -d/ -f 3) 
+[[ "${OLD}" != "${IP}" ]] && sed -i "s|${OLD}|${IP1}|" ${FILE}
 
-# Update the "03-server.conf" file: 
-cat << EOF > ${FILE}
-dhcp-option=252,"http://${IP1}/wpad.dat"
-address=/bpiwrt.local/${IP1}
-address=/bpiwrt/${IP1}
-address=/wpad.local/${IP1}
-address=/wpad/${IP1}
-address=/pi.hole/${IP2}
-address=/pihole.local/${IP2}
-EOF
+##############################################################################
+# Change mapped IP addresses for "bpiwrt" and "bpiwrt.local":
+##############################################################################
+FILE=/etc/pihole/custom.list
+check_ip bpiwrt ${IP1}
+check_ip bpiwrt.local ${IP1}
+
+##############################################################################
+# Change mapped IP addresses for "wpad" and "wpad.local":
+##############################################################################
+check_ip wpad ${IP1}
+check_ip wpad.local ${IP1}
+
+##############################################################################
+# Change mapped IP addresses for "pi.hole" and "pihole.local":
+##############################################################################
+check_ip pi.hole ${IP2}
+check_ip pihole.local ${IP2}
+
+##############################################################################
+# Return error code 0:
+##############################################################################
+exit 0

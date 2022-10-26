@@ -23,6 +23,7 @@ if ((!$logged_in && $_GET['action'] != 'login') || $_GET['action'] == 'logout')
 	session_destroy();
 	setcookie(session_name(), false, time() - 3600);
 	header('Location: http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/login');
+	die();
 }
 
 # Set dark mode if not already set:
