@@ -5,7 +5,7 @@
 ##############################################################################
 check_ip()
 {
-	[[ "$(grep -m 1 "${1}$" ${FILE} | awk '{print $1}')" != "$2" ]] && sed -i "s|.*${1}$|$2 $1|g" ${FILE}
+	[[ "$(grep -m 1 " ${2}$" ${FILE} | awk '{print $1}')" != "$1" ]] && sed -i "s|.* ${2}$|$1 $2|g" ${FILE}
 }	
 
 ##############################################################################
@@ -26,20 +26,21 @@ OLD=$(grep "dhcp-option" ${FILE} | cut -d\" -f 2 | cut -d/ -f 3)
 # Change mapped IP addresses for "bpiwrt" and "bpiwrt.local":
 ##############################################################################
 FILE=/etc/pihole/custom.list
-check_ip bpiwrt ${IP1}
-check_ip bpiwrt.local ${IP1}
+HOST=$(hostname)
+check_ip ${IP1} ${HOST} 
+check_ip ${IP1} ${HOST}.local
 
 ##############################################################################
 # Change mapped IP addresses for "wpad" and "wpad.local":
 ##############################################################################
-check_ip wpad ${IP1}
-check_ip wpad.local ${IP1}
+check_ip ${IP1} wpad
+check_ip ${IP1} wpad.local
 
 ##############################################################################
 # Change mapped IP addresses for "pi.hole" and "pihole.local":
 ##############################################################################
-check_ip pi.hole ${IP2}
-check_ip pihole.local ${IP2}
+check_ip ${IP2} pi.hole
+check_ip ${IP2} pihole.local
 
 ##############################################################################
 # If IP address in "pihole-FTL.conf" is incorrect, fix the URL:  
@@ -57,4 +58,3 @@ FILE=/etc/pihole/setupVars.conf
 # Return error code 0:
 ##############################################################################
 exit 0
-`

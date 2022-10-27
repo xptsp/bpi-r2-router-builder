@@ -328,7 +328,7 @@ case $CMD in
 		#####################################################################
 		# MACHINE: Return machine name from system log (inaccessable otherwise...)
 		elif [[ "$1" == "machine" ]]; then
-			cat /var/log/syslog* | grep 'Machine model' | head -1 | awk -F ":" '{print $NF}'
+			grep -m 1 'Machine model' /var/log/syslog* | awk -F ":" '{print $NF}'
 		#####################################################################
 		# Everything else:
 		else
@@ -352,9 +352,12 @@ case $CMD in
 
 		# Set the new hostname:
 		OLD_HOST=$(hostname)
-		ORIG="$(grep ${OLD_HOST} /etc/hosts)"
+		ORIG="$(grep " ${OLD_HOST}$" /etc/hosts)"
 		REPL="${ORIG//${OLD_HOST}/${1}}"
-		sed -i "s|^${ORIG}\$|${REPL}|g" /etc/hosts
+		sed -i "s|^${ORIG}$|${REPL}|g" /etc/hosts
+		sed -i "s| ${OLD_HOST}$| ${1}|g" /etc/pihole/custom.list
+		sed -i "s| ${OLD_HOST}.local$| ${1}|g" /etc/pihole/custom.list
+		sed -i "s| ${OLD_HOST}$| ${1}|g" /etc/squid/squid.conf
 		echo "$1" > /etc/hostname
 		/bin/hostname $1
 
@@ -485,7 +488,10 @@ case $CMD in
 		elif [[ "$1" == "copy" ]]; then
 			if ! mount | grep -q ' /tmp/bpiwrt '; then $0 backup prep || exit 1; fi
 			cp -aR /tmp/bpiwrt/* /
-			test -f /var/opt/init_services.sh && source /var/opt/init_services.sh
+			if [[ -f /var/opt/init_services.sh ]]; then
+				source /var/opt/init_services.sh
+				rm /var/opt/init_services.sh
+			fi
 		#####################################################################
 		# Everything else:
 		else
@@ -517,14 +523,13 @@ case $CMD in
 				test -d /ro && mount -o remount,rw /ro
 				sed -i "/SECONDARY_REFORMAT=/d" ${DIR}/etc/overlayRoot.conf
 				if [[ -d /ro ]]; then
-					mount -o remount,ro /ro
-
 					# If user-defined defaults exist, copy them to file system:
 					if [[ -f /boot/bpiwrt.cfg ]]; then
 						mount /boot/bpiwrt.cfg /mnt
 						cp -aRv /mnt/* /
 						umount /mnt
 					fi
+					mount -o remount,ro /ro
 				fi
 			fi
 			exit 0

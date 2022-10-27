@@ -39,7 +39,7 @@ MB=$(( ${END} / 2 / 1024 / 4))
 SZ=$(( ${END} * 512 ))
 echo -e "${GREEN}================================================================${NC}"
 echo -e "${GREEN}NOTE:${NC} Backing up ${BLUE}${DEV}${NC} to ${BLUE}${FILE}${NC}...."
-echo -e "${GREEN}INFO:${NC} $(printf "%'.0f\n" ${END}) blocks = $(printf "%'.0f\n" ${SIZE}) MB ($(printf "%'.0f\n" ${SZ}))"
+echo -e "${GREEN}INFO:${NC} $(printf "%'.0f\n" ${END}) blocks = $(printf "%'.0f\n" ${MB}) MB ($(printf "%'.0f\n" ${SZ}))"
 echo -e "${GREEN}================================================================${NC}"
 if [[ ! "${DEV}" =~ "/dev/mmcblk" ]]; then
 	dd if=${DEV} bs=4M count=${MB} | pv -w 80 -s ${SZ} | dd bs=4M of=${FILE}
