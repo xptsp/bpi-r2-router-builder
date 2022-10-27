@@ -29,7 +29,7 @@ COPY_ONLY=(
 	/etc/tcmount.ini
 	/etc/rc.local
 	/etc/default/
-	/etc/backup-file.list
+	/etc/sysupgrade.conf
 	/etc/overlayRoot.conf
 	/etc/pihole/
 	/etc/pivpn/
