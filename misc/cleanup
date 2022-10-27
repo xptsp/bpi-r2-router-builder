@@ -54,12 +54,11 @@ find ${DEV}/boot -type f | grep -v "uImage$" | egrep -v ".(cfg|dtb|conf)$" | whi
 	cp ${file} ${DEST}
 done
 mv ${OUT}/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb.old ${OUT}/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
-umount ${DEV}/boot
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Copying root files to empty image..."
-mount | grep "${DEV}" | grep -v "/boot " | awk '{print $3}' | while read DIR; do umount ${DIR}; done
-cp -aR ${DEV}/* ${OUT}/
+mount | grep "${DEV}/" | grep -v "/boot " | awk '{print $3}' | while read DIR; do umount ${DIR}; done
+cp --one-file-system -aR ${DEV}/* ${OUT}/
 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Unmount partitions from system..."

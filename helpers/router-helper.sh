@@ -417,13 +417,13 @@ case $CMD in
 			test -d ${BACKUP} && rm -rf ${BACKUP}
 			mkdir -p ${BACKUP}/boot
 			cp /boot/persistent.conf ${BACKUP}/boot/ 2> /dev/null
-			for file in $(cat /etc/backup-file.list); do
+			for file in $(cat /etc/sysupgrade.conf); do
 				DIR=${BACKUP}/$(dirname ${file})
 				mkdir -p ${DIR}
 				[[ "$file" =~ ^/ ]] && ROOT=/ || ROOT=/rw/upper/
 				cp -a ${ROOT}/${file} ${DIR}/ 2> /dev/null
 			done
-			cp /etc/backup-file.list ${BACKUP}/etc/
+			cp /etc/sysupgrade.conf ${BACKUP}/etc/
 
 			# Remove any Adblock privoxy rules that we added automagically, then remove the privoxy
 			# configuration file if it is the same as the unmodified one:
