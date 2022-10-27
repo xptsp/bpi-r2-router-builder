@@ -52,7 +52,7 @@ FILE=/etc/pihole/pihole-FTL.conf
 # If IP address in "setupVars.conf" is incorrect, fix the URL:  
 ##############################################################################
 FILE=/etc/pihole/setupVars.conf
-[[ "$(grep "LOCAL_IPV4=" ${FILE} | cut -d= -f 2)" != "${IP2}" ]] && sed -i "s|LOCAL_IPV4=.*|LOCAL_IPV4=${IP2}|" ${FILE}
+[[ "$(grep "IPV4_ADDRESS=" ${FILE} | cut -d= -f 2)" != "${IP2}" ]] && sed -i "s|IPV4_ADDRESS=.*|LOCAL_IPV4=${IP2}|" ${FILE}
 
 ##############################################################################
 # Return error code 0:
