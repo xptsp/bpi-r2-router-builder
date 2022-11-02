@@ -154,21 +154,43 @@ done
 RW=($(mount | grep " /ro "))
 if [[ ! -z "${RW[5]}" ]]; then
 	#####################################################################################
+	# Enable any services deemed necessary by the script:
+	#####################################################################################
+	systemctl daemon-reload
+	systemctl is-enabled cloudflared@1 >& /dev/null || systemctl enable ${NOW} cloudflared@1
+	systemctl is-enabled cloudflared@2 >& /dev/null || systemctl enable ${NOW} cloudflared@2
+	systemctl is-enabled cloudflared@3 >& /dev/null || systemctl enable ${NOW} cloudflared@3
+	systemctl is-enabled multicast-relay >& /dev/null || systemctl enable ${NOW} multicast-relay
+	systemctl is-enabled wifi >& /dev/null || systemctl enable ${NOW} wifi
+
+	#####################################################################################
+	# Unwrite-protect the readonly partition and perform upgrade of RO partition:  
+	#####################################################################################
+	[[ "${RW[5]}" == *ro,* ]] && NOW="--now" && mount -o remount,rw /ro 2> /dev/null
+	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f
+
+	#####################################################################################
 	# Add any files to the list of files to backup: 
 	#####################################################################################
 	CHK=/etc/sysupgrade.conf
 	grep -Fxvf ${CHK} /ro/${CHK} | while read line; do echo $line >> ${CHK}; done
 
 	#####################################################################################
-	# Reload the system daemons and enable any services deemed necessary by the script:
+	# Replace default files as necessary:
 	#####################################################################################
-	systemctl daemon-reload
-	[[ "${RW[5]}" == *ro,* ]] && NOW="--now" && mount -o remount,rw /ro 2> /dev/null
-	systemctl is-enabled cloudflared@1 >& /dev/null || systemctl enable ${NOW} cloudflared@1
-	systemctl is-enabled cloudflared@2 >& /dev/null || systemctl enable ${NOW} cloudflared@2
-	systemctl is-enabled cloudflared@3 >& /dev/null || systemctl enable ${NOW} cloudflared@3
-	systemctl is-enabled multicast-relay >& /dev/null || systemctl enable ${NOW} multicast-relay
-	systemctl is-enabled wifi >& /dev/null || systemctl enable ${NOW} wifi
-	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f
+	replace misc/config/hd-idle /ro/etc/default/hd-idle
+	replace misc/config/multicast-relay /etc/default/multicast-relay
+	replace misc/config/pihole.conf /ro/etc/pihole/setupVars.conf
+	replace misc/config/pihole-custom.list /ro/etc/pihole/custom.list
+	replace misc/config/privoxy-blocklist.conf /ro/etc/privoxy/blocklist.conf
+	replace misc/config/privoxy-config.conf  /ro/etc/privoxy/config
+	replace misc/config/squid.conf /ro/etc/squid/squid.conf
+	replace misc/config/transmission-daemon /ro/etc/default/transmission-daemon
+	replace misc/config/transmission.json /ro/home/vpn/.config/transmission-daemon/settings.json 
+	replace misc/config/pivpn.conf /ro/etc/pivpn/setupVars.conf
+
+	#####################################################################################
+	# Write-protect the readonly partition:  
+	#####################################################################################
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /ro 2> /dev/null
 fi
