@@ -164,7 +164,7 @@ if [[ ! -z "${RW[5]}" ]]; then
 	systemctl is-enabled wifi >& /dev/null || systemctl enable ${NOW} wifi
 
 	#####################################################################################
-	# Unwrite-protect the readonly partition and perform upgrade of RO partition:  
+	# Unwrite-protect the readonly root partition and perform upgrade of RO partition:  
 	#####################################################################################
 	[[ "${RW[5]}" == *ro,* ]] && NOW="--now" && mount -o remount,rw /ro 2> /dev/null
 	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f
@@ -178,18 +178,18 @@ if [[ ! -z "${RW[5]}" ]]; then
 	#####################################################################################
 	# Replace default files as necessary:
 	#####################################################################################
-	replace ../misc/config/hd-idle /ro/etc/default/hd-idle true
-	replace ../misc/config/multicast-relay /ro/etc/default/multicast-relay true
-	replace ../misc/config/pihole.conf /ro/etc/pihole/setupVars.conf true
-	replace ../misc/config/pihole-custom.list /ro/etc/pihole/custom.list true
-	replace ../misc/config/privoxy-blocklist.conf /ro/etc/privoxy/blocklist.conf true
-	replace ../misc/config/privoxy-config.conf  /ro/etc/privoxy/config true
-	replace ../misc/config/squid.conf /ro/etc/squid/squid.conf true
-	replace ../misc/config/transmission-daemon /ro/etc/default/transmission-daemon true
-	replace ../misc/config/transmission.json /ro/home/vpn/.config/transmission-daemon/settings.json true 
+	replace ../misc/config/hd-idle ro/etc/default/hd-idle true
+	replace ../misc/config/multicast-relay ro/etc/default/multicast-relay true
+	replace ../misc/config/pihole.conf ro/etc/pihole/setupVars.conf true
+	replace ../misc/config/pihole-custom.list ro/etc/pihole/custom.list true
+	replace ../misc/config/privoxy-blocklist.conf ro/etc/privoxy/blocklist.conf true
+	replace ../misc/config/privoxy-config.conf ro/etc/privoxy/config true
+	replace ../misc/config/squid.conf ro/etc/squid/squid.conf true
+	replace ../misc/config/transmission-daemon ro/etc/default/transmission-daemon true
+	replace ../misc/config/transmission.json ro/home/vpn/.config/transmission-daemon/settings.json true 
 
 	#####################################################################################
-	# Write-protect the readonly partition:  
+	# Write-protect the readonly root partition:  
 	#####################################################################################
 	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /ro 2> /dev/null
 fi
