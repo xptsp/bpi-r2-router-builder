@@ -33,7 +33,7 @@ if [[ "$1" == "start" ]]; then
 	[[ "$(grep -m 1 "rpc-password" ${SETTINGS} | cut -d\" -f 4)" != "${TRANS_PASS}" ]] && sed -i "s|\"rpc-password\": \".*|\"rpc-password\": \"${TRANS_PASS}\",|" ${SETTINGS}
 
 	# Start the daemon:
-	exec /usr/bin/transmission-daemon -f --log-error --port=${TRANS_PORT:-"9091"} --no-port-map \
+	exec /usr/bin/transmission-daemon -f --log-error --port=${TRANS_PORT:-"9091"} --no-portmap \
 		--bind-address-ipv4=${IPv4:-"255.255.255.1"} --bind-address-ipv6=${IPv6:-"fe80::"} \
 		--rpc-bind-address=$(ifconfig ${TRANS_IFACE:-"br0"} | grep -m 1 "inet " | awk '{print $2}')
 
