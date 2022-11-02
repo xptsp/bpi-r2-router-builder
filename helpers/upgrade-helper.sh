@@ -48,7 +48,7 @@ COPY_ONLY=(
 function replace()
 {
 	DEST=/${2:-"$1"}
-	COPY=false
+	COPY=${3:-"false"}
 	SRC=$(echo ${PWD}/$1 | sed "s|/ro/|/|g")
 	for MATCH in ${COPY_ONLY[@]}; do 
 		[[ "${DEST}" == "${MATCH}"* && "${DEST}" != "/etc/dnsmasq.d/"[0-9]* ]] && COPY=true
@@ -56,11 +56,10 @@ function replace()
 	mkdir -p $(dirname ${DEST})
 	if [[ "${COPY}" == "true" ]]; then
 		if [[ "${SKIP_COPY}" == "false" ]]; then
-			if [[ "${FORCE_COPY}" == "true" ]]; then
-				MD5_OLD=$(md5sum ${SRC} 2> /dev/null| cut -d" " -f 1)
-				MD5_NEW=$(md5sum ${DEST} | cut -d" " -f 1)
-				[[ "${MD5_OLD}" != "${MD5_NEW}" ]] && test -f ${DEST} && rm "${DEST}" 2> /dev/null
-			fi
+			[[ "${FORCE_COPY}" == "true" ]] && rm "${DEST}" 2> /dev/null
+			MD5_OLD=$(md5sum ${SRC} 2> /dev/null | cut -d" " -f 1)
+			MD5_NEW=$(md5sum ${DEST} | cut -d" " -f 1)
+			[[ "${MD5_OLD}" != "${MD5_NEW}" ]] && test -f ${DEST} && rm "${DEST}" 2> /dev/null
 			if ! test -f ${DEST}; then
 				[[ "${QUIET}" == "false" ]] && echo -e -n "Copying ${BLUE}${DEST}${NC}... "
 				if ! cp ${SRC} ${DEST}; then
@@ -71,8 +70,6 @@ function replace()
 			fi
 		fi
 	else
-		echo "${DEST}" >> ${LNEW}
-		cat ${LOLD} | grep -v "^${DEST}$" | tee ${LOLD} >& /dev/null
 		INFO=$(ls -l ${DEST} 2> /dev/null | awk '{print $NF}')
 		if [[ ! "${INFO}" == "${SRC}" ]]; then
 			rm ${DEST} >& /dev/null
@@ -178,16 +175,15 @@ if [[ ! -z "${RW[5]}" ]]; then
 	#####################################################################################
 	# Replace default files as necessary:
 	#####################################################################################
-	replace misc/config/hd-idle /ro/etc/default/hd-idle
-	replace misc/config/multicast-relay /etc/default/multicast-relay
-	replace misc/config/pihole.conf /ro/etc/pihole/setupVars.conf
-	replace misc/config/pihole-custom.list /ro/etc/pihole/custom.list
-	replace misc/config/privoxy-blocklist.conf /ro/etc/privoxy/blocklist.conf
-	replace misc/config/privoxy-config.conf  /ro/etc/privoxy/config
-	replace misc/config/squid.conf /ro/etc/squid/squid.conf
-	replace misc/config/transmission-daemon /ro/etc/default/transmission-daemon
-	replace misc/config/transmission.json /ro/home/vpn/.config/transmission-daemon/settings.json 
-	replace misc/config/pivpn.conf /ro/etc/pivpn/setupVars.conf
+	replace ../misc/config/hd-idle /ro/etc/default/hd-idle true
+	replace ../misc/config/multicast-relay /etc/default/multicast-relay true
+	replace ../misc/config/pihole.conf /ro/etc/pihole/setupVars.conf true
+	replace ../misc/config/pihole-custom.list /ro/etc/pihole/custom.list true
+	replace ../misc/config/privoxy-blocklist.conf /ro/etc/privoxy/blocklist.conf true
+	replace ../misc/config/privoxy-config.conf  /ro/etc/privoxy/config true
+	replace ../misc/config/squid.conf /ro/etc/squid/squid.conf true
+	replace ../misc/config/transmission-daemon /ro/etc/default/transmission-daemon true
+	replace ../misc/config/transmission.json /ro/home/vpn/.config/transmission-daemon/settings.json true 
 
 	#####################################################################################
 	# Write-protect the readonly partition:  
