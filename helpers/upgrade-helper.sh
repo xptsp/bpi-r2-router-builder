@@ -179,7 +179,7 @@ if [[ ! -z "${RW[5]}" ]]; then
 	# Replace default files as necessary:
 	#####################################################################################
 	replace ../misc/config/hd-idle /ro/etc/default/hd-idle true
-	replace ../misc/config/multicast-relay /etc/default/multicast-relay true
+	replace ../misc/config/multicast-relay /ro/etc/default/multicast-relay true
 	replace ../misc/config/pihole.conf /ro/etc/pihole/setupVars.conf true
 	replace ../misc/config/pihole-custom.list /ro/etc/pihole/custom.list true
 	replace ../misc/config/privoxy-blocklist.conf /ro/etc/privoxy/blocklist.conf true
