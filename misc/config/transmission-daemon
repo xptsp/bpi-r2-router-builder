@@ -15,6 +15,9 @@ TRANS_PORT=9091
 # Subdirectory to use for transmission-daemon WebUI (default: combustion-release)
 TRANS_WEBUI=combustion-release
 
+# Interface to bind WebUI to:
+TRANS_IFACE=br0
+
 # Change to 0 to disable daemon
 ENABLE_DAEMON=1
 

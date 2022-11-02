@@ -12,31 +12,18 @@
 cd /etc/nginx/sites-available
 NEW_IP=$(cat /etc/network/interfaces.d/br0 | grep address | awk '{print $2}')
 if [[ ! -z "${NEW_IP}" ]]; then
-	for FILE in $(ls | egrep -ve "(default|transmission|pihole)"); do
+	for FILE in $(ls | egrep -ve "(default|pihole)"); do
 		OLD_IP=$(cat ${FILE} | grep listen | head -1 | awk '{print $2}' | cut -d: -f 1)
 		[[ "${NEW_IP}" != "${OLD_IP}" ]] && sed -i "s|${OLD_IP}|${NEW_IP}|g" ${FILE}
 	done
 fi
 
 #############################################################################
-# Update transmission reverse proxy to match port address specified:
-#############################################################################
-if test -f /etc/default/transmission-daemon; then
-	source /etc/default/transmission-daemon
-	TRANS_IFACE=${TRANS_IFACE:-"br0"}
-	[[ "${TRANS_IFACE}" != "br0" ]] && NEW_IP=$(cat /etc/network/interfaces.d/${TRANS_IFACE} | grep address | awk '{print $2}')
-	if [[ ! -z "${NEW_IP}" ]]; then
-		OLD_IP=$(cat transmission | grep listen | awk '{print $2}')
-		[[ "${NEW_IP}:${TRANS_PORT:-"9091"};" != "${OLD_IP}" ]] && sed -i "s|listen ${NEW_IP}:.*;|listen ${NEW_IP}\:${TRANS_PORT:-"9091"};|g" transmission
-	fi
-fi
-
-#############################################################################
 # Change IP address that PiHole admin server is assigned to:  
 #############################################################################
-SECOND=$(ifconfig br0:1 | grep " inet " | awk '{print $2}')
+SECOND=$(ifconfig br0:1 | grep -m 1 "inet " | awk '{print $2}')
 [[ ! -z "${SECOND}" ]] && NEW_IP=${SECOND}
-OLD_IP=$(cat pihole | grep listen | head -1 | awk '{print $2}' | cut -d: -f 1)
+OLD_IP=$(cat pihole | grep -m 1 "listen" | awk '{print $2}' | cut -d: -f 1)
 [[ "${NEW_IP}" != "${OLD_IP}" ]] && sed -i "s|${OLD_IP}|${NEW_IP}|g" pihole
 
 #############################################################################

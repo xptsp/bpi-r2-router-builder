@@ -214,7 +214,6 @@ mkdir -p /home/vpn/{Incomplete,Completed}
 chown -R vpn:vpn /home/vpn/*
 chmod -R 775 /home/vpn/{Incomplete,Completed}
 systemctl enable --now transmission-daemon
-ln -sf /etc/nginx/sites-available/transmission /etc/nginx/sites-enabled/
 
 ##################################################################################
 # Replace transmission-daemon WebUI with custom WebUI:
