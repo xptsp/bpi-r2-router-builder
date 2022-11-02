@@ -82,8 +82,10 @@ function replace()
 			fi
 		fi
 	fi
-	echo $DEST >> ${PFL}
-	cat ${TFL} | grep -ve "^${DEST}$" | tee ${TFL} >& /dev/null
+	if [[ -z "$3" ]]; then
+		echo $DEST >> ${PFL}
+		cat ${TFL} | grep -ve "^${DEST}$" | tee ${TFL} >& /dev/null
+	fi
 }
 
 #####################################################################################
