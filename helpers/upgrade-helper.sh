@@ -56,10 +56,11 @@ function replace()
 	mkdir -p $(dirname ${DEST})
 	if [[ "${COPY}" == "true" ]]; then
 		if [[ "${SKIP_COPY}" == "false" ]]; then
-			[[ "${FORCE_COPY}" == "true" ]] && rm "${DEST}" 2> /dev/null
-			MD5_OLD=$(md5sum ${SRC} 2> /dev/null | cut -d" " -f 1)
-			MD5_NEW=$(md5sum ${DEST} | cut -d" " -f 1)
-			[[ "${MD5_OLD}" != "${MD5_NEW}" ]] && test -f ${DEST} && rm "${DEST}" 2> /dev/null
+			if [[ "${FORCE_COPY}" == "true" ]]; then
+				MD5_OLD=$(md5sum ${SRC} 2> /dev/null | cut -d" " -f 1)
+				MD5_NEW=$(md5sum ${DEST} | cut -d" " -f 1)
+				[[ "${MD5_OLD}" != "${MD5_NEW}" ]] && test -f ${DEST} && rm "${DEST}" 2> /dev/null
+			fi
 			if ! test -f ${DEST}; then
 				[[ "${QUIET}" == "false" ]] && echo -e -n "Copying ${BLUE}${DEST}${NC}... "
 				if ! cp ${SRC} ${DEST}; then
