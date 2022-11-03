@@ -26,8 +26,14 @@ if ((!$logged_in && $_GET['action'] != 'login') || $_GET['action'] == 'logout')
 	die();
 }
 
-# Set dark mode if not already set:
+# Unset the repo versions stored in the session if we are looking at managing the repositories:
+if ($_GET['action'] == 'manage-repo')
+	unset($_SESSION['webui_version'], $_SESSION['regdb_version']); 
+	
+# We need the site subfunctions included now:
 require_once('includes/subs/site.php');
+
+# Set dark mode if not already set:
 if (!isset($_SESSION['dark_mode']))
 {
 	$local = parse_options();

@@ -401,10 +401,6 @@ systemctl restart privoxy
 systemctl enable squid
 systemctl restart squid
 
-#=============================================================================================
-# <<NOTE TO SELF>> 2022-09-29: Needs fixing from here on!
-#=============================================================================================
-
 ##################################################################################
 # Install PiVPN, modifying files and installing packages as required:
 ##################################################################################
@@ -435,8 +431,10 @@ sed -i 's|\tcd /etc/openvpn/easy-rsa|}\n\nGenerateOpenVPN() {\n\tcd  /etc/openvp
 sed -i "s|  if ! getent passwd openvpn; then|}\n\ncreateOVPNuser(){\n  if ! getent  passwd openvpn >\& /dev/null; then|" ${MODDED}
 sed -i "s|  \${SUDOE} chown \"\$debianOvpnUserGroup\" /etc/openvpn/crl.pem|}\n\ncreateServerConf(){\n\t\${SUDOE}  chown \"\$debianOvpnUserGroup\" /etc/openvpn/crl.pem|" ${MODDED}
 sed -i "s|whiptail --msgbox --backtitle \"Setup OpenVPN\"|echo; #whiptail --msgbox --backtitle \"Setup OpenVPN\"|g" ${MODDED}
-sed -i "s|main \"\$@\"|[[ -z \"\${IN_DOCKER}\" ]] \&\& main \"\$@\"|g" ${MODDED}
-#sed -i "s|if [ \"\${USE_PREDEFINED_DH_PARAM}\" -eq 1 ]; then|if [ \"\${DOWNLOAD_DH_PARAM}\" -eq 1]; then\n\t\t\t\${SUDOE} curl https://2ton.com.au/getprimes/random/dhparam/\${pivpnENCRYPT} -o pki/dh\${pivpnENCRYPT}.pem\nelif [ \"\${USE_PREDEFINED_DH_PARAM}\"  -eq 1 ]; then|" ${MODDED}
+sed -i "s|main \"\$@\"|[[ -z \"\${SKIP_MAIN}\" ]] \&\& main \"\$@\"|g" ${MODDED}
+sed -i "s|\${SUDOE} install -m 644 \"\${pivpnFilesDir}\"/files/etc/openvpn/easy-rsa/pki/ffdhe\"\${pivpnENCRYPT}\".pem pki/dh\"\${pivpnENCRYPT}\".pem|curl https://2ton.com.au/getprimes/random/dhparam/\${pivpnENCRYPT} -o pki/dh\${pivpnENCRYPT}.pem|" ${MODDED}
+sed -i "s|if [ \"\$USING_UFW\" -eq 0 ]; then|if [ \"\$USING_UFW\" -eq 2 ]; then|" ${MODDED}
+sed -i "s|server.conf|pivpn.conf|g" ${MODDED}
 
 # Run the modified script:
 bash ${MODDED} --unattended /etc/pivpn/setupVars.conf --reconfigure
@@ -445,20 +443,16 @@ bash ${MODDED} --unattended /etc/pivpn/setupVars.conf --reconfigure
 setupVars=/usr/local/src/setupVars.conf
 cp /tmp/setupVars.conf ${setupVars}
 sed -i "/^pivpnHOST=/d" ${setupVars}
-sed -i "/^IPv4dev=/d" ${setupVars}
 echo "pivpnDH_DOWNLOAD=0" >> ${setupVars}
 echo "pivpnDH_PREDEFINED=0" >> ${setupVars}
 echo "pivpnTWO_POINT_FOUR=0" >> ${setupVars}
-echo "pivpnWEB_PASS=password" >> ${setupVars}
-echo "pivpnWEB_PORT=0" >> ${setupVars}
 echo "pivpnHOST=" >> ${setupVars}
-echo "pivpnKeepAlive=" >> ${setupVars}
 echo "SHOW_REVOKED=1" >> ${setupVars}
 sed -i "s|^pivpnDEV=.*|pivpnDEV=pivpn|" ${setupVars}
 echo "HELP_SHOWN=1" >> ${setupVars}
-echo '[[ -f /etc/openvpn/pivpn.env ]] && source /etc/openvpn/pivpn.env' >> ${setupVars}
 
 # Move files around:
-rm /etc/{pivpn/openvpn,pivpn}/setupVars.conf
+test -e /etc/pivpn/openvpn/setupVars.conf && rm /etc/pivpn/openvpn/setupVars.conf
 ln -sf ${setupVars} /etc/pivpn/openvpn/setupVars.conf
+test -e /etc/pivpn/setupVars.conf && rm /etc/pivpn/setupVars.conf 
 ln -sf ${setupVars} /etc/pivpn/setupVars.conf
