@@ -13,7 +13,7 @@ SKIP_MAIN=true
 #############################################################################################
 if [[ "$1" == "start" ]]; then
 	# Set variable "SKIP_MAIN" to "true" in order to skip execution of function "main" when sourcing the INSTALLER:
-	source /usr/local/src/pivpn_install_modded.sh
+	source /usr/local/src/modded_pivpn_install.sh
 
 	# If the server name has been decided, read it in now.  This is done before
 	# reading "setupVars.conf" to avoid incorrectly overwriting the setting.
@@ -21,6 +21,17 @@ if [[ "$1" == "start" ]]; then
 
 	# Set all the variables:
 	source /etc/pivpn/setupVars.conf
+
+	# Determine IP address if one hasn't been specified already:
+	if [ -z "${pivpnHOST}" ]; then
+		if ! pivpnHOST=$(dig +short myip.opendns.com @resolver1.opendns.com); then
+			if ! pivpnHOST=$(curl eth0.me)
+			then
+				echo "Unable to determine IP address.  Specify domain name or IP address in \"pivpnHOST\" variable."
+				exit $?
+			fi
+		fi
+	fi
 
 	# If certain settings aren't set, try to set them automagically:
 	[[ -z "${IPv4dev}" ]] && chooseInterface
@@ -41,6 +52,9 @@ if [[ "$1" == "start" ]]; then
 	# Configure OVPN if not already done so:
 	test -f /etc/openvpn/easy-rsa/pki/Default.txt || confOVPN
 
+	# Remove any existing firewall rules for PiVPN: 
+	$0 stop
+
 	# Add the firewall rules to support PiVPN:
 	nft insert rule inet ${TABLE} nat_postrouting oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} masquerade comment \"${TXT}\"
 	nft insert rule inet ${TABLE} input_wan ${pivpnPROTO,,} dport ${pivpnPORT} accept comment \"${TXT}\"
@@ -51,7 +65,7 @@ if [[ "$1" == "start" ]]; then
 # Are we stopping the service?  If so, remove the firewall rules:
 #############################################################################################
 elif [[ "$1" == "stop" ]]; then
-	for CHAIN in $(_nft list table inet ${TABLE} | grep -v chain | grep "${TXT}" | awk '{print $2}'); do
+	for CHAIN in $(_nft list table inet ${TABLE} | grep chain | awk '{print $2}'); do
 		_nft -a list chain inet ${TABLE} ${CHAIN} | grep "${TXT}" | grep "handle" | awk '{print $NF}' | while read HANDLE; do
 			[[ "${HANDLE}" -gt 0 ]] 2> /dev/null && _nft delete rule inet ${TABLE} ${CHAIN} handle ${HANDLE}
 		done

@@ -435,6 +435,7 @@ sed -i "s|main \"\$@\"|[[ -z \"\${SKIP_MAIN}\" ]] \&\& main \"\$@\"|g" ${MODDED}
 sed -i "s|\${SUDOE} install -m 644 \"\${pivpnFilesDir}\"/files/etc/openvpn/easy-rsa/pki/ffdhe\"\${pivpnENCRYPT}\".pem pki/dh\"\${pivpnENCRYPT}\".pem|curl https://2ton.com.au/getprimes/random/dhparam/\${pivpnENCRYPT} -o pki/dh\${pivpnENCRYPT}.pem|" ${MODDED}
 sed -i "s|if [ \"\$USING_UFW\" -eq 0 ]; then|if [ \"\$USING_UFW\" -eq 2 ]; then|" ${MODDED}
 sed -i "s|server.conf|pivpn.conf|g" ${MODDED}
+sed -i "s|pivpn.config.txt|server_config.txt|" ${MODDED}
 
 # Run the modified script:
 bash ${MODDED} --unattended /etc/pivpn/setupVars.conf --reconfigure
