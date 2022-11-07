@@ -426,7 +426,10 @@ case $CMD in
 				[[ "$file" =~ ^/ ]] && ROOT=/ || ROOT=/rw/upper/
 				cp -a ${ROOT}/${file} ${DIR}/ 2> /dev/null
 			done
-			cp /etc/sysupgrade.conf ${BACKUP}/etc/
+
+			# Copy all modified files in the OpenVPN directory subtree:
+			mkdir -p ${BACKUP}/etc/openvpn
+			cp -aR etc/openvpn ${BACKUP}/etc/
 
 			# Remove any Adblock privoxy rules that we added automagically, then remove the privoxy
 			# configuration file if it is the same as the unmodified one:

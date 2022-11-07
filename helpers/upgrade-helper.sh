@@ -173,7 +173,11 @@ if [[ ! -z "${RW[5]}" ]]; then
 	# Add any files to the list of files to backup: 
 	#####################################################################################
 	CHK=/etc/sysupgrade.conf
-	grep -Fxvf ${CHK} /ro/${CHK} | while read line; do echo $line >> ${CHK}; done
+	TMP=/tmp/sysupgrade.conf
+	cat ${CHK} | uniq | sort > ${TMP}
+	cat /ro/${CHK} | uniq | sort > ${TMP}.orig
+	grep -Fxvf ${TMP} ${TMP}.orig | while read line; do echo $line >> ${CHK}; done
+	rm ${TMP} ${TMP}.orig
 
 	#####################################################################################
 	# Replace default files as necessary:
