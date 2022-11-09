@@ -487,7 +487,7 @@ preconfigurePackages(){
 		USING_UFW=0
 	fi
 
-	if [ "$USING_UFW" -eq 0 ]; then
+	if [ "$USING_UFW" -eq 2 ]; then
 		BASE_DEPS+=(iptables-persistent)
 		echo iptables-persistent iptables-persistent/autosave_v4 boolean true | $SUDO debconf-set-selections
 		echo iptables-persistent iptables-persistent/autosave_v6 boolean false | $SUDO debconf-set-selections

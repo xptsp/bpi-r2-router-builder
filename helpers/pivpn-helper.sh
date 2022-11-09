@@ -56,18 +56,24 @@ if [[ "$1" == "start" ]]; then
 	$0 stop
 
 	# Add the firewall rules to support PiVPN:
-	nft insert rule inet ${TABLE} nat_postrouting oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} masquerade comment \"${TXT}\"
 	nft insert rule inet ${TABLE} input_wan ${pivpnPROTO,,} dport ${pivpnPORT} accept comment \"${TXT}\"
 	nft insert rule inet ${TABLE} forward iifname @DEV_WAN oifname ${pivpnDEV,,} ip daddr ${pivpnNET}/${subnetClass} ct state related,established accept comment \"${TXT}\"
 	nft insert rule inet ${TABLE} forward iifname ${pivpnDEV,,} oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} accept comment \"${TXT}\"
+
+	# Since PiVPN debug function cannot "see" the nftables masquerade rule, add an iptables rule for masquerade: 
+	iptables -t nat -A POSTROUTING -s "${pivpnNET}/${subnetClass}" -o "${IPv4dev}" -j MASQUERADE -m comment --comment "openvpn-nat-rule"
 
 #############################################################################################
 # Are we stopping the service?  If so, remove the firewall rules:
 #############################################################################################
 elif [[ "$1" == "stop" ]]; then
+	# Remove any PiVPN nftables rules: 
 	for CHAIN in $(_nft list table inet ${TABLE} | grep chain | awk '{print $2}'); do
 		_nft -a list chain inet ${TABLE} ${CHAIN} | grep "${TXT}" | grep "handle" | awk '{print $NF}' | while read HANDLE; do
 			[[ "${HANDLE}" -gt 0 ]] 2> /dev/null && _nft delete rule inet ${TABLE} ${CHAIN} handle ${HANDLE}
 		done
 	done
+	
+	# Remove the PiVPN iptables rule: 
+	iptables -t nat -D POSTROUTING -s "${pivpnNET}/${subnetClass}" -o "${IPv4dev}" -j MASQUERADE -m comment --comment "openvpn-nat-rule"
 fi

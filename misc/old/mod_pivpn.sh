@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Set repository head to commit "f80b0a7962d91862132c0a4abd65c1e67bd37bd7" (Dec 3rd, 2021):
+cd /usr/local/src/pivpn
+git reset --hard f80b0a7962d91862132c0a4abd65c1e67bd37bd7
+
+# Modify the PiVPN installer so that we can delay creation of certificates and such:
 MODDED=/usr/local/src/modded_pivpn_install.sh
 cp ${DIR}/auto_install/install.sh ${MODDED}
 sed -i 's|setStaticIPv4(){|setStaticIPv4(){\n\treturn;|g' ${MODDED}
@@ -19,3 +24,4 @@ sed -i "s|\${SUDOE} install -m 644 \"\${pivpnFilesDir}\"/files/etc/openvpn/easy-
 sed -i "s|if [ \"\$USING_UFW\" -eq 0 ]; then|if [ \"\$USING_UFW\" -eq 2 ]; then|" ${MODDED}
 sed -i "s|server.conf|pivpn.conf|g" ${MODDED}
 sed -i "s|pivpn.config.txt|server_config.txt|" ${MODDED}
+sed -i "s|if \[ \"\$USING_UFW\" -eq 0 \]; then|if \[ \"\$USING_UFW\" -eq 2 ]; then|" ${MODDED}
