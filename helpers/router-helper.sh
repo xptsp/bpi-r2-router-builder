@@ -427,9 +427,8 @@ case $CMD in
 				cp -a ${ROOT}/${file} ${DIR}/ 2> /dev/null
 			done
 
-			# Copy all modified files in the OpenVPN directory subtree:
-			mkdir -p ${BACKUP}/etc/openvpn
-			cp -aR etc/openvpn ${BACKUP}/etc/
+			# Copy any modified files in the OpenVPN directory subtree:
+			test -d /rw/upper/etc/openvpn && cp -aR /rw/upper/etc/openvpn ${BACKUP}/etc/
 
 			# Remove any Adblock privoxy rules that we added automagically, then remove the privoxy
 			# configuration file if it is the same as the unmodified one:
@@ -471,7 +470,7 @@ case $CMD in
 
 			# Make a squashfs archive of all files copied/created:
 			cd ${BACKUP}
-			mksquashfs ./ /tmp/bpiwrt.cfg -quiet -b 1048576 -comp xz -Xdict-size 100%
+			mksquashfs ./ /tmp/bpiwrt.cfg -quiet -no-progress -b 1048576 -comp xz -Xdict-size 100%
 			rm -rf ${BACKUP}
 		#####################################################################
 		# REMOVE => Remove uploaded configuration backup:

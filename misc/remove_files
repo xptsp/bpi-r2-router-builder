@@ -70,6 +70,7 @@ rm /boot/bpiwrt.cfg >& /dev/null
 cp /dev/null /var/lib/dhcp/dhclient.wan.leases
 rm /etc/pihole/gravity_old.db >& /dev/null
 rm -rf /etc/squid/cert >& /dev/null
+rm /var/cache/ddclient/ddclient.conf >& /dev/null
 
 ####################################################################################################
 GIT=($(whereis git | cut -d":" -f 2))
