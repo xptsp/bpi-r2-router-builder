@@ -359,16 +359,6 @@ cp /opt/bpi-r2-router-builder/misc/config/multicast-relay /etc/default/multicast
 systemctl enable --now multicast-relay
 
 ##################################################################################
-# Install OpenVPN and make a few configuration changes:
-##################################################################################
-# Install the software:
-apt install -y openvpn resolvconf
-# Add routing table to "/etc/iproute2/rt_tables":
-echo "200	vpn" >> /etc/iproute2/rt_tables
-# Stop VPN connections from automatically starting:
-sed -i "s|^#AUTOSTART=\"none\"|AUTOSTART=\"none\"|" /etc/default/openvpn
-
-##################################################################################
 # Install Squid and Privoxy, then configure the services:
 ##################################################################################
 # Install the software:
@@ -436,3 +426,16 @@ test -e /etc/pivpn/openvpn/setupVars.conf && rm /etc/pivpn/openvpn/setupVars.con
 ln -sf ${setupVars} /etc/pivpn/openvpn/setupVars.conf
 test -e /etc/pivpn/setupVars.conf && rm /etc/pivpn/setupVars.conf 
 ln -sf ${setupVars} /etc/pivpn/setupVars.conf
+
+# Add routing table to "/etc/iproute2/rt_tables":
+echo "200	vpn" >> /etc/iproute2/rt_tables
+# Stop VPN connections from automatically starting:
+sed -i "s|^#AUTOSTART=\"none\"|AUTOSTART=\"none\"|" /etc/default/openvpn
+
+##################################################################################
+# Install resolvconf and configure:
+##################################################################################
+apt install -y resolvconf
+FILE=/etc/resolvconf/resolv.conf.d/head
+sed -i "/^nameserver /d" ${FILE}
+echo "nameserver 127.0.0.1" >> ${FILE}

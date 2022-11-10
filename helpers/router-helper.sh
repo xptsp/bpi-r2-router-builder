@@ -433,10 +433,10 @@ case $CMD in
 
 			# Remove any Adblock privoxy rules that we added automagically, then remove the privoxy
 			# configuration file if it is the same as the unmodified one:
-			rm etc/privoxy/*.adblock.{action,filter} >& /dev/null
-			if [[ -f etc/privoxy/config ]]; then
-				sed -i "/^actionsfile .*\.adblock\./d" etc/privoxy/config
-				cmp -s /etc/privoxy/config /ro/etc/privoxy/config >& /dev/null && rm etc/privoxy/config
+			rm ${BACKUP}/etc/privoxy/*.adblock.{action,filter} >& /dev/null
+			if [[ -f ${BACKUP}/etc/privoxy/config ]]; then
+				sed -i "/^actionsfile .*\.adblock\./d" ${BACKUP}/etc/privoxy/config
+				cmp -s ${BACKUP}/etc/privoxy/config /ro/etc/privoxy/config >& /dev/null && rm ${BACKUP}/etc/privoxy/config
 			fi
 
 			# Remove any empty directories from the newly copied directory tree:
