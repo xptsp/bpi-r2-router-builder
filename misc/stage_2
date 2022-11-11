@@ -410,7 +410,7 @@ git reset --hard f80b0a7962d91862132c0a4abd65c1e67bd37bd7
 bash /usr/local/src/modded_pivpn_install.sh --unattended /etc/pivpn/setupVars.conf --reconfigure
 
 # Customize the PiVPN setupVars.conf in the /tmp folder:
-setupVars=/usr/local/src/setupVars.conf
+setupVars=/etc/pivpn/openvpn/setupVars.conf
 cp /tmp/setupVars.conf ${setupVars}
 sed -i "/^pivpnHOST=/d" ${setupVars}
 echo "pivpnDH_DOWNLOAD=0" >> ${setupVars}
@@ -420,12 +420,6 @@ echo "pivpnHOST=" >> ${setupVars}
 echo "SHOW_REVOKED=1" >> ${setupVars}
 sed -i "s|^pivpnDEV=.*|pivpnDEV=pivpn|" ${setupVars}
 echo "HELP_SHOWN=1" >> ${setupVars}
-
-# Move files around:
-test -e /etc/pivpn/openvpn/setupVars.conf && rm /etc/pivpn/openvpn/setupVars.conf
-ln -sf ${setupVars} /etc/pivpn/openvpn/setupVars.conf
-test -e /etc/pivpn/setupVars.conf && rm /etc/pivpn/setupVars.conf 
-ln -sf ${setupVars} /etc/pivpn/setupVars.conf
 
 # Add routing table to "/etc/iproute2/rt_tables":
 echo "200	vpn" >> /etc/iproute2/rt_tables
