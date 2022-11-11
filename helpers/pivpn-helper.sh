@@ -5,9 +5,9 @@
 #############################################################################################
 runUnattended=true
 TABLE=$(grep -m 1 "^table inet " /etc/nftables.conf | awk '{print $3}')
-pivpnNET=${2:-"pivpn0"}
-[[ ! "${pivpnNET}" =~ ^pivpn(0) ]] && echo "2nd parameter must specify PiVPN device." && exit 1
-TXT=${pivpnNET}-openvpn
+pivpnDEV=${2:-"pivpn0"}
+[[ ! "${pivpnDEV}" =~ ^pivpn(0) ]] && echo "2nd parameter must specify PiVPN device." && exit 1
+TXT=${pivpnDEV}-openvpn
 
 #############################################################################################
 # Read in PiVPN variables:
@@ -57,7 +57,7 @@ if [[ "$1" == "start" && "${pivpnNET}" == "pivpn0" ]]; then
 	[[ ! -f /etc/openvpn/crl.pem ]] && WRITE=true && GenerateOpenVPN
 
 	# Create the "/etc/openvpn/server.conf" file if it doesn't already exist:
-	FILE=/etc/openvpn/${pivpnNET}.conf
+	FILE=/etc/openvpn/${pivpnDEV}.conf
 	if [[ ! -f ${FILE} ]]; then
 		createServerConf
 		sed -i "s|dev tun|dev ${pivpnDEV}\ndev-type tun|" ${FILE}
@@ -72,7 +72,7 @@ if [[ "$1" == "start" && "${pivpnNET}" == "pivpn0" ]]; then
 fi
 
 #############################################################################################
-# Remove any PiVPN nftables rules:
+# Remove any PiVPN nftables rules for this interface:
 #############################################################################################
 for CHAIN in $(nft list table inet ${TABLE} | grep chain | awk '{print $2}'); do
 	nft -a list chain inet ${TABLE} ${CHAIN} | grep "${TXT}" | grep "handle" | awk '{print $NF}' | while read HANDLE; do
@@ -81,7 +81,7 @@ for CHAIN in $(nft list table inet ${TABLE} | grep chain | awk '{print $2}'); do
 done
 
 #############################################################################################
-# Add the necessary firewall rules if we are starting a service:
+# Add the necessary firewall rules for this interface if we are starting a service:
 #############################################################################################
 if [[ "$1" == "start" ]]; then
 	nft add rule inet ${TABLE} input_wan ${pivpnPROTO,,} dport ${pivpnPORT} accept comment \"${TXT}\"

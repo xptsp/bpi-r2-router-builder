@@ -30,4 +30,4 @@ sed -i "s|if [ \"\$USING_UFW\" -eq 0 ]; then|if [ \"\$USING_UFW\" -eq 2 ]; then|
 sed -i "s|server.conf|pivpn.conf|g" ${MODDED}
 sed -i "s|pivpn.config.txt|server_config.txt|" ${MODDED}
 sed -i "s|if \[ \"\$USING_UFW\" -eq 0 \]; then|if \[ \"\$USING_UFW\" -eq 2 ]; then|" ${MODDED}
-sed -i "s|pivpn\.conf|\${pivpnNET}\.conf|g" ${MODDED}
+sed -i "s|pivpn\.conf|\${pivpnDEV}\.conf|g" ${MODDED}
