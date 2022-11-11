@@ -42,6 +42,10 @@ if [[ "$1" == "start" ]]; then
 		echo "pivpnHOST=${pivpnHOST}" >> /tmp/setupVars.conf
 	fi
 
+	# Set subnet class if not already set:
+	[[ -z "${subnetClass}" ]] && WRITE=true && subnetClass=255.255.255.0 && echo "subnetClass=255.255.255.0" >> /tmp/setupVars.conf
+	[[ -z "${pivpnNET}" ]] && WRITE=TRUE && pivpnNET=10.8.0.0 && echo "pivpnNET=10.8.0.0" >> /tmp/setupVars.conf
+
 	# If certain settings aren't set, try to set them automagically:
 	[[ -z "${IPv4dev}" ]] && WRITE=true && chooseInterface
 	[[ -z "${pivpnHOST}" ]] && WRITE=true && askPublicIPOrDNS
@@ -61,9 +65,6 @@ if [[ "$1" == "start" ]]; then
 	# Configure OVPN if not already done so:
 	[[ ! -f /etc/openvpn/easy-rsa/pki/Default.txt ]] && WRITE=true && confOVPN
 
-	# Set subnet class if not already set:
-	[[ -z "$subnetClass" ]] && WRITE=true && subnetClass="24" && echo "subnetClass=24" > /tmp/setupVars.conf
-
 	# Write altered PiVPN configuration back to storage location: 
 	[[ "${WRITE}" == "true" ]] && writeConfigFiles
 
@@ -72,7 +73,7 @@ if [[ "$1" == "start" ]]; then
 
 	# Add the firewall rules to support PiVPN:
 	nft add rule inet ${TABLE} input_wan ${pivpnPROTO,,} dport ${pivpnPORT} accept comment \"${TXT}\"
-	nft add rule inet ${TABLE} forward iifname ${IPv4dev,,} oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} accept comment \"${TXT}\"
+	nft add rule inet ${TABLE} forward iifname ${pivpnDEV,,} oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} accept comment \"${TXT}\"
 	nft insert rule inet ${TABLE} nat_postrouting oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} masquerade comment \"${TXT}\"
 
 #############################################################################################
