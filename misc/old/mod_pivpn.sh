@@ -1,4 +1,9 @@
 #!/bin/bash
+#############################################################################
+# This script details the modifications done to the PiVPN installer for
+# use in the BPiWRT router.  These changes allow the installer to delay the
+# creation of certificates and Diffie-Hellman parameters.
+#############################################################################
 
 # Set repository head to commit "f80b0a7962d91862132c0a4abd65c1e67bd37bd7" (Dec 3rd, 2021):
 cd /usr/local/src/pivpn
@@ -13,7 +18,7 @@ sed -i "/confLogging$/d" ${MODDED}
 sed -i 's|confOVPN$|createOVPNuser|g' ${MODDED}
 sed -i '/confNetwork$/d' ${MODDED}
 sed -i "s|confOpenVPN(){|generateServerName(){|" ${MODDED}
-sed -i "s|# Backup the openvpn folder|echo \"SERVER_NAME=\$SERVER_NAME\" >> /etc/openvpn/.server_name\n}\n\nbackupOpenVPN(){\n\t# Backup  the openvpn folder|" ${MODDED}
+sed -i "s|# Backup the openvpn folder|echo \"\$SERVER_NAME\" >> /etc/openvpn/.server_name\n}\n\nbackupOpenVPN(){\n\t# Backup  the openvpn folder|" ${MODDED}
 sed -i "s|\tif \[ -f /etc/openvpn/server.conf \]; then|}\n\nconfOpenVPN(){\n\tif [ -f /etc/openvpn/server.conf ]; then|" ${MODDED}
 sed -i 's|\tcd /etc/openvpn/easy-rsa|}\n\nGenerateOpenVPN() {\n\tcd  /etc/openvpn/easy-rsa|' ${MODDED}
 sed -i "s|  if ! getent passwd openvpn; then|}\n\ncreateOVPNuser(){\n  if ! getent  passwd openvpn >\& /dev/null; then|" ${MODDED}
@@ -25,3 +30,4 @@ sed -i "s|if [ \"\$USING_UFW\" -eq 0 ]; then|if [ \"\$USING_UFW\" -eq 2 ]; then|
 sed -i "s|server.conf|pivpn.conf|g" ${MODDED}
 sed -i "s|pivpn.config.txt|server_config.txt|" ${MODDED}
 sed -i "s|if \[ \"\$USING_UFW\" -eq 0 \]; then|if \[ \"\$USING_UFW\" -eq 2 ]; then|" ${MODDED}
+sed -i "s|pivpn\.conf|\${pivpnNET}\.conf|g" ${MODDED}
