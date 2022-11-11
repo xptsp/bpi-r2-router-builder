@@ -16,7 +16,7 @@ SKIP_MAIN=true
 [[ -f /etc/openvpn/.server_name ]] && source /etc/openvpn/.server_name
 
 # Set all the variables:
-source /etc/pivpn/setupVars.conf
+source /etc/pivpn/openvpn/setupVars.conf
 
 #############################################################################################
 # Are we starting the service?  If so, do everything in this block:
@@ -39,6 +39,7 @@ if [[ "$1" == "start" ]]; then
 				exit $?
 			fi
 		fi
+		echo "pivpnHOST=${pivpnHOST}" >> /tmp/setupVars.conf
 	fi
 
 	# If certain settings aren't set, try to set them automagically:
@@ -60,6 +61,9 @@ if [[ "$1" == "start" ]]; then
 	# Configure OVPN if not already done so:
 	[[ ! -f /etc/openvpn/easy-rsa/pki/Default.txt ]] && WRITE=true && confOVPN
 
+	# Set subnet class if not already set:
+	[[ -z "$subnetClass" ]] && WRITE=true && subnetClass="24" && echo "subnetClass=24" > /tmp/setupVars.conf
+
 	# Write altered PiVPN configuration back to storage location: 
 	[[ "${WRITE}" == "true" ]] && writeConfigFiles
 
@@ -68,8 +72,8 @@ if [[ "$1" == "start" ]]; then
 
 	# Add the firewall rules to support PiVPN:
 	nft add rule inet ${TABLE} input_wan ${pivpnPROTO,,} dport ${pivpnPORT} accept comment \"${TXT}\"
-	nft add rule inet ${TABLE} forward iifname ${pivpnDEV,,} oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} accept comment \"${TXT}\"
-	nft add rule inet ${TABLE} nat_postrouting oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} masquerade comment \"${TXT}\"
+	nft add rule inet ${TABLE} forward iifname ${IPv4dev,,} oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} nat_postrouting oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} masquerade comment \"${TXT}\"
 
 #############################################################################################
 # Are we stopping the service?  If so, remove the firewall rules:

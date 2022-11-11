@@ -411,11 +411,8 @@ bash /usr/local/src/modded_pivpn_install.sh --unattended /etc/pivpn/setupVars.co
 
 # Customize the PiVPN setupVars.conf in the /tmp folder:
 setupVars=/etc/pivpn/openvpn/setupVars.conf
-cp /tmp/setupVars.conf ${setupVars}
 sed -i "/^pivpnHOST=/d" ${setupVars}
-echo "pivpnDH_DOWNLOAD=0" >> ${setupVars}
-echo "pivpnDH_PREDEFINED=0" >> ${setupVars}
-echo "pivpnTWO_POINT_FOUR=0" >> ${setupVars}
+sed -i "/^subnetClass=/d" ${setupVars}
 echo "pivpnHOST=" >> ${setupVars}
 echo "SHOW_REVOKED=1" >> ${setupVars}
 sed -i "s|^pivpnDEV=.*|pivpnDEV=pivpn|" ${setupVars}
