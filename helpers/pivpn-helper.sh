@@ -5,7 +5,7 @@
 #############################################################################################
 runUnattended=true
 TABLE=$(grep -m 1 "^table inet " /etc/nftables.conf | awk '{print $3}')
-[[ ! "$2" =~ ^pivpn(0|1) ]] && echo "2nd parameter must specify valid PiVPN device." && exit 1
+[[ ! "$2" =~ ^pivpn(0|1) ]] && echo "Invalid PiVPN device specified as 2nd parameter." && exit 1
 TXT=$2-openvpn
 FILE=/etc/openvpn/$2.conf
 
@@ -31,7 +31,7 @@ if [[ "$1" == "start" && "$2" == "pivpn0" ]]; then
 
 	# Set variable "SKIP_MAIN" to "true" in order to skip execution of function "main" when sourcing the INSTALLER:
 	SKIP_MAIN=true
-	source /usr/local/src/modded_pivpn_install.sh
+	source /opt/bpi-r2-router-builder/misc/modded_pivpn_install.sh
 
 	# Determine IP address if one hasn't been specified already:
 	WRITE=false
@@ -63,7 +63,7 @@ if [[ "$1" == "start" && "$2" == "pivpn0" ]]; then
 	FILE=/etc/openvpn/${pivpnDEV}.conf
 	if [[ ! -f ${FILE} ]]; then
 		createServerConf
-		sed -i "s|dev tun|dev ${pivpnDEV}\ndev-type tun|" ${FILE}
+		sed -i "s|dev tun|dev pivpn0\ndev-type tun|" ${FILE}
 		echo "management 127.0.0.1 7505 /etc/openvpn/.server_name" >> ${FILE}
 	fi
 
