@@ -5,9 +5,8 @@
 #############################################################################################
 runUnattended=true
 TABLE=$(grep -m 1 "^table inet " /etc/nftables.conf | awk '{print $3}')
-pivpnDEV=${2:-"pivpn0"}
-[[ ! "${pivpnDEV}" =~ ^pivpn(0) ]] && echo "2nd parameter must specify PiVPN device." && exit 1
-TXT=${pivpnDEV}-openvpn
+[[ ! "$2" =~ ^pivpn(0) ]] && echo "2nd parameter must specify PiVPN device." && exit 1
+TXT=$2-openvpn
 
 #############################################################################################
 # Read in PiVPN variables:
@@ -19,10 +18,13 @@ TXT=${pivpnDEV}-openvpn
 # Set all the variables:
 source /etc/pivpn/openvpn/setupVars.conf
 
+# Temporarily override the PiVPN device name:
+pivpnDEV=${2}
+
 #############################################################################################
 # If we are starting the service, generate any supporting files we need to run PiVPN:  
 #############################################################################################
-if [[ "$1" == "start" && "${pivpnNET}" == "pivpn0" ]]; then
+if [[ "$1" == "start" && "$2" == "pivpn0" ]]; then
 	# Make a copy of the settings files in temporary folder so we can modify them:
 	cp /etc/pivpn/openvpn/setupVars.conf /tmp/setupVars.conf
 
