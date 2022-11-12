@@ -5,8 +5,9 @@
 #############################################################################################
 runUnattended=true
 TABLE=$(grep -m 1 "^table inet " /etc/nftables.conf | awk '{print $3}')
-[[ ! "$2" =~ ^pivpn(0) ]] && echo "2nd parameter must specify PiVPN device." && exit 1
+[[ ! "$2" =~ ^pivpn(0|1) ]] && echo "Invalid PiVPN device specified as 2nd parameter." && exit 1
 TXT=$2-openvpn
+FILE=/etc/openvpn/$2.conf
 
 #############################################################################################
 # Read in PiVPN variables:
@@ -30,7 +31,7 @@ if [[ "$1" == "start" && "$2" == "pivpn0" ]]; then
 
 	# Set variable "SKIP_MAIN" to "true" in order to skip execution of function "main" when sourcing the INSTALLER:
 	SKIP_MAIN=true
-	source /usr/local/src/modded_pivpn_install.sh
+	source /opt/bpi-r2-router-builder/misc/modded_pivpn_install.sh
 
 	# Determine IP address if one hasn't been specified already:
 	WRITE=false
@@ -62,7 +63,7 @@ if [[ "$1" == "start" && "$2" == "pivpn0" ]]; then
 	FILE=/etc/openvpn/${pivpnDEV}.conf
 	if [[ ! -f ${FILE} ]]; then
 		createServerConf
-		sed -i "s|dev tun|dev ${pivpnDEV}\ndev-type tun|" ${FILE}
+		sed -i "s|dev tun|dev pivpn0\ndev-type tun|" ${FILE}
 		echo "management 127.0.0.1 7505 /etc/openvpn/.server_name" >> ${FILE}
 	fi
 
@@ -71,6 +72,21 @@ if [[ "$1" == "start" && "$2" == "pivpn0" ]]; then
 
 	# Write altered PiVPN configuration back to storage location:
 	[[ "${WRITE}" == "true" ]] && mv /tmp/setupVars.conf /etc/pivpn/openvpn/setupVars.conf
+
+#############################################################################################
+# Are we initializing the DNS-only PiVPN server?
+#############################################################################################
+elif [[ "$1" == "start" && "$2" == "pivpn1" ]]; then
+	# If "pivpn1.conf" doesn't exist, copy and modify the "pivpn0.conf" file for this:
+	if [[ ! -f ${FILE} ]]; then
+		sed -i "s|^dev pivpn0|dev pivpn1|" ${FILE}
+		sed -i "s|^port .*|port $(( $(grep -m 1 "^port "  ${FILE} | awk '{print $2}') + 1 ))|" ${FILE}
+		IP=($(grep -m 1 "^server " ${FILE} | awk '{print $2}' | sed "s|\.| |g"))
+		sed -i "s|${IP[0]}\.${IP[1]}\.${IP[2]}\.|${IP[0]}\.${IP[1]}\.$(( ${IP[2]} + 1 ))\.|g" ${FILE}
+		sed "s|^push \"redirect-gateway|#push \"redirect-gateway|" /etc/openvpn/pivpn0.conf > ${FILE}
+		PORT=$(grep -m 1 "^management " ${FILE} | awk '{print $3}')
+		sed -i "s| ${PORT} | $(( ${PORT} + 1 )) |" ${FILE}
+	fi
 fi
 
 #############################################################################################
@@ -86,7 +102,9 @@ done
 # Add the necessary firewall rules for this interface if we are starting a service:
 #############################################################################################
 if [[ "$1" == "start" ]]; then
-	nft add rule inet ${TABLE} input_wan ${pivpnPROTO,,} dport ${pivpnPORT} accept comment \"${TXT}\"
-	nft add rule inet ${TABLE} forward iifname ${pivpnDEV,,} oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} accept comment \"${TXT}\"
-	nft insert rule inet ${TABLE} nat_postrouting oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} masquerade comment \"${TXT}\"
+	PORT=$(grep -m 1 "^port " ${FILE} | awk '{print $2}')
+	ADDR=$(grep -m 1 "^server " ${FILE} | awk '{print $2"/"$3}')
+	nft add rule inet ${TABLE} input_wan ${pivpnPROTO,,} dport ${PORT} accept comment \"${TXT}\"
+	nft add rule inet ${TABLE} forward iifname ${pivpnDEV,,} oifname @DEV_WAN ip saddr ${ADDR} accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} nat_postrouting oifname @DEV_WAN ip saddr ${ADDR} masquerade comment \"${TXT}\"
 fi

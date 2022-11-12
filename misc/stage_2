@@ -82,6 +82,9 @@ touch /etc/debian_chroot
 sed -i "s|# en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen
 locale-gen
 
+# Add routing table to "/etc/iproute2/rt_tables":
+echo "200	vpn" >> /etc/iproute2/rt_tables
+
 ##############################################################################################
 # Install files from the GitHub repository to build this image:
 ##############################################################################################
@@ -407,7 +410,7 @@ git reset --hard f80b0a7962d91862132c0a4abd65c1e67bd37bd7
 
 # Run our modified PiVPN installer:
 # FYI: See "/opt/bpi-r2-router-helper/misc/old/mod_pivpn.sh" on how it was modified....
-bash /usr/local/src/modded_pivpn_install.sh --unattended /etc/pivpn/setupVars.conf --reconfigure
+bash /opt/bpi-r2-router-builder/misc/modded_pivpn_install.sh --unattended /etc/pivpn/setupVars.conf --reconfigure
 
 # Customize the PiVPN setupVars.conf in the /tmp folder:
 setupVars=/etc/pivpn/openvpn/setupVars.conf
@@ -418,10 +421,8 @@ echo "SHOW_REVOKED=1" >> ${setupVars}
 sed -i "s|^pivpnDEV=.*|pivpnDEV=pivpn|" ${setupVars}
 echo "HELP_SHOWN=1" >> ${setupVars}
 
-# Add routing table to "/etc/iproute2/rt_tables":
-echo "200	vpn" >> /etc/iproute2/rt_tables
-# Stop VPN connections from automatically starting:
-sed -i "s|^#AUTOSTART=\"none\"|AUTOSTART=\"none\"|" /etc/default/openvpn
+# Install wireguard-tools package without extra baggage, because required modules are baked in our OS:
+apt install --no-install-recommends wireguard-tools
 
 ##################################################################################
 # Install resolvconf and configure:
