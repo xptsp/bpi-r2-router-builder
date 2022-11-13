@@ -447,7 +447,7 @@ preconfigurePackages(){
 	# make the module part of the package since the module itself is built at install time
 	# and not part of the .deb).
 	# Source: https://github.com/MichaIng/DietPi/blob/7bf5e1041f3b2972d7827c48215069d1c90eee07/dietpi/dietpi-software#L1807-L1815
-	WIREGUARD_BUILTIN=0
+	WIREGUARD_BUILTIN=1
 	for i in /lib/modules/**/wireguard.ko; do
 		[[ -f $i ]] || continue
 		dpkg-query -S "$i" &> /dev/null || continue
@@ -1064,11 +1064,9 @@ installPiVPN(){
 	elif [ "$VPN" = "wireguard" ]; then
 
 		setWireguardDefaultVars
-		installWireGuard
 		askCustomPort
 		askClientDNS
 		askPublicIPOrDNS
-		confWireGuard
 		writeWireguardTempVarsFile
 
 	fi
@@ -2013,7 +2011,7 @@ confOVPN(){
 	fi
 }
 
-confWireGuard(){
+backupWireGuard(){
 	# Reload job type is not yet available in wireguard-tools shipped with Ubuntu 20.04
 	if ! grep -q 'ExecReload' /lib/systemd/system/wg-quick@.service; then
 		echo "::: Adding additional reload job type for wg-quick unit"
@@ -2038,6 +2036,9 @@ confWireGuard(){
 		$SUDO mkdir /etc/wireguard
 	fi
 
+}
+
+ConfWireGuard(){
 	# Ensure that only root is able to enter the wireguard folder
 	$SUDO chown root:root /etc/wireguard
 	$SUDO chmod 700 /etc/wireguard

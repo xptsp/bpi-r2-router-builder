@@ -394,11 +394,11 @@ apt install -y libio-socket-ssl-perl libio-socket-inet6-perl libjson-pp-perl lib
 systemctl enable --now ddclient
 
 ##################################################################################
-# Install PiVPN:
+# Install PiVPN using OpenVPN:
 ##################################################################################
-# Copy the default configuration to the "/etc/pihole" directory:
+# Copy the default OpenVPN configuration to the "/etc/pihole" directory:
 mkdir -p /etc/pivpn
-cp /opt/bpi-r2-router-builder/misc/config/pivpn.conf /etc/pivpn/setupVars.conf
+cp /opt/bpi-r2-router-builder/misc/config/pivpn-openvpn.conf /etc/pivpn/setupVars.conf
 
 # Clone the PiVPN repository:
 DIR=/usr/local/src/pivpn
@@ -421,8 +421,17 @@ echo "SHOW_REVOKED=1" >> ${setupVars}
 sed -i "s|^pivpnDEV=.*|pivpnDEV=pivpn|" ${setupVars}
 echo "HELP_SHOWN=1" >> ${setupVars}
 
+##################################################################################
+# Add support for WireGuard to PiVPN:
+##################################################################################
 # Install wireguard-tools package without extra baggage, because required modules are baked in our OS:
-apt install --no-install-recommends wireguard-tools
+apt install -y --no-install-recommends wireguard-tools qrencode
+
+# Copy the default WireGuard configuration to the "/etc/pihole" directory:
+cp /opt/bpi-r2-router-builder/misc/config/pivpn-wireguard.conf /etc/pivpn/setupVars.conf
+
+# Run our modified PiVPN installer:
+bash /opt/bpi-r2-router-builder/misc/modded_pivpn_install.sh --unattended /etc/pivpn/setupVars.conf --reconfigure
 
 ##################################################################################
 # Install resolvconf and configure:
