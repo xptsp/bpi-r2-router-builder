@@ -104,8 +104,9 @@ done
 #############################################################################################
 if [[ "$1" == "start" ]]; then
 	pivpnNET=$(grep -m 1 "^server" ${FILE} | awk '{print $2}') 
-	pivpnPORT=$(grep -m 1 "^port" ${FILE} | awk '{print $2}') 
-	nft add rule inet ${TABLE} input_wan ${pivpnPROTO,,} dport ${pivpnPORT} accept comment \"${TXT}\"
-	nft add rule inet ${TABLE} forward iifname ${pivpnDEV,,} oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} accept comment \"${TXT}\"
-	nft insert rule inet ${TABLE} nat_postrouting oifname @DEV_WAN ip saddr ${pivpnNET}/${subnetClass} masquerade comment \"${TXT}\"
+	pivpnPORT=$(grep -m 1 "^port" ${FILE} | awk '{print $2}')
+	nft insert rule inet ${TABLE} nat_postrouting oifname ${IPv4dev} ip saddr ${pivpnNET}/${subnetClass} counter masquerade comment \"${TXT}\"
+	nft insert rule inet ${TABLE} input iifname ${IPv4dev} udp dport ${pivpnPORT} counter accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} forward iifname ${IPv4dev} oifname ${pivpnDEV} ip daddr ${pivpnNET}/${subnetClass} ct state related,established counter accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} forward iifname ${pivpnDEV} oifname ${IPv4dev} ip saddr ${pivpnNET}/${subnetClass} counter accept comment \"${TXT}\"
 fi
