@@ -23,7 +23,7 @@ source /etc/pivpn/openvpn/setupVars.conf
 pivpnDEV=${2}
 
 #############################################################################################
-# If we are starting the service, generate any supporting files we need to run PiVPN:  
+# If we are starting the service, generate any supporting files we need to run PiVPN:
 #############################################################################################
 if [[ "$1" == "start" && "$2" == "pivpn0" ]]; then
 	# Make a copy of the settings files in temporary folder so we can modify them:
@@ -47,7 +47,7 @@ if [[ "$1" == "start" && "$2" == "pivpn0" ]]; then
 		echo "pivpnHOST=${pivpnHOST}" >> /tmp/setupVars.conf
 	fi
 
-	# Set subnet class if not already set:
+	# Set IP address and subnet if not already set:
 	[[ -z "${subnetClass}" ]] && WRITE=true && subnetClass=255.255.255.0 && echo "subnetClass=255.255.255.0" >> /tmp/setupVars.conf
 	[[ -z "${pivpnNET}" ]] && WRITE=TRUE && pivpnNET=10.8.0.0 && echo "pivpnNET=10.8.0.0" >> /tmp/setupVars.conf
 
@@ -59,11 +59,12 @@ if [[ "$1" == "start" && "$2" == "pivpn0" ]]; then
 	# Generate server certificate and DH parameters if necessary.
 	[[ ! -f /etc/openvpn/crl.pem ]] && WRITE=true && GenerateOpenVPN
 
-	# Create the "/etc/openvpn/server.conf" file if it doesn't already exist:
-	FILE=/etc/openvpn/${pivpnDEV}.conf
+	# Create the "pivpn0.conf" file if it doesn't already exist:
 	if [[ ! -f ${FILE} ]]; then
 		createServerConf
+		# Change the interface name to "pivpn0":
 		sed -i "s|dev tun|dev pivpn0\ndev-type tun|" ${FILE}
+		# Add management port:
 		echo "management 127.0.0.1 7505 /etc/openvpn/.server_name" >> ${FILE}
 	fi
 
@@ -74,17 +75,22 @@ if [[ "$1" == "start" && "$2" == "pivpn0" ]]; then
 	[[ "${WRITE}" == "true" ]] && mv /tmp/setupVars.conf /etc/pivpn/openvpn/setupVars.conf
 
 #############################################################################################
-# Are we initializing the DNS-only PiVPN server?
+# Are we starting the DNS-only PiVPN server?
 #############################################################################################
 elif [[ "$1" == "start" && "$2" == "pivpn1" ]]; then
-	# If "pivpn1.conf" doesn't exist, copy and modify the "pivpn0.conf" file for this:
+	# If "pivpn1.conf" doesn't exist, copy and modify the "pivpn0.conf" file:
 	if [[ ! -f ${FILE} ]]; then
 		cp /etc/openvpn/pivpn0.conf ${FILE}
+		# Change tunnel interface name to "pivpn1":
 		sed -i "s|^dev pivpn0|dev pivpn1|" ${FILE}
+		# Increment port number by 1:
 		sed -i "s|^port .*|port $(( $(grep -m 1 "^port "  ${FILE} | awk '{print $2}') + 1 ))|" ${FILE}
+		# Increment third octet of the IP address range by 1:
 		IP=($(grep -m 1 "^server " ${FILE} | awk '{print $2}' | sed "s|\.| |g"))
 		sed -i "s|${IP[0]}\.${IP[1]}\.${IP[2]}\.|${IP[0]}\.${IP[1]}\.$(( ${IP[2]} + 1 ))\.|g" ${FILE}
+		# Comment out the "push redirect-gateway" line:
 		sed -i "s|^push \"redirect-gateway|#push \"redirect-gateway|" ${FILE}
+		# Increment management port number by 1:
 		PORT=$(grep -m 1 "^management" ${FILE} | awk '{print $3}')
 		sed -i "s| ${PORT} | $(( ${PORT} + 1 )) |" ${FILE}
 	fi
@@ -93,7 +99,7 @@ fi
 #############################################################################################
 # Remove any PiVPN nftables rules for this interface:
 #############################################################################################
-for CHAIN in $(nft list table inet ${TABLE} | grep chain | awk '{print $2}'); do
+for CHAIN in nat_postrouting input forward; do
 	nft -a list chain inet ${TABLE} ${CHAIN} | grep "${TXT}" | grep "handle" | awk '{print $NF}' | while read HANDLE; do
 		[[ "${HANDLE}" -gt 0 ]] 2> /dev/null && nft delete rule inet ${TABLE} ${CHAIN} handle ${HANDLE}
 	done
@@ -103,10 +109,17 @@ done
 # Add the necessary firewall rules for this interface if we are starting a service:
 #############################################################################################
 if [[ "$1" == "start" ]]; then
-	pivpnNET=$(grep -m 1 "^server" ${FILE} | awk '{print $2}') 
-	pivpnPORT=$(grep -m 1 "^port" ${FILE} | awk '{print $2}')
-	nft insert rule inet ${TABLE} nat_postrouting oifname ${IPv4dev} ip saddr ${pivpnNET}/${subnetClass} counter masquerade comment \"${TXT}\"
-	nft insert rule inet ${TABLE} input iifname ${IPv4dev} udp dport ${pivpnPORT} counter accept comment \"${TXT}\"
-	nft insert rule inet ${TABLE} forward iifname ${IPv4dev} oifname ${pivpnDEV} ip daddr ${pivpnNET}/${subnetClass} ct state related,established counter accept comment \"${TXT}\"
-	nft insert rule inet ${TABLE} forward iifname ${pivpnDEV} oifname ${IPv4dev} ip saddr ${pivpnNET}/${subnetClass} counter accept comment \"${TXT}\"
+	# Masquerade all communication to this interface:
+	nft insert rule inet ${TABLE} nat_postrouting oifname ${IPv4dev} masquerade comment \"${TXT}\"
+
+	# Allow the server port to be accepted by the firewall:
+	nft insert rule inet ${TABLE} input iifname ${IPv4dev} udp dport $(grep -m 1 "^port" ${FILE} | awk '{print $2}') accept comment \"${TXT}\"
+
+	# Allow this interface to access the internet, but only allow established/related connections back:
+	nft insert rule inet ${TABLE} forward iifname ${IPv4dev} oifname ${pivpnDEV} ct state related,established accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} forward iifname ${pivpnDEV} oifname ${IPv4dev} accept comment \"${TXT}\"
+
+	# Allow this interface and the local network communication bi-directionally:
+	nft insert rule inet ${TABLE} forward iifname @DEV_LAN oifname ${pivpnDEV} accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} forward iifname ${pivpnDEV} oifname @DEV_LAN accept comment \"${TXT}\"
 fi
