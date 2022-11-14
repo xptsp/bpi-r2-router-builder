@@ -430,6 +430,9 @@ case $CMD in
 			# Copy any modified files in the OpenVPN directory subtree:
 			test -d /rw/upper/etc/openvpn && cp -aR /rw/upper/etc/openvpn ${BACKUP}/etc/
 
+			# Copy any modified files in the WireGuard directory subtree:
+			test -d /rw/upper/etc/wireguard && cp -aR /rw/upper/etc/wireguard ${BACKUP}/etc/
+
 			# Remove any Adblock privoxy rules that we added automagically, then remove the privoxy
 			# configuration file if it is the same as the unmodified one:
 			rm ${BACKUP}/etc/privoxy/*.adblock.{action,filter} >& /dev/null
