@@ -47,7 +47,7 @@ if [[ "$1" == "start" ]]; then
 	[[ -z "${pivpnNET}" ]] && WRITE=TRUE && pivpnNET=10.6.0.0 && echo "pivpnNET=10.6.0.0" >> ${CFG}
 
 	# Create the wireguard configuration file if it doesn't already exist:
-	[[ ! -f ${FILE} ]] && confWireGuard
+	[[ ! -f ${FILE} ]] && setWireguardDefaultVars && ConfWireGuard
 fi
 
 #############################################################################################
@@ -70,10 +70,10 @@ if [[ "$1" == "start" ]]; then
 	nft insert rule inet ${TABLE} input iifname ${IPv4dev} udp dport $(grep -m 1 "^ListenPort" ${FILE} | awk '{print $3}') accept comment \"${TXT}\"
 
 	# Allow this interface to access the internet, but only allow established/related connections back:
-	nft insert rule inet ${TABLE} forward iifname ${IPv4dev} oifname ${pivpnDEV} ct state related,established accept comment \"${TXT}\"
-	nft insert rule inet ${TABLE} forward iifname ${pivpnDEV} oifname ${IPv4dev} accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} forward_vpn_server iifname ${IPv4dev} oifname ${pivpnDEV} ct state related,established accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} forward_vpn_server iifname ${pivpnDEV} oifname ${IPv4dev} accept comment \"${TXT}\"
 
 	# Allow this interface and the local network communication bi-directionally:
-	nft insert rule inet ${TABLE} forward iifname @DEV_LAN oifname ${pivpnDEV} accept comment \"${TXT}\"
-	nft insert rule inet ${TABLE} forward iifname ${pivpnDEV} oifname @DEV_LAN accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} forward_vpn_server iifname @DEV_LAN oifname ${pivpnDEV} accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} forward_vpn_server iifname ${pivpnDEV} oifname @DEV_LAN accept comment \"${TXT}\"
 fi
