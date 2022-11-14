@@ -53,7 +53,7 @@ fi
 #############################################################################################
 # Remove any PiVPN nftables rules for this interface:
 #############################################################################################
-for CHAIN in nat_postrouting input forward; do
+for CHAIN in nat_postrouting input forward_vpn_server; do
 	nft -a list chain inet ${TABLE} ${CHAIN} | grep "${TXT}" | grep "handle" | awk '{print $NF}' | while read HANDLE; do
 		[[ "${HANDLE}" -gt 0 ]] 2> /dev/null && nft delete rule inet ${TABLE} ${CHAIN} handle ${HANDLE}
 	done
