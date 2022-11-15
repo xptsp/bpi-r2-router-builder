@@ -53,7 +53,7 @@ fi
 #############################################################################################
 # Remove any PiVPN nftables rules for this interface:
 #############################################################################################
-for CHAIN in nat_postrouting input forward_vpn_server; do
+for CHAIN in $(nft list table inet ${TABLE} | grep chain | awk '{print $2}'); do
 	nft -a list chain inet ${TABLE} ${CHAIN} | grep "${TXT}" | grep "handle" | awk '{print $NF}' | while read HANDLE; do
 		[[ "${HANDLE}" -gt 0 ]] 2> /dev/null && nft delete rule inet ${TABLE} ${CHAIN} handle ${HANDLE}
 	done
@@ -63,17 +63,20 @@ done
 # Add the necessary firewall rules for this interface if we are starting a service:
 #############################################################################################
 if [[ "$1" == "start" ]]; then
+	pivpnNET=$(grep -m 1 "^Address" ${FILE} | awk '{print $3}' | cut -d/ -f 1) 
+	pivpnPORT=$(grep -m 1 "^ListenPort" ${FILE} | awk '{print $3}')
+
 	# Masquerade all communication to this interface:
-	nft insert rule inet ${TABLE} nat_postrouting oifname ${IPv4dev} masquerade comment \"${TXT}\"
+	nft insert rule inet ${TABLE} nat_postrouting oifname ${IPv4dev} ip saddr ${pivpnNET}/${subnetClass} masquerade comment \"${TXT}\"
 
 	# Allow the server port to be accepted by the firewall:
-	nft insert rule inet ${TABLE} input iifname ${IPv4dev} udp dport $(grep -m 1 "^ListenPort" ${FILE} | awk '{print $3}') accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} input_wan iifname ${IPv4dev} udp dport ${pivpnPORT} accept comment \"${TXT}\"
 
 	# Allow this interface to access the internet, but only allow established/related connections back:
-	nft insert rule inet ${TABLE} forward_vpn_server iifname ${IPv4dev} oifname ${pivpnDEV} ct state related,established accept comment \"${TXT}\"
-	nft insert rule inet ${TABLE} forward_vpn_server iifname ${pivpnDEV} oifname ${IPv4dev} accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} forward_vpn_server iifname ${IPv4dev} oifname ${pivpnDEV} ip daddr ${pivpnNET}/${subnetClass} ct state related,established accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} forward_vpn_server iifname ${pivpnDEV} oifname ${IPv4dev} ip saddr ${pivpnNET}/${subnetClass} accept comment \"${TXT}\"
 
 	# Allow this interface and the local network communication bi-directionally:
-	nft insert rule inet ${TABLE} forward_vpn_server iifname @DEV_LAN oifname ${pivpnDEV} accept comment \"${TXT}\"
-	nft insert rule inet ${TABLE} forward_vpn_server iifname ${pivpnDEV} oifname @DEV_LAN accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} forward_vpn_server iifname @DEV_LAN oifname ${pivpnDEV} ip daddr ${pivpnNET}/${subnetClass} ct state related,established accept comment \"${TXT}\"
+	nft insert rule inet ${TABLE} forward_vpn_server iifname ${pivpnDEV} oifname @DEV_LAN ip saddr ${pivpnNET}/${subnetClass} accept comment \"${TXT}\"
 fi
