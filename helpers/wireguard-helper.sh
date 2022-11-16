@@ -66,11 +66,11 @@ if [[ "$1" == "start" ]]; then
 	pivpnNET=$(grep -m 1 "^Address" ${FILE} | awk '{print $3}' | cut -d/ -f 1) 
 	pivpnPORT=$(grep -m 1 "^ListenPort" ${FILE} | awk '{print $3}')
 
+	# Allow everything in through the server interface:
+	nft add rule inet ${TABLE} input iifname ${pivpnDEV} accept comment \"${TXT}\"
+
 	# Masquerade all communication to this interface:
 	nft insert rule inet ${TABLE} nat_postrouting oifname ${IPv4dev} ip saddr ${pivpnNET}/${subnetClass} masquerade comment \"${TXT}\"
-
-	# Allow everything in through the server interface:
-	nft insert rule inet ${TABLE} input iifname ${pivpnDEV} accept comment \"${TXT}\"
 
 	# Allow the server port to be accepted by the firewall:
 	nft insert rule inet ${TABLE} input_wan iifname ${IPv4dev} udp dport ${pivpnPORT} accept comment \"${TXT}\"
