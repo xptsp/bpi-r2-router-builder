@@ -767,6 +767,9 @@ case $CMD in
 
 	###########################################################################
 	dns)
+		# Are we getting the contents of the "/etc/ddclient.conf" file?  If so, output it and exit.
+		[[ "$1" == "ddclient" ]] && cat /etc/ddclient.conf && exit 0
+	
 		# Validate first IP address passed as parameter:
 		unset DNS1 DNS2
 		IP=(${1/"#"/" "})
@@ -937,6 +940,7 @@ case $CMD in
 		[[ "$1" == "miniupnpd" ]] && FILE=/etc/miniupnpd/miniupnpd.conf
 		[[ "$1" == "multicast-relay" ]] && FILE=/etc/default/multicast-relay
 		[[ "$1" == "docker-compose" ]] && FILE=/etc/docker-compose.yaml
+		[[ "$1" == "ddclient" ]] && FILE=/etc/ddclient.conf
 
 		# Was a filename determined?  If not, abort with error:
 		[[ -z "${FILE}" ]] && echo "ERROR: Invalid option passed!" && exit 1

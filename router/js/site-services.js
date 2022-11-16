@@ -197,6 +197,17 @@ function Init_Compose()
 }
 
 //======================================================================================================
+// Javascript functions for "Services / Dynamic DNS Client":
+//======================================================================================================
+function Init_DDClient()
+{
+	__Services_Init('ddclient');
+	$("#compose_submit").click(function() {
+		WebUI_Post("/services/ddclient", __postdata("submit", $("#contents-div").val()));
+	}); 
+}
+
+//======================================================================================================
 // Javascript functions for "Services / Transmission Daemon":
 //======================================================================================================
 function Init_Transmission()
