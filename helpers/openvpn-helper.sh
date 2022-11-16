@@ -14,7 +14,12 @@ test -f ${CERT} || exit 1
 ####################################################################
 # If certificate modifications are already done, exit with code 0:
 ####################################################################
-grep -q "route-noexec" ${CERT} && exit 0
+grep -q "^server" ${CERT} && exit 0
+
+####################################################################
+# If certificate modifications are already done, exit with code 0:
+####################################################################
+grep -q "^route-noexec" ${CERT} && exit 0
 
 ####################################################################
 # Modify the client certificate for a split-tunnel VPN:

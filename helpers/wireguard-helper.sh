@@ -20,7 +20,7 @@ pivpnDEV=${2}
 #############################################################################################
 # If we are starting the service, generate any supporting files we need to run PiVPN:
 #############################################################################################
-if [[ "$1" == "start" ]]; then
+if [[ "$1" == "start" && "$2" == "wg0" ]]; then
 	# Make a copy of the settings files in temporary folder so we can modify them:
 	CFG=/etc/pivpn/openvpn/setupVars.conf
 
@@ -68,6 +68,9 @@ if [[ "$1" == "start" ]]; then
 
 	# Masquerade all communication to this interface:
 	nft insert rule inet ${TABLE} nat_postrouting oifname ${IPv4dev} ip saddr ${pivpnNET}/${subnetClass} masquerade comment \"${TXT}\"
+
+	# Allow everything in through the server interface:
+	nft insert rule inet ${TABLE} input iifname ${pivpnDEV} accept comment \"${TXT}\"
 
 	# Allow the server port to be accepted by the firewall:
 	nft insert rule inet ${TABLE} input_wan iifname ${IPv4dev} udp dport ${pivpnPORT} accept comment \"${TXT}\"
