@@ -15,13 +15,13 @@ $sidebar_menu = array(
 		'wired'     => menu_link('/setup/wired', 'Wired Setup', 'fas fa-ethernet'),
 		'wireless'  => menu_link('/setup/wireless', 'Wireless Setup', 'fas fa-wifi'),
 		'dns'       => menu_link('/setup/dns', 'DNS Settings', 'fas fa-signature'),
-		'routing'   => menu_link('/setup/routing', 'Network Routing', 'fas fa-route'),
 	)),
 	'storage' => array('Storage', 'fas fa-hdd', array(
 #		'basic'     => menu_link('/storage/usb-basic', 'Basic Settings', 'fab fa-usb'),
 	)),
 	'advanced' => array('Advanced', 'fas fa-shield-alt', array(
 		'firewall'  => menu_link('/advanced/firewall', 'Firewall Setup', 'fas fa-shield-alt'),
+		'routing'   => menu_link('/advanced/routing', 'Network Routing', 'fas fa-route'),
 		'dhcp'      => menu_link('/advanced/dhcp', 'DHCP Reservations', 'fas fa-address-card'),
 		'forward'   => menu_link('/advanced/forward', 'Port Forwarding', 'fas fa-forward'),
 		'notify'    => menu_link('/advanced/notify', 'DHCP Notifications', 'fas fa-bullhorn', file_exists("/usr/bin/mosquitto_pub")),

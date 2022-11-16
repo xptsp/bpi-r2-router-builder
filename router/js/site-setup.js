@@ -172,58 +172,6 @@ function Wired_Submit()
 }
 
 //======================================================================================================
-// Javascript functions for "Setup / Network Routing"
-//======================================================================================================
-function Init_Routing()
-{
-	$('.ip_address').inputmask("ip");
-	$("#dest_addr").focus();
-
-	// HAndler to refresh the network routing table:
-	$("#routing-refresh").click(function() {
-		Add_Overlay("routing-div");
-		$.post("/setup/routing", __postdata("show"), function(data) {
-			Del_Overlay("routing-div");
-			$("#routing-table").html(data);
-			$(".fa-trash-alt").click(Routing_Delete);
-		}).fail(function() {
-			$("#routing-table").html('<td colspan="6"><center>AJAX call failed!</center></td>');
-		});
-	}).click();
-
-	// Handler to add network routing to system:
-	$("#add_route").click(function() {
-		postdata = {
-			'sid':       SID,
-			'action':    'add',
-			'dest_addr': $("#dest_addr").val(),
-			'mask_addr': $("#mask_addr").val(),
-			'gate_addr': $("#gate_addr").val(),
-			'metric':    $("#metric").val(),
-			'iface':     $("#iface").val(),
-		};
-		//alert(JSON.stringify(postdata, null, 5)); return;
-		WebUI_Post("/setup/routing", postdata);
-	});
-}
-
-function Routing_Delete()
-{
-	line = $(this).parent().parent().parent().parent();
-	postdata = {
-		'sid':       SID,
-		'action':    'delete',
-		'dest_addr': line.find(".dest_addr").html(),
-		'mask_addr': line.find(".mask_addr").html(),
-		'gate_addr': line.find(".gate_addr").html(),
-		'metric':    line.find(".metric").html(),
-		'iface':     line.find(".iface").html(),
-	};
-	//alert(JSON.stringify(postdata, null, 5)); return;
-	WebUI_Post("/setup/routing", postdata);
-}
-
-//======================================================================================================
 // Javascript functions for "Setup / Router Settings"
 //======================================================================================================
 function Init_Settings(mac_com, mac_cur)
