@@ -846,19 +846,64 @@ case $CMD in
 	###########################################################################
 	webui)
 		for action in $@; do
+			#####################################################################
+			# ACTION: http-on => Turn on Router WebUI locally via HTTP:
+			#####################################################################
 			if [[ "${action}" == "http-on" ]]; then
 				! test -f /etc/nginx/sites-enabled/default && ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
-			elif [[ "${action}" == "http-off" ]]; then
-				test -f /etc/nginx/sites-enabled/default && rm /etc/nginx/sites-enabled/default
+			#####################################################################
+			# ACTION: https-on => Turn on Router WebUI locally via HTTP and HTTPS:
+			#####################################################################
 			elif [[ "${action}" == "https-on" ]]; then
 				if ! test -f /etc/ssl/certs/localhost.crt; then
 					(echo; echo; echo; echo; echo; echo; echo) | sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /etc/ssl/private/localhost.key -out /etc/ssl/certs/localhost.crt
 				fi
+				! test -f /etc/nginx/sites-enabled/default && ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
 				! test -f /etc/nginx/sites-enabled/default-https && ln -sf /etc/nginx/sites-available/router-https /etc/nginx/sites-enabled/default-https
+			#####################################################################
+			# ACTION: http-off => Turn off Router WebUI locally via HTTP and HTTPS:
+			#####################################################################
+			elif [[ "${action}" == "http-off" ]]; then
+				test -f /etc/nginx/sites-enabled/default && rm /etc/nginx/sites-enabled/default
+				test -f /etc/nginx/sites-enabled/default-https && rm /etc/nginx/sites-enabled/default-https
+			#####################################################################
+			# ACTION: https-off => Turn off Router WebUI locally viaHTTPS:
+			#####################################################################
 			elif [[ "${action}" == "https-off" ]]; then
 				test -f /etc/nginx/sites-enabled/default-https && rm /etc/nginx/sites-enabled/default-https
+			#####################################################################
+			# ACTION: pihole-http-on => Turn on Pi-Hole WebUI locally via HTTP:
+			#####################################################################
+			elif [[ "${action}" == "pihole-http-on" ]]; then
+				! test -f /etc/nginx/sites-enabled/pihole && ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
+			#####################################################################
+			# ACTION: pihole-http-off => Turn on Pi-Hole WebUI locally via HTTP:
+			#####################################################################
+			elif [[ "${action}" == "pihole-https-on" ]]; then
+				if ! test -f /etc/ssl/certs/localhost.crt; then
+					(echo; echo; echo; echo; echo; echo; echo) | sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /etc/ssl/private/localhost.key -out /etc/ssl/certs/localhost.crt
+				fi
+				! test -f /etc/nginx/sites-enabled/pihole && ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
+				! test -f /etc/nginx/sites-enabled/pihole-https && ln -sf /etc/nginx/sites-available/pihole-https /etc/nginx/sites-enabled/pihole-https
+			#####################################################################
+			# ACTION: pihole-http-off => Turn off PiHole WebUI locally via HTTP and HTTPS:
+			#####################################################################
+			elif [[ "${action}" == "pihole-http-off" ]]; then
+				test -f /etc/nginx/sites-enabled/pihole && rm /etc/nginx/sites-enabled/pihole
+				test -f /etc/nginx/sites-enabled/pihole-https && rm /etc/nginx/sites-enabled/pihole-https
+			#####################################################################
+			# ACTION: https-off => Turn off PiHole WebUI locally viaHTTPS:
+			#####################################################################
+			elif [[ "${action}" == "pihole-https-off" ]]; then
+				test -f /etc/nginx/sites-enabled/pihole-https && rm /etc/nginx/sites-enabled/pihole-https
+			#####################################################################
+			# ACTION: restart => Restart Nginx daemon:
+			#####################################################################
 			elif [[ "${action}" == "restart" ]]; then
 				systemctl restart nginx
+			#####################################################################
+			# ACTION: samba-on/samba-off => Turn on/off samba file share to Router WebUI directory:
+			#####################################################################
 			elif [[ "${action}" =~ samba-(on|off) ]]; then
 				mount -o remount,rw /boot
 				[[ "${action}" == "samba-on" ]] && SETTING=y || SETTING=n
@@ -866,6 +911,9 @@ case $CMD in
 				mount -o remount,ro /boot
 				systemctl restart smbd
 				systemctl restart nmbd
+			#####################################################################
+			# Otherwise, display error:
+			#####################################################################
 			else
 				[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
 				echo "SYNTAX: $(basename $0) git [http-on|http-off|https-on|https-off|restart]"

@@ -1,13 +1,13 @@
 server {
-	listen 192.168.2.1:443 ssl;
+	listen 192.168.2.2:443 ssl;
 
-	server_name bpiwrt;
+	server_name pi.hole pihole pihole.local;
 
 	ssl_certificate /etc/ssl/certs/localhost.crt;
 	ssl_certificate_key /etc/ssl/private/localhost.key;
 
     location / {
-        proxy_pass         http://192.168.2.1;
+        proxy_pass         http://192.168.2.2;
         proxy_http_version 1.1;
         proxy_set_header   Upgrade $http_upgrade;
         proxy_set_header   Connection keep-alive;
