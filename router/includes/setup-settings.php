@@ -197,7 +197,7 @@ $mac = trim($wan['ether']);
 $options = parse_options("/boot/persistent.conf");
 #echo '<pre>'; print_r($options); exit;
 $def = isset($options['MAC']) ? $options['MAC'] : $mac;
-$mac_com = trim(@shell_exec("arp -n | grep " . $_SERVER['REMOTE_ADDR'] . " | awk '{print $3}'"));
+$mac_com = trim(@shell_exec("arp -n | grep -m 1 \"^" . $_SERVER['REMOTE_ADDR'] . " \" | awk '{print $3}'"));
 $mac_chk = ($mac == $def || $mac == $mac_com);
 echo '
 	<div class="card-header">
@@ -220,7 +220,7 @@ echo '
 					<label for="mac_computer">Use Computer MAC Address</label>
 				</div>
 				<div class="icheck-primary">
-					<input class="mac_opt" type="radio" id="mac_random" name="router_mac"', $mac == $mac_com ? ' checked="checked"' : '', ' data-mac="', $mac_com, '"', $mac_com == "" ? ' disabled="disabled"' : '', '>
+					<input class="mac_opt" type="radio" id="mac_random" name="router_mac"', $mac == $mac_com ? ' checked="checked"' : '', ' data-mac="', $mac_com, '">
 					<label for="mac_random">Use Randomly Generated MAC Address</label>
 				</div>
 			</div>
