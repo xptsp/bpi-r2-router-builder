@@ -24,7 +24,7 @@ if (isset($_POST['action']))
 				die("OK");
 			}
 		}
-		die("Error sending WOL packet to" . $mac);
+		die("Error sending WOL packet to " . $mac);
 	}
 	#################################################################################################
 	# Got here?  We need to return "invalid action" to user:

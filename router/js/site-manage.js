@@ -435,7 +435,7 @@ function Init_Management()
 function Init_Attached()
 {
 	$(".fa-power-off").click(function() {
-		root = $(this).parent().parent().parent();
+		root = $(this).parent().parent().parent().parent();
 		$.post("/manage/attached", __postdata("wol", root.find('.mac_addr').html()), function(data) {
 			if (data == "RELOAD")
 				document.location.reload(true);
