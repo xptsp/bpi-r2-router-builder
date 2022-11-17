@@ -395,6 +395,7 @@ systemctl restart squid
 ##################################################################################
 apt install -y libio-socket-ssl-perl libio-socket-inet6-perl libjson-pp-perl libdata-validate-ip-perl ddclient
 systemctl enable --now ddclient
+cp /opt/bpi-r2-router-builder/misc/config/ddclient.conf /etc/ddclient.conf 
 
 ##################################################################################
 # Install PiVPN using OpenVPN:

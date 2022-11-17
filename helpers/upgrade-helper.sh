@@ -191,6 +191,7 @@ if [[ ! -z "${RW[5]}" ]]; then
 	replace ../misc/config/squid.conf ro/etc/squid/squid.conf true
 	replace ../misc/config/transmission-daemon ro/etc/default/transmission-daemon true
 	replace ../misc/config/transmission.json ro/home/vpn/.config/transmission-daemon/settings.json true 
+	replace ../misc/config/ddclient.conf ro/etc/ddclient.conf 
 
 	#####################################################################################
 	# Write-protect the readonly root partition:  
