@@ -940,7 +940,7 @@ case $CMD in
 		[[ "$1" == "miniupnpd" ]] && FILE=/etc/miniupnpd/miniupnpd.conf
 		[[ "$1" == "multicast-relay" ]] && FILE=/etc/default/multicast-relay
 		[[ "$1" == "docker-compose" ]] && FILE=/etc/docker-compose.yaml
-		[[ "$1" == "ddclient" ]] && FILE=/etc/ddclient.conf
+		[[ "$1" == "ddclient" ]] && FILE=/etc/ddclient.conf && chmod 600 ${FILE}
 
 		# Was a filename determined?  If not, abort with error:
 		[[ -z "${FILE}" ]] && echo "ERROR: Invalid option passed!" && exit 1
