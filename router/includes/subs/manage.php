@@ -1,4 +1,5 @@
 <?php
+require_once("setup.php");
 
 ################################################################################################
 # Function that returns the system uptime as a string:
@@ -130,6 +131,8 @@ function get_network_adapters()
 	foreach (glob("/sys/class/net/*") as $iface)
 	{
 		$name = basename($iface);
+		if (invalid_interface_type($name))
+			continue;
 		if (!in_array($name, $bridged))
 		{
 			$arr[$name] = array();

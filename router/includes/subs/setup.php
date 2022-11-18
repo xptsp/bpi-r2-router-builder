@@ -1,6 +1,13 @@
 <?php
 require_once("manage.php");
 
+function invalid_interface_type($iface)
+{
+	if (empty($_SESSION['iface_type'][$iface]))
+		$_SESSION['iface_type'][$iface] = @shell_exec("ip -details link show " . $iface);
+	return (strpos($_SESSION['iface_type'][$iface], ' tun ') !== false || strpos($_SESSION['iface_type'][$iface], ' wireguard ') !== false);
+}
+
 function get_network_adapters_list($get_bridged = true)
 {
 	$out = array('wan' => 'wan');
@@ -8,6 +15,8 @@ function get_network_adapters_list($get_bridged = true)
 	{
 		$base = basename($iface);
 		$found = false;
+		if (invalid_interface_type($base))
+			continue;
 		foreach (explode("\n", @file_get_contents("/etc/network/interfaces.d/" . $base)) as $line)
 		{
 			if ($found = preg_match('/bridge_ports\s+(.*)/', $line, $regex))

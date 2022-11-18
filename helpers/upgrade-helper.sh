@@ -40,6 +40,7 @@ COPY_ONLY=(
 	/home/vpn/
 	/etc/skel/
 	/etc/apt/sources.list
+	/etc/ddclient.conf
 )
 
 #####################################################################################

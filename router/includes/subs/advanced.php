@@ -1,4 +1,5 @@
 <?php
+require_once("manage.php");
 $options_changed = false;
 
 function parse_config()
