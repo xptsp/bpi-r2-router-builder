@@ -16,7 +16,7 @@ if (isset($_POST['action']))
 	{
 		if (empty($_POST['misc']))
 			die("ERROR: No contents for ddclient.conf passed!");
-		$handle = fopen("/tmp/docker-compose.yaml", "w");
+		$handle = fopen("/tmp/router-settings", "w");
 		fwrite($handle, str_replace("\t", "    ", $_POST['misc']));
 		fclose($handle);
 		die(@shell_exec('router-helper move ddclient'));		

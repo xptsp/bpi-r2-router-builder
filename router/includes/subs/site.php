@@ -26,6 +26,9 @@ $sidebar_menu = array(
 		'forward'   => menu_link('/advanced/forward', 'Port Forwarding', 'fas fa-forward'),
 		'notify'    => menu_link('/advanced/notify', 'DHCP Notifications', 'fas fa-bullhorn', file_exists("/usr/bin/mosquitto_pub")),
 	)),
+	'proxy'  => array('Proxy', 'fas fa-ad', array(
+		'filters'   => menu_link('/proxy/filters', 'Privoxy Filters', 'fas fa-filter'),
+	)),
 	'services'  => array('Services', 'fas fa-concierge-bell', array(
 		'upnp'      => menu_link('/services/upnp', 'UPnP Setup', 'fas fa-plug', file_exists("/lib/systemd/system/miniupnpd.service")),
 		'usage'     => menu_link('/services/bandwidth', 'Bandwidth Usage', 'fas fa-chart-bar', file_exists("/lib/systemd/system/vnstat.service")),
@@ -357,13 +360,15 @@ function apply_changes_modal($text = 'Please wait while the firewall service is 
 #######################################################################################################
 # Function showing an option checkbox:
 #######################################################################################################
-function checkbox($name, $description, $default = true, $disabled_by = '')
+function checkbox($option, $description, $default = true, $disabled_by = '', $url = '')
 {
 	global $options;
+	$name = explode('"', $option)[0];
 	$checked = (!isset($options[$name]) ? $default : ($options[$name] != "N"));
 	$enabled = (!empty($disabled_by) ? $options[$disabled_by] : true);
+	$url = (!empty($url) ? ' value="' . $url . '"' : '');
 	return '<div class="icheck-primary">' .
-				'<input type="checkbox" id="' . $name . '"' . ($checked ? ' checked="checked"' : '') . ($enabled ? '' : ' disabled="disabled"') . '>' .
+				'<input type="checkbox" id="' . $option . '"' . ($checked ? ' checked="checked"' : '') . ($enabled ? '' : ' disabled="disabled"') . $url . '>' .
 				'<label for="' . $name . '">' . $description . '</label>' .
 			'</div>';
 }

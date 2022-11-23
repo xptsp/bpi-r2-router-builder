@@ -1,13 +1,41 @@
 <?php
+$count = 0;
+
+#################################################################################################
+# If action specified and invalid SID passed, force a reload of the page.  Otherwise:
+#################################################################################################
+if (isset($_POST['action']))
+{
+	if ($_POST['action'] == 'submit')
+	{
+		$data = $_POST['misc'];
+		if (!is_array($data))
+			die("ERROR: Invalid data passed!");
+		$file = file_get_contents("/etc/privoxy/blocklist.conf");
+		if (!preg_match("/URLS=\(([^)]*)\)/", $file, $regex))
+			die("ERROR: Blocklist file is invalid!");
+		$output = implode("\n\t", $data);
+		$file = str_replace($regex[1], "\n\t" . $output . "\n", $file);
+		$handle = fopen("/tmp/router-settings", "w");
+		fwrite($handle, $file);
+		fclose($handle);
+		@shell_exec("router-helper move privoxy restart");
+		die("OK");
+	}
+	die("Invalid action");
+}
 
 ###################################################################################################
 # Supporting functions:
 ###################################################################################################
 function filter($short, $description, $url)
 {
+	global $options, $count;
+	$cfg = 'list_' . strval(++$count);
+	$options[$cfg] = file_exists('/etc/privoxy/' . str_replace('.txt', '.adblock.action', basename($url))) ? 'Y' : 'N';
 	return 
 		'<tr>' .
-			'<td>' . checkbox(preg_replace("/[^A-Za-z0-9]+/", "_", $short), '', false, '', $url) . '</td>' .
+			'<td>' . checkbox($cfg . '" class="filters"', '', false, '', $url) . '</td>' .
 			'<td>' . $short . '</td>' .
 			'<td>' . $description . '</td>' .
 		'</tr>';
@@ -19,10 +47,47 @@ function filter($short, $description, $url)
 site_menu();
 echo '
 <div class="alert alert-info">
-	<h5><i class="icon fas fa-info"></i> Notice about Adblocking Lists</h5>
-	Each adblocking list has been sourced from <a href="https://adblockultimate.net/filters/">Adblock Ultimate</a>\'s website!
+	<h5><i class="icon fas fa-info"></i> About these Adblocking Lists</h5>
+	Each adblocking list has been sourced from the filters page on <a href="https://adblockultimate.net/filters/" target="_blank">Adblock Ultimate</a>\'s website!
 </div>
 <div class="card card-primary">
+	<div class="card-header">
+		<h3 class="card-title">Privacy</h3>
+	</div>
+	<div class="card-body p-0">
+		<table class="table table-striped table-sm">
+			<thead>
+				<tr>
+					<th width="10px"></th>
+					<th>Filter Name</th>
+					<th style="width: 70%">Description</th>
+				</tr>
+			</thead>
+			<tbody>
+				', filter('Ultimate Privacy Filter', 'Blocks an extensive list of various online trackers, counters and web analytics tools. Based on the EasyList Privacy list and upgraded by the Adblock Ultimate team.', 'https://filters.adavoid.org/ultimate-privacy-filter.txt'), '
+				', filter('Fanboy\'s Social Blocking List', 'Removes social media integration', 'https://easylist.to/easylist/fanboy-social.txt'), '
+			</tbody>
+		</table>
+	</div>
+	<div class="card-header">
+		<h3 class="card-title">Security</h3>
+	</div>
+	<div class="card-body p-0">
+		<table class="table table-striped table-sm">
+			<thead>
+				<tr>
+					<th width="10px"></th>
+					<th>Filter Name</th>
+					<th style="width: 70%">Description</th>
+				</tr>
+			</thead>
+			<tbody>
+				', filter('Ultimate Security Filter', 'This filter blocks malicious domains. Based on Online Malicious Domains Blocklist filter and further updated and modified by the Adblock Ultimate team.', 'https://filters.adavoid.org/ultimate-security-filter.txt'), '
+				', filter('Spam404', 'This filter protects you from online scams. This filter is regularly updated with data collected by Spam404.com.', 'https://raw.githubusercontent.com/Spam404/lists/master/adblock-list.txt'), '
+				', filter('NoCoin', 'Stops cryptomining in your browser.', 'https://github.com/hoshsadiq/adblock-nocoin-list/blob/master/nocoin.txt'), '
+			</tbody>
+		</table>
+	</div>
 	<div class="card-header">
 		<h3 class="card-title">Ad-Blocking</h3>
 	</div>
@@ -38,6 +103,7 @@ echo '
 			<tbody>
 				', filter('Ultimate Ad Filter', 'This is a filter that allows removing ads from websites with English content. It is based on the EasyList and AdGuard filters and modified by the Adblock Ultimate team according to the complaints from users.', 'https://filters.adavoid.org/ultimate-ad-filter.txt'), '
 				', filter('Anti-circumvention', 'Filter list designed to fight circumvention ads.', 'https://easylist-downloads.adblockplus.org/abp-filters-anti-cv.txt'), '
+				', filter('Fanboy\'s Annoyance List', 'Blocks all irritating in-page popups, cookie notices and third-party widgets, which substantially decrease page loading times use this filter and it will block all of them for you.', 'https://easylist.to/easylist/fanboy-annoyance.txt'), '
 				', filter('RuAdList+EasyList', 'Removes ads from Russian websites.', 'https://easylist-downloads.adblockplus.org/ruadlist+easylist.txt'), '
 				', filter('Germany+EasyList', 'Removes ads from German websites.', 'https://easylist-downloads.adblockplus.org/easylistgermany+easylist.txt'), '
 				', filter('Fanboy\'s Japanese', 'Removes ads from Japanese websites.', 'https://fanboy.co.nz/fanboy-japanese.txt'), '
@@ -57,44 +123,6 @@ echo '
 				', filter('Fanboy\'s Swedish', 'Removes ads from Swedish websites.', 'https://www.fanboy.co.nz/fanboy-swedish.txt'), '
 				', filter('Fanboy\'s Korean', 'Removes ads from Korean websites.', 'https://fanboy.co.nz/fanboy-korean.txt'), '
 				', filter('Fanboy\'s Vietnamese', 'Removes ads from Vietnamese websites.', 'https://www.fanboy.co.nz/fanboy-vietnam.txt'), '
-				', filter('Fanboy\'s Annoyance List', 'Blocks all irritating in-page popups, cookie notices and third-party widgets, which substantially decrease page loading times use this filter and it will block all of them for you.', 'https://easylist.to/easylist/fanboy-annoyance.txt'), '
-			</tbody>
-		</table>
-	</div>
-	<div class="card-header">
-		<h3 class="card-title">Privacy</h3>
-	</div>
-	<div class="card-body p-0">
-		<table class="table table-striped table-sm">
-			<thead>
-				<tr>
-					<th width="10px"></th>
-					<th>Filter Name</th>
-					<th style="width: 70%">Description</th>
-				</tr>
-			</thead>
-			<tbody>
-				', filter('Ultimate Privacy Filter', 'Blocks an extensive list of various online trackers, counters and web analytics tools. Based on the EasyList Privacy list and upgraded by our team.', 'https://filters.adavoid.org/ultimate-privacy-filter.txt'), '
-				', filter('Fanboy\'s Social Blocking List', 'Removes social media integration', 'https://easylist.to/easylist/fanboy-social.txt'), '
-			</tbody>
-		</table>
-	</div>
-	<div class="card-header">
-		<h3 class="card-title">Security</h3>
-	</div>
-	<div class="card-body p-0">
-		<table class="table table-striped table-sm">
-			<thead>
-				<tr>
-					<th width="10px"></th>
-					<th>Filter Name</th>
-					<th style="width: 70%">Description</th>
-				</tr>
-			</thead>
-			<tbody>
-				', filter('Ultimate Security Filter', 'This filter blocks malicious domains. Based on Online Malicious Domains Blocklist filter and further updated and modified by our team.', 'https://filters.adavoid.org/ultimate-security-filter.txt'), '
-				', filter('Spam404', 'This filter protects you from online scams. This filter is regularly updated with data collected by Spam404.com.', 'https://raw.githubusercontent.com/Spam404/lists/master/adblock-list.txt'), '
-				', filter('NoCoin', 'Stops cryptomining in your browser.', 'https://github.com/hoshsadiq/adblock-nocoin-list/blob/master/nocoin.txt'), '
 			</tbody>
 		</table>
 	</div>
@@ -103,4 +131,5 @@ echo '
 	</div>
 	<!-- /.card-body -->
 </div>';
+apply_changes_modal("Please wait while privoxy service changes are pending...", true);
 site_footer('Init_Filters();');

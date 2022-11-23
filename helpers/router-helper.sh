@@ -989,14 +989,14 @@ case $CMD in
 		[[ "$1" == "multicast-relay" ]] && FILE=/etc/default/multicast-relay
 		[[ "$1" == "docker-compose" ]] && FILE=/etc/docker-compose.yaml
 		[[ "$1" == "ddclient" ]] && FILE=/etc/ddclient.conf && chmod 600 ${FILE}
+		[[ "$1" == "privoxy" ]] && FILE=/etc/privoxy/config
 
 		# Was a filename determined?  If not, abort with error:
 		[[ -z "${FILE}" ]] && echo "ERROR: Invalid option passed!" && exit 1
 
 		# Abort if temporary file not found.  Otherwise, copy to destination, delete original, then change owner to root:
 		if ! test -f /tmp/router-settings; then echo "ERROR: File does not exist!"; exit; fi
-		cp /tmp/router-settings ${FILE}
-		rm /tmp/router-settings
+		mv /tmp/router-settings ${FILE}
 		chown root:root ${FILE}
 
 		# Restart service if requested and already running:
