@@ -64,7 +64,7 @@ echo '
 				</tr>
 			</thead>
 			<tbody>
-				', filter('EasyPrivacy List', 'Removes all forms of tracking from the internet, including web bugs, tracking scripts and information collectors, thereby protecting your personal data.', 'https://easylist.to/easylist/easylist.txt'), '
+				', filter('EasyPrivacy List', 'Removes all forms of tracking from the internet, including web bugs, tracking scripts and information collectors, thereby protecting your personal data.', 'https://easylist.to/easylist/easyprivacy.txt'), '
 				', filter('EasyList Cookie List', 'Blocks cookies banners, GDPR overlay windows and other privacy-related notices.', 'https://secure.fanboy.co.nz/fanboy-cookiemonster.txt'), '
 				', filter('Fanboy\'s Social Blocking List', 'Removes Social Media content on web pages such as the Facebook like button and other widgets.', 'https://easylist.to/easylist/fanboy-social.txt'), '
 				', filter('Adblock Warning Removal List', 'Removes obtrusive messages and warnings targeted to users who use an adblocker.', 'https://easylist-downloads.adblockplus.org/antiadblockfilters.txt'), '
