@@ -183,16 +183,16 @@ if [[ ! -z "${RW[5]}" ]]; then
 	#####################################################################################
 	# Replace default files as necessary:
 	#####################################################################################
-	replace ../misc/config/hd-idle ro/etc/default/hd-idle true
-	replace ../misc/config/multicast-relay ro/etc/default/multicast-relay true
-	replace ../misc/config/pihole.conf ro/etc/pihole/setupVars.conf true
-	replace ../misc/config/pihole-custom.list ro/etc/pihole/custom.list true
-	replace ../misc/config/privoxy-blocklist.conf ro/etc/privoxy/blocklist.conf true
-	replace ../misc/config/privoxy-config.conf ro/etc/privoxy/config true
-	replace ../misc/config/squid.conf ro/etc/squid/squid.conf true
-	replace ../misc/config/transmission-daemon ro/etc/default/transmission-daemon true
-	replace ../misc/config/transmission.json ro/home/vpn/.config/transmission-daemon/settings.json true 
-	replace ../misc/config/ddclient.conf ro/etc/ddclient.conf 
+	cp -u ../misc/config/hd-idle /ro/etc/default/hd-idle
+	cp -u ../misc/config/multicast-relay /ro/etc/default/multicast-relay
+	cp -u ../misc/config/pihole.conf /ro/etc/pihole/setupVars.conf
+	cp -u ../misc/config/pihole-custom.list /ro/etc/pihole/custom.list
+	cp -u ../misc/config/privoxy-blocklist.conf /ro/etc/privoxy/blocklist.conf
+	cp -u ../misc/config/privoxy-config.conf /ro/etc/privoxy/config
+	cp -u ../misc/config/squid.conf /ro/etc/squid/squid.conf
+	cp -u ../misc/config/transmission-daemon /ro/etc/default/transmission-daemon
+	cp -u ../misc/config/transmission.json /ro/home/vpn/.config/transmission-daemon/settings.json 
+	cp -u ../misc/config/ddclient.conf /ro/etc/ddclient.conf 
 
 	#####################################################################################
 	# Write-protect the readonly root partition:  

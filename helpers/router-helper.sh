@@ -989,7 +989,7 @@ case $CMD in
 		[[ "$1" == "multicast-relay" ]] && FILE=/etc/default/multicast-relay
 		[[ "$1" == "docker-compose" ]] && FILE=/etc/docker-compose.yaml
 		[[ "$1" == "ddclient" ]] && FILE=/etc/ddclient.conf && chmod 600 ${FILE}
-		[[ "$1" == "privoxy" ]] && FILE=/etc/privoxy/config
+		[[ "$1" == "privoxy-blocklist" ]] && FILE=/etc/privoxy/blocklist.conf
 
 		# Was a filename determined?  If not, abort with error:
 		[[ -z "${FILE}" ]] && echo "ERROR: Invalid option passed!" && exit 1
@@ -1001,7 +1001,13 @@ case $CMD in
 
 		# Restart service if requested and already running:
 		if [[ "$2" == "restart" ]]; then
-			[[ "$(systemctl is-active $1)" == "active" ]] && systemctl restart $1
+			SERVICE=${1}
+			if [[ "${SERVICE}" == "privoxy-blocklist" ]]; then
+				echo "y" | /usr/local/bin/privoxy-blocklist.sh -r
+				/usr/local/bin/privoxy-blocklist.sh
+			elif [[ "$(systemctl is-active $1)" == "active" ]]; then
+				systemctl restart $1
+			fi
 		fi
 		echo "OK"
 		;;
