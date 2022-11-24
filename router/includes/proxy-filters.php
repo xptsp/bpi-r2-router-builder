@@ -1,5 +1,6 @@
 <?php
 $count = 0;
+$file = @file_get_contents("/etc/privoxy/blocklist.conf");
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
@@ -11,7 +12,6 @@ if (isset($_POST['action']))
 		$data = $_POST['misc'];
 		if (!is_array($data))
 			die("ERROR: Invalid data passed!");
-		$file = file_get_contents("/etc/privoxy/blocklist.conf");
 		if (!preg_match("/URLS=\(([^)]*)\)/", $file, $regex))
 			die("ERROR: Blocklist file is invalid!");
 		$output = implode("\"\n\t\"", $data);
@@ -30,9 +30,9 @@ if (isset($_POST['action']))
 ###################################################################################################
 function filter($short, $description, $url)
 {
-	global $options, $count;
+	global $options, $count, $file;
 	$cfg = 'list_' . strval(++$count);
-	$options[$cfg] = file_exists('/etc/privoxy/' . str_replace('.txt', '.adblock.action', basename($url))) ? 'Y' : 'N';
+	$options[$cfg] = strpos($file, $url) !== false ? 'Y' : 'N';
 	return 
 		'<tr>' .
 			'<td>' . checkbox($cfg . '" class="filters"', '', false, '', $url) . '</td>' .
@@ -59,8 +59,8 @@ echo '
 			<thead>
 				<tr>
 					<th width="10px"></th>
-					<th>Filter Name</th>
-					<th style="width: 70%">Description</th>
+					<th style="width: 25%">Filter Name</th>
+					<th style="width: 75%">Description</th>
 				</tr>
 			</thead>
 			<tbody>
