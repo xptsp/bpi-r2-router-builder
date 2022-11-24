@@ -377,7 +377,7 @@ wget https://raw.github.com/Andrwe/privoxy-blocklist/master/privoxy-blocklist.sh
 chmod +x ${FILE}
 sed -i "s|SCRIPTCONF=\"/etc\/privoxy-.*|SCRIPTCONF=\"/etc/privoxy/blocklist.conf\"|" ${FILE}
 sed -i "s|\.script\.|\.adblock\.|g" ${FILE}
-sed -i "s|wget|if ! wget|" ${FILE} 
+sed -i "s|wget |if ! wget |" ${FILE} 
 sed -i "s|2>&1|&; then\n\t\t\tdebug \"\.\. failed\!\"\n\t\t\tcontinue\n\t\tfi|" ${FILE}
 # Restart the services:
 systemctl enable privoxy

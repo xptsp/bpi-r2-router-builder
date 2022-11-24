@@ -40,8 +40,8 @@ fi
 #############################################################################
 # Generate the ngnix certificate and key files:
 #############################################################################
-if [[ ! -f ${KEY_FILE} || ! -f ${CRT_FILE}
-	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ${KEY_FILE} -out ${CRT_FILE}
+if [[ ! -f ${KEY_FILE} || ! -f ${CRT_FILE} ]]; then
+	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ${KEY_FILE} -out ${CRT_FILE} -config ${CONFIG}
 	[[ $? -ne 0 ]] && echo "ERROR: Failed to generate ${CRT_FILE}!" && exit 2
 	update-ca-certificates
 fi
