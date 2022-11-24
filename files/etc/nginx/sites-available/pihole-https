@@ -3,8 +3,8 @@ server {
 
 	server_name pi.hole pihole pihole.local;
 
-	ssl_certificate /etc/ssl/certs/localhost.crt;
-	ssl_certificate_key /etc/ssl/private/localhost.key;
+	include snippets/self-signed.conf;
+	include snippets/ssl-params.conf;
 
     location / {
         proxy_pass         http://192.168.2.2;

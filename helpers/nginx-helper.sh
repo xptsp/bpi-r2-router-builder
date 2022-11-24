@@ -5,6 +5,58 @@
 # take very long to execute and should not rely on other services being up
 # and running.
 #############################################################################
+CONFIG=/etc/nginx/openssl.config
+KEY_FILE=/etc/ssl/private/nginx-selfsigned.key
+CRT_FILE=/etc/ssl/certs/nginx-selfsigned.crt
+DHPARAM=/etc/nginx/dhparam.pem
+
+#############################################################################
+# Generate configuration file to use with openssl.  If we couldn't get information about
+# our IP, list the requested information is "Unspecified" and the country as "US":
+#############################################################################
+if [[ ! -f ${CONFIG} ]]; then
+	# Try to get information from ipinfo.io about our IP address:
+	IPINFO=/tmp/ipinfo.tmp
+	wget -q http://ipinfo.io -O ${IPINFO}
+	STATE=$(grep "region" ${IPINFO} | cut -d\" -f 4)
+	CITY=$(grep "city" ${IPINFO} | cut -d\" -f 4)
+	COUNTRY=$(grep "country" ${IPINFO} | cut -d\" -f 4)
+	test -f ${IPINFO} && rm ${IPINFO}
+
+	(
+	echo "[req]"
+	echo "default_bit         = 4096"
+	echo "distinguished_name  = req_distinguished_name"
+	echo "prompt              = no"
+	echo
+	echo "[req_distinguished_name]"
+	echo "countryName         = ${COUNTRY:-"US"}"
+	echo "stateOrProvinceName = ${STATE:-"Unspecified"}"
+	echo "localityName        = ${CITY:-"Unspecified"}"
+	echo "organizationName    = Self-signed CA"
+	) > ${CONFIG}
+fi
+
+#############################################################################
+# Generate the ngnix certificate and key files:
+#############################################################################
+if [[ ! -f ${KEY_FILE} || ! -f ${CRT_FILE}
+	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ${KEY_FILE} -out ${CRT_FILE}
+	[[ $? -ne 0 ]] && echo "ERROR: Failed to generate ${CRT_FILE}!" && exit 2
+	update-ca-certificates
+fi
+
+#############################################################################
+# Download a randomly selected 2048-bit dhparam file.  If that fails, generate one! 
+# This takes long time, though.  If it still fails, abort with error message! 
+#############################################################################
+if [[ ! -f ${DHPARAM} ]]; then
+	wget -q -O ${DHPARAM} https://2ton.com.au/getprimes/random/dhparam/2048
+	if [[ $? -ne 0 ]]; then
+		openssl dhparam -outform PEM -out ${DHPARAM} 2048
+		[[ $? -ne 0 ]] && echo "ERROR: Failed to generate ${DHPARAM}" && exit 4
+	fi
+fi
 
 #############################################################################
 # Update webserver addresses to match IP address of interface "br0":

@@ -855,9 +855,6 @@ case $CMD in
 			# ACTION: https-on => Turn on Router WebUI locally via HTTP and HTTPS:
 			#####################################################################
 			elif [[ "${action}" == "https-on" ]]; then
-				if ! test -f /etc/ssl/certs/localhost.crt; then
-					(echo; echo; echo; echo; echo; echo; echo) | sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /etc/ssl/private/localhost.key -out /etc/ssl/certs/localhost.crt
-				fi
 				! test -f /etc/nginx/sites-enabled/default && ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
 				! test -f /etc/nginx/sites-enabled/default-https && ln -sf /etc/nginx/sites-available/router-https /etc/nginx/sites-enabled/default-https
 			#####################################################################
@@ -880,9 +877,6 @@ case $CMD in
 			# ACTION: pihole-http-off => Turn on Pi-Hole WebUI locally via HTTP:
 			#####################################################################
 			elif [[ "${action}" == "pihole-https-on" ]]; then
-				if ! test -f /etc/ssl/certs/localhost.crt; then
-					(echo; echo; echo; echo; echo; echo; echo) | sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /etc/ssl/private/localhost.key -out /etc/ssl/certs/localhost.crt
-				fi
 				! test -f /etc/nginx/sites-enabled/pihole && ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 				! test -f /etc/nginx/sites-enabled/pihole-https && ln -sf /etc/nginx/sites-available/pihole-https /etc/nginx/sites-enabled/pihole-https
 			#####################################################################

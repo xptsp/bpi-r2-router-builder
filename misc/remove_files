@@ -69,8 +69,10 @@ echo "WEBUI_SHARE=n" > /boot/persistent.conf
 rm /boot/bpiwrt.cfg >& /dev/null
 cp /dev/null /var/lib/dhcp/dhclient.wan.leases
 rm /etc/pihole/gravity_old.db >& /dev/null
-rm -rf /etc/squid/cert >& /dev/null
 rm /var/cache/ddclient/ddclient.conf >& /dev/null
+rm /etc/nginx/dhparam.pem >& /dev/null
+rm /etc/ssl/certs/nginx-selfsigned.crt >& /dev/null
+rm /etc/ssl/private/nginx-selfsigned.key >& /dev/null
 
 ####################################################################################################
 GIT=($(whereis git | cut -d":" -f 2))
