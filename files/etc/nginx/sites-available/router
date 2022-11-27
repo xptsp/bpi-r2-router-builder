@@ -17,10 +17,25 @@ server {
 		index index.html index.htm index.php;
 	}
 
+	location /cgi-bin/ {
+		# Disable gzip (it makes scripts feel slower since they have to complete
+		# before getting gzipped)
+		gzip off;
+
+		# Fastcgi socket
+		fastcgi_pass unix:/var/run/fcgiwrap.socket;
+
+		# Fastcgi parameters, include the standard ones
+		include /etc/nginx/fastcgi_params;
+
+		# Adjust non standard parameters (SCRIPT_FILENAME)
+		fastcgi_param SCRIPT_FILENAME /opt/bpi-r2-router-builder/router$fastcgi_script_name;
+	}
+
 	# pass PHP scripts to FastCGI server
 	location ~ \.php$ {
 		include snippets/fastcgi-php.conf;
-	
+
 		# With php-fpm (or other unix sockets):
 		fastcgi_pass unix:/run/php/php7.4-fpm.sock;
 	}

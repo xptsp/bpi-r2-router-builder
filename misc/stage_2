@@ -18,7 +18,9 @@ apt install -y apt-transport-https bridge-utils dnsmasq hostapd ca-certificates 
 apt install -y --reinstall debian-keyring debian-archive-keyring nftables sudo pv git resolvconf
 systemctl enable nftables
 git config --global pull.rebase false
-echo "nameserver 127.0.0.1" >> /etc/resolvconf/resolv.conf.d/head
+FILE=/etc/resolvconf/resolv.conf.d/head
+sed -i "/^nameserver /d" ${FILE}
+echo "nameserver 127.0.0.1" >> ${FILE}
 
 ##############################################################################################
 # Correctly configure SSH:
@@ -156,6 +158,7 @@ ln -s /var/run/motd /etc/motd
 # Install some new utilities
 ##################################################################################
 apt install -y pciutils usbutils wireless-tools net-tools unzip debconf-utils tree screen parted device-tree-compiler bluez
+echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
 ##################################################################################
 # Install avahi utilities
@@ -187,28 +190,33 @@ systemctl enable --now nmbd
 # Install NGINX and PHP 7.4
 ##################################################################################
 apt install -y nginx php7.4-fpm php7.4-cgi php7.4-xml php7.4-sqlite3 php7.4-intl apache2-utils php7.4-mysql php7.4-sqlite3 sqlite3 php7.4-zip php7.4-curl fcgiwrap
+# Configure the "php-fpm" and "nginx" service: 
 FILE=/etc/php/7.4/fpm/php.ini
 sed -i "s|^display_errors = .*|display_errors = On|g" ${FILE}
 sed -i "s|^session.gc_maxlifetime = .*|session.gc_maxlifetime = 86400|g" ${FILE}
 rm /etc/nginx/sites-enabled/default
 ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
 usermod -aG systemd-journal www-data
+# Start the services:
 systemctl enable --now php7.4-fpm
-apt-mark hold php7.4-fpm
 systemctl enable --now nginx
+systemctl enable --now fcgiwrap
+# Mark these packages as held:
 apt-mark hold nginx
-echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+apt-mark hold php7.4-fpm
 
 ##################################################################################
 # Install Transmission-daemon
 ##################################################################################
 apt install -y transmission-daemon
+# Configure the service:
 systemctl stop transmission-daemon
 mkdir -p /home/vpn/.config/transmission-daemon/
 cp /opt/bpi-r2-router-builder/misc/config/transmission.json /home/vpn/.config/transmission-daemon/settings.json
 test -e /etc/transmission-daemon/settings.json && rm /etc/transmission-daemon/settings.json
 ln -sf /home/vpn/.config/transmission-daemon/settings.json /etc/transmission-daemon/settings.json
 cp /opt/bpi-r2-router-builder/misc/config/transmission-daemon /etc/default/transmission-daemon
+# Create the necessary directories and permission them correctly:
 chown -R vpn:vpn /etc/transmission-daemon/
 chown -R vpn:vpn /var/lib/transmission-daemon/
 chmod -R 775 /etc/transmission-daemon/
@@ -216,6 +224,7 @@ chmod -R 775 /var/lib/transmission-daemon/
 mkdir -p /home/vpn/{Incomplete,Completed}
 chown -R vpn:vpn /home/vpn/*
 chmod -R 775 /home/vpn/{Incomplete,Completed}
+# Enable and start the service:
 systemctl enable --now transmission-daemon
 
 ##################################################################################
@@ -450,11 +459,3 @@ cp /opt/bpi-r2-router-builder/misc/config/pivpn-wireguard.conf /etc/pivpn/setupV
 
 # Run our modified PiVPN installer again:
 bash /opt/bpi-r2-router-builder/misc/modded_pivpn_install.sh --unattended /etc/pivpn/setupVars.conf --reconfigure
-
-##################################################################################
-# Install resolvconf and configure:
-##################################################################################
-apt install -y resolvconf
-FILE=/etc/resolvconf/resolv.conf.d/head
-sed -i "/^nameserver /d" ${FILE}
-echo "nameserver 127.0.0.1" >> ${FILE}
