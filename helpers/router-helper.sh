@@ -182,8 +182,28 @@ case $CMD in
 			IN_USE=$(mount | grep -q " /ro " || echo " not")
 			echo "Overlay Root script is ${STAT} for next boot, currently${IN_USE} active."
 		#####################################################################
+		# Everything else:
+		else
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "Usage: $(basename $0) overlay [enable|disable|status]"
+			echo "Where:"
+			echo "    enable  - Enables overlay script upon next boot"
+			echo "    disable - Disables overlay script upon next boot"
+			echo "    status  - Displays current status and next boot status of overlay script"
+		fi
+		;;
+
+	###########################################################################
+	compile)
+		test -f /etc/default/router-settings && source /etc/default/router-settings
+		DIR=${OVERLAY_ROOT:-"/var/lib/docker/persistent"}
+		if ! mount | grep " /ro " >& /dev/null; then
+			echo "ERROR: Read-only root partition not available for use!"
+			exit 1
+		fi
+		#####################################################################
 		# MOUNT => Creates overlayfs for chroot environment (aka for compiling stuff)
-		elif [[ "$1" == "mount" ]]; then
+		if [[ "$1" == "mount" ]]; then
 			mkdir -p ${DIR}
 			cd ${DIR}
 			mkdir -p {upper,work,merged}
@@ -191,14 +211,8 @@ case $CMD in
 				mkdir -p ${DIR}/lower
 				mount ${DIR}/lower.squashfs ${DIR}/lower
 			fi
-			if [[ -d ${DIR}/lower ]]; then 
-				LOW=./lower
-			elif [[ -d /ro ]]; then 
-				LOW=/ro
-			else
-				LOW=/
-			fi
-			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
+			[[ -d ${DIR}/lower ]] && LOW=":./lower"
+			mount -t overlay chroot_env -o lowerdir=/ro${LOW},upperdir=./upper,workdir=./work ./merged
 			find . -maxdepth 1 -type d | egrep -v "/(lower|upper|merged|work|)$" | grep -v "^.$" | grep -v ".old$" | while read mount; do 
 				mkdir -p ./merged/${mount}
 				mount --bind ${mount} ./merged/${mount}
@@ -208,12 +222,12 @@ case $CMD in
 		# ENTER => Creates overlayfs for compilation environment
 		elif [[ "$1" == "enter" ]]; then
 			DIR=${DIR}/${2:-"merged"}
-			mount | grep -q "${DIR}/merged" && $0 overlay umount
-			$0 overlay mount || exit 1
+			mount | grep -q "${DIR}/merged" && $0 compile umount
+			$0 compile mount || exit 1
 			remount_rw ${DIR}
 			chroot ${DIR}
 			remount_ro ${DIR}
-			$0 overlay umount
+			$0 compile umount
 		#####################################################################
 		# UMOUNT => Creates overlayfs for compilation environment
 		elif [[ "$1" == "umount" ]]; then
@@ -222,19 +236,24 @@ case $CMD in
 		#####################################################################
 		# MERGE => Copies merged overlay filesystem into overlay directory "lower":
 		elif [[ "$1" == "merge" ]]; then
-			if ! mount | grep -q "${DIR}"; then $0 overlay mount || exit 1; fi
+			if ! mount | grep -q "${DIR}"; then $0 compile mount || exit 1; fi
 			if [[ ! "$2" =~ -(y|-yes) && -d ${DIR}/lower ]]; then
 				echo "WARNING: This will merge the overlay filesystem into a new lower overlay directory and cannot be undone!"
 				askYesNo "Are you SURE you want to do this?" || exit 0
 			fi
-			test -d ${DIR}/lower2 && rm -rf ${DIR}/lower2
-			cp -aR ${DIR}/merged ${DIR}/lower2
-			$0 overlay umount
-			test -d ${DIR}/lower && rm -rf ${DIR}/lower
-			mv ${DIR}/lower2 ${DIR}/lower
-			rm -rf ${DIR}/{upper,work}
-			$0 overlay mount
-			echo "INFO: New lower overlay directory is ready for use." 
+			if [[ -f "${DIR}/lower" ]]; then
+				echo "[INFO] Copying merged filesystem to new directory..."
+				test -d ${DIR}/lower2 && rm -rf ${DIR}/lower2
+				cp -aR ${DIR}/merged ${DIR}/lower2
+				$0 compile umount
+				echo "[INFO] Removing previous lower filesystem..."
+				test -d ${DIR}/lower && rm -rf ${DIR}/lower
+				mv ${DIR}/lower2 ${DIR}/lower
+				rm -rf ${DIR}/{upper,work}
+			else
+				mv ${DIR}/upper ${DIR}/lower
+			fi
+			echo "[DONE] New lower overlay directory is ready for use." 
 		#####################################################################
 		# RESET => Remove changes made to the overlayfs environment
 		elif [[ "$1" == "reset" ]]; then
@@ -242,8 +261,10 @@ case $CMD in
 				echo "WARNING: The router will remove changes made to overlay environment and cannot be undone!"
 				askYesNo "Are you SURE you want to do this?" || exit 0
 			fi
-			$0 overlay umount
+			echo "[INFO] Destroying upper and work directories..."
+			$0 compile umount
 			rm -rf ${DIR}/{upper,work}
+			echo "[DONE] Completed!"
 		#####################################################################
 		# DESTROY => Destroys entire overlayfs for compilation environment
 		elif [[ "$1" == "destroy" ]]; then
@@ -251,19 +272,16 @@ case $CMD in
 				echo "WARNING: The router will delete the ENTIRE overlay environment built and cannot be undone!"
 				askYesNo "Are you SURE you want to do this?" || exit 0
 			fi
-			$0 overlay umount
+			echo "[INFO] Destroying overlay filesystem..."
+			$0 compile umount
 			rm -rf ${DIR}/{lower,upper,work,merged}
+			echo "[DONE] Completed!"
 		#####################################################################
 		# Everything else:
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-			echo "Usage: $(basename $0) overlay [enable|disable|status|mount|enter|umount|merge|clear|destroy]"
+			echo "Usage: $(basename $0) compile [mount|enter|umount|merge|clear|destroy]"
 			echo "Where:"
-			echo "    enable  - Enables overlay script upon next boot"
-			echo "    disable - Disables overlay script upon next boot"
-			echo "    status  - Displays current status and next boot status of overlay script"
-			echo ""
-			echo "Additional overlayfs action:"
 			echo "    mount   - Create separate overlayfs environment"
 			echo "    enter   - Enter created separate overlayfs environment"
 			echo "    umount  - Remove created separate overlayfs environment"
@@ -1077,6 +1095,7 @@ case $CMD in
 		 echo "    remount       - Remounts system partition as read-only or writable"
 		 echo "    reformat      - Reformats persistent storage"
 		 echo "    overlay       - Enables or Disables overlay script"
+		 echo "    compile       - Compilation chroot environment actions"
 		 echo "    apt           - Debian package installer"
 		 echo "    login         - Login actions"
 		 echo "    device        - Device Setings actions"
