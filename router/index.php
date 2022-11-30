@@ -17,6 +17,8 @@ $include_js = $_GET['action']  == 'home' ? '' : 'site-' . explode('-', $_GET['ac
 
 # If the session variable "sid" doesn't exit, redirect to the login page:
 $logged_in = isset($_SESSION['sid']);
+if ($_GET['action'] == 'validate')
+	die($logged_in ? 'VALID' : 'INVALID');
 if ((!$logged_in && $_GET['action'] != 'login') || $_GET['action'] == 'logout')
 {
 	session_unset();

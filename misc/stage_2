@@ -194,8 +194,7 @@ apt install -y nginx php7.4-fpm php7.4-cgi php7.4-xml php7.4-sqlite3 php7.4-intl
 FILE=/etc/php/7.4/fpm/php.ini
 sed -i "s|^display_errors = .*|display_errors = On|g" ${FILE}
 sed -i "s|^session.gc_maxlifetime = .*|session.gc_maxlifetime = 86400|g" ${FILE}
-rm /etc/nginx/sites-enabled/default
-ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/default
+ln -sf /etc/nginx/sites-available/router /etc/nginx/sites-enabled/router
 usermod -aG systemd-journal www-data
 # Start the services:
 systemctl enable --now php7.4-fpm
