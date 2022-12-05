@@ -64,7 +64,7 @@ fi
 cd /etc/nginx/sites-available
 NEW_IP=$(cat /etc/network/interfaces.d/br0 | grep address | awk '{print $2}')
 if [[ ! -z "${NEW_IP}" ]]; then
-	for FILE in $(ls | egrep -ve "(default|pihole)"); do
+	for FILE in $(ls | egrep -ve "(default|pihole|hotspot)"); do
 		OLD_IP=$(cat ${FILE} | grep listen | head -1 | awk '{print $2}' | cut -d: -f 1)
 		[[ "${NEW_IP}" != "${OLD_IP}" ]] && sed -i "s|${OLD_IP}|${NEW_IP}|g" ${FILE}
 	done
