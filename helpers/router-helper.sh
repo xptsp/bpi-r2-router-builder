@@ -207,25 +207,27 @@ case $CMD in
 			mkdir -p ${DIR}
 			cd ${DIR}
 			mkdir -p {upper,work,merged}
+			test -d /ro && RO=/ro || RO=/
 			if [[ -f ${DIR}/lower.squashfs ]]; then
 				mkdir -p ${DIR}/lower
 				mount ${DIR}/lower.squashfs ${DIR}/lower
 			fi
 			[[ -d ${DIR}/lower ]] && LOW=":./lower"
-			mount -t overlay chroot_env -o lowerdir=/ro${LOW},upperdir=./upper,workdir=./work ./merged
+			mount -t overlay chroot_env -o lowerdir=${RO}${LOW},upperdir=./upper,workdir=./work ./merged
 			find . -maxdepth 1 -type d | egrep -v "/(lower|upper|merged|work|)$" | grep -v "^.$" | grep -v ".old$" | while read mount; do 
 				mkdir -p ./merged/${mount}
 				mount --bind ${mount} ./merged/${mount}
 			done  
 			echo "CE" > merged/etc/debian_chroot
 		#####################################################################
-		# ENTER => Creates overlayfs for compilation environment
-		elif [[ "$1" == "enter" ]]; then
+		# ENTER/CHROOT => Enters the created chroot for compilation environment
+		elif [[ "$1" == "enter" || "$1" == "chroot" ]]; then
 			DIR=${DIR}/${2:-"merged"}
 			mount | grep -q "${DIR}/merged" && $0 compile umount
 			$0 compile mount || exit 1
 			remount_rw ${DIR}
-			chroot ${DIR}
+			shift
+			chroot ${DIR} $@
 			remount_ro ${DIR}
 			$0 compile umount
 		#####################################################################
@@ -280,10 +282,11 @@ case $CMD in
 		# Everything else:
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-			echo "Usage: $(basename $0) compile [mount|enter|umount|merge|clear|destroy]"
+			echo "Usage: $(basename $0) compile [mount|chroot|enter|umount|merge|clear|destroy]"
 			echo "Where:"
 			echo "    mount   - Create separate overlayfs environment"
 			echo "    enter   - Enter created separate overlayfs environment"
+			echo "    chroot  - Enter created separate overlayfs environment"
 			echo "    umount  - Remove created separate overlayfs environment"
 			echo "    merge   - Merges current lower and upper levels into new lower level" 
 			echo "    reset   - Remove all changes made to the overlayfs environment" 
