@@ -138,6 +138,8 @@ for file in $(find root/.[a-z]* -type f); do
 	replace $file home/pi/${file/root\//}
 	replace $file home/vpn/${file/root\//}
 done
+chmod 600 /root/.gnupg/* /home/{pi,vpn}/.gnupg/*
+chmod 700 ~root/.gnupg /home/{pi,vpn}/.gnupg
 chmod +x /home/{pi,vpn}/.bash* /etc/skel/{.bash*,.profile}
 
 #####################################################################################

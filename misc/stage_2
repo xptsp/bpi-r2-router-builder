@@ -304,11 +304,6 @@ echo "nameserver 127.0.0.1" > /etc/resolv.conf
 # Install the wireless regulatory table
 ##################################################################################
 apt install -y wireless-regdb crda
-git clone --depth=1 https://git.kernel.org/pub/scm/linux/kernel/git/sforshee/wireless-regdb.git/ /opt/wireless-regdb
-test -f /lib/firmware/regulatory.db && unlink /lib/firmware/regulatory.db
-ln -sf /opt/wireless-regdb/regulatory.db /lib/firmware/
-test -f /lib/firmware/regulatory.db.p7s && unlink /lib/firmware/regulatory.db.p7s
-ln -sf /opt/wireless-regdb/regulatory.db.p7s /lib/firmware/
 
 ################################################################################
 # Install and configure miniupnp install
@@ -407,6 +402,8 @@ bash /opt/bpi-r2-router-builder/misc/modded_pivpn_install.sh --unattended /etc/p
 
 # Customize the PiVPN setupVars.conf in the /tmp folder:
 setupVars=/etc/pivpn/openvpn/setupVars.conf
+mkdir -p /etc/pivpn/openvpn/
+mv /tmp/setupVars.conf ${setupVars}
 sed -i "/^pivpnHOST=/d" ${setupVars}
 sed -i "/^subnetClass=/d" ${setupVars}
 echo "pivpnHOST=" >> ${setupVars}
@@ -441,3 +438,15 @@ wget https://github.com/docker/compose/releases/download/v${VER}/docker-compose-
 chmod +x /usr/local/bin/docker-compose-linux-armv7_${VER}
 ln -sf /usr/local/bin/docker-compose-linux-armv7_${VER} /usr/local/bin/docker-compose
 touch /etc/docker-compose.yaml
+
+##################################################################################
+# Install MITMProxy:
+##################################################################################
+# Install necessary packages:
+apt install -y --no-install-recommends python3-pip python3-venv
+# Create mitmproxy user:
+useradd -m -G users -b /opt -s /usr/sbin/nologin mitmproxy
+# Get the precompiled wheels for mitmproxy:
+git clone https://github.com/xptsp/python3.9-wheels /tmp/wheels
+# Create virtual environment
+sudo -u mitmproxy /opt/bpi-r2-router-builder/misc/mitmproxy
