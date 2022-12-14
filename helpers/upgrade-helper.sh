@@ -58,8 +58,8 @@ function replace()
 	if [[ "${COPY}" == "true" ]]; then
 		if [[ "${SKIP_COPY}" == "false" ]]; then
 			if [[ "${FORCE_COPY}" == "true" ]]; then
-				MD5_OLD=$(test -f ${SRC} && md5sum ${SRC} 2> /dev/null | cut -d" " -f 1)
-				MD5_NEW=$(md5sum ${DEST} | cut -d" " -f 1)
+				MD5_OLD=$(md5sum ${SRC} 2> /dev/null | cut -d" " -f 1)
+				MD5_NEW=$(test -f ${SRC} && md5sum ${DEST} | cut -d" " -f 1)
 				[[ "${MD5_OLD}" != "${MD5_NEW}" ]] && test -f ${DEST} && rm "${DEST}" 2> /dev/null
 			fi
 			if ! test -f ${DEST}; then
