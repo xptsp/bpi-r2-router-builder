@@ -51,10 +51,8 @@ fi
 # This takes long time, though.  If it still fails, abort with error message! 
 #############################################################################
 if [[ ! -f ${DHPARAM} ]]; then
-	wget -q -O ${DHPARAM} https://2ton.com.au/getprimes/random/dhparam/2048
-	if [[ $? -ne 0 ]]; then
-		openssl dhparam -outform PEM -out ${DHPARAM} 2048
-		[[ $? -ne 0 ]] && echo "ERROR: Failed to generate ${DHPARAM}" && exit 4
+	if ! wget -q -O ${DHPARAM} https://2ton.com.au/getprimes/random/dhparam/2048; then
+		openssl dhparam -outform PEM -out ${DHPARAM} 2048 &
 	fi
 fi
 

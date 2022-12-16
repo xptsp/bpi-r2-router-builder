@@ -9,9 +9,11 @@ check_ip()
 }	
 
 ##############################################################################
-# Figure out what the IP addresses for interface "br0" are:
+# Figure out what the IP addresses for the Pi-Hole interface are:
 ##############################################################################
-IP=($(ip addr show br0 | grep "inet " | awk '{print $2}' | cut -d/ -f 1))
+source /etc/pihole/setupVars.conf
+IP=($(ip addr show ${PIHOLE_INTERFACE:-"br0"} | grep "inet " | awk '{print $2}' | cut -d/ -f 1))
+[[ -z "${IP[0]}" ]] && exit 0
 IP1=${IP[0]}
 IP2=${IP[1]:-"${IP[0]}"}
 

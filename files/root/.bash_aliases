@@ -10,8 +10,8 @@ function los
 		echo $dest
 		if [[ ! "$(basename $1)" =~ ^(bpiwrt_|img_|btrfs_|bpi-r2) ]]; then
 			for part in ${dev}p*; do
-				sudo mkdir -p ${dest}
-				sudo mount ${part} ${dest}
+				sudo mkdir -p ${part/dev/mnt}
+				sudo mount ${part} ${part/dev/mnt}
 			done
 		else
 			sudo mkdir -p ${dest}
