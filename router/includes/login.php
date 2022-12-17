@@ -84,7 +84,7 @@ echo '
 	<script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 	<script src="/js/adminlte.min.js"></script>
 	<script src="/js/site.js"></script>
-	<script src="/js/site-advanced.js"></script>
+	<script src="/js/site-setup.js"></script>
 	<script>
 		Init_Login();
 	</script>

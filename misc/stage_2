@@ -338,6 +338,9 @@ useradd -m -G users -b /opt -s /usr/sbin/nologin mitmproxy
 git clone https://github.com/xptsp/python3.9-wheels /tmp/wheels
 # Create virtual environment
 sudo -u mitmproxy /opt/bpi-r2-router-builder/misc/mitmproxy
+# Delete wheels stored in "/opt/mitmproxy/venv/share" to save space.  Delete "/tmp/wheels" as well:
+rm -rf /opt/mitmproxy/venv/share
+rm -rf /tmp/wheels
 
 ##################################################################################
 # Install PiHole
