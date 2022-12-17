@@ -160,9 +160,6 @@ if [[ ! -z "${RW[5]}" ]]; then
 	# Enable any services deemed necessary by the script:
 	#####################################################################################
 	systemctl daemon-reload
-	systemctl is-enabled cloudflared@1 >& /dev/null || systemctl enable ${NOW} cloudflared@1
-	systemctl is-enabled cloudflared@2 >& /dev/null || systemctl enable ${NOW} cloudflared@2
-	systemctl is-enabled cloudflared@3 >& /dev/null || systemctl enable ${NOW} cloudflared@3
 	systemctl is-enabled multicast-relay >& /dev/null || systemctl enable ${NOW} multicast-relay
 	systemctl is-enabled wifi >& /dev/null || systemctl enable ${NOW} wifi
 
@@ -191,7 +188,6 @@ if [[ ! -z "${RW[5]}" ]]; then
 	cp -u ../misc/config/pihole-custom.list /ro/etc/pihole/custom.list
 	cp -u ../misc/config/privoxy-blocklist.conf /ro/etc/privoxy/blocklist.conf
 	cp -u ../misc/config/privoxy-config.conf /ro/etc/privoxy/config
-	cp -u ../misc/config/squid.conf /ro/etc/squid/squid.conf
 	cp -u ../misc/config/transmission-daemon /ro/etc/default/transmission-daemon
 	cp -u ../misc/config/transmission.json /ro/home/vpn/.config/transmission-daemon/settings.json 
 	cp -u ../misc/config/ddclient.conf /ro/etc/ddclient.conf 

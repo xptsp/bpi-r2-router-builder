@@ -1,3 +1,4 @@
+alias docker-compose='docker compose'
 alias dpkg-deb='dpkg-deb -Zxz $@'
 alias losl='losetup -l | sort -V'
 function los

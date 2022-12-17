@@ -117,8 +117,7 @@ systemctl disable --now hostapd
 ##############################################################################################
 # Install some necessary packages:
 ##############################################################################################
-apt install -y toilet pmount eject lsb-release dialog mosquitto-clients squashfs-tools
-#apt install -y vlan ipset traceroute nmap conntrack ndisc6 whois iperf3 tcpdump ethtool irqbalance
+apt install -y toilet pmount eject lsb-release dialog mosquitto-clients gnupg squashfs-tools
 
 ##############################################################################################
 # Place a list of english words in "/usr/share/dict/" for our password generator:
@@ -319,14 +318,26 @@ systemctl enable ddclient
 cp /opt/bpi-r2-router-builder/misc/config/ddclient.conf /etc/ddclient.conf 
 
 ##################################################################################
-# Install unbound:
+# Install docker:
 ##################################################################################
-apt install -y unbound
-systemctl enable unbound
+# Install the software:
+curl -L https://get.docker.com | bash
+# Add user "pi" to group "docker":
+usermod -aG docker pi
+# Add "/var/lib/docker/bin" to PATH variable:
+sed -i "s|PATH=\"|PATH=\"/var/lib/docker/bin:|g" /etc/profile
 
-#=============================================================================================
-# <<NOTE TO SELF>> 2022-12-15: Bullseye image complete up to here!
-#=============================================================================================
+##################################################################################
+# Install MITMProxy:
+##################################################################################
+# Install necessary packages:
+apt install -y --no-install-recommends python3-pip python3-venv
+# Create mitmproxy user:
+useradd -m -G users -b /opt -s /usr/sbin/nologin mitmproxy
+# Get the precompiled wheels for mitmproxy:
+git clone https://github.com/xptsp/python3.9-wheels /tmp/wheels
+# Create virtual environment
+sudo -u mitmproxy /opt/bpi-r2-router-builder/misc/mitmproxy
 
 ##################################################################################
 # Install PiHole
@@ -339,9 +350,8 @@ cp /opt/bpi-r2-router-builder/misc/config/pihole-custom.list /etc/pihole/custom.
 # Install Pi-Hole on this machine:
 curl -L https://install.pi-hole.net | bash /dev/stdin --unattended
 
-# Mask "dnsmasq" package so we don't conflict with it!
-systemctl disable --now dnsmasq
-systemctl mask dnsmasq
+# Remove "dnsmasq" package:
+apt remove --autoremove dnsmasq
 # Configure some things correctly
 chown pihole:pihole /var/lib/misc
 chown pihole:pihole -R /var/lib/misc/*
@@ -367,6 +377,18 @@ echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
 # Set global DNS nameserver to PiHole:
 echo "nameserver 127.0.0.1" > /etc/resolv.conf
+
+##################################################################################
+# Install unbound:
+##################################################################################
+apt install -y unbound
+systemctl enable unbound
+systemctl disable unbound-resolvconf
+systemctl mask unbound-resolvconf
+
+#=============================================================================================
+# <<NOTE TO SELF>> 2022-12-17: Bullseye image complete up to here!
+#=============================================================================================
 
 ##################################################################################
 # Install PiVPN using for WireGuard and OpenVPN:
@@ -404,26 +426,3 @@ echo "pivpnHOST=" >> ${setupVars}
 echo "SHOW_REVOKED=1" >> ${setupVars}
 sed -i "s|^pivpnDEV=.*|pivpnDEV=pivpn|" ${setupVars}
 echo "HELP_SHOWN=1" >> ${setupVars}
-
-##################################################################################
-# Install docker and docker-compose:
-##################################################################################
-# Install the software:
-curl -L https://get.docker.com | bash
-apt install -no-install-recommends -y docker-compose
-# Add user "pi" to group "docker":
-usermod -aG docker pi
-# Add "/var/lib/docker/bin" to PATH variable:
-sed -i "s|PATH=\"|PATH=\"/var/lib/docker/bin:|g" /etc/profile
-
-##################################################################################
-# Install MITMProxy:
-##################################################################################
-# Install necessary packages:
-apt install -y --no-install-recommends python3-pip python3-venv
-# Create mitmproxy user:
-useradd -m -G users -b /opt -s /usr/sbin/nologin mitmproxy
-# Get the precompiled wheels for mitmproxy:
-git clone https://github.com/xptsp/python3.9-wheels /tmp/wheels
-# Create virtual environment
-sudo -u mitmproxy /opt/bpi-r2-router-builder/misc/mitmproxy
