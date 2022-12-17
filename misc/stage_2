@@ -117,7 +117,7 @@ systemctl disable --now hostapd
 ##############################################################################################
 # Install some necessary packages:
 ##############################################################################################
-apt install -y toilet pmount eject lsb-release dialog mosquitto-clients gnupg squashfs-tools
+apt install -y toilet pmount eject lsb-release dialog mosquitto-clients gnupg squashfs-tools whois
 
 ##############################################################################################
 # Place a list of english words in "/usr/share/dict/" for our password generator:
