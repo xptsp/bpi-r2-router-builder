@@ -311,6 +311,28 @@ sed -i "s|2>&1|&; then\n\t\t\tdebug \"\.\. failed\!\"\n\t\t\tcontinue\n\t\tfi|" 
 systemctl enable privoxy
 
 ##################################################################################
+# Install Squid and SquidGuard, then configure the services:
+##################################################################################
+# Install Squid:
+apt install -y squid-openssl
+# Install SquidGuard with "--no-install-recommends" option because otherwise, the "squid-openssl" package
+# will be uninstalled in favor of the "squid" package, which doesn't have build-in SSL support:
+apt install -y --no-install-recommends squidguard
+# Copy new Squid configuration file into place:
+FILE=/etc/squid/squid.conf
+test -f ${FILE}.bak || cp ${FILE} ${FILE}.bak
+cp /opt/bpi-r2-router-builder/misc/config/squid.conf ${FILE}
+# Configure SquidGuard:
+mkdir -p /var/lib/squidguard/db
+chown -R proxy:proxy /var/lib/squidguard/db/
+test -d /etc/squidguard/squidGuard.conf.default || cp /etc/squidguard/squidGuard.conf /etc/squidguard/squidGuard.conf.default 
+cp /dev/null /etc/squidguard/squidGuard.conf
+# Initialize SquidGuard database:
+/usr/lib/squid/security_file_certgen -c -s /var/spool/squid/ssl_db -M 4MB
+# Restart the services:
+systemctl enable squid
+
+##################################################################################
 # Install ddclient:
 ##################################################################################
 apt install -y libio-socket-ssl-perl libio-socket-inet6-perl libjson-pp-perl libdata-validate-ip-perl ddclient
@@ -326,21 +348,6 @@ curl -L https://get.docker.com | bash
 usermod -aG docker pi
 # Add "/var/lib/docker/bin" to PATH variable:
 sed -i "s|PATH=\"|PATH=\"/var/lib/docker/bin:|g" /etc/profile
-
-##################################################################################
-# Install MITMProxy:
-##################################################################################
-# Install necessary packages:
-apt install -y --no-install-recommends python3-pip python3-venv
-# Create mitmproxy user:
-useradd -m -G users -b /opt -s /usr/sbin/nologin mitmproxy
-# Get the precompiled wheels for mitmproxy:
-git clone https://github.com/xptsp/python3.9-wheels /tmp/wheels
-# Create virtual environment
-sudo -u mitmproxy /opt/bpi-r2-router-builder/misc/mitmproxy
-# Delete wheels stored in "/opt/mitmproxy/venv/share" to save space.  Delete "/tmp/wheels" as well:
-rm -rf /opt/mitmproxy/venv/share
-rm -rf /tmp/wheels
 
 ##################################################################################
 # Install PiHole
