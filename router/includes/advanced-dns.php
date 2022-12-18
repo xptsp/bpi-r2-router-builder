@@ -14,7 +14,6 @@ if (isset($_POST['action']))
 	{
 		// Apply configuration file changes:
 		$options['use_isp']         = option('use_isp');
-		$options['use_cloudflared'] = option_allowed('use_cloudflared', array("N", "1", "2", "3"));
 		$options['dns1']            = option_ip('dns1', false, true);
 		$options['dns2']            = option_ip('dns2', true, true);
 		#echo '<pre>'; print_r($options); exit;
@@ -44,8 +43,10 @@ foreach (@file("/etc/resolv.conf") as $line)
 		$isp[ count($isp) ] = $regex[1];
 }
 $use_isp = (empty($isp[0]) || $primary == $isp[0]) && (empty($isp[1]) ? true : ($secondary == $isp[1]));
-$cloudflared_mode = preg_match('/^127\.0\.0\.1\#505(\d)$/', $primary, $regex) ? $regex[1] : 'N';
 $providers = array(
+	array('Cloudflared', '1.1.1.1', '1.0.0.1'),
+	array('Cloudflare - Malware Filter', '1.1.1.2', '1.0.0.2'),
+	array('Cloudflare - Malware and Adult Filter<', '1.1.1.3', '1.0.0.3'),
 	array('Google', '8.8.8.8', '8.8.4.4'),
 	array('OpenDNS', '208.67.222.222', '208.67.220.220'),
 	array('OpenDNS - FamilyShield', '208.67.222.123', '208.67.220.123'),
@@ -65,7 +66,7 @@ $providers = array(
 $use_provider = false;
 foreach ($providers as $provider)
 	$use_provider |= ($primary == $provider[1] && $secondary == $provider[2]);
-$use_custom = !($use_isp || $cloudflared_mode != "N"  || $use_provider);
+$use_custom = !($use_isp || $use_provider);
 #echo '<pre>$current = '; print_r($current); echo '$primary = ' . $primary . "\n" . '$secondary = ' . $secondary . "\n" . '$isp = '; print_r($isp); echo '$use_isp = ' . ($use_isp ? 'Y' : 'N') . "\n"; echo '$cloudflared_mode = ' . ($cloudflared_mode ? 'Y' : 'N') . "\n"; echo '$use_provider = ' . ($use_provider ? 'Y' : 'N') . "\n"; echo '$use_custom = ' . ($use_custom ? 'Y' : 'N') . "\n"; exit;
 
 ###################################################################################################
@@ -89,28 +90,19 @@ echo '
 						<label for="dns_isp">Get Automatically from ISP</label>
 					</div>
 					<div class="icheck-primary">
-						<input type="radio" id="dns_cloud" value="cloudflared" name="dns_server_opt"', $cloudflared_mode != "N" ? ' checked="checked"' : '', '>
-						<label for="dns_cloud">Use Cloudflare DNS Servers (DoH)</label>
-					</div>
-					<div class="icheck-primary">
 						<input type="radio" id="dns_provider" value="alt" name="dns_server_opt"', $use_provider ? ' checked="checked"' : '', '>
 						<label for="dns_provider">Use Public DNS Servers</label>
 					</div>
 				</div>
 			</div>
 			<div class="col-sm-6">
-				<div class="form-group">
+				<div class="form-group" id="provider-group">
 					<label>Select DNS Servers:</label>
 					<select class="provider form-control', !$use_provider ? ' hidden' : '', '" id="select_provider">';
 foreach ($providers as $provider)
 	echo '
 						<option value="', $provider[1], '/', $provider[2], '"', ($primary == $provider[1] && $secondary == $provider[2]) ? ' selected="selected"' : '', '>', $provider[0], '</option>';
 echo '
-					</select>
-					<select class="provider form-control', $cloudflared_mode == "N" ? ' hidden' : '', '" id="select_cloudflared">
-						<option value="127.0.0.1#5051"', $cloudflared_mode == "1" ? ' selected="selected"' : '', '>Cloudflare</option>
-						<option value="127.0.0.1#5052"', $cloudflared_mode == "2" ? ' selected="selected"' : '', '>Cloudflare - Malware Filter</option>
-						<option value="127.0.0.1#5053"', $cloudflared_mode == "3" ? ' selected="selected"' : '', '>Cloudflare - Malware and Adult Filter</option>
 					</select>
 				</div>
 			</div>

@@ -299,14 +299,6 @@ FILE=/etc/privoxy/config
 test -f ${FILE}.bak || cp ${FILE} ${FILE}.bak
 cp /opt/bpi-r2-router-builder/misc/config/privoxy-config.conf ${FILE} 
 cp /opt/bpi-r2-router-builder/misc/config/privoxy-blocklist.conf $(dirname ${FILE})/blocklist.conf 
-# Download AdBlock list downloading script for Privoxy:
-FILE=/usr/local/bin/privoxy-blocklist.sh
-wget https://raw.github.com/Andrwe/privoxy-blocklist/master/privoxy-blocklist.sh -O ${FILE} 
-chmod +x ${FILE}
-sed -i "s|SCRIPTCONF=\"/etc\/privoxy-.*|SCRIPTCONF=\"/etc/privoxy/blocklist.conf\"|" ${FILE}
-sed -i "s|\.script\.|\.adblock\.|g" ${FILE}
-sed -i "s|wget |if ! wget |" ${FILE} 
-sed -i "s|2>&1|&; then\n\t\t\tdebug \"\.\. failed\!\"\n\t\t\tcontinue\n\t\tfi|" ${FILE}
 # Restart the services:
 systemctl enable privoxy
 

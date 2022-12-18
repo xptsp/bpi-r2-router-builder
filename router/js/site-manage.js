@@ -378,42 +378,6 @@ function Init_Management()
 {
 	$(".checkbox").bootstrapSwitch();
 
-	// Uncheck "local router HTTPS" box if "local router HTTP" is unchecked:
-	$('#allow_local_http').click(function(){
-		if ( $('#allow_local_http').prop('checked') == false )
-			$('#allow_local_https').prop('checked', false).attr("disabled", "disabled");
-		else
-			$('#allow_local_https').removeAttr("disabled");		
-	});
-	if ( $('#allow_local_http').prop('checked') == false )
-		$('#allow_local_https').attr("disabled", "disabled");
-
-	// Force "local router HTTP" mode if "local router HTTPS" is checked:
-	$('#allow_local_https').click(function(){
-		if ( $('#allow_local_https').prop('checked') == true )
-			$('#allow_local_http').prop('checked', true).attr("disabled", "disabled");
-		else
-			$('#allow_local_http').removeAttr("disabled");		
-	});
-
-	// Uncheck "local router HTTPS" box if "local router HTTP" is unchecked:
-	$('#pihole_http').click(function(){
-		if ( $('#pihole_http').prop('checked') == false )
-			$('#pihole_https').prop('checked', false).attr("disabled", "disabled");
-		else
-			$('#pihole_https').removeAttr("disabled");		
-	});
-	if ( $('#pihole_http').prop('checked') == false )
-		$('#pihole_https').attr("disabled", "disabled");
-
-	// Force "local router HTTP" mode if "local router HTTPS" is checked:
-	$('#pihole_https').click(function(){
-		if ( $('#pihole_https').prop('checked') == true )
-			$('#pihole_http').prop('checked', true).attr("disabled", "disabled");
-		else
-			$('#pihole_http').removeAttr("disabled");		
-	});
-
 	// Handler to submit form settings:
 	$("#apply_changes").click(function() {
 		postdata = {

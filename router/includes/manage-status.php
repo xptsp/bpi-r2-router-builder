@@ -275,7 +275,7 @@ echo '
 #######################################################################################################
 # Display information about the integrated Git repositories:
 #######################################################################################################
-foreach (array("webui", "regdb", "stats", "multicast-relay") as $repo)
+foreach (array("webui", "multicast-relay") as $repo)
 {
 	if (!isset($_SESSION[$repo . '_version']))
 	{
@@ -295,14 +295,6 @@ echo '
 						<tr>
 							<td width="50%"><strong>WebUI Version:</strong></td>
 							<td>v', $_SESSION['webui_version'], '</td>
-						</tr>
-						<tr>
-							<td width="50%"><strong>Wifi Regulatory Database:</strong></td>
-							<td>v', $_SESSION['regdb_version'], '</td>
-						</tr>
-						<tr>
-							<td width="50%"><strong>SSD1306 Stats Display:</strong></td>
-							<td>v', $_SESSION['stats_version'], '</td>
 						</tr>
 						<tr>
 							<td width="50%"><strong>Multicast Relay:</strong></td>

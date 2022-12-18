@@ -316,31 +316,22 @@ function Init_DNS(dns1, dns2)
 	$('.dns_address').inputmask("ip");
 	$(".dns_port").inputmask("integer", {min:0, max:65535});
 	$("#dns_isp").click(function() {
-		$(".provider").addClass("hidden");
+		$("#provider-group").addClass("hidden");
 		$(".dns_address").attr("disabled", "disabled");
 		$(".dns_port").attr("disabled", "disabled").val("");
 		$("#dns1").val(dns1);
 		$("#dns2").val(dns2);
 	});
 	$("#dns_custom").click(function() {
-		$(".provider").addClass("hidden");
+		$("#provider-group").addClass("hidden");
 		$(".dns_address").removeAttr("disabled");
 		$(".dns_port").removeAttr("disabled");
 	});
 	$("#dns_provider").click(function() {
+		$("#provider-group").removeClass("hidden");
 		$("#select_provider").removeClass("hidden");
-		$("#select_cloudflared").addClass("hidden");
 		$(".dns_address").attr("disabled", "disabled");
 		$(".dns_port").attr("disabled", "disabled").val("");
-	});
-	$("#dns_cloud").click(function() {
-		$("#select_provider").addClass("hidden");
-		$("#select_cloudflared").removeClass("hidden");
-		$(".dns_address").attr("disabled", "disabled");
-		$(".dns_port").attr("disabled", "disabled").val("");
-		$("#dns_port1").val("5051")
-		$("#dns1").val("127.0.0.1");
-		$("#dns2").val("");
 	});
 	$(".provider").change(function() {
 		dns = $(this).find("option:selected").val().split('/');
@@ -362,7 +353,6 @@ function DNS_Submit()
 		'sid':             SID,
 		'action':          'submit',
 		'use_isp':         ($("[name=dns_server_opt]:checked").val()) == "isp" ? 'Y' : 'N',
-		'use_cloudflared': ($("[name=dns_server_opt]:checked").val()) == "cloudflared" ? $('#select_cloudflared').find("option:selected").val().slice(-1) : 'N',
 		'dns1':            $("#dns1").val() + (($("#dns_port1").val() != "53" && $("#dns_port1").val() != "") ? "#" + $("#dns_port1").val() : ''),
 		'dns2':            $("#dns2").val() + (($("#dns_port2").val() != "53" && $("#dns_port2").val() != "") ? "#" + $("#dns_port2").val() : ''),
 	};

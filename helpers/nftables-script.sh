@@ -105,13 +105,6 @@ if [[ "${redirect_dns:-"Y"}" == "Y" ]]; then
 	_nft add rule inet ${TABLE} nat_prerouting ip saddr != ${IP} ip daddr != ${IP} tcp dport 53 counter dnat to ${IP} comment \"${TXT}\"
 fi
 
-# Add HTTP/HTTPS proxying redirect rules ONLY if option "redirect_http_to_proxy" is "N":
-stage 1g "Option redirect_to_proxy=${redirect_to_proxy:-"N"}"
-if [[ "${redirect_to_proxy:-"N"}" == "Y" ]]; then
-	_nft add rule inet ${TABLE} nat_prerouting_lan ether saddr @PROXY_ACCEPT ip saddr != ${IP} ip daddr != ${IP} tcp dport 80 counter redirect to ${IP}:3138 comment \"${TXT}\"
-	_nft add rule inet ${TABLE} nat_prerouting_lan ether saddr @PROXY_ACCEPT ip saddr != ${IP} ip daddr != ${IP} tcp dport 443 counter redirect to ${IP}:3139 comment \"${TXT}\"
-fi
-
 #############################################################################
 # Get a list of all interfaces that have the "masquerade" line in it.  These
 # are the WAN interfaces that the rules will block incoming new connections on.

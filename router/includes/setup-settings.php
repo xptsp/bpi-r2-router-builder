@@ -1,7 +1,6 @@
 <?php
 require_once("subs/manage.php");
 require_once("subs/setup.php");
-require_once("subs/wifi_country.php");
 
 # Gather WebUI language file names:
 $langs = array();
@@ -11,6 +10,9 @@ foreach (glob("lang/*.php") as $lang)
 	$langs[$s] = $s;
 }
 #echo '<pre>'; print_r($langs); exit;
+
+# Parse the regulatory.bin file for list of supported country codes:
+$countries = explode("\n", trim(@shell_exec('regdbdump /lib/crda/regulatory.bin | grep -i "country " | cut -d" " -f 2 | cut -d":" -f 1')));
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.
@@ -125,9 +127,9 @@ echo '
 			</div>
 			<div class="col-sm-6 input-group">
 				<select class="form-control" id="wifi_country">';
-foreach ($countries as $code => $country)
+foreach ($countries as $code)
 	echo '
-					<option value="', $code, '"', $wifi_country == $code ? ' selected="selected"' : '', '>[', $code, '] ', $country, '</option>';
+					<option value="', $code, '"', $wifi_country == $code ? ' selected="selected"' : '', '>', $code, '</option>';
 echo '
 				</select>
 			</div>
