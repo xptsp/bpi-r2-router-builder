@@ -12,4 +12,4 @@ if [[ "${UID}" -ne 0 ]]; then
 fi
 
 # If no Adblock files exist, call the "privoxy-blocklist.sh" script:
-grep -q "\.adblock\." /etc/privoxy/config || /usr/local/bin/privoxy-blocklist.sh
+grep -q "\.adblock\." /etc/privoxy/config || /usr/local/bin/privoxy-blocklist.sh -w &

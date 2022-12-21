@@ -49,6 +49,7 @@ function usage() {
 	echo "	  -r:	Remove all lists build by this script."
 }
 
+######################################################################
 function prepare() {
 	if [ ${UID} -ne 0 ]; then
 		error -e "Root privileges needed. Exit.\n"
@@ -164,20 +165,24 @@ EOF
 	PRIVOXY_DIR="$(dirname "${PRIVOXY_CONF}")"
 }
 
+######################################################################
 function debug() {
 	if [ "${DBG}" -ge "${2}" ]; then
 		echo -e "${1}"
 	fi
 }
 
+######################################################################
 function error() {
 	printf '\e[1;31m%s\e[0m\n' "$@" >&2
 }
 
+######################################################################
 function info() {
 	printf '\e[1;33m%s\e[0m\n' "$@"
 }
 
+######################################################################
 function main() {
 	for url in "${URLS[@]}"; do
 		debug "Processing ${url} ...\n" 0
@@ -274,6 +279,7 @@ function main() {
 	done
 }
 
+######################################################################
 function lock() {
 	# file to store current PID
 	PID_FILE="${TMPDIR}/${TMPNAME}.lock"
@@ -296,6 +302,7 @@ function lock() {
 	echo $$ > "${PID_FILE}"
 }
 
+######################################################################
 function remove() {
 	read -rp "Do you really want to remove all build lists?(y/N) " choice
 	if [ "${choice}" != "y" ]; then
@@ -311,11 +318,18 @@ function remove() {
 	exit 1
 }
 
+######################################################################
+function wait_online() {
+	while ! ping -c 1 -W 1 1.1.1.1; do sleep 1; done
+	main
+}
+
+######################################################################
 VERBOSE=()
 method="main"
 
 # loop for options
-while getopts ":c:hrqv:" opt; do
+while getopts ":c:hrqvw:" opt; do
 	case "${opt}" in
 		"c")
 			SCRIPTCONF="${OPTARG}"
@@ -329,6 +343,9 @@ while getopts ":c:hrqv:" opt; do
 			;;
 		"r")
 			method="remove"
+			;;
+		"w")
+			method="wait_online"
 			;;
 		":")
 			echo "${TMPNAME}: -${OPTARG} requires an argument" >&2
