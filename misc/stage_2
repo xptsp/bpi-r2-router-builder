@@ -371,7 +371,7 @@ echo "LOCAL_IPV4=192.168.2.2" >> /etc/pihole/pihole-FTL.conf
 sed -i "s|start$|/opt/bpi-r2-router-builder/helpers/pihole-script.sh\n\tstart|" /etc/init.d/pihole-FTL
 # Set default DNS to cloudflare port 5051
 sed -i "/PIHOLE_DNS_.*/d" /etc/pihole/setupVars.conf
-echo "PIHOLE_DNS_1=127.0.0.1#5353" >> /etc/pihole/setupVars.conf
+echo "PIHOLE_DNS_1=127.0.0.1#5335" >> /etc/pihole/setupVars.conf
 # Add site configuration for "pi.hole":
 ln -sf /etc/nginx/sites-available/pihole /etc/nginx/sites-enabled/pihole
 systemctl restart nginx

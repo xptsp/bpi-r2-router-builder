@@ -188,6 +188,7 @@ if [[ ! -z "${RW[5]}" ]]; then
 	cp -u ../misc/config/pihole-custom.list /ro/etc/pihole/custom.list
 	cp -u ../misc/config/privoxy-blocklist.conf /ro/etc/privoxy/blocklist.conf
 	cp -u ../misc/config/privoxy-config.conf /ro/etc/privoxy/config
+	cp -u ../misc/config/squid.conf /ro/etc/squid/squid.conf
 	cp -u ../misc/config/transmission-daemon /ro/etc/default/transmission-daemon
 	cp -u ../misc/config/transmission.json /ro/home/vpn/.config/transmission-daemon/settings.json 
 	cp -u ../misc/config/ddclient.conf /ro/etc/ddclient.conf 
