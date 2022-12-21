@@ -29,6 +29,9 @@ $sidebar_menu = array(
 	'proxy'  => array('Proxy', 'fas fa-ad', array(
 		'filters'   => menu_link('/proxy/filters', 'Privoxy Filters', 'fas fa-filter'),
 	)),
+	'pivpn'  => array('PiVPN', 'fas fa-shield-alt', array(
+		'filters'   => menu_link('/pivpn/services', 'Services', 'fas fa-cog'),
+	)),
 	'services'  => array('Services', 'fas fa-concierge-bell', array(
 		'upnp'      => menu_link('/services/upnp', 'UPnP Setup', 'fas fa-plug', file_exists("/lib/systemd/system/miniupnpd.service")),
 		'usage'     => menu_link('/services/bandwidth', 'Bandwidth Usage', 'fas fa-chart-bar', file_exists("/lib/systemd/system/vnstat.service")),
