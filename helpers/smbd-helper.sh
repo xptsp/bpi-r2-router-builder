@@ -137,3 +137,4 @@ case "$1" in
 		echo "Syntax: usb-helper.sh [start|mount|umount]"
 		;;
 esac
+exit 0

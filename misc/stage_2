@@ -322,14 +322,13 @@ cp /dev/null /etc/squidguard/squidGuard.conf
 
 # Install the C-ICAP and SquidClamAV packages:
 apt install -y libcurl4-gnutls-dev c-icap libicapapi-dev squidclamav
-# Link squidclamav configuration file to "/etc/squidclamav.conf": 
-ln -s /etc/c-icap/squidclamav.conf /etc/squidclamav.conf 
 # Edit service setting file:
 sed -i "s|^START=.*|START=yes|" /etc/default/c-icap 
 
 # Enable the services:
 systemctl enable squid
 systemctl enable c-icap
+systemctl enable clamav-daemon
 
 ##################################################################################
 # Install ddclient:
