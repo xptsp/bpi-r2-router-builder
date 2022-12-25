@@ -332,7 +332,7 @@ case $CMD in
 		# Everything else:
 		else
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-			echo "Usage: $(basename $0) login [check|webui|passwd|username|safety-check|cookie]"
+			echo "Usage: $(basename $0) login [check|passwd|username]"
 			echo "Where:"
 			echo "    check [username] [password]   - Verifies that supplied credentials are correct for user 1000"
 			echo "    passwd [oldPass] [newPass]    - Changes password of user 1000 from [oldPass] to [newPass]"

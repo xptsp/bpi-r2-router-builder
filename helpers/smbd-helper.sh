@@ -31,16 +31,18 @@ function usb_mount()
 	# Use the pmount command to mount to a directory with the volume label.
 	# Failing that, mount to the device name.
 	DEV=/dev/${1}
+	[[ "$(blkid -o export ${DEV} | grep "TYPE=")" != "" ]] && return
 	MEDIA=$(blkid ${DEV} -o export | grep "LABEL=" | cut -d"=" -f 2)
 	LABEL=${MEDIA:="${1}"}
 	MEDIA=/media/"${LABEL// /_}"
-	/usr/bin/pmount --umask 000 ${DEV} ${MEDIA} && samba_share ${LABEL} ${MEDIA} ${1}
+	/usr/bin/pmount ${DEV} ${MEDIA} && samba_share ${LABEL} ${MEDIA} ${1}
 }
 
 function samba_share()
 {
 	# Write Samba configuration for the device:
-	test -x /usr/bin/smbcontrol && cat << EOF > /etc/samba/smb.d/${1}.conf
+	cat << EOF >> /etc/samba/smb.d/smb.conf
+
 [${1}]
 comment=${1}
 path=${2}
@@ -61,17 +63,6 @@ function share_folders()
 	done
 }
 
-function add_shares()
-{
-	test -x /usr/bin/smbcontrol || exit 0
-
-	# Include Samba share in the configuration:
-	ls /etc/samba/smb.d/* 2> /dev/null | sed -e 's/^/include = /' > /etc/samba/includes.conf
-
-	# Reload the Samba configuration:
-	smbcontrol all reload-config
-}
-
 function usb_umount()
 {
 	# Detect the filesystem type before attempting to mount the device:
@@ -83,18 +74,29 @@ function usb_umount()
 	[[ ! -z "${TYPE}" ]] && /usr/bin/pumount ${DEV}
 }
 
-function remove_shares()
+function remove_invalid()
 {
-	# Write Samba configuration for the device:
-	if ls /etc/samba/smb.d/*.conf >& /dev/null; then
-		for conf in /etc/samba/smb.d/*.conf; do
-			DIR=$(cat ${conf} | grep "path=" | cut -d"=" -f 2)
-			if [[ "${DIR}" =~ ^/media ]]; then
-				mount | grep ${DIR} >& /dev/null || rm -rf ${DIR}
-				test -d "${DIR}" || rm ${conf}
-			fi
-		done
-	fi
+	# Remove any invalid shares from the samba configuration:
+	FILE=/etc/samba/smb.conf
+	cat ${FILE} | grep "^\[" | cut -d[ -f 2 | cut -d] -f 1 | while read section; do 
+		# Get the path variable in the specified section:
+		DIR=$(sed -nr "/\[$section\]/,/\[/{/^path=/p}" ${FILE} | cut -d= -f 2)
+
+		# If the "path" line exists within the section, but the specified path doesn't
+		# exist, then remove the section from the configuration file:
+		[[ ! -z "${DIR}" && ! -d ${DIR} ]] && remove_share ${DIR}
+	done
+}
+
+function remove_share()
+{
+	test -f /tmp/smb.conf && rm /tmp/smb.conf
+	WRITE=true
+	while read line; do
+		if [[ "${line}" =~ ^\[ ]]; then [[ "${line}" == "[$1]" ]] && WRITE=false || WRITE=true; fi
+		[[ "${WRITE}" == "true" ]] && echo $line >> /tmp/smb.conf
+	done < /etc/samba/smb.conf
+	mv /tmp/smb.conf /etc/samba/smb.conf			
 }
 
 case "$1" in
@@ -102,14 +104,12 @@ case "$1" in
 	"mount")
 		check_params $2
 		usb_mount $2
-		add_shares
 		;;
 	########################################################################
 	"umount")
 		check_params $2
 		usb_umount $2
-		remove_shares
-		add_shares
+		remove_invalid
 		;;
 	########################################################################
 	"start")
@@ -121,24 +121,16 @@ case "$1" in
 		IFACES="${IFACES[@]}"
 		sed -i "s|interfaces = .*$|interfaces = ${IFACES}|" ${FILE}
 
-		# Make sure that the include line is at the top of the "smb.conf" file:
-		grep -q -e "include = /etc/samba/includes.conf" ${FILE} || sed -i "1s|^|include = /etc/samba/includes.conf\n\n|" ${FILE}
-
 		# ADDED FUNCTION: Add the WebUI samba share if requested in "/boot/persistent.conf":
 		test -f /boot/persistent.conf && source /boot/persistent.conf
 		if ! test -f /etc/samba/smb.d/webui.conf; then
-			if [[ "${WEBUI_SHARE:=n}" == "y" ]]; then
-				sed "s|\[pi\]|\[router\]|g" /etc/samba/smb.d/pi.conf > /etc/samba/smb.d/webui.conf
-				sed -i "s|comment=.*|comment=WebUI folder|g" /etc/samba/smb.d/webui.conf
-				sed -i "s|/home/pi|/opt/bpi-r2-router-builder/router|g" /etc/samba/smb.d/webui.conf
-			fi
+			[[ "${WEBUI_SHARE:=n}" == "y" ]] && samba_share router /home/pi|/opt/bpi-r2-router-builder/router
 		elif [[ "${WEBUI_SHARE:=n}" == "n" ]]; then
-			rm /etc/samba/smb.d/webui.conf
+			remove_share router
 		fi
 
 		# HACK: Remove all non-existant USB shares, then add anything missing:
-		remove_shares
-		add_shares
+		remove_invalid
 		;;
 
 	*)
