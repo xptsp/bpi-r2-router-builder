@@ -123,7 +123,7 @@ case "$1" in
 
 		# ADDED FUNCTION: Add the WebUI samba share if requested in "/boot/persistent.conf":
 		test -f /boot/persistent.conf && source /boot/persistent.conf
-		if ! test -f /etc/samba/smb.d/webui.conf; then
+		if ! grep -q "^\[router\]" /etc/samba/smb.conf; then
 			[[ "${WEBUI_SHARE:=n}" == "y" ]] && samba_share router /home/pi|/opt/bpi-r2-router-builder/router
 		elif [[ "${WEBUI_SHARE:=n}" == "n" ]]; then
 			remove_share router
