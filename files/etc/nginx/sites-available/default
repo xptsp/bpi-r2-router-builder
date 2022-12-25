@@ -6,6 +6,9 @@ server {
 	# Add index.php to the list if you are using PHP
 	index index.php index.html index.htm index.nginx-debian.html;
 
+	# Add a few error pages:
+	error_page 404 /index.php?action=404;
+
 	server_name bpiwrt;
 
 	location ~ /includes {

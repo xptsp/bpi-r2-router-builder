@@ -183,7 +183,6 @@ if [[ ! -z "${RW[5]}" ]]; then
 	# Replace default files as necessary:
 	#####################################################################################
 	cp -u ../misc/config/ddclient.conf /ro/etc/ddclient.conf 
-	cp -u ../misc/config/c-icap.conf /ro/etc/c-icap/c-icap.conf
 	cp -u ../misc/config/hd-idle /ro/etc/default/hd-idle
 	cp -u ../misc/config/multicast-relay /ro/etc/default/multicast-relay
 	cp -u ../misc/config/pihole.conf /ro/etc/pihole/setupVars.conf

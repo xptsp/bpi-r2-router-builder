@@ -305,13 +305,14 @@ systemctl enable privoxy
 ##################################################################################
 # Install Squid:
 apt install -y squid-openssl
-# Install SquidGuard with "--no-install-recommends" option because otherwise, the "squid-openssl" package
-# will be uninstalled in favor of the "squid" package, which doesn't have build-in SSL support:
-apt install -y --no-install-recommends squidguard
 # Copy new Squid configuration file into place:
 FILE=/etc/squid/squid.conf
 test -f ${FILE}.bak || cp ${FILE} ${FILE}.bak
 cp /opt/bpi-r2-router-builder/misc/config/squid.conf ${FILE}
+
+# Install SquidGuard with "--no-install-recommends" option because otherwise, the "squid-openssl" package
+# will be uninstalled in favor of the "squid" package, which doesn't have build-in SSL support:
+apt install -y --no-install-recommends squidguard
 # Configure SquidGuard:
 mkdir -p /var/lib/squidguard/db
 chown -R proxy:proxy /var/lib/squidguard/db/
@@ -321,9 +322,16 @@ cp /dev/null /etc/squidguard/squidGuard.conf
 /usr/lib/squid/security_file_certgen -c -s /var/spool/squid/ssl_db -M 4MB
 
 # Install the C-ICAP and SquidClamAV packages:
-apt install -y libcurl4-gnutls-dev c-icap libicapapi-dev squidclamav
-# Edit service setting file:
-sed -i "s|^START=.*|START=yes|" /etc/default/c-icap 
+apt install -y libcurl4-gnutls-dev c-icap libicapapi-dev squidclamav clamav-daemon
+# Configure C-ICAP service settings:
+sed -i "s|^START=.*|START=yes|" /etc/default/c-icap
+FILE=/etc/c-icap/c-icap.conf
+test -f ${FILE}.bak || cp ${FILE} ${FILE}.bak
+echo "Service squidclamav squidclamav.so" >> ${FILE}
+sed -i "s|^ServerAdmin .*|ServerAdmin root@bpiwrt.local|" ${FILE} 
+sed -i "s|^ServerName .*|ServerName bpiwrt|" ${FILE}
+# Link the SquidClamAV configuration file:
+ln -sf /etc/c-icap/squidclamav.conf /etc/squidclamav.conf
 
 # Enable the services:
 systemctl enable squid
