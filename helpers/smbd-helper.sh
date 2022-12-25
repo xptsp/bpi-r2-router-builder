@@ -41,7 +41,7 @@ function usb_mount()
 function samba_share()
 {
 	# Write Samba configuration for the device:
-	cat << EOF >> /etc/samba/smb.d/smb.conf
+	cat << EOF >> /etc/samba/smb.conf
 
 [${1}]
 comment=${1}
@@ -124,7 +124,7 @@ case "$1" in
 		# ADDED FUNCTION: Add the WebUI samba share if requested in "/boot/persistent.conf":
 		test -f /boot/persistent.conf && source /boot/persistent.conf
 		if ! grep -q "^\[router\]" /etc/samba/smb.conf; then
-			[[ "${WEBUI_SHARE:=n}" == "y" ]] && samba_share router /home/pi|/opt/bpi-r2-router-builder/router
+			[[ "${WEBUI_SHARE:=n}" == "y" ]] && samba_share router /opt/bpi-r2-router-builder/router
 		elif [[ "${WEBUI_SHARE:=n}" == "n" ]]; then
 			remove_share router
 		fi
