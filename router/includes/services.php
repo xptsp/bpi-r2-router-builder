@@ -21,11 +21,12 @@ else if (empty($called_as_sub))
 # Start the services page, showing if the service is disabled and must be started to use
 # the functionality provided:
 #############################################################################################
-function services_start($service)
+function services_start($service, $header = true)
 {
 	# Output site header with switch to enable service:
 	$enabled = trim(@shell_exec("systemctl is-enabled " . $service)) == "enabled";
-	site_menu(true, "Enabled", $enabled);
+	if ($header)
+		site_menu(true, "Enabled", $enabled);
 
 	# Output an alert box showing the service isn't running, and why it must be started:
 	if (trim(@shell_exec("systemctl is-active " . $service)) == "inactive")

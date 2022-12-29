@@ -27,10 +27,12 @@ $sidebar_menu = array(
 		'notify'    => menu_link('/advanced/notify', 'DHCP Notifications', 'fas fa-bullhorn', file_exists("/usr/bin/mosquitto_pub")),
 	)),
 	'proxy'  => array('Proxy', 'fas fa-ad', array(
+		'overview'  => menu_link('/proxy/overview', 'Proxy Services', 'fas fa-cog'),
+		#'blacklist' => menu_link('/proxy/blacklist', 'Website Blacklists', 'fas fa-filter'),
 		'filters'   => menu_link('/proxy/filters', 'Privoxy Filters', 'fas fa-filter'),
 	)),
 	'pivpn'  => array('PiVPN', 'fas fa-shield-alt', array(
-		'filters'   => menu_link('/pivpn/services', 'Services', 'fas fa-cog'),
+		'services'   => menu_link('/pivpn/services', 'Services', 'fas fa-cog'),
 	)),
 	'services'  => array('Services', 'fas fa-concierge-bell', array(
 		'upnp'      => menu_link('/services/upnp', 'UPnP Setup', 'fas fa-plug', file_exists("/lib/systemd/system/miniupnpd.service")),

@@ -47,14 +47,27 @@ DEV=$(los ${FILE})
 chroot ${DEV} /opt/bpi-r2-router-builder/misc/remove_files
 
 ####################################################################################################
+GIT=($(whereis git | cut -d":" -f 2))
+if [[ ! -z "${GIT[@]}" ]]; then
+	echo -e "${GREEN}NOTE:${NC} Minimizing size of bpi-r2-router-builder repo..."
+	rm -rf ${OUT}/opt/bpi-r2-router-builder
+	git clone https://github.com/xptsp/bpiwrt-builder ${OUT}/opt/bpi-r2-router-builder
+
+	echo -e "${GREEN}NOTE:${NC} Resetting multicast-relay repo..."
+	cd ${OUT}/opt/multicast-relay
+	git reset --hard
+fi
+
+####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Copying necessary boot partition files..."
-find ${DEV}/boot -type f | grep -v "uImage$" | egrep -v ".(cfg|dtb|conf)$" | while read file; do
+DTB=${OUT}/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
+test -f ${DTB}.old && mv ${DTB}.old ${DTB}
+find ${DEV}/boot -type f | grep -v "uImage$" | egrep -v ".(cfg|conf)$" | while read file; do
 	DEST=$(echo $file | sed "s|${DEV}/boot|${OUT}/boot|")
 	mkdir -p $(dirname ${DEST})
 	cp ${file} ${DEST}
 done
-mv ${OUT}/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb.old ${OUT}/boot/bananapi/bpi-r2/linux/dtb/bpi-r2.dtb
-
+ 
 ####################################################################################################
 echo -e "${GREEN}NOTE:${NC} Copying root files to empty image..."
 mount | grep "${DEV}/" | grep -v "/boot " | awk '{print $3}' | while read DIR; do umount ${DIR}; done

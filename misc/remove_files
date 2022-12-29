@@ -73,15 +73,3 @@ rm /var/cache/ddclient/ddclient.conf >& /dev/null
 rm /etc/nginx/dhparam.pem >& /dev/null
 rm /etc/ssl/certs/nginx-selfsigned.crt >& /dev/null
 rm /etc/ssl/private/nginx-selfsigned.key >& /dev/null
-
-####################################################################################################
-GIT=($(whereis git | cut -d":" -f 2))
-if [[ ! -z "${GIT[@]}" ]]; then
-	echo -e "${GREEN}NOTE:${NC} Resetting bpi-r2-router-builder repo..."
-	cd /opt/bpi-r2-router-builder
-	git reset --hard
-
-	echo -e "${GREEN}NOTE:${NC} Resetting multicast-relay repo..."
-	cd /opt/multicast-relay
-	git reset --hard
-fi
