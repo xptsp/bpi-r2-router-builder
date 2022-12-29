@@ -50,11 +50,11 @@ chroot ${DEV} /opt/bpi-r2-router-builder/misc/remove_files
 GIT=($(whereis git | cut -d":" -f 2))
 if [[ ! -z "${GIT[@]}" ]]; then
 	echo -e "${GREEN}NOTE:${NC} Minimizing size of bpi-r2-router-builder repo..."
-	rm -rf ${OUT}/opt/bpi-r2-router-builder
+	rm -rf ${DEV}/opt/bpi-r2-router-builder
 	git clone https://github.com/xptsp/bpiwrt-builder ${OUT}/opt/bpi-r2-router-builder
 
 	echo -e "${GREEN}NOTE:${NC} Resetting multicast-relay repo..."
-	cd ${OUT}/opt/multicast-relay
+	cd ${DEV}/opt/multicast-relay
 	git reset --hard
 fi
 
