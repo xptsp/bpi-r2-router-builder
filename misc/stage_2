@@ -176,6 +176,20 @@ echo -e "bananapi\nbananapi" | smbpasswd -a pi
 # Modify the Samba configuration to make sharing USB sticks more automatic
 sed -i "s|^;   bind interfaces only = yes|    bind interfaces only = yes|" /etc/samba/smb.conf
 sed -i "s|^;   interfaces = 127.0.0.0/8 eth0|   interfaces = br0|g" /etc/samba/smb.conf
+# Create our first share:
+cat << EOF >> /etc/samba/smb.conf
+
+[pi]
+comment=User Pi Home
+path=/home/pi
+browseable=Yes
+writeable=Yes
+only guest=no
+create mask=0755
+directory mask=0755
+public=no
+EOF
+# Enable the services:
 systemctl enable smbd
 systemctl enable nmbd
 
@@ -283,7 +297,7 @@ systemctl enable minissdpd
 apt install -y python3-netifaces
 # Clone the multicast-relay repo:
 git clone https://github.com/alsmith/multicast-relay /opt/multicast-relay
-# Configure and start the service:
+# Configure and enable the service:
 cp /opt/bpi-r2-router-builder/misc/config/multicast-relay /etc/default/multicast-relay
 systemctl enable multicast-relay
 

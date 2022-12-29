@@ -214,10 +214,10 @@ case $CMD in
 			fi
 			[[ -d ${DIR}/lower ]] && LOW=":./lower"
 			mount -t overlay chroot_env -o lowerdir=${RO}${LOW},upperdir=./upper,workdir=./work ./merged
-			find . -maxdepth 1 -type d | egrep -v "/(lower|upper|merged|work|)$" | grep -v "^.$" | grep -v ".old$" | while read mount; do 
+			find . -maxdepth 1 -type d | egrep -v "/(lower|upper|merged|work|)$" | grep -v "^.$" | grep -v ".old$" | while read mount; do
 				mkdir -p ./merged/${mount}
 				mount --bind ${mount} ./merged/${mount}
-			done  
+			done
 			echo "CE" > merged/etc/debian_chroot
 		#####################################################################
 		# ENTER/CHROOT => Enters the created chroot for compilation environment
@@ -255,7 +255,7 @@ case $CMD in
 			else
 				mv ${DIR}/upper ${DIR}/lower
 			fi
-			echo "[DONE] New lower overlay directory is ready for use." 
+			echo "[DONE] New lower overlay directory is ready for use."
 		#####################################################################
 		# RESET => Remove changes made to the overlayfs environment
 		elif [[ "$1" == "reset" ]]; then
@@ -288,8 +288,8 @@ case $CMD in
 			echo "    enter   - Enter created separate overlayfs environment"
 			echo "    chroot  - Enter created separate overlayfs environment"
 			echo "    umount  - Remove created separate overlayfs environment"
-			echo "    merge   - Merges current lower and upper levels into new lower level" 
-			echo "    reset   - Remove all changes made to the overlayfs environment" 
+			echo "    merge   - Merges current lower and upper levels into new lower level"
+			echo "    reset   - Remove all changes made to the overlayfs environment"
 			echo "    destroy - Remove ENTIRE overlayfs environment"
 		fi
 		;;
@@ -436,23 +436,29 @@ case $CMD in
 		if [[ "$1" == "squash" ]]; then
 			$0 backup unlink
 
-			# Copy all files (if present) from overlay upper layer to temporary storage:
+			# Create backup directory:
 			BACKUP=/tmp/bpiwrt
 			test -d ${BACKUP} && rm -rf ${BACKUP}
-			mkdir -p ${BACKUP}/boot
+			mkdir -p ${BACKUP}/{boot,etc}
 			cp /boot/persistent.conf ${BACKUP}/boot/ 2> /dev/null
-			for file in $(cat /etc/sysupgrade.conf); do
-				DIR=${BACKUP}/$(dirname ${file})
-				mkdir -p ${DIR}
-				[[ "$file" =~ ^/ ]] && ROOT=/ || ROOT=/rw/upper/
-				cp -a ${ROOT}/${file} ${DIR}/ 2> /dev/null
+
+			# Sort "/etc/sysupgrade.conf" and include in backup if different:
+			cat /etc/sysupgrade.conf | sort > ${BACKUP}/etc/sysupgrade.conf
+			cat /ro/etc/sysupgrade.conf | sort > /tmp/sysupgrade.conf
+			cmp -s ${BACKUP}/etc/sysupgrade.conf /tmp/sysupgrade.conf >& /dev/null && rm ${BACKUP}/etc/sysupgrade.conf
+			rm /tmp/sysupgrade.conf
+
+			# Copy any modified files from overlay upper layer to backup directory:
+			cat /etc/sysupgrade.conf | while read LINE; do
+				[[ "$LINE" =~ ^/ ]] && ROOT=/ || ROOT=/rw/upper/
+				if [[ ! -z "${LINE}" ]]; then
+					for FILE in $(ls ${ROOT}/${LINE}); do
+						DIR=${BACKUP}/$(dirname ${FILE} | sed "s|${ROOT}/||")
+						mkdir -p ${DIR}
+						cp -a ${FILE} ${DIR}/
+					done 2> /dev/null
+				fi
 			done
-
-			# Copy any modified files in the OpenVPN directory subtree:
-			test -d /rw/upper/etc/openvpn && cp -aR /rw/upper/etc/openvpn ${BACKUP}/etc/
-
-			# Copy any modified files in the WireGuard directory subtree:
-			test -d /rw/upper/etc/wireguard && cp -aR /rw/upper/etc/wireguard ${BACKUP}/etc/
 
 			# Remove any Adblock privoxy rules that we added automagically, then remove the privoxy
 			# configuration file if it is the same as the unmodified one:
@@ -472,7 +478,7 @@ case $CMD in
 			mkdir -p ${DIR}
 			echo '#!/bin/bash' > ${FILE}
 			find systemd/system/ -type c -exec basename {} \; 2> /dev/null | sort | uniq | while read LINE; do echo "systemctl disable --now ${LINE}"; done >> ${FILE}
-			find systemd/system/ -type l -exec basename {} \; 2> /dev/null | grep -v "clamav-daemon" | sort | uniq | while read LINE; do echo "systemctl enable --now ${LINE}"; done >> ${FILE}
+			find systemd/system/ -type l -exec basename {} \; 2> /dev/null | sort | uniq | while read LINE; do echo "systemctl enable --now ${LINE}"; done >> ${FILE}
 
 			# Load any firewall settings that need to be updated:
 			if [[ -f default/router-settings ]]; then
@@ -790,7 +796,7 @@ case $CMD in
 	dns)
 		# Are we getting the contents of the "/etc/ddclient.conf" file?  If so, output it and exit.
 		[[ "$1" == "ddclient" ]] && cat /etc/ddclient.conf && exit 0
-	
+
 		# Validate first IP address passed as parameter:
 		unset DNS1 DNS2
 		IP=(${1/"#"/" "})
