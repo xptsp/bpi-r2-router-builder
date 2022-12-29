@@ -1,0 +1,2 @@
+@reboot root /usr/local/bin/privoxy-blocklist.sh
+

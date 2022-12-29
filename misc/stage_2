@@ -299,6 +299,8 @@ cp /opt/bpi-r2-router-builder/misc/config/privoxy-config.conf ${FILE}
 cp /opt/bpi-r2-router-builder/misc/config/privoxy-blocklist.conf $(dirname ${FILE})/blocklist.conf 
 # Enable the service:
 systemctl enable privoxy
+# Add crontab task to update blocklists once a day:
+ln -sf /usr/local/bin/privoxy-blocklist.sh /etc/cron.daily/
 
 ##################################################################################
 # Install Squid, SquidGuard, C-ICAP and SquidClamAV:
