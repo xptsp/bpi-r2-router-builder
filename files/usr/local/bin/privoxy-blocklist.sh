@@ -319,17 +319,11 @@ function remove() {
 }
 
 ######################################################################
-function wait_online() {
-	while ! ping -c 1 -W 1 1.1.1.1; do sleep 1; done
-	main
-}
-
-######################################################################
 VERBOSE=()
 method="main"
 
 # loop for options
-while getopts ":c:hrqvw:" opt; do
+while getopts ":c:hrqv:" opt; do
 	case "${opt}" in
 		"c")
 			SCRIPTCONF="${OPTARG}"
@@ -343,9 +337,6 @@ while getopts ":c:hrqvw:" opt; do
 			;;
 		"r")
 			method="remove"
-			;;
-		"w")
-			method="wait_online"
 			;;
 		":")
 			echo "${TMPNAME}: -${OPTARG} requires an argument" >&2

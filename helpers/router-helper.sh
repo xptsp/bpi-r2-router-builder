@@ -472,7 +472,7 @@ case $CMD in
 			mkdir -p ${DIR}
 			echo '#!/bin/bash' > ${FILE}
 			find systemd/system/ -type c -exec basename {} \; 2> /dev/null | sort | uniq | while read LINE; do echo "systemctl disable --now ${LINE}"; done >> ${FILE}
-			find systemd/system/ -type l -exec basename {} \; 2> /dev/null | sort | uniq | while read LINE; do echo "systemctl enable --now ${LINE}"; done >> ${FILE}
+			find systemd/system/ -type l -exec basename {} \; 2> /dev/null | grep -v "clamav-daemon" | sort | uniq | while read LINE; do echo "systemctl enable --now ${LINE}"; done >> ${FILE}
 
 			# Load any firewall settings that need to be updated:
 			if [[ -f default/router-settings ]]; then
