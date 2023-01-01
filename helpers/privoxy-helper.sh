@@ -11,7 +11,22 @@ if [[ "${UID}" -ne 0 ]]; then
 	exit $?
 fi
 
-# Remove any non-existant files from the Privoxy configuration file:
-FILE=/etc/privoxy/config
-grep "^actionsfile " ${CONFIG} | cut -d" " -f 2 | while read file; do test -f $file || sed -i "/$file/d" ${CONFIG}; done
-grep "^filterfile " ${CONFIG} | awk '{print $2}' | while read file; do test -f $file || sed -i "/$file/d" ${CONFIG}; done
+# If no Adblock files exist, call the "privoxy-blocklist.sh" script 
+# ONLY after our internet connection is up:
+if ! grep -q "\.adblock\." /etc/privoxy/config; then
+	echo "Waiting for Internet..."
+	while ! ping -c 1 -W 1 1.1.1.1; do sleep 1; done
+	/usr/local/bin/privoxy-blocklist.sh
+fi
+
+# Remove any non-existant or zero-size files from the Privoxy configuration file:
+DIR=/etc/privoxy
+CONFIG=${DIR}/config
+grep "^actionsfile " ${CONFIG} | awk '{print $2}' | while read FILE; do
+	[[ "$(wc -c < ${DIR}/${FILE} 2> /dev/null)" -eq 0 ]] && rm ${DIR}/${FILE} 
+	test -f ${DIR}/${FILE} || sed -i "/${FILE}/d" ${CONFIG}
+done
+grep "^filterfile "  ${CONFIG} | awk '{print $2}' | while read FILE; do
+	[[ "$(wc -c < ${DIR}/${FILE} 2> /dev/null)" -eq 0 ]] && rm ${DIR}/${FILE} 
+	test -f ${DIR}/${FILE} || sed -i "/${FILE}/d" ${CONFIG}
+done
