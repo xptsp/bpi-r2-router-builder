@@ -8,7 +8,7 @@ Type=exec
 EnvironmentFile=-/etc/default/miniupnpd
 ExecStartPre=/opt/bpi-r2-router-builder/helpers/miniupnpd-helper.sh start
 ExecStart=/usr/sbin/miniupnpd -d -f /etc/miniupnpd/miniupnpd.conf $MiniUPnPd_OTHER_OPTIONS
-ExecStartPre=/opt/bpi-r2-router-builder/helpers/miniupnpd-helper.sh stop
+ExecStopPost=/opt/bpi-r2-router-builder/helpers/miniupnpd-helper.sh stop
 PIDFile=/run/miniupnpd.pid
 
 [Install]
