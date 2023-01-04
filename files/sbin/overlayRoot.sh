@@ -151,7 +151,7 @@ resolve_device() {
 
 	case "$DEV" in
 	LABEL=* | UUID=* | PARTLABEL=* | PARTUUID=*)
-		DEV="$(blkid -l -t "$DEV" -o device)" || return 1
+		DEV="$(blkid -l -t "$DEV" -o device | sort -r | head -1)" || return 1
 		;;
 	esac
 	[ -e "$DEV" ] && echo "$DEV"
@@ -256,23 +256,40 @@ if read_fstab_entry $RW; then
 	fi
 	await_device "$DEV" 20
 
-
+	###########################################################################################
+	# First attempt: Did we find a writable partition?  If so, use it!
 	if [ -n $DEV ] && [ -e "$DEV" ]; then
+		RW_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS $DEV $RW"
 
-			RW_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS $DEV $RW"
-
-			# If reformatting has been requested, change the flag back to "do not reformat":
-			unset RW_FORMAT
-			[[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]] && RW_FORMAT="mkfs.$MNT_TYPE -F $DEV -L $RW_NAME"
+		# If reformatting has been requested, change the flag back to "do not reformat":
+		unset RW_FORMAT
+		[[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]] && RW_FORMAT="mkfs.$MNT_TYPE -F $DEV -L $RW_NAME"
+	###########################################################################################
+	# First attempt failure: Use 3rd partition on media containing root partition:
 	else
-		if ! test -e $DEV; then
-			log_warning "Resolved root to $DEV but can't find the device"
+		# Create partition 3 if it does not exist on the same media as the root partition:
+		DISK=${RO_DEV/p2}
+		if ! fdisk -l ${DISK} | grep -q "p3"; then
+			(echo n; echo p; echo 3; echo; echo; echo w) | fdisk ${DISK} >& /dev/null
+			fdisk -l ${DISK} | grep -q "p3" && SECONDARY_REFORMAT=yes
 		fi
-		if [ $ON_RW_MEDIA_NOT_FOUND == "tmpfs" ]; then
-			log_warning "Could not resolve the RW media or find it on $DEV"
-			RW_MOUNT="mount -t tmpfs emergency-root-rw $RW"
+
+		# If partition 3 exists, use it and reformat if requested by user or script: 
+		if fdisk -l ${DISK} | grep -q "p3"; then
+			DEV=${DISK}p3				
+			RW_MOUNT="mount -t $MNT_TYPE -o $MNT_OPTS ${DEV} $RW"
+			[[ "$SECONDARY_REFORMAT" =~ (yes|YES) ]] && RW_FORMAT="mkfs.$MNT_TYPE -F $DEV -L $RW_NAME"
 		else
-			log_fail "Rw media required but not found"
+			# Abort with error if still not found:
+			if ! test -e $DEV; then
+				log_warning "Resolved root to $DEV but can't find the device"
+			fi
+			if [ $ON_RW_MEDIA_NOT_FOUND == "tmpfs" ]; then
+				log_warning "Could not resolve the RW media or find it on $DEV"
+				RW_MOUNT="mount -t tmpfs emergency-root-rw $RW"
+			else
+				log_fail "Rw media required but not found"
+			fi
 		fi
 	fi
 else

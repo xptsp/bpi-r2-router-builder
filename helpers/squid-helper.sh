@@ -11,13 +11,17 @@ SQUID_CERT=${SQUID_CERT_DIR}/ca.pem
 DHPARAM=${SQUID_CERT_DIR}/dhparam.pem
 CA_DIR=/usr/local/share/ca-certificates
 CA_CERT=${CA_DIR}/squid_proxyCA.crt
+TXT="transparent-squid"
+
+# Load router settings:
+test -f /etc/default/router-settings && source /etc/default/router-settings
 
 #############################################################################
 # ACTION: init  => Initialize certificates and dhparam for squid:
 #############################################################################
 if [[ "$1" == "init" ]]; then
 	# Return with error code 0 if this process is already done:
-	test -f ${SQUID_CERT/pem/key} && test -f ${SQUID_CERT} && test -f ${SQUID_CERT/pem/der} && test -f ${DHPARAM} && test -f ${CA_CERT} && exit 0 
+	test -f ${SQUID_CERT/pem/key} && test -f ${SQUID_CERT} && test -f ${SQUID_CERT/pem/der} && test -f ${DHPARAM} && test -f ${CA_CERT} && exit 0
 
 	# We need to be root in order to execute everything after this:
 	if [[ "${UID}" -ne 0 ]]; then
@@ -63,12 +67,12 @@ if [[ "$1" == "init" ]]; then
 	openssl req -x509 -new -nodes -sha256 -days 3650 -key ${SQUID_CERT/pem/key} -out ${SQUID_CERT}  -config ${CONFIG}
 	[[ $? -ne 0 ]] && echo "ERROR: Failed to generate ${SQUID_CERT}" && exit 2
 
-	# Generate the DER file used from the PEM file: 
+	# Generate the DER file used from the PEM file:
 	openssl x509 -in ${SQUID_CERT} -outform DER -out ${SQUID_CERT/pem/der}
 	[[ $? -ne 0 ]] && echo "ERROR: Failed to generate ${SQUID_CERT/pem/der}" && exit 3
 
-	# Download a randomly selected 2048-bit dhparam file.  If that fails, generate one! 
-	# This takes long time, though.  If it still fails, abort with error message! 
+	# Download a randomly selected 2048-bit dhparam file.  If that fails, generate one!
+	# This takes long time, though.  If it still fails, abort with error message!
 	wget -q -O ${DHPARAM} https://2ton.com.au/getprimes/random/dhparam/2048
 	[[ $? -ne 0 ]] && openssl dhparam -outform PEM -out ${DHPARAM} 2048 &
 
@@ -82,6 +86,49 @@ if [[ "$1" == "init" ]]; then
 	openssl x509 -inform PEM -in ${SQUID_CERT} -out ${CA_CERT}
 	[[ $? -ne 0 ]] && echo "ERROR: Failed to generate ${CA_CERT}" && exit 4
 	update-ca-certificates
+
+#############################################################################
+# ACTION: start  => Add firewall rules for transparent HTTP/HTTPS:
+#############################################################################
+elif [[ "$1" == "start" ]]; then
+	# If no transparent proxying is requested, exit with code 0:
+	[[ "${proxy_http}" != "Y" && "${proxy_https}" != "Y" ]] && exit 0
+
+	# Determine what localhost ports are configured.  If none, exit with code 0:
+	HTTP=($(cat /etc/squid/squid.conf | grep http_port | grep "127.0.0.1" | grep -v " ssl-bump " | awk '{print $2}'))
+	HTTPS=($(cat /etc/squid/squid.conf | grep http_port | grep "127.0.0.1" | grep " ssl-bump " | awk '{print $2}'))
+	PORT=$(echo ${HTTPS:-"${HTTP}"} | cut -d: -f 2)
+	[[ -z "${PORT}" ]] && exit 0
+
+	# Wait up to 30 seconds for service to have bound to the localhost ports.  
+	# Exit with code 1 if specified ports aren't bound in 30 seconds!
+	COUNT=30
+	while ! ss -H -t -l -n sport = :${PORT} | grep "^LISTEN.*${HTTPS}"; do
+		COUNT=$(( COUNT - 1 ))
+		[[ ${COUNT} -eq 0 ]] && exit 1
+		sleep 1
+	done
+
+	# Enable transparent HTTP (port 80) proxy if configured & requested:
+	if [[ ! -z "${HTTP}" && "${proxy_https:-"N"}" == "Y" ]]; then
+		nft add rule inet ${TABLE} nat_prerouting ip saddr != ${IP} ip daddr != ${IP} udp dport 80 counter dnat to ${HTTP} comment \"${TXT}\"
+		nft add rule inet ${TABLE} nat_prerouting ip saddr != ${IP} ip daddr != ${IP} tcp dport 80 counter dnat to ${HTTP} comment \"${TXT}\"
+	fi
+
+	# Enable transparent HTTPS (port 443) proxy if configured & requested:
+	if [[ ! -z "${HTTPS}" && "${proxy_http:-"N"}" == "Y" ]]; then
+		nft add rule inet ${TABLE} nat_prerouting ip saddr != ${IP} ip daddr != ${IP} udp dport 443 counter dnat to ${HTTPS} comment \"${TXT}\"
+		nft add rule inet ${TABLE} nat_prerouting ip saddr != ${IP} ip daddr != ${IP} tcp dport 443 counter dnat to ${HTTPS} comment \"${TXT}\"
+	fi
+
+#############################################################################
+# ACTION: stop  => Remove firewall rules for transparent HTTP/HTTPS:
+#############################################################################
+elif [[ "$1" == "stop" ]]; then
+	# Remove any transparent HTTP/HTTPS rules:
+	nft -a list chain inet ${TABLE} nat_prerouting | grep "${TXT}" | awk '{print $NF}' | while read HANDLE; do
+		[[ "${HANDLE}" -gt 0 ]] 2> /dev/null && nft delete rule inet ${TABLE} nat_prerouting handle ${HANDLE}
+	done
 fi
 
 #############################################################################

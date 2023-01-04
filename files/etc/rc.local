@@ -17,5 +17,9 @@ if [[ -f /var/opt/init_services.sh ]]; then
 	rm /var/opt/init_services.sh
 fi
 
+# If a swap partition exists, try and enable it:
+SWAP=$(blkid | grep 'TYPE="swap"' | cut -d: -f 1)
+[[ ! -z "${SWAP}" ]] && swapof ${SWAP}
+
 # Exit with error code 0:
 exit 0
