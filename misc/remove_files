@@ -73,3 +73,5 @@ rm /var/cache/ddclient/ddclient.conf >& /dev/null
 rm /etc/nginx/dhparam.pem >& /dev/null
 rm /etc/ssl/certs/nginx-selfsigned.crt >& /dev/null
 rm /etc/ssl/private/nginx-selfsigned.key >& /dev/null
+rm -rf /etc/squid/cert
+

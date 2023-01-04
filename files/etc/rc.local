@@ -19,7 +19,7 @@ fi
 
 # If a swap partition exists, try and enable it:
 SWAP=$(blkid | grep 'TYPE="swap"' | cut -d: -f 1)
-[[ ! -z "${SWAP}" ]] && swapof ${SWAP}
+[[ ! -z "${SWAP}" ]] && swapon ${SWAP}
 
 # Exit with error code 0:
 exit 0
