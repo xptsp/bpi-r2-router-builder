@@ -337,32 +337,8 @@ cp /dev/null /etc/squidguard/squidGuard.conf
 # Initialize SquidGuard database:
 /usr/lib/squid/security_file_certgen -c -s /var/spool/squid/ssl_db -M 4MB
 
-# Install ClamAV daemon and configure it:
-apt install -y clamav-daemon
-FILE=/etc/clamav/clamd.conf
-test -f ${FILE} && cp ${FILE} ${FILE}.original
-cp /opt/bpi-r2-router-builder/misc/config/squid.conf ${FILE}
-
-# Install the C-ICAP and SquidClamAV packages:
-apt install -y libcurl4-gnutls-dev c-icap libicapapi-dev squidclamav
-# Backup original ClamAV daemon configuration:
-FILE=/etc/clamav/clamd.conf
-test -f ${FILE}.default || cp ${FILE} ${FILE}.default 
-# Configure C-ICAP service settings:
-sed -i "s|^START=.*|START=yes|" /etc/default/c-icap
-FILE=/etc/c-icap/c-icap.conf
-test -f ${FILE}.bak || cp ${FILE} ${FILE}.bak
-echo "Service squidclamav squidclamav.so" >> ${FILE}
-sed -i "s|^ServerAdmin .*|ServerAdmin root@bpiwrt.local|" ${FILE} 
-sed -i "s|^ServerName .*|ServerName bpiwrt|" ${FILE}
-# Link the SquidClamAV configuration file:
-ln -sf /etc/c-icap/squidclamav.conf /etc/squidclamav.conf
-
 # Enable the services:
 systemctl enable squid
-systemctl enable c-icap
-systemctl enable clamav-daemon
-systemctl enable clamav-freshclam
 
 ##################################################################################
 # Install ddclient:
