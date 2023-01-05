@@ -352,7 +352,7 @@ systemctl enable ddclient
 cp /opt/bpi-r2-router-builder/misc/config/ddclient.conf /etc/ddclient.conf 
 
 ##################################################################################
-# Install docker:
+# Install docker and docker compose:
 ##################################################################################
 # Install the software:
 curl -L https://get.docker.com | bash
@@ -360,6 +360,11 @@ curl -L https://get.docker.com | bash
 usermod -aG docker pi
 # Add "/var/lib/docker/bin" to PATH variable:
 sed -i "s|PATH=\"|PATH=\"/var/lib/docker/bin:|g" /etc/profile
+# Create docker compose directory and default file:
+mkdir -p /etc/docker/compose.d/
+touch /etc/docker/compose.d/docker-compose.yaml
+# Enable the service:
+systemctl enable docker-compose
 
 ##################################################################################
 # Install PiHole
