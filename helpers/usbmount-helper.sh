@@ -3,26 +3,37 @@
 # This helper script attempts to automount USB storage devices as Samba 
 # shares automatically.
 #############################################################################
+ACTION=$1
+DEVBASE=$2
+DEVICE="/dev/${DEVBASE}"
 
-if [[ "${UID}" -ne 0 ]]; then
-	sudo $0 $@
-	exit $?
-fi
-FILE=/etc/samba/smb.conf
+# See if this drive is already mounted
+MOUNT_POINT=$(mount | grep ${DEVICE} | awk '{ print $3 }')
 
 #############################################################################
 if [[ "$1" == "mount" ]]; then
-	# Use the pmount command to mount to a directory with the volume label.
-	# Failing that, mount to the device name.
-	DEV=/dev/${2}
-	[[ "$(blkid -o export ${DEV} | grep "TYPE=")" != "" ]] && return
-	MEDIA=$(blkid ${DEV} -o export | grep "LABEL=" | cut -d"=" -f 2)
-	LABEL=${MEDIA:="${2}"}
-	MEDIA=/media/"${LABEL// /_}"
-	
+	# If already mounted, exit with error code 1:
+	[[ -n ${MOUNT_POINT} ]] && exit 1
+
+	# Get info for this drive: $ID_FS_LABEL, $ID_FS_UUID, and $ID_FS_TYPE
+	eval $(/sbin/blkid -o udev ${DEV})
+
+	# Figure out a mount point to use:
+	LABEL=${ID_FS_LABEL:-"${DEVBASE}"}
+	grep -q " /media/${LABEL} " /etc/mtab && LABEL+="-${DEVBASE}"
+	MOUNT_POINT="/media/${LABEL}"
+ 	mkdir -p ${MOUNT_POINT}
+
+	# Determine mounting options, then mount the USB drive:
+    OPTS="rw,relatime"
+    [[ ${ID_FS_TYPE} == "vfat" ]] && OPTS+=",users,gid=100,umask=000,shortname=mixed,utf8=1,flush"
+    if ! mount -o ${OPTS} ${DEVICE} ${MOUNT_POINT}; then
+        rmdir ${MOUNT_POINT}
+        exit 1
+    fi
+
 	# If successfully mounted, write Samba configuration for the device:
-	if /usr/bin/pmount ${DEV} ${MEDIA}; then
-		cat << EOF >> ${FILE}
+	cat << EOF >> ${FILE}
 
 [${1}]
 comment=${2}
@@ -39,13 +50,13 @@ EOF
  
 #############################################################################
 elif [[ "$1" == "umount" ]]; then
-	# Detect the filesystem type before attempting to mount the device:
-	DEV=/dev/${2}
-	TYPE=$(blkid -o export ${DEV}| grep "^TYPE=")
+	# Do a lazy unmount of the device:
+    [[ -n ${MOUNT_POINT} ]] && umount -l ${DEVICE}
 
-	# If we identified a filesystem on the device, use the pmount command to mount to a
-	# directory with the volume label.  Failing that, mount to the device name.
-	[[ ! -z "${TYPE}" ]] && /usr/bin/pumount ${DEV}
+	# Delete all empty dirs in /media that aren't being used as mount points: 
+	for f in /media/* ; do
+		[[ -n $(find "$f" -maxdepth 0 -type d -empty) ]] && grep -q " $f " /etc/mtab || rmdir "$f"
+	done
 
 	# Remove any invalid shares from the samba configuration:
 	cat ${FILE} | grep "^\[" | cut -d[ -f 2 | cut -d] -f 1 | while read section; do 
@@ -67,8 +78,9 @@ elif [[ "$1" == "umount" ]]; then
 fi
 
 #############################################################################
-# Restart the "smbd" service:
-systemctl restart smbd
+# Reload samba configuration ONLY if it is running:
+#############################################################################
+systemctl -q is-active smbd && smbcontrol all reload-config
 
 #############################################################################
 # Exit with error code 0:
