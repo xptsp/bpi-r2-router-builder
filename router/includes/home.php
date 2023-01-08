@@ -79,9 +79,10 @@ if (isset($_GET['sid']))
 		}
 		if ($show || $wifi)
 		{
-			$if = parse_ifconfig($iface);
-			if (strpos($if['brackets'], 'RUNNING') === false)
+			if (!file_exists("/sys/class/net/" . $iface . "/operstate"))
 				$status = 'Disconnected';
+			else if (trim(file_get_contents("/sys/class/net/" . $iface . "/operstate")) == "down")
+				$status = 'Down';
 			else
 				$status = strpos(@shell_exec('ping -I ' . $iface . ' -c 1 -W 1 8.8.8.8'), '1 received') > 0 ? 'Online' : 'Offline';
 			$arr['status'] .= show_interface_status($iface, $status, '/setup/wire' . ($wifi ? 'less' : 'd') . '?iface=' . $iface, $wifi ? 'fa-wifi' : 'fa-ethernet');

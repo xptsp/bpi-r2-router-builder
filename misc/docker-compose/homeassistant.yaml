@@ -7,8 +7,8 @@ services:
         ports:
             - 3000:3000
         volumes:
-            - /opt/grafana:/etc/grafana:rw
-            - /opt/grafana:/var/lib/grafana:rw
+            - /var/lib/docker/data/grafana:/etc/grafana:rw
+            - /var/lib/docker/data/grafana:/var/lib/grafana:rw
             - /etc/timezone:/etc/timezone:ro
         restart: on-failure
         depends_on:
@@ -21,8 +21,8 @@ services:
         ports:
             - 8086:8086
         volumes:
-            - /opt/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
-            - /opt/influxdb:/var/lib/influxdb
+            - /var/lib/docker/data/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
+            - /var/lib/docker/data/influxdb:/var/lib/influxdb
         restart: on-failure
         healthcheck:
             test: ["CMD", "curl", "-sI", "http://127.0.0.1:8086/ping"]
@@ -35,7 +35,7 @@ services:
         image: homeassistant/home-assistant
         network_mode: "host"
         volumes:
-            - /opt/homeassistant:/config
+            - /var/lib/docker/data/homeassistant:/config
             - /etc/localtime:/etc/localtime:ro
             - /etc/letsencrypt:/etc/letsencrypt:ro
         restart: on-failure
@@ -56,7 +56,7 @@ services:
         ports:
             - 1880:1880
         volumes:
-            - /opt/node-red:/data
+            - /var/lib/docker/data/node-red:/data
             - /etc/localtime:/etc/localtime:ro
             - /etc/timezone:/etc/timezone:ro
         restart: "no" # because the exit code(s) are wrong
@@ -79,8 +79,8 @@ services:
             - 1883:1883
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - /opt/mosquitto:/mosquitto/config:ro
-            - /opt/mosquitto:/mosquitto/data
+            - /var/lib/docker/data/mosquitto:/mosquitto/config:ro
+            - /var/lib/docker/data/mosquitto:/mosquitto/data
         restart: on-failure
 
     portainer:
@@ -89,7 +89,7 @@ services:
         ports:
             - 9000:9000
         volumes:
-            - /opt/portainer:/data:rw
+            - /var/lib/docker/data/portainer:/data:rw
             - /var/run/docker.sock:/var/run/docker.sock
         restart: "no" # because the exit code(s) are wrong
 
@@ -100,7 +100,7 @@ services:
             - 8126:8126
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
-            - /opt/dockermon:/config
+            - /var/lib/docker/data/dockermon:/config
         restart: on-failure
 
 networks:

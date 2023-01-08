@@ -81,6 +81,10 @@ locale-gen
 # Add routing table to "/etc/iproute2/rt_tables":
 echo "200	vpn" >> /etc/iproute2/rt_tables
 
+# Add some modules to load by default:
+echo "usbnet" >> /etc/modules
+echo "rndis_host" >> /etc/modules
+
 ##############################################################################################
 # Install files from the GitHub repository to build this image:
 ##############################################################################################
