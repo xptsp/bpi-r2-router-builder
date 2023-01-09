@@ -6,6 +6,7 @@
 ACTION=$1
 DEVBASE=$2
 DEVICE="/dev/${DEVBASE}"
+FILE=/etc/samba/smb.conf
 
 # See if this drive is already mounted
 MOUNT_POINT=$(mount | grep ${DEVICE} | awk '{ print $3 }')
@@ -28,7 +29,7 @@ if [[ "$1" == "mount" ]]; then
     OPTS="rw,relatime"
     [[ ${ID_FS_TYPE} == "vfat" ]] && OPTS+=",users,gid=100,umask=000,shortname=mixed,utf8=1,flush"
     if ! mount -o ${OPTS} ${DEVICE} ${MOUNT_POINT}; then
-        rmdir ${MOUNT_POINT}
+        rmdir ${MOUNT_POINT} 2> /dev/null
         exit 1
     fi
 
@@ -46,7 +47,6 @@ directory mask=0755
 public=no
 #mount_dev=${DEV}
 EOF
-	fi
  
 #############################################################################
 elif [[ "$1" == "umount" ]]; then
