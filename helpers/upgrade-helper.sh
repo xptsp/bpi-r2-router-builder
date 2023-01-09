@@ -55,7 +55,7 @@ function replace()
 	COPY=${3:-"false"}
 	SRC=$(echo ${PWD}/$1 | sed "s|/ro/|/|g")
 	for MATCH in ${COPY_ONLY[@]}; do 
-		[[ "${DEST}" =~ ${MATCH} && "${DEST}" != "/etc/dnsmasq.d/"[0-9]* ]] && COPY=true
+		[[ "${DEST}" == *${MATCH} && "${DEST}" != "/etc/dnsmasq.d/"[0-9]* ]] && COPY=true
 	done
 	rm $(dirname ${DEST}) 2> /dev/null
 	mkdir -p $(dirname ${DEST})
