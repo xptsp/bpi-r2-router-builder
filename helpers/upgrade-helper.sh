@@ -35,7 +35,10 @@ COPY_ONLY=(
 	/etc/pivpn/*
 	/etc/systemd/system/*.service
 	/etc/persistent-nftables.conf
-	/root/*
+	/root/.bash_aliases
+	/root/.bash_logout
+	/root/.bashrc
+	/root/.ssh/authorized_keys
 	/home/pi/*
 	/home/vpn/*
 	/etc/skel/*
@@ -54,6 +57,7 @@ function replace()
 	for MATCH in ${COPY_ONLY[@]}; do 
 		[[ "${DEST}" =~ ${MATCH} && "${DEST}" != "/etc/dnsmasq.d/"[0-9]* ]] && COPY=true
 	done
+	rm $(dirname ${DEST}) 2> /dev/null
 	mkdir -p $(dirname ${DEST})
 	if [[ "${COPY}" == "true" ]]; then
 		if [[ "${SKIP_COPY}" == "false" ]]; then
@@ -117,17 +121,12 @@ if ! cd /opt/bpi-r2-router-builder/files; then
 fi
 test -f ${PFL} || touch $PFL
 mv ${PFL} ${TFL}
-for dir in $(find ./ -maxdepth 1 -type d | grep -v "./root"); do 
-	DIR=${dir/.\//};
-	if [[ ! -z "${DIR}" ]]; then
-		for file in ${DIR}; do replace $file; done
-	fi
-done
+find . -type f | grep -v "^./root" | while read file; do replace ${file/.\//}; done
 
 #####################################################################################
 # Link bash config files into "/root", "/etc/skel", "/home/pi" and "/home/vpn":
 #####################################################################################
-for file in $(find root/.[a-z]* -type f); do
+find root -type f | while read file; do
 	replace $file
 	replace $file etc/skel/${file/root\//}
 	replace $file home/pi/${file/root\//}
