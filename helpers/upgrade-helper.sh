@@ -54,7 +54,6 @@ function replace()
 	for MATCH in ${COPY_ONLY[@]}; do 
 		[[ "${DEST}" == "${MATCH}"* && "${DEST}" != "/etc/dnsmasq.d/"[0-9]* ]] && COPY=true
 	done
-	rm $(dirname ${DEST}) 2> /dev/null
 	mkdir -p $(dirname ${DEST})
 	if [[ "${COPY}" == "true" ]]; then
 		if [[ "${SKIP_COPY}" == "false" ]]; then
@@ -112,6 +111,7 @@ done
 #####################################################################################
 # Copy or link files in the repo to their proper locations:
 #####################################################################################
+cd $(dirname $(dirname $0))
 if ! cd files; then
 	echo "ERROR: Something went really wrong!  Aborting!!"
 	exit
@@ -121,7 +121,7 @@ mv ${PFL} ${TFL}
 for dir in $(find ./ -maxdepth 1 -type d | grep -v "./root"); do 
 	DIR=${dir/.\//};
 	if [[ ! -z "${DIR}" ]]; then
-		for file in $(find ${DIR}/* -type f); do replace $file; done
+		for file in $(find ${DIR} -type f); do replace $file; done
 	fi
 done
 
