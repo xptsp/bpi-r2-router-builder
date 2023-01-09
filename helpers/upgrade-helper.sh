@@ -22,23 +22,23 @@ TFL=/tmp/bpiwrt-builder.filelist
 # Files to copy only:
 #####################################################################################
 COPY_ONLY=(
-	/etc/network/interfaces.d/
-	/etc/dnsmasq.d/
-	/etc/hostapd/
+	/etc/network/interfaces.d/*
+	/etc/dnsmasq.d/*
+	/etc/hostapd/*
 	/etc/fstab
 	/etc/tcmount.ini
 	/etc/rc.local
-	/etc/default/
+	/etc/default/*
 	/etc/sysupgrade.conf
 	/etc/overlayRoot.conf
-	/etc/pihole/
-	/etc/pivpn/
+	/etc/pihole/*
+	/etc/pivpn/*
 	/etc/systemd/system/*.service
 	/etc/persistent-nftables.conf
-	/root/
-	/home/pi/
-	/home/vpn/
-	/etc/skel/
+	/root/*
+	/home/pi/*
+	/home/vpn/*
+	/etc/skel/*
 	/etc/apt/sources.list
 	/etc/ddclient.conf
 )
@@ -52,7 +52,7 @@ function replace()
 	COPY=${3:-"false"}
 	SRC=$(echo ${PWD}/$1 | sed "s|/ro/|/|g")
 	for MATCH in ${COPY_ONLY[@]}; do 
-		[[ "${DEST}" == "${MATCH}"* && "${DEST}" != "/etc/dnsmasq.d/"[0-9]* ]] && COPY=true
+		[[ "${DEST}" =~ ${MATCH} && "${DEST}" != "/etc/dnsmasq.d/"[0-9]* ]] && COPY=true
 	done
 	mkdir -p $(dirname ${DEST})
 	if [[ "${COPY}" == "true" ]]; then
@@ -120,7 +120,7 @@ mv ${PFL} ${TFL}
 for dir in $(find ./ -maxdepth 1 -type d | grep -v "./root"); do 
 	DIR=${dir/.\//};
 	if [[ ! -z "${DIR}" ]]; then
-		for file in $(find ${DIR} -type f); do replace $file; done
+		for file in ${DIR}; do replace $file; done
 	fi
 done
 
