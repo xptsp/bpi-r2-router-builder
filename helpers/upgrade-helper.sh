@@ -111,8 +111,7 @@ done
 #####################################################################################
 # Copy or link files in the repo to their proper locations:
 #####################################################################################
-cd $(dirname $(dirname $0))
-if ! cd files; then
+if ! cd /opt/bpi-r2-router-builder/files; then
 	echo "ERROR: Something went really wrong!  Aborting!!"
 	exit
 fi
