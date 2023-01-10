@@ -22,26 +22,26 @@ TFL=/tmp/bpiwrt-builder.filelist
 # Files to copy only:
 #####################################################################################
 COPY_ONLY=(
-	/etc/network/interfaces.d/*
-	/etc/dnsmasq.d/*
-	/etc/hostapd/*
+	/etc/network/interfaces.d/
+	/etc/dnsmasq.d/
+	/etc/hostapd/
 	/etc/fstab
 	/etc/tcmount.ini
 	/etc/rc.local
-	/etc/default/*
+	/etc/default/
 	/etc/sysupgrade.conf
 	/etc/overlayRoot.conf
-	/etc/pihole/*
-	/etc/pivpn/*
-	/etc/systemd/system/*.service
+	/etc/pihole/
+	/etc/pivpn/
+	/etc/systemd/system/miniupnpd.service
 	/etc/persistent-nftables.conf
 	/root/.bash_aliases
 	/root/.bash_logout
 	/root/.bashrc
 	/root/.ssh/authorized_keys
-	/home/pi/*
-	/home/vpn/*
-	/etc/skel/*
+	/home/pi/
+	/home/vpn/
+	/etc/skel/
 	/etc/apt/sources.list
 	/etc/ddclient.conf
 )
@@ -55,7 +55,7 @@ function replace()
 	COPY=${3:-"false"}
 	SRC=$(echo ${PWD}/$1 | sed "s|/ro/|/|g")
 	for MATCH in ${COPY_ONLY[@]}; do 
-		[[ "${DEST}" == *${MATCH} && "${DEST}" != "/etc/dnsmasq.d/"[0-9]* ]] && COPY=true
+		[[ "${DEST}" == "${MATCH}"* && "${DEST}" != "/etc/dnsmasq.d/"[0-9]* ]] && COPY=true
 	done
 	rm $(dirname ${DEST}) 2> /dev/null
 	mkdir -p $(dirname ${DEST})
