@@ -51,7 +51,7 @@ echo '
 						<i class="fas fa-ban"></i> Invalid Username and/or Password!
 					</div>
 					<div class="input-group mb-3">
-						<input type="username" id="username" class="form-control" placeholder="Username">
+						<input type="username" id="username" name="username" class="form-control" placeholder="Username">
 						<div class="input-group-append">
 							<div class="input-group-text">
 								<span class="fas fa-user"></span>
@@ -59,7 +59,7 @@ echo '
 						</div>
 					</div>
 					<div class="input-group mb-3">
-						<input type="password" id="password" class="form-control" placeholder="Password">
+						<input type="password" id="password" name="password" class="form-control" placeholder="Password">
 						<div class="input-group-append">
 							<div class="input-group-text">
 								<span class="fas fa-lock"></span>
@@ -68,7 +68,7 @@ echo '
 					</div>
 					<div class="input-group mb-3">
 						<div class="icheck-primary">
-							<input type="checkbox" id="remember">
+							<input type="checkbox" id="remember" name="remember">
 							<label for="remember">Remember for 1 day</label>
 						</div>
 					</div>

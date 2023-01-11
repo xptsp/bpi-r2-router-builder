@@ -12,6 +12,34 @@ FILE=/etc/samba/smb.conf
 MOUNT_POINT=$(mount | grep ${DEVICE} | awk '{ print $3 }')
 
 #############################################################################
+function add_share
+{
+	# If successfully mounted, write Samba configuration for the device:
+	cat << EOF >> ${FILE}
+
+[${1}]
+comment=${2}
+path=${MEDIA}
+browseable=Yes
+writeable=Yes
+only guest=no
+create mask=0755
+directory mask=0755
+public=no
+#mount_dev=${3}
+EOF
+}
+
+#############################################################################
+# Deal with actions about the Router WebUI samba share:
+#############################################################################
+if [[ "$1" == "webui-off" ]]; then
+	sed -i "s|/opt/bpi-r2-webui-builder/router|/opt/bpi-r2-webui-builder/router2|" ${FILE}
+elif [[ "$1" == "webui-on" ]]; then
+	add_share router /opt/bpi-r2-webui-builder/router
+fi
+
+#############################################################################
 if [[ "$1" == "mount" ]]; then
 	# If already mounted, exit with error code 1:
 	[[ -n ${MOUNT_POINT} ]] && exit 1
@@ -33,23 +61,11 @@ if [[ "$1" == "mount" ]]; then
         exit 1
     fi
 
-	# If successfully mounted, write Samba configuration for the device:
-	cat << EOF >> ${FILE}
-
-[${1}]
-comment=${2}
-path=${MEDIA}
-browseable=Yes
-writeable=Yes
-only guest=no
-create mask=0755
-directory mask=0755
-public=no
-#mount_dev=${DEV}
-EOF
+	# Add the network share to the Samba configuration file:
+	add_share ${LABEL} ${MOUNT_POINT} ${DEV}
  
 #############################################################################
-elif [[ "$1" == "umount" ]]; then
+elif [[ "$1" == "umount" || "$1" == "rm-webui-share" ]]; then
 	# Do a lazy unmount of the device:
     [[ -n ${MOUNT_POINT} ]] && umount -l ${DEVICE}
 

@@ -923,24 +923,43 @@ case $CMD in
 			elif [[ "${action}" == "restart" ]]; then
 				systemctl restart nginx
 			#####################################################################
-			# ACTION: samba-on/samba-off => Turn on/off samba file share to Router WebUI directory:
-			#####################################################################
-			elif [[ "${action}" =~ samba-(on|off) ]]; then
-				mount -o remount,rw /boot
-				[[ "${action}" == "samba-on" ]] && SETTING=y || SETTING=n
-				sed -i "s|WEBUI_SHARE=.*|WEBUI_SHARE=${SETTING}|g" /boot/persistent.conf
-				mount -o remount,ro /boot
-				systemctl restart smbd
-				systemctl restart nmbd
-			#####################################################################
 			# Otherwise, display error:
 			#####################################################################
 			else
 				[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
-				echo "SYNTAX: $(basename $0) git [http-on|http-off|https-on|https-off|restart]"
+				echo "SYNTAX: $(basename $0) webui [(options)]"
+				echo "Where:"
+				echo "    http-on          = Turn on Router WebUI locally via HTTP"
+				echo "    https-on         = Turn on Router WebUI locally via HTTPS"
+				echo "    http-off         = Turn off Router WebUI locally via HTTP"
+				echo "    https-off        = Turn on Router WebUI locally via HTTPS"
+				echo "    pihole-http-on   = Turn on PiHole Admin WebUI locally via HTTP"
+				echo "    pihole-https-on  = Turn on PiHole Admin WebUI locally via HTTPS"
+				echo "    pihole-http-off  = Turn off PiHole Admin WebUI locally via HTTP"
+				echo "    pihole-https-off = Turn off PiHole Admin WebUI locally via HTTPS"
+				echo "    restart          = Restart nginx service (web server)"
 			fi
 		done
 		;;
+
+	###########################################################################
+	samba)
+		#####################################################################
+		# WEBUI-ON/WEBUI-OFF - Control state of WebUI router samba share:
+		#####################################################################
+		if [[ "${1}" =~ webui-(on|off) ]]; then
+			/opt/bpi-r2-router-builder/helpers/usbmount-helper.sh ${1}
+		#####################################################################
+		# Otherwise, display error:
+		#####################################################################
+		else
+			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
+			echo "SYNTAX: $(basename $0) samba [webui-on|webui-off]"
+			echo "Where:"
+			echo "    webui-on  = Turn on samba share to WebUI directory"
+			echo "    webui-off = Turn off samba share to WebUI directory"
+		fi
+		;;	  
 
 	###########################################################################
 	forward_port|forward_range|trigger_port)
@@ -1126,6 +1145,7 @@ case $CMD in
 		 echo "    move          - Move configuration files into position"
 		 echo "    portal        - Captive Portal actions"
 		 echo "    defaults      - User-Defined Persistent Settings Backup and Restore actions"
+		 echo "    samba         - Samba actions"
 		) | sort
 		echo ""
 		echo "NOTE: Use \"-h\" after the command to see what options are available for that command."

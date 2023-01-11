@@ -60,7 +60,7 @@ function Show_Interface($iface, $config, $ip_sensitive = false, $wireless = fals
 							<td><span', $blur_ip, '>', isset($ifconfig['netmask']) ? $ifconfig['netmask'] : '<i>Disconnected</i>', '</span></td>
 						</tr>
 						<tr>
-							<td><strong>', $type == 'Static' ? 'Gateway' : 'DHCP', ' IP Address:</strong></td>
+							<td><strong>', $type == 'Static' ? 'Gateway' : 'DHCP', ' IP Gateway:</strong></td>
 							<td><span', $blur_ip, $type == 'DHCP' ? ' id="' . $iface . '_dhcp_server"><i>Retrieving...</i>' : '>' . $gateway, '</td>
 						</tr>';
 	if ($type == 'DHCP')
