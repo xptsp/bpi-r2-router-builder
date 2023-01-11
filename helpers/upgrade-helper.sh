@@ -139,9 +139,9 @@ chmod +x /home/{pi,vpn}/.bash* /etc/skel/{.bash*,.profile}
 #####################################################################################
 # Remove any files listed within the old file list:
 #####################################################################################
-for DEST in $(cat $TFL); do 
+cat $TFL | while read DEST; do 
 	[[ "${QUIET}" == "false" ]] && echo -e "Removing ${BLUE}${DEST}${NC}... "
-	[[ "$DEST" =~ /(lib|etc)/systemd/system/ ]] && systemctl disable --now $(basename $DEST)
+	[[ "$DEST" =~ /(lib|etc)/systemd/system/ && "$(basename ${DEST})" =~ .service$ ]] && systemctl disable --now $(basename $DEST)
 	test -f ${DEST} && rm ${DEST}
 done
 
