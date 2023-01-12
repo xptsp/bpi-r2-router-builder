@@ -4,6 +4,7 @@
 function Init_Filters()
 {
 	// Handler to submit password-change form:
+	__Services_Init("privoxy");
 	$("#apply_changes").click(function() {
 		var postdata = $('.filters:checkbox:checked').map(function() {
 			return this.value;

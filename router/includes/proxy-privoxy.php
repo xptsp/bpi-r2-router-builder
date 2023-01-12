@@ -1,6 +1,9 @@
 <?php
+$called_as_sub = true;
+require_once("services.php");
 $count = 0;
 $file = @file_get_contents("/etc/privoxy/blocklist.conf");
+$include_js = array($include_js, 'site-services');
 
 #################################################################################################
 # If action specified and invalid SID passed, force a reload of the page.  Otherwise:
@@ -44,7 +47,7 @@ function filter($short, $description, $url)
 #################################################################################################
 # Main code for this page:
 #################################################################################################
-site_menu();
+services_start('privoxy');
 echo '
 <div class="alert alert-info">
 	<h5><i class="icon fas fa-info"></i> About these Adblocking Lists</h5>

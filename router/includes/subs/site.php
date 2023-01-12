@@ -27,9 +27,8 @@ $sidebar_menu = array(
 		'notify'    => menu_link('/advanced/notify', 'DHCP Notifications', 'fas fa-bullhorn', file_exists("/usr/bin/mosquitto_pub")),
 	)),
 	'proxy'  => array('Proxy', 'fas fa-ad', array(
-		'overview'  => menu_link('/proxy/overview', 'Proxy Services', 'fas fa-cog'),
+		'privoxy'   => menu_link('/proxy/privoxy', 'Privoxy Filters', 'fas fa-filter'),
 		#'blacklist' => menu_link('/proxy/blacklist', 'Website Blacklists', 'fas fa-filter'),
-		'filters'   => menu_link('/proxy/filters', 'Privoxy Filters', 'fas fa-filter'),
 	)),
 	'pivpn'  => array('PiVPN', 'fas fa-shield-alt', array(
 		'services'   => menu_link('/pivpn/services', 'Services', 'fas fa-cog'),
@@ -170,7 +169,7 @@ function menu_log()
 ################################################################################################################
 # Function that outputs the sidebar menu, and the header if not already done:
 ################################################################################################################
-function site_menu($refresh_switch = false, $refresh_text = "Refresh", $refresh_checked = true)
+function site_menu($refresh_switch = false)
 {
 	global $site_title, $header_done, $sidebar_menu, $logged_in, $output_null, $layout_fixed;
 
@@ -223,10 +222,8 @@ echo '
 					<div class="col-sm-6">
 						<a class="float-left nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
 						<h1>', $site_title, '</h1>
-					</div>', $refresh_switch ? '
-					<div class="col-sm-6">
-						<span class="float-right">' . $refresh_text . ' <input type="checkbox" id="refresh_switch" ' . ($refresh_checked ? ' checked' : '') . ' data-bootstrap-switch></span>
-					</div>' : '', '
+					</div>
+					', !empty($refresh_switch) ? '<div class="col-sm-6">' . $refresh_switch . '</div>': '', '
             	</div>
 			</div><!-- /.container-fluid -->
 		</section>';
@@ -290,9 +287,11 @@ function site_footer($init_str = '')
 <script src="/js/site.js', $post_js, '"></script>';
 
 	# Include any additional javascript files requested by the pages:
-	if (!empty($include_js))
+	if (!is_array($include_js))
+		$include_js = array($include_js);
+	foreach ($include_js as $js)
 		echo '
-<script src="/js/', $include_js, '.js', $post_js, '"></script>';
+<script src="/js/', $js, '.js', $post_js, '"></script>';
 
 	# Insert the SID we're using, and set the login/logout handlers:
 	echo '

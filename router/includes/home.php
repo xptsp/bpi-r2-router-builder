@@ -147,7 +147,10 @@ if (isset($_GET['sid']))
 #######################################################################################################
 # Start the page:
 #######################################################################################################
-site_menu(true);
+site_menu(
+	'<div class="col-sm-6">' .
+		'<span class="float-right">Refresh <input type="checkbox" id="refresh_switch" checked="checked" data-bootstrap-switch></span>' .
+	'</div>');
 
 #######################################################################################################
 # Display system temperature:

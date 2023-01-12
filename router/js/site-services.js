@@ -3,10 +3,6 @@
 //======================================================================================================
 function __Services_Init(service)
 {
-	$("#refresh_switch").bootstrapSwitch();
-	$("#refresh_switch").on('switchChange.bootstrapSwitch', function(event, state) {
-		__Service_Call( state ? 'enable' : 'disable', service, state );
-	});
 	$("#service_status").click(function() {
 		__Service_Call( 'status', service );
 	});
@@ -15,6 +11,12 @@ function __Services_Init(service)
 	});
 	$("#service_stop").click(function() {
 		__Service_Call( 'stop', service );
+	});
+	$("#service_enable").click(function() {
+		__Service_Call( 'enable', service );
+	});
+	$("#service_disable").click(function() {
+		__Service_Call( 'disable', service );
 	});
 }
 

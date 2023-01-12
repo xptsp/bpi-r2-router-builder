@@ -23,28 +23,30 @@ else if (empty($called_as_sub))
 #############################################################################################
 function services_start($service, $header = true)
 {
-	# Output site header with switch to enable service:
 	$enabled = trim(@shell_exec("systemctl is-enabled " . $service)) == "enabled";
-	if ($header)
-		site_menu(true, "Enabled", $enabled);
+	$active = trim(@shell_exec("systemctl is-active " . $service)) == "active";
+	$mode = ($enabled && $active) ? "success" : (($enabled && !$active) ? "warning" : ((!$enabled && $active) ? "info" : "danger"));
 
-	# Output an alert box showing the service isn't running, and why it must be started:
-	if (trim(@shell_exec("systemctl is-active " . $service)) == "inactive")
-		echo '
-	<div class="alert alert-danger" id="disabled_div">
+	# Output site header with switch to enable service:
+	site_menu('
 		<div class="float-right">
-			<button type="button" id="service_status" class="btn btn-sm bg-success">Service Status</button>
-			<button type="button" id="service_start" class="btn btn-sm bg-success">Start Service</button>
-		</div>
-		<h5><i class="fas fa-ban"></i> &quot;', $service, '&quot; is ', !$enabled ? '<strong>NOT</strong> ' : '', 'enabled and <strong>NOT</strong> running.</h5>
-	</div>';
-	else
-		echo '
-	<div class="alert alert-success">
-		<div class="float-right">
-			<button type="button" id="service_status" class="btn btn-sm bg-danger">Service Status</button>
-			<button type="button" id="service_stop" class="btn btn-sm bg-danger">Stop Service</button>
-		</div>
-		<h5><i class="fas fa-thumbs-up"></i> &quot;', $service, '&quot; is running', $enabled ? ' and ' : ', but <strong>NOT</strong> ', 'enabled.</h5>
+			<div class="btn-group">
+				<button type="button" class="btn btn-default" id="service_status">Service Status</button>
+				<button type="button" class="btn btn-default dropdown-toggle dropdown-icon" data-toggle="dropdown">
+					<span class="sr-only">Toggle Dropdown</span>
+				</button>
+				<div class="dropdown-menu" role="menu">
+					<a class="dropdown-item" href="#" id="service_start">Start Service</a>
+					<a class="dropdown-item" href="#" id="service_stop">Stop Service</a>
+					<div class="dropdown-divider"></div>
+					<a class="dropdown-item" href="#" id="service_enable">Enable Service</a>
+					<a class="dropdown-item" href="#" id="service_enable">Disable Service</a>
+				</div>
+			</div>
+		</div>');
+	echo '
+	<div class="alert alert-' . $mode . ' alert-dismissible"" id="disabled_div">
+		<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+		<h5>&quot;', $service, '&quot; is ', !$enabled ? '<strong>NOT</strong> ' : '', 'enabled', $enabled && !$active ? ', but ' : ' and ', !$active ? '<strong>NOT</strong> ' : '', 'running.</h5>
 	</div>';
 }
