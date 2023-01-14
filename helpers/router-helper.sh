@@ -208,16 +208,9 @@ case $CMD in
 			cd ${DIR}
 			mkdir -p {upper,work,merged}
 			test -d /ro && RO=/ro || RO=/
-			if [[ -f ${DIR}/lower.squashfs ]]; then
-				mkdir -p ${DIR}/lower
-				mount ${DIR}/lower.squashfs ${DIR}/lower
-			fi
-			[[ -d ${DIR}/lower ]] && LOW=":./lower"
-			mount -t overlay chroot_env -o lowerdir=${RO}${LOW},upperdir=./upper,workdir=./work ./merged
-			find . -maxdepth 1 -type d | egrep -v "/(lower|upper|merged|work|)$" | grep -v "^.$" | grep -v ".old$" | while read mount; do
-				mkdir -p ./merged/${mount}
-				mount --bind ${mount} ./merged/${mount}
-			done
+			LOW=${RO}
+			find . -maxdepth 1 -type d -name lower* | sort | while read DIR; do LOW=${LOW}:${DIR}; done
+			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
 			echo "CE" > merged/etc/debian_chroot
 		#####################################################################
 		# ENTER/CHROOT => Enters the created chroot for compilation environment
@@ -236,47 +229,51 @@ case $CMD in
 			mount | grep "${DIR}/merged" | awk '{print $3}' | tac | while read mount; do umount $mount; done
 			umount -q ${DIR}/lower 2> /dev/null
 		#####################################################################
-		# MERGE => Copies merged overlay filesystem into overlay directory "lower":
-		elif [[ "$1" == "merge" ]]; then
-			if ! mount | grep -q "${DIR}"; then $0 compile mount || exit 1; fi
-			if [[ ! "$2" =~ -(y|-yes) && -d ${DIR}/lower ]]; then
-				echo "WARNING: This will merge the overlay filesystem into a new lower overlay directory and cannot be undone!"
+		# ADD_LAYER => Moves upper directory to a new lower layer directory for overlay:
+		elif [[ "$1" == "add_layer" ]]; then
+			if ! cd ${DIR}; then echo "ERROR: No persistent folder created yet!  Aborting!"; exit 1; fi
+			$0 compile umount 
+			LAYER=$(find . -maxdepth 1 -type d -name lower* | sort | tail -1 | sed "s|\.\/||")
+			LAYER=lower$(( ${LAYER/lower/} + 1 ))
+			mv upper ${LAYER}
+			echo "[DONE] New lower overlay directory is ready for use."
+		#####################################################################
+		# DEL_LAYER => Moves upper directory to a new lower layer directory for overlay:
+		elif [[ "$1" == "del_layer" ]]; then
+			if ! cd ${DIR}; then echo "ERROR: No persistent folder created yet!  Aborting!"; exit 1; fi
+			if [[ ! "$2" =~ -(y|-yes) ]]; then
+				echo "WARNING: The router will remove the last lower directory created.  In addition, the"
+				echo "script will remove changes made to the overlay environment.  This cannot be undone!"
 				askYesNo "Are you SURE you want to do this?" || exit 0
 			fi
-			if [[ -f "${DIR}/lower" ]]; then
-				echo "[INFO] Copying merged filesystem to new directory..."
-				test -d ${DIR}/lower2 && rm -rf ${DIR}/lower2
-				cp -aR ${DIR}/merged ${DIR}/lower2
-				$0 compile umount
-				echo "[INFO] Removing previous lower filesystem..."
-				test -d ${DIR}/lower && rm -rf ${DIR}/lower
-				mv ${DIR}/lower2 ${DIR}/lower
-				rm -rf ${DIR}/{upper,work}
-			else
-				mv ${DIR}/upper ${DIR}/lower
-			fi
-			echo "[DONE] New lower overlay directory is ready for use."
+			$0 compile umount 
+			LAYER=$(find . -maxdepth 1 -type d -name lower* | sort | tail -1 | sed "s|\.\/||")
+			echo "[INFO] Destroying ${LAYER}, upper and work directories..."
+			rm -rf ${DIR}/{upper,work,${LAYER}}
+			echo "[DONE] Completed!"
 		#####################################################################
 		# RESET => Remove changes made to the overlayfs environment
 		elif [[ "$1" == "reset" ]]; then
+			if ! cd ${DIR}; then echo "ERROR: No persistent folder created yet!  Aborting!"; exit 1; fi
 			if [[ ! "$2" =~ -(y|-yes) ]]; then
 				echo "WARNING: The router will remove changes made to overlay environment and cannot be undone!"
 				askYesNo "Are you SURE you want to do this?" || exit 0
 			fi
-			echo "[INFO] Destroying upper and work directories..."
 			$0 compile umount
+			echo "[INFO] Destroying upper and work directories..."
 			rm -rf ${DIR}/{upper,work}
 			echo "[DONE] Completed!"
 		#####################################################################
 		# DESTROY => Destroys entire overlayfs for compilation environment
 		elif [[ "$1" == "destroy" ]]; then
+			if ! cd ${DIR}; then echo "ERROR: No persistent folder created yet!  Aborting!"; exit 1; fi
 			if [[ ! "$2" =~ -(y|-yes) ]]; then
 				echo "WARNING: The router will delete the ENTIRE overlay environment built and cannot be undone!"
 				askYesNo "Are you SURE you want to do this?" || exit 0
 			fi
-			echo "[INFO] Destroying overlay filesystem..."
+			echo "[INFO] Destroying entire overlay filesystem..."
 			$0 compile umount
-			rm -rf ${DIR}/{lower,upper,work,merged}
+			rm -rf ${DIR}/{lower*,upper,work,merged}
 			echo "[DONE] Completed!"
 		#####################################################################
 		# Everything else:
@@ -284,13 +281,14 @@ case $CMD in
 			[[ "$1" != "-h" ]] && echo "ERROR: Invalid option passed!"
 			echo "Usage: $(basename $0) compile [mount|chroot|enter|umount|merge|clear|destroy]"
 			echo "Where:"
-			echo "    mount   - Create separate overlayfs environment"
-			echo "    enter   - Enter created separate overlayfs environment"
-			echo "    chroot  - Enter created separate overlayfs environment"
-			echo "    umount  - Remove created separate overlayfs environment"
-			echo "    merge   - Merges current lower and upper levels into new lower level"
-			echo "    reset   - Remove all changes made to the overlayfs environment"
-			echo "    destroy - Remove ENTIRE overlayfs environment"
+			echo "    mount     - Create separate overlayfs environment"
+			echo "    enter     - Enter created separate overlayfs environment"
+			echo "    chroot    - Enter created separate overlayfs environment"
+			echo "    umount    - Remove created separate overlayfs environment"
+			echo "    add_layer - Moves upper directory to a lower layer directory"
+			echo "    del_layer - Deletes most current layer"
+			echo "    reset     - Remove all changes made to the overlayfs environment"
+			echo "    destroy   - Remove ENTIRE overlayfs environment"
 		fi
 		;;
 
