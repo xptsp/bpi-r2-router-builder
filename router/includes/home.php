@@ -38,6 +38,39 @@ if (isset($_GET['sid']))
 	);
 
 	##########################################################################################
+	# Get root disk usage:
+	##########################################################################################
+	$arr['root_usage'] = $_SESSION['root_usage_ext'];
+
+	##########################################################################################
+	# Get root usage, memory usage, swap usage, and number of local users:
+	##########################################################################################
+	$diskfree = disk_free_space("/");
+	if (isset($_SESSION['last_check']) && $_SESSION['last_check'] + 60 > time())
+	{
+		unset($_SESSION['root_usage_int']);
+		$_SESSION['mem_usage_ext'] = explode(" ", preg_replace("/\s+/", " ", trim(@shell_exec("free -k | grep Mem"))));
+		#echo '<pre>'; print_r($_SESSION['mem_usage_ext']); exit;
+		$_SESSION['swap_usage_ext'] = explode(" ", preg_replace("/\s+/", " ", trim(@shell_exec("free -k | grep Swap"))));
+		#echo '<pre>'; print_r($_SESSION['swap_usage_ext']); exit;
+		$_SESSION['local_users'] = trim(@shell_exec("users | wc -w"));
+		#echo '<pre>'; print_r($_SESSION['local_users']); exit;
+		$_SESSION['processes'] = trim(@shell_exec("ps aux | wc -l"));
+		#echo '<pre>'; print_r($_SESSION['processes']); exit;
+		$_SESSION['last_check'] = time();
+	}
+	if (!isset($_SESSION['root_usage_int']) || $_SESSION['root_usage_int'] <> $diskfree)
+	{
+		$_SESSION['root_usage_int'] = $diskfree;
+		$_SESSION['root_usage_ext'] = trim(@shell_exec("df -h / | awk '/\// {print $5}'")) . ' (' . trim(@shell_exec("df -BM / | tail -1 | awk '{print $3}'")) . ')';
+	}
+	$arr['root_usage'] = $_SESSION['root_usage_ext']; 
+	$arr['processes'] = number_format($_SESSION['processes']);
+	$arr['local_users'] = number_format($_SESSION['local_users']); 
+	$arr['mem_usage'] = number_format(((int) $_SESSION['mem_usage_ext'][1] - (int) $_SESSION['mem_usage_ext'][6]) * 100 / (int) $_SESSION['mem_usage_ext'][1], 1);
+	$arr['swap_usage'] = number_format((int) $_SESSION['swap_usage_ext'][2] * 100 / (int) $_SESSION['swap_usage_ext'][1], 1);
+
+	##########################################################################################
 	# Get the number of domains blocked by our adblock script:
 	##########################################################################################
 	if (empty($_SESSION['pihole_json']))
@@ -51,8 +84,6 @@ if (isset($_GET['sid']))
 	##########################################################################################
 	# Insert Pi-Hole statistics information into array:
 	##########################################################################################
-	if (isset($pihole->unique_clients))
-		$arr['unique_clients'] = $pihole->unique_clients;
 	if (isset($pihole->dns_queries_today))
 		$arr['dns_queries_today'] = $pihole->dns_queries_today;
 	if (isset($pihole->ads_blocked_today))
@@ -61,6 +92,21 @@ if (isset($_GET['sid']))
 		$arr['ads_percentage_today'] = $pihole->ads_percentage_today;
 	if (isset($pihole->domains_being_blocked))
 		$arr['domains_being_blocked'] = $pihole->domains_being_blocked;
+
+	##########################################################################################
+	# Parse the dnsmasq.leases file into the "devices" element of the array:
+	##########################################################################################
+	foreach (explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases"))) as $num => $line)
+	{
+		$temp = explode(" ", preg_replace("/\s+/", " ", $line));
+		$leases[] = array(
+			'lease_expires' => $temp[0],
+			'mac_address' => $temp[1],
+			'ip_address' => $temp[2],
+			'machine_name' => $temp[3],
+		);
+	}
+	$arr['lan_count'] = number_format(count($leases));
 
 	##########################################################################################
 	# Return status of internet-facing interfaces:
@@ -98,44 +144,25 @@ if (isset($_GET['sid']))
 		foreach ($config as $line)
 		{
 			$addr = preg_match("/address ((\d+)\.(\d+)\.(\d+)\.)/", $line, $regex) ? $regex[1] : $addr;
-			$show |= preg_match("/post-up systemctl start hostapd@(.*)/", $line);
 		}
-		if ($show)
+		if (trim(@shell_exec("systemctl is-active hostapd@" . $iface)) == "active")
 		{
 			$if = parse_ifconfig($iface);
-			$status = strpos($if['brackets'], 'RUNNING') === false ? 'Down' : access_point_status($iface, $addr, $arr['lan_devices']);
+			$status = strpos($if['brackets'], 'RUNNING') === false ? 'Down' : access_point_status($iface, $addr, $leases);
 			$arr['status'] .= show_interface_status($iface, $status, '/setup/wireless?iface=' . $iface, 'fa-wifi');
 		}
 	}
 
 	##########################################################################################
-	# Parse the dnsmasq.leases file into the "devices" element of the array:
-	##########################################################################################
-	foreach (explode("\n", trim(@file_get_contents("/var/lib/misc/dnsmasq.leases"))) as $num => $line)
-	{
-		$temp = explode(" ", preg_replace("/\s+/", " ", $line));
-		$tmp[] = array(
-			'lease_expires' => $temp[0],
-			'mac_address' => $temp[1],
-			'ip_address' => $temp[2],
-			'machine_name' => $temp[3],
-		);
-	}
-	$arr['lan_count'] = number_format(count($tmp));
-
-	##########################################################################################
 	# Get the number of samba shares:
 	##########################################################################################
-	$arr['usb_count'] = 0;
-	foreach (glob('/etc/samba/smb.d/*.conf') as $file)
+	$arr['usb_count'] = -1;
+	foreach (explode("\n", trim(@file_get_contents("/etc/samba/smb.conf"))) as $line)
 	{
-		foreach (explode("\n", trim(@file_get_contents($file))) as $line)
-		{
-			if (preg_match("/path=(.*)/", $line, $regex))
-				$arr['usb_count']++;
-		}
+		if ($line == ';   write list = root, @lpadmin' || ($arr['usb_count'] > -1 && preg_match("/^path=(.*)/", $line, $regex)))
+			$arr['usb_count']++;
 	}
-	$arr['usb_count'] = number_format($arr['usb_count']);
+	$arr['usb_count'] = number_format(max(0, $arr['usb_count']));
 
 	##########################################################################################
 	# Output the resulting array:
@@ -147,49 +174,67 @@ if (isset($_GET['sid']))
 #######################################################################################################
 # Start the page:
 #######################################################################################################
-site_menu(
-	'<div class="col-sm-6">' .
-		'<span class="float-right">Refresh <input type="checkbox" id="refresh_switch" checked="checked" data-bootstrap-switch></span>' .
-	'</div>');
-
-#######################################################################################################
-# Display system temperature:
-#######################################################################################################
+site_menu('<span class="float-right">Refresh <input type="checkbox" id="refresh_switch" checked="checked" data-bootstrap-switch></span>');
 echo '
 <div class="row mb-2">
 	<div class="col-sm-12">
 		<h3>Statistics</h1>
 	</div>
-</div>
+</div>';
+
+#######################################################################################################
+# Display system temperature:
+#######################################################################################################
+echo '
 <div class="row">
 	<div class="col-md-3">
-		<div class="small-box bg-info" id="temp_div">
-			<div class="inner">
-				<p class="text-lg">Temperature</p>
-				<h4><span id="temp">&nbsp;</span>&deg; C</h4>
-			</div>
-			<div class="icon">
-				<i class="fas fa-thermometer"></i>
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fas fa-thermometer"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Temperature</span>
+				<span class="info-box-number"><span id="temp">&nbsp;</span><small>&deg; C</small></h4>
 			</div>
 		</div>
 	</div>';
 
 #######################################################################################################
-# Display system load:
+# Display memory usage:
 #######################################################################################################
 echo '
 	<div class="col-md-3">
-		<div class="small-box bg-info">
-			<div class="inner">
-				<p class="text-lg">Average Load</p>
-				<h4>
-					<span id="load0">&nbsp;</span>,
-					<span id="load1">&nbsp;</span>,
-					<span id="load2">&nbsp;</span>
-				</h4>
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fas fa-memory"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Memory Usage:</span>
+				<span class="info-box-number"><span id="mem_usage">&nbsp;</span><small>%</small></h4>
 			</div>
-			<div class="icon">
-				<i class="fas fa-truck-loading"></i>
+		</div>
+	</div>';
+
+#######################################################################################################
+# Display root usage:
+#######################################################################################################
+echo '
+	<div class="col-md-3">
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="far fa-hdd"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Root Usage:</span>
+				<span class="info-box-number"><span id="root_percent">&nbsp;</span> <small id="root_used">&nbsp;</small></h4>
+			</div>
+		</div>
+	</div>';
+
+#######################################################################################################
+# Display number of local users:
+#######################################################################################################
+echo '
+	<div class="col-md-3">
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fas fa-users"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Local Users:</span>
+				<span class="info-box-number"><span id="local_users">&nbsp;</span></h4>
 			</div>
 		</div>
 	</div>';
@@ -199,29 +244,99 @@ echo '
 #######################################################################################################
 echo '
 	<div class="col-md-3">
-		<div class="small-box bg-info">
-			<div class="inner">
-				<p class="text-lg">System Uptime</p>
-				<h4><span id="system_uptime">&nbsp;</span></h4>
-			</div>
-			<div class="icon">
-				<i class="fas fa-stopwatch"></i>
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fas fa-stopwatch"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">System Uptime:</span>
+				<span class="info-box-number"><span id="system_uptime">&nbsp;</span></span>
 			</div>
 		</div>
 	</div>';
 
 #######################################################################################################
-# Display system current time:
+# Display system load:
 #######################################################################################################
 echo '
 	<div class="col-md-3">
-		<div class="small-box bg-info">
-			<div class="inner">
-				<p class="text-lg">System Time</p>
-				<h4><span id="server_time">&nbsp;</span></h4>
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fas fa-truck-loading"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Average Load:</span>
+				<span class="info-box-number">
+					<span id="load0">&nbsp;</span>,
+					<span id="load1">&nbsp;</span>,
+					<span id="load2">&nbsp;</span>
+				</span>
 			</div>
-			<div class="icon">
-				<i class="fas fa-clock"></i>
+		</div>
+	</div>';
+
+#######################################################################################################
+# Display swap usage:
+#######################################################################################################
+echo '
+	<div class="col-md-3">
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fas fa-exchange-alt"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Swap Usage:</span>
+				<span class="info-box-number"><span id="swap_usage">&nbsp;</span><small>%</small></span>
+			</div>
+		</div>
+	</div>';
+
+#######################################################################################################
+# Display swap usage:
+#######################################################################################################
+echo '
+	<div class="col-md-3">
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fas fa-microchip"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Processes:</span>
+				<span class="info-box-number"><span id="processes">&nbsp;</span></span>
+			</div>
+		</div>
+	</div>';
+
+#######################################################################################################
+# Display current server date:
+#######################################################################################################
+echo '
+	<div class="col-md-3">
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="far fa-calendar-alt"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Server Date:</span>
+				<span class="info-box-number"><span id="server_date">&nbsp;</span></span>
+			</div>
+		</div>
+	</div>';
+
+#######################################################################################################
+# Display current server time:
+#######################################################################################################
+echo '
+	<div class="col-md-3">
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fas fa-clock"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Server Time:</span>
+				<span class="info-box-number"><span id="server_time">&nbsp;</span></span>
+			</div>
+		</div>
+	</div>';
+
+#######################################################################################################
+# Display number of samba shares:
+#######################################################################################################
+echo '
+	<div class="col-md-3">
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fab fa-usb"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Samba Shares:</span>
+				<span class="info-box-number"><span id="usb-sharing">&nbsp;</span></span>
 			</div>
 		</div>
 	</div>';
@@ -231,37 +346,12 @@ echo '
 #######################################################################################################
 echo '
 	<div class="col-md-3">
-		<div class="small-box bg-info">
-			<div class="inner">
-				<p class="text-lg">Attached Devices</p>
-				<h3 id="num_of_devices">&nbsp;</h3>
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fas fa-laptop-house"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Attached Devices:</span>
+				<span class="info-box-number"><span id="num_of_devices">&nbsp;</span></span>
 			</div>
-			<div class="icon">
-				<i class="fas fa-laptop-house"></i>
-			</div>
-			<a href="/manage/attached" class="small-box-footer">
-				Device List <i class="fas fa-arrow-circle-right"></i>
-			</a>
-		</div>
-	</div>';
-
-#######################################################################################################
-# Display number of samba shares:
-#######################################################################################################
-$sharing = false;
-echo '
-	<div class="col-md-3">
-		<div class="small-box bg-info">
-			<div class="inner">
-				<p class="text-lg">Samba Shares</p>
-				<h3 id="usb-sharing">&nbsp;</span></h3>
-			</div>
-			<div class="icon">
-				<i class="fab fa-usb"></i>
-			</div>
-			<a href="#" class="small-box-footer">
-				Samba Settings <i class="fas fa-arrow-circle-right"></i>
-			</a>
 		</div>
 	</div>';
 
@@ -270,36 +360,54 @@ echo '
 #######################################################################################################
 echo '
 	<div class="col-md-3">
-		<div class="small-box bg-info">
-			<div class="inner">
-				<p class="text-lg">Bluetooth Status</p>
-				<h3 id="bluetooth-status">&nbsp;</span></h3>
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fab fa-raspberry-pi"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Domains Blocked:</span>
+				<span class="info-box-number"><span id="domains-blocked">&nbsp;</span></span>
 			</div>
-			<div class="icon">
-				<i class="fab fa-bluetooth"></i>
-			</div>
-			<a href="#" class="small-box-footer">
-				Bluetooth Settings <i class="fas fa-arrow-circle-right"></i>
-			</a>
 		</div>
 	</div>';
 
 #######################################################################################################
-# Display number of domains blocked by our adblocking script:
+# Display number of DNS queries today:
 #######################################################################################################
 echo '
 	<div class="col-md-3">
-		<div class="small-box bg-info" id="pihole_div">
-			<div class="inner">
-				<p class="text-lg">Domains Blocked</p>
-				<h3 id="domains-blocked">&nbsp;</span></h3>
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fab fa-raspberry-pi"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">DNS Queries Today:</span>
+				<span class="info-box-number"><span id="dns_queries_today">&nbsp;</span></span>
 			</div>
-			<div class="icon">
-				<i class="fab fa-raspberry-pi"></i>
+		</div>
+	</div>';
+
+#######################################################################################################
+# Display number of ads blocked today:
+#######################################################################################################
+echo '
+	<div class="col-md-3">
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fab fa-raspberry-pi"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Ads Blocked Today:</span>
+				<span class="info-box-number"><span id="ads_blocked_today">&nbsp;</span></span>
 			</div>
-			<a href="http://pi.hole/admin/" class="small-box-footer">
-				Pi-Hole Settings <i class="fas fa-arrow-circle-right"></i>
-			</a>
+		</div>
+	</div>';
+
+#######################################################################################################
+# Display number of ads blocked today:
+#######################################################################################################
+echo '
+	<div class="col-md-3">
+		<div class="info-box">
+			<span class="info-box-icon bg-info elevation-1"><i class="fab fa-raspberry-pi"></i></span>
+			<div class="info-box-content">
+				<span class="info-box-text">Ads Percentage:</span>
+				<span class="info-box-number"><span id="ads_percentage_today">&nbsp;</span>%</span>
+			</div>
 		</div>
 	</div>';
 
@@ -309,7 +417,9 @@ echo '
 echo '
 </div>
 <div class="row">
-	<h3>Network Interfaces</h3>
+	<div class="col-sm-12">
+		<h3>Network Interfaces</h3>
+	</div>
 </div>
 <div class="row" id="connectivity-text">
 </div>';

@@ -96,7 +96,6 @@ function Home_Data()
 		$("#connectivity-text").html(results.status);
 
 		// Update number of attached devices:
-		$("#devices-spinner").remove();
 		$("#num_of_devices").html(results.lan_count);
 
 		// Update number of mounted USB devices:
@@ -104,10 +103,6 @@ function Home_Data()
 
 		// Update system temperature:
 		$("#temp").html(results.temp);
-		if (results.temp > 60)
-			$("#temp_div").removeClass("bg-info").addClass('bg-danger');
-		else
-			$("#temp_div").addClass("bg-info").removeClass('bg-danger');
 
 		// Update system load averages:
 		$("#load0").html(results.load0);
@@ -116,14 +111,22 @@ function Home_Data()
 
 		// Update server uptime and local time:
 		$("#system_uptime").html(results.system_uptime);
-		$("#server_time").html(results.server_time);
+		$("#server_date").html(results.server_time.split(" ")[0]);
+		$("#server_time").html(results.server_time.split(" ")[1]);
 	
 		// Update number of domains blocked:
 		$("#domains-blocked").html(results.domains_being_blocked);
-		if (results.domains_being_blocked == 0)
-			$("#pihole_div").removeClass("bg-info").addClass("bg-danger");
-		else
-			$("#pihole_div").addClass("bg-info").removeClass("bg-danger");
+		$("#dns_queries_today").html(results.dns_queries_today);
+		$("#ads_blocked_today").html(results.ads_blocked_today);
+		$("#ads_percentage_today").html(results.ads_percentage_today);
+
+		// Update additional information:
+		$("#mem_usage").html(results.mem_usage);
+		$("#root_percent").html(results.root_usage.split(" ")[0]);	
+		$("#root_used").html(results.root_usage.split(" ")[1]);
+		$("#local_users").html(results.local_users);
+		$("#swap_usage").html(results.swap_usage);
+		$("#processes").html(results.processes);	
 	});
 }
 
