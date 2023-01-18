@@ -23,10 +23,15 @@ fi
 DIR=/etc/privoxy
 CONFIG=${DIR}/config
 grep "^actionsfile " ${CONFIG} | awk '{print $2}' | while read FILE; do
-	[[ "$(wc -c < ${DIR}/${FILE} 2> /dev/null)" -eq 0 ]] && rm ${DIR}/${FILE} 
+	if test -f ${DIR}/${FILE}; then 
+		[[ "$(wc -c < ${DIR}/${FILE} 2> /dev/null)" -eq 0 ]] && rm ${DIR}/${FILE}
+	fi 
 	test -f ${DIR}/${FILE} || sed -i "/${FILE}/d" ${CONFIG}
 done
 grep "^filterfile "  ${CONFIG} | awk '{print $2}' | while read FILE; do
-	[[ "$(wc -c < ${DIR}/${FILE} 2> /dev/null)" -eq 0 ]] && rm ${DIR}/${FILE} 
+	if test -f ${DIR}/${FILE}; then
+		[[ "$(wc -c < ${DIR}/${FILE} 2> /dev/null)" -eq 0 ]] && rm ${DIR}/${FILE}
+	fi 
 	test -f ${DIR}/${FILE} || sed -i "/${FILE}/d" ${CONFIG}
 done
+
