@@ -197,6 +197,10 @@ case $CMD in
 	compile)
 		test -f /etc/default/router-settings && source /etc/default/router-settings
 		DIR=${OVERLAY_ROOT:-"/var/lib/docker/persistent"}
+		if ! mount | grep " /ro " >& /dev/null; then
+			echo "ERROR: Read-only root partition not available for use!"
+			exit 1
+		fi
 		#####################################################################
 		# MOUNT => Creates overlayfs for chroot environment (aka for compiling stuff)
 		if [[ "$1" == "mount" ]]; then
@@ -206,10 +210,6 @@ case $CMD in
 			if test -d root; then LOW=./root; elif test -d /ro; then LOW=/ro; else LOW=/; fi
 			for DIR in $(ls | grep "^layer" | sed "s|layer||" | sort -n); do LOW=${LOW}:./layer${DIR}; done
 			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
-			test -d mounts && find mounts -maxdepth 1 -type d | grep -v "^mounts$" | while read mount; do
-				mkdir -p ${mount/mounts/merged}
-				mount --bind ${mount} ${mount/mounts/merged}
-			done
 			echo "CE" > merged/etc/debian_chroot
 		#####################################################################
 		# ENTER/CHROOT => Enters the created chroot for compilation environment
@@ -245,7 +245,7 @@ case $CMD in
 			if ! cd ${DIR}; then echo "ERROR: No persistent folder created yet!  Aborting!"; exit 1; fi
 			$0 compile umount 
 			LAYER=$(for DIR in layer*; do echo ${DIR/layer/}; done | sort -n | tail -1)
-			LAYER=layer$(( ${LAYER/lower/} + 1 ))
+			LAYER=layer$(( ${LAYER/layer/} + 1 ))
 			mv upper ${LAYER}
 			echo "[DONE] Upper layer moved to directory \"${LAYER}\"."
 		#####################################################################

@@ -386,7 +386,7 @@ function checkbox($option, $description, $default = true, $disabled_by = '', $ur
 function show_interface_status($iface, $status, $url = '#', $icon = 'fa-ethernet')
 {
 	return 
-	'<div class="col-md-4">' .
+	'<div class="col-12 col-sm-6 col-md-4">' .
 		'<div id="connectivity-div" class="small-box ' . ($status == "Offline" || $status == "Not Running" || $status == "Disconnected" || $status == "Down" ? 'bg-danger' : 'bg-success') . '">' .
 			'<div class="inner">' .
 				'<p class="text-lg">Interface <b>' . $iface . '</b></p>' .
