@@ -111,8 +111,8 @@ function Home_Data()
 
 		// Update server uptime and local time:
 		$("#system_uptime").html(results.system_uptime);
-		$("#server_date").html(results.server_time.split(" ")[0]);
-		$("#server_time").html(results.server_time.split(" ")[1]);
+		$("#server_date").html(results.server_date);
+		$("#server_time").html(results.server_time);
 	
 		// Update number of domains blocked:
 		$("#domains-blocked").html(results.domains_being_blocked);
@@ -122,11 +122,13 @@ function Home_Data()
 
 		// Update additional information:
 		$("#mem_usage").html(results.mem_usage);
-		$("#root_percent").html(results.root_usage.split(" ")[0]);	
-		$("#root_used").html(results.root_usage.split(" ")[1]);
+		$("#root_percent").html(results.root_usage);	
+		$("#root_used").html(results.root_space);
 		$("#local_users").html(results.local_users);
 		$("#swap_usage").html(results.swap_usage);
 		$("#processes").html(results.processes);	
+	}).fail(function( jqXHR, textStatus, error ) {
+		alert( "Request failed: " + textStatus + " responseText: " + jqXHR.responseText);
 	});
 }
 
