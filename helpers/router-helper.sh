@@ -207,9 +207,8 @@ case $CMD in
 			mkdir -p ${DIR}
 			cd ${DIR}
 			mkdir -p {upper,work,merged}
-			test -d /ro && RO=/ro || RO=/
-			LOW=${RO}
-			find . -maxdepth 1 -type d -name lower* | sort | while read DIR; do LOW=${LOW}:${DIR}; done
+			test -d /ro && LOW=/ro || LOW=/
+			for DIR in lower*; do LOW=${LOW}:./${DIR}; done
 			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
 			echo "CE" > merged/etc/debian_chroot
 		#####################################################################
