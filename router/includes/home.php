@@ -48,9 +48,9 @@ if (isset($_GET['sid']))
 	##########################################################################################
 	$data = trim(@shell_exec("/etc/update-motd.d/10-sysinfo"));
 	#echo '<pre>'; print_r($data); exit;
-	if (preg_match("/Memory usage:\t([^\t\n]*)/", $data, $regex))
+	if (preg_match("/Memory usage:\t([^\t\n\%]*)/", $data, $regex))
 		$arr['mem_usage'] = $regex[1];
-	if (preg_match("/Swap usage:\t([^\t\n]*)/", $data, $regex))
+	if (preg_match("/Swap usage:\t([^\t\n\%]*)/", $data, $regex))
 		$arr['swap_usage'] = $regex[1];
 	if (preg_match("/Local Users:\t([^\t\n]*)/", $data, $regex))
 		$arr['local_users'] = $regex[1];
