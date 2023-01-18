@@ -207,8 +207,8 @@ case $CMD in
 			mkdir -p ${DIR}
 			cd ${DIR}
 			mkdir -p {upper,work,merged}
-			test -d /ro && LOW=/ro || LOW=/
-			for DIR in lower*; do LOW=${LOW}:./${DIR}; done
+			if test -d root; then LOW=./root; elif test -d /ro; then LOW=/ro; else LOW=/; fi
+			for DIR in $(ls | grep "^layer" | sed "s|layer||" | sort -n); do LOW=${LOW}:./layer${DIR}; done
 			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
 			echo "CE" > merged/etc/debian_chroot
 		#####################################################################
@@ -226,18 +226,30 @@ case $CMD in
 		# UMOUNT => Creates overlayfs for compilation environment
 		elif [[ "$1" == "umount" ]]; then
 			mount | grep "${DIR}/merged" | awk '{print $3}' | tac | while read mount; do umount $mount; done
-			umount -q ${DIR}/lower 2> /dev/null
+		#####################################################################
+		# COPY_ROOT => Copies root folder into the persistent tree as layer0:
+		elif [[ "$1" == "copy_root" ]]; then
+			if ! cd ${DIR}; then echo "ERROR: No persistent folder created yet!  Aborting!"; exit 1; fi
+			if [[ -d root && ! "$2" =~ -(y|-yes) ]]; then
+				echo "WARNING: This script will delete previous \"lower0\" directory.  This cannot be undone!"
+				askYesNo "Are you SURE you want to do this?" || exit 0
+			fi
+			$0 compile umount
+			test -d root && echo "[INFO] Destroying layer \"root\"..." && rm -rf root
+			test -d /ro && LOW=/ro || LOW=/
+			cp -aR ${LOW} root 			
+			echo "[DONE] Root layer copied to directory \"root\"."
 		#####################################################################
 		# ADD_LAYER => Moves upper directory to a new lower layer directory for overlay:
 		elif [[ "$1" == "add_layer" ]]; then
 			if ! cd ${DIR}; then echo "ERROR: No persistent folder created yet!  Aborting!"; exit 1; fi
 			$0 compile umount 
-			LAYER=$(find . -maxdepth 1 -type d -name lower* | sort | tail -1 | sed "s|\.\/||")
-			LAYER=lower$(( ${LAYER/lower/} + 1 ))
+			LAYER=$(for DIR in layer*; do echo ${DIR/layer/}; done | sort -n | tail -1)
+			LAYER=layer$(( ${LAYER/lower/} + 1 ))
 			mv upper ${LAYER}
-			echo "[DONE] New lower overlay directory is ready for use."
+			echo "[DONE] Upper layer moved to directory \"${LAYER}\"."
 		#####################################################################
-		# DEL_LAYER => Moves upper directory to a new lower layer directory for overlay:
+		# DEL_LAYER => Removes last layer of overlay, plus upper and work directories:
 		elif [[ "$1" == "del_layer" ]]; then
 			if ! cd ${DIR}; then echo "ERROR: No persistent folder created yet!  Aborting!"; exit 1; fi
 			if [[ ! "$2" =~ -(y|-yes) ]]; then
@@ -246,8 +258,8 @@ case $CMD in
 				askYesNo "Are you SURE you want to do this?" || exit 0
 			fi
 			$0 compile umount 
-			LAYER=$(find . -maxdepth 1 -type d -name lower* | sort | tail -1 | sed "s|\.\/||")
-			echo "[INFO] Destroying ${LAYER}, upper and work directories..."
+			LAYER=$(for DIR in layer*; do echo ${DIR/layer/}; done | sort -n | tail -1)
+			echo "[INFO] Destroying layer \"${LAYER}\", upper and work directories..."
 			rm -rf ${DIR}/{upper,work,${LAYER}}
 			echo "[DONE] Completed!"
 		#####################################################################
@@ -272,7 +284,7 @@ case $CMD in
 			fi
 			echo "[INFO] Destroying entire overlay filesystem..."
 			$0 compile umount
-			rm -rf ${DIR}/{lower*,upper,work,merged}
+			rm -rf ${DIR}/{layer*,upper,work,merged}
 			echo "[DONE] Completed!"
 		#####################################################################
 		# Everything else:
@@ -284,6 +296,7 @@ case $CMD in
 			echo "    enter     - Enter created separate overlayfs environment"
 			echo "    chroot    - Enter created separate overlayfs environment"
 			echo "    umount    - Remove created separate overlayfs environment"
+			echo "    copy_root - Copies root directory into directory \"lower0\"."
 			echo "    add_layer - Moves upper directory to a lower layer directory"
 			echo "    del_layer - Deletes most current layer"
 			echo "    reset     - Remove all changes made to the overlayfs environment"
