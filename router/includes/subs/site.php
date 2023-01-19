@@ -76,8 +76,8 @@ function site_header($override_title = "")
 	global $site_title, $header_done;
 
 	$site_title = !empty($override_title) ? $override_title : $site_title;
-	echo '
-<!DOCTYPE html>
+	echo 
+'<!DOCTYPE html>
 <html lang="en">
 <head>
 	<title>', $site_title, '</title>

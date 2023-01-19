@@ -6,7 +6,7 @@
 if (empty($called_as_sub) && isset($_POST['action']))
 {
 	# "systemctl" needs superuser permission to execute actions on specified service:
-	if (in_array($_POST['action'], array('enable', 'disable', 'start', 'stop')))
+	if (in_array($_POST['action'], array('enable', 'disable', 'start', 'stop', 'restart', 'reload')))
 	{
 		@shell_exec('router-helper systemctl ' . $_POST['action'] . ' ' . $_POST['misc']);
 		die('OK');
@@ -21,7 +21,7 @@ else if (empty($called_as_sub))
 # Start the services page, showing if the service is disabled and must be started to use
 # the functionality provided:
 #############################################################################################
-function services_start($service, $header = true)
+function services_start($service, $reload = false)
 {
 	$enabled = trim(@shell_exec("systemctl is-enabled " . $service)) == "enabled";
 	$active = trim(@shell_exec("systemctl is-active " . $service)) == "active";
@@ -35,9 +35,11 @@ function services_start($service, $header = true)
 				<button type="button" class="btn btn-default dropdown-toggle dropdown-icon" data-toggle="dropdown">
 					<span class="sr-only">Toggle Dropdown</span>
 				</button>
-				<div class="dropdown-menu" role="menu">
-					<a class="dropdown-item" href="#" id="service_start">Start Service</a>
-					<a class="dropdown-item" href="#" id="service_stop">Stop Service</a>
+				<div class="dropdown-menu" role="menu">' . ($active ? ' 
+					<a class="dropdown-item" href="#" id="service_restart">Restart Service</a>
+					<a class="dropdown-item" href="#" id="service_stop">Stop Service</a>' . ($reload ? '
+					<a class="dropdown-item" href="#" id="service_reload">Reload Service</a>' : '') : '
+					<a class="dropdown-item" href="#" id="service_start">Start Service</a>') . '
 					<div class="dropdown-divider"></div>
 					<a class="dropdown-item" href="#" id="service_enable">Enable Service</a>
 					<a class="dropdown-item" href="#" id="service_enable">Disable Service</a>

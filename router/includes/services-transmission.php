@@ -13,7 +13,7 @@ foreach (array_diff(glob('/usr/share/transmission/*', GLOB_ONLYDIR), array("/usr
 	$webui_allowed[] = basename($webui);
 #echo '<pre>'; print_r($webui_allowed); exit;
 
-$options = parse_options("/etc/default/transmission-default");
+$options = parse_options("/etc/default/transmission-daemon");
 #echo '<pre>'; print_r($options); exit;
 $trans_port = isset($options['TRANS_PORT']) ? $options['TRANS_PORT'] : "9091";
 #echo '<pre>'; print_r($trans_port); exit;
@@ -107,7 +107,7 @@ echo '
 				<div class="input-group-prepend">
 					<span class="input-group-text"><i class="fas fa-wrench"></i></span>
 				</div>
-				<select class="form-control" id="webui"', count($langs) == 1 ? ' disabled="disabled"' : '', '>';
+				<select class="form-control" id="webui"', count($webui_allowed) == 1 ? ' disabled="disabled"' : '', '>';
 foreach ($webui_allowed as $webui)
 	echo '
 					<option value="', $webui, '"', $trans_webui == $webui_allowed ? ' selected="selected"' : '', '>', $webui, '</option>';

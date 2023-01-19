@@ -25,6 +25,9 @@ COPY_ONLY=(
 	/etc/network/interfaces.d/
 	/etc/dnsmasq.d/
 	/etc/hostapd/
+	/etc/default/*
+	/etc/docker/*
+	/etc/docker/compose.d/*
 	/etc/fstab
 	/etc/tcmount.ini
 	/etc/rc.local

@@ -12,7 +12,7 @@ CERT=/etc/openvpn/${1}.conf
 test -f ${CERT} || exit 1
 
 ####################################################################
-# If certificate modifications are already done, exit with code 0:
+# If this is a server configuration, exit with error 0:
 ####################################################################
 grep -q "^server" ${CERT} && exit 0
 
