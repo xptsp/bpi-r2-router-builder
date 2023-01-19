@@ -4,5 +4,6 @@ Description=Mount USB Drive on %i
 [Service]
 Type=oneshot
 RemainAfterExit=true
+ExecCondition=bash -c 'blkid -o export /dev/%i | grep -q "TYPE="'
 ExecStart=/opt/bpi-r2-router-builder/helpers/usbmount-helper.sh mount %i
 ExecStop=/opt/bpi-r2-router-builder/helpers/usbmount-helper.sh umount %i
