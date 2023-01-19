@@ -3,7 +3,7 @@ $site_title = '';
 $header_done = false;
 $output_null = false;
 $options_changed = false;
-$layout_fixed = false;
+$layout_fixed = true;
 
 ################################################################################################################
 # Define the default sidebar menu:
@@ -180,8 +180,25 @@ function site_menu($refresh_switch = false)
 	# Write the menu:
 	$dark_mode = $_SESSION['dark_mode'] == "Y";
 	echo '
-<body class="hold-transition sidebar-mini layout-boxed ', $layout_fixed ? 'layout-fixed ' : '', $dark_mode ? 'bodybg-dark dark-mode' : 'bodybg', '">
-<div class="wrapper">
+<body class="hold-transition sidebar-mini layout-navbar-fixed ', $layout_fixed ? 'layout-fixed ' : '', $dark_mode ? 'bodybg-dark dark-mode' : 'bodybg', '">
+	<div class="wrapper">
+		<!-- Navbar -->
+		<nav class="main-header navbar navbar-expand navbar-white navbar-light">
+			<!-- Left navbar links -->
+			<ul class="navbar-nav">
+				<li class="nav-item">
+					<a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+				</li>
+			</ul>
+			<h3>', $site_title, '</h3>
+
+			<!-- Right navbar links -->
+			<ul class="navbar-nav ml-auto">
+				', !empty($refresh_switch) ? $refresh_switch : '', '
+			</ul>
+		</nav>
+	  	<!-- /.navbar -->
+
 	<!-- Main Sidebar Container -->
 	<aside class="main-sidebar main-sidebar-custom sidebar-dark-primary elevation-4 ">
 		<!-- Brand Logo -->
@@ -216,17 +233,7 @@ echo '
 
 	<!-- Content Wrapper. Contains page content -->
 	<div class="content-wrapper">
-		<section class="content-header">
-			<div class="container-fluid">
-				<div class="row mb-2">
-					<div class="col-sm-6">
-						<a class="float-left nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-						<h1>', $site_title, '</h1>
-					</div>
-					', !empty($refresh_switch) ? '<div class="col-sm-6">' . $refresh_switch . '</div>': '', '
-            	</div>
-			</div><!-- /.container-fluid -->
-		</section>';
+		<div class="content-header">';
 
 	# If header not written yet, write the header, then the output we cached:
 	if (!$header_done)
@@ -242,11 +249,6 @@ echo '
 		$output_null = true;
 		ob_start();
 	}
-
-	# Output the main contents from here:
-	echo '
-		<!-- Main content -->
-		<section class="content">';
 }
 
 ################################################################################################################
@@ -263,7 +265,7 @@ function site_footer($init_str = '')
 
 	# Start output the footer:
 	echo '
-		</section>
+		</div>
 	</div>
 	<!-- /.content-wrapper -->
 
@@ -271,7 +273,7 @@ function site_footer($init_str = '')
 		<div class="float-right d-none d-sm-block">
 			<b>WebUI</b> v', $_SESSION['webui_version'], '
 		</div>
-		<strong>Copyright &copy; 2021 <a href="https://github.com/xptsp/bpi-r2-router-builder" target="_blank">BPi-R2 Router Builder</a>.</strong> All rights reserved.
+		<strong>Copyright &copy; 2021 Douglas Orend - <a href="https://github.com/xptsp/bpi-r2-router-builder" target="_blank">BPi-R2 Router Builder</a>.</strong> All rights reserved.
 	</footer>
 </div>
 <!-- ./wrapper -->

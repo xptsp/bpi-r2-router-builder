@@ -588,13 +588,11 @@ else
 	# service if it was been disabled.
 	#######################################################################################################
 	echo '
-	<div class="alert alert-danger">
-		<h5><i class="icon fas fa-ban"></i> No Wireless Interfaces Found!</h5>';
-	if (trim(@shell_exec("systemctl is-enabled onboard-wifi")) != "enabled")
-		echo '
-		<strong>Issue Found:</strong> The onboard wifi service has been disabled.';
-	echo '
-	</div>';
+<div class="alert alert-danger">
+	<h5><i class="icon fas fa-ban"></i> No Wireless Interfaces Found!</h5>',
+	trim(@shell_exec("systemctl is-enabled onboard-wifi")) != "enabled" ? '<strong>Issue Found:</strong> The onboard wifi service has been disabled.' : '', '
+</div>';
 }
+echo '</div>';
 apply_changes_modal('Please wait while the wireless interface is being configured....', true);
 site_footer('Init_Wireless("' . $iface . '");');

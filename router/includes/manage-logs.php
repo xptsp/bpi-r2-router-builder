@@ -53,39 +53,40 @@ if ($pages > 1)
 site_menu();
 echo '
 <div class="row">
-<div class="col-sm-12">
-	<div class="card card-tabs card-primary">
-		<div class="card-header">
-			Selected Logs: <select id="which">';
+	<div class="col-sm-12">
+		<div class="card card-tabs card-primary">
+			<div class="card-header">
+				Selected Logs: <select id="which">';
 foreach ($cmds as $cmd => $arr)
 {
 	echo '<option value="', $cmd == 'dmesg' ? '' : $cmd, '"', $_GET['which'] == $cmd ? ' selected="selected"' : '', '>' . $arr['header'] . '</option>';
 }
 echo '
-			</select>
-        </div>
-		<div class="card-body">
-			<div class="row">
-				<div class="col-8">';
+				</select>
+    	    </div>
+			<div class="card-body">
+				<div class="row">
+					<div class="col-8">';
 if ($pages > 1)
 	echo '
-					<ul class="pagination pagination-sm m-0" id="pages">', $pagination, '
-					</ul>';
+						<ul class="pagination pagination-sm m-0" id="pages">', $pagination, '
+						</ul>';
 echo '
-				</div>
-				<div class="col-4">
-					<div class="float-right input-group input-group-sm">
-						<input type="text" id="search" class="form-control float-right" placeholder="Search">
-						<div class="input-group-append">
-							<button type="submit" class="btn btn-default">
-								<i class="fas fa-search"></i>
-							</button>
+					</div>
+					<div class="col-4">
+						<div class="float-right input-group input-group-sm">
+							<input type="text" id="search" class="form-control float-right" placeholder="Search">
+							<div class="input-group-append">
+								<button type="submit" class="btn btn-default">
+									<i class="fas fa-search"></i>
+								</button>
+							</div>
 						</div>
 					</div>
 				</div>
+				<hr style="border-width: 2px" />
+				<pre id="lines">' . "\n" . $lines . '</pre>
 			</div>
-			<hr style="border-width: 2px" />
-			<pre id="lines">' . "\n" . $lines . '</pre>
 		</div>
 	</div>
 </div>';

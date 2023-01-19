@@ -152,7 +152,8 @@ echo '
 echo '
 	<div class="card-footer">
 		<a href="javascript:void(0);"><button type="button" class="btn btn-block btn-success center_50" id="submit">Apply Changes</button></a>
-	</div>';
+	</div>
+</div>';
 
 ###################################################################################################
 # Close page
