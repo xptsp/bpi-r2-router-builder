@@ -30,17 +30,30 @@ if (isset($_POST['action']))
 #################################################################################################
 # Output the Multicast Relay page:
 #################################################################################################
-services_start('docker-compose');
+$URL = explode("?", $_SERVER['REQUEST_URI'])[0];
+$file = isset($_GET['file']) ? $_GET['file'] : 'docker-compose';
+services_start('docker-compose@' . $file);
 echo '
 <div class="card card-primary">
-	<div class="card-header">
-		<h3 class="card-title">Docker Compose Service</h3>
+	<div class="card-header p-0 pt-1">
+		<ul class="nav nav-tabs" id="custom-tabs-two-tab" role="tablist">';
+foreach (array_unique(array_merge(array('/etc/docker/compose.d/docker-compose.yaml'), glob("/etc/docker/compose.d/*"))) as $nfile)
+{
+	$tfile = str_replace('.yaml', '', basename($nfile));
+	echo '
+			<li class="nav-item">
+				<a class="ifaces nav-link', $tfile == $file ? ' active' : '', '" href="', $URL, $tfile == "docker-compose" ? '' : '?file=' . $tfile, '">', basename($tfile), '</a>
+			</li>';
+}
+echo '
+		</ul>
 	</div>
 	<div class="card-body">
 		<div class="row" style="margin-top: 5px">
 			<textarea id="contents-div" class="form-control" rows="15" style="overflow-y: scroll;">',
-				str_replace("    ", "\t", @file_get_contents("/etc/docker-compose.yaml")),
+				str_replace("    ", "\t", @file_get_contents("/etc/docker/compose.d/" . $file . ".yaml")),
 			'</textarea>
+			<input id="file" type="hidden" value="', $file, '" />
 		</div>
 	</div>
 	<div class="card-footer">

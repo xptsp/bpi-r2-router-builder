@@ -38,7 +38,7 @@ $sidebar_menu = array(
 		'usage'     => menu_link('/services/bandwidth', 'Bandwidth Usage', 'fas fa-chart-bar', file_exists("/lib/systemd/system/vnstat.service")),
 		'trans'     => menu_link('/services/transmission', 'Transmission Daemon', 'fas fa-file-download', file_exists("/lib/systemd/system/transmission-daemon.service")),
 		'multicast' => menu_link('/services/multicast', 'Multicast Relay Setup', 'fab fa-chromecast', file_exists("/lib/systemd/system/multicast-relay.service")),
-		'compose'   => menu_link('/services/compose', 'Docker Compose', 'fab fa-docker', file_exists("/lib/systemd/system/docker-compose.service")),
+		'compose'   => menu_link('/services/compose', 'Docker Compose', 'fab fa-docker', file_exists("/lib/systemd/system/docker-compose@.service")),
 		'ddclient'  => menu_link('/services/ddclient', 'Dynamic DNS Client', 'fas fa-thumbtack', file_exists("/lib/systemd/system/ddclient.service")),
 	)),
 	'manage'  => array('Management', 'fas fa-cog', array(

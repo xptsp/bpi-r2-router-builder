@@ -194,7 +194,15 @@ function Init_Compose()
 {
 	__Services_Init('docker-compose');
 	$("#compose_submit").click(function() {
-		WebUI_Post("/services/compose", __postdata("submit", $("#contents-div").val()));
+		// Assemble the post data for the AJAX call:
+		postdata = {
+			'sid':      SID,
+			'action':   'submit',
+			'contents': $("#contents-div").val(),
+			'file':     $("#file").val(),
+		};
+		//alert(JSON.stringify(postdata, null, 5)); return;
+		WebUI_Post("/services/compose", postdata); 
 	}); 
 }
 

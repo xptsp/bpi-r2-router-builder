@@ -989,7 +989,8 @@ case $CMD in
 				shift 4
 			else
 				[[ "${CMD}" == "forward_port" ]] && INT_PORT=Y || INT_PORT=N
-				valid_ip $5 ${INT_PORT} || echo "ERROR: 4th param must have a valid IP address and port$([[ "$INT_PORT" == "N" ]] && echo " range")!"; exit 1
+				[[ "$INT_PORT" == "N" ]] && RANGE=" range" || unset RANGE
+				valid_ip $5 ${INT_PORT} || echo "ERROR: 4th param must have a valid IP address and port${RANGE}!"; exit 1
 				INT_ADDR=": ${5/:/ . }"
 				shift 5
 			fi
@@ -1037,7 +1038,7 @@ case $CMD in
 		FILE=
 		[[ "$1" == "miniupnpd" ]] && FILE=/etc/miniupnpd/miniupnpd.conf
 		[[ "$1" == "multicast-relay" ]] && FILE=/etc/default/multicast-relay
-		[[ "$1" == "docker-compose" ]] && FILE=/etc/docker-compose.yaml
+		[[ "$1" =~ ^compose/ ]] && FILE=/etc/docker/compose.d/${1/compose\//}.yaml
 		[[ "$1" == "ddclient" ]] && FILE=/etc/ddclient.conf && chmod 600 ${FILE}
 		[[ "$1" == "privoxy-blocklist" ]] && FILE=/etc/privoxy/blocklist.conf
 
