@@ -25,7 +25,8 @@ function services_start($service, $reload = false)
 {
 	$enabled = trim(@shell_exec("systemctl is-enabled " . $service)) == "enabled";
 	$active = trim(@shell_exec("systemctl is-active " . $service)) == "active";
-	$mode = ($enabled && $active) ? "success" : (($enabled && !$active) ? "warning" : ((!$enabled && $active) ? "info" : "danger"));
+	$skipped = !empty(trim(@shell_exec('systemctl status ' . $service . ' | grep "' . $service . '.service: Skipped due to \'exec-condition\'."')));
+	$mode = ($enabled && $active) ? "success" : (($enabled && !$active && !$skipped) ? "warning" : ($skipped || (!$enabled && $active) ? "info" : "danger"));
 
 	# Output site header with switch to enable service:
 	site_menu('
@@ -49,6 +50,9 @@ function services_start($service, $reload = false)
 	echo '
 	<div class="alert alert-' . $mode . ' alert-dismissible"" id="disabled_div">
 		<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-		<h5>&quot;', $service, '&quot; is ', !$enabled ? '<strong>NOT</strong> ' : '', 'enabled', $enabled && !$active ? ', but ' : ' and ', !$active ? '<strong>NOT</strong> ' : '', 'running.</h5>
+		<h5>&quot;', $service, '&quot; is ', 
+			!$enabled ? '<strong>NOT</strong> ' : '', 'enabled', 
+			$enabled && (!$active || $skipped) ? ', but ' : ' and ', 
+			!$skipped ? (!$active ? '<strong>NOT</strong> ' : '') . 'running.' : 'skipped.', '</h5>
 	</div>';
 }
