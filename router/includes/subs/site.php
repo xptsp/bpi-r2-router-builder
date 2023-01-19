@@ -27,14 +27,14 @@ $sidebar_menu = array(
 		'notify'    => menu_link('/advanced/notify', 'DHCP Notifications', 'fas fa-bullhorn', file_exists("/usr/bin/mosquitto_pub")),
 	)),
 	'proxy'  => array('Proxy', 'fas fa-ad', array(
-		'privoxy'   => menu_link('/proxy/privoxy', 'Privoxy Filters', 'fas fa-filter'),
+		'filters'   => menu_link('/proxy/filters', 'Privoxy Filters', 'fas fa-filter', file_exists("/usr/local/bin/privoxy-blocklist.sh") && file_exists("/lib/systemd/system/privoxy.service")),
 		#'blacklist' => menu_link('/proxy/blacklist', 'Website Blacklists', 'fas fa-filter'),
 	)),
 	'pivpn'  => array('PiVPN', 'fas fa-shield-alt', array(
 		'services'   => menu_link('/pivpn/services', 'Services', 'fas fa-cog'),
 	)),
 	'services'  => array('Services', 'fas fa-concierge-bell', array(
-		'upnp'      => menu_link('/services/upnp', 'UPnP Setup', 'fas fa-plug', file_exists("/lib/systemd/system/miniupnpd.service")),
+		'upnp'      => menu_link('/services/upnp', 'UPnP Setup', 'fas fa-plug', file_exists("/etc/systemd/system/miniupnpd.service")),
 		'usage'     => menu_link('/services/bandwidth', 'Bandwidth Usage', 'fas fa-chart-bar', file_exists("/lib/systemd/system/vnstat.service")),
 		'trans'     => menu_link('/services/transmission', 'Transmission Daemon', 'fas fa-file-download', file_exists("/lib/systemd/system/transmission-daemon.service")),
 		'multicast' => menu_link('/services/multicast', 'Multicast Relay Setup', 'fab fa-chromecast', file_exists("/lib/systemd/system/multicast-relay.service")),

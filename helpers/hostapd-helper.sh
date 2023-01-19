@@ -10,7 +10,7 @@
 # Are we starting hostapd on a particular interface?
 # If so, check if interface is a valid configuration and report error if not:
 ##############################################################################
-if [[ "$1" == "start" ]]; then
+if [[ "$1" == "check" ]]; then
 	[[ -z "$2" ]] && echo "ERROR: No hostapd configuration file specified as 2nd parameter!" && exit 2
 	[[ ! -f /etc/hostapd/$2.conf ]] && echo "ERROR: Hostapd configuration for interface $2 is missing!  Aborting!" && exit 3
 	IFACE=$(grep "^interface=" /etc/hostapd/$2.conf | cut -d= -f 2)
