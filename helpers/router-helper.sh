@@ -208,8 +208,11 @@ case $CMD in
 			cd ${DIR}
 			mkdir -p {upper,work,merged}
 			if test -d root; then LOW=./root; elif test -d /ro; then LOW=/ro; else LOW=/; fi
-			for DIR in $(ls | grep "^layer" | sed "s|layer||" | sort -n); do LOW=${LOW}:./layer${DIR}; done
+			for LAYER in $(ls | grep "^layer" | sed "s|layer||" | sort -n); do LOW=${LOW}:./layer${LAYER}; done
 			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
+			find mounts -maxdepth 1 -type d | grep -v "^mounts$" | while read MOUNT; do 
+				mkdir -p ${DIR}/${MOUNT/mounts/merged} && mount --bind ${MOUNT} ${DIR}/${MOUNT/mounts/merged}
+			done   
 			echo "CE" > merged/etc/debian_chroot
 		#####################################################################
 		# ENTER/CHROOT => Enters the created chroot for compilation environment

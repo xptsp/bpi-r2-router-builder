@@ -53,6 +53,6 @@ function services_start($service, $reload = false)
 		<h5>&quot;', $service, '&quot; is ', 
 			!$enabled ? '<strong>NOT</strong> ' : '', 'enabled', 
 			$enabled && (!$active || $skipped) ? ', but ' : ' and ', 
-			!$skipped ? (!$active ? '<strong>NOT</strong> ' : '') . 'running.' : 'skipped.', '</h5>
+			!$skipped ? (!$active ? '<strong>NOT</strong> ' : '') . 'running.' : 'has been skipped.', '</h5>
 	</div>';
 }
