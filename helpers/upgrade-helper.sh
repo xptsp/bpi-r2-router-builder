@@ -19,6 +19,75 @@ PFL=/var/local/bpiwrt-builder.filelist
 TFL=/tmp/bpiwrt-builder.filelist
 
 #####################################################################################
+# Process all command-line arguments:
+#####################################################################################
+for i in "$@"; do
+	case $i in
+		-f|--force-copy)
+			FORCE_COPY=true
+			;;
+
+		-s|--skip-copy)
+			SKIP_COPY=true
+			;;
+
+		-q|--quiet)
+			QUIET=true
+			;;
+	esac
+done
+
+#####################################################################################
+# Perform these operations in the read-only partition FIRST:
+#####################################################################################
+RW=($(mount | grep " /ro "))
+if [[ ! -z "${RW[5]}" ]]; then
+	#####################################################################################
+	# Enable any services deemed necessary by the script:
+	#####################################################################################
+	systemctl daemon-reload
+	systemctl is-enabled multicast-relay >& /dev/null || systemctl enable ${NOW} multicast-relay
+	systemctl is-enabled wifi >& /dev/null || systemctl enable ${NOW} wifi
+
+	#####################################################################################
+	# Unwrite-protect the readonly root partition and perform upgrade of RO partition:  
+	#####################################################################################
+	[[ "${RW[5]}" == *ro,* ]] && NOW="--now" && mount -o remount,rw /ro 2> /dev/null
+	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f
+
+	#####################################################################################
+	# Add any files to the list of files to backup: 
+	#####################################################################################
+	CHK=/etc/sysupgrade.conf
+	TMP=/tmp/sysupgrade.conf
+	cat ${CHK} | uniq | sort > ${TMP}
+	cat /ro/${CHK} | uniq | sort > ${TMP}.orig
+	grep -Fxvf ${TMP} ${TMP}.orig | while read line; do echo $line >> ${CHK}; done
+	rm ${TMP} ${TMP}.orig
+
+	#####################################################################################
+	# Replace default files as necessary:
+	#####################################################################################
+	cp -u ../misc/config/ddclient.conf /ro/etc/ddclient.conf 
+	cp -u ../misc/config/hd-idle /ro/etc/default/hd-idle
+	cp -u ../misc/config/multicast-relay /ro/etc/default/multicast-relay
+	cp -u ../misc/config/pihole.conf /ro/etc/pihole/setupVars.conf
+	cp -u ../misc/config/pihole-custom.list /ro/etc/pihole/custom.list
+	cp -u ../misc/config/privoxy-blocklist.conf /ro/etc/privoxy/blocklist.conf
+	cp -u ../misc/config/privoxy-config.conf /ro/etc/privoxy/config
+	cp -u ../misc/config/squid.conf /ro/etc/squid/squid.conf
+	cp -u ../misc/config/squid-whitelist.acl /ro/etc/squid/whitelist.acl
+	cp -u ../misc/config/squidGuard.conf /ro/etc/squidguard/squidGuard.conf
+	cp -u ../misc/config/transmission-daemon /ro/etc/default/transmission-daemon
+	cp -u ../misc/config/transmission.json /ro/home/vpn/.config/transmission-daemon/settings.json 
+
+	#####################################################################################
+	# Write-protect the readonly root partition:  
+	#####################################################################################
+	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /ro 2> /dev/null
+fi
+
+#####################################################################################
 # Files to copy only:
 #####################################################################################
 COPY_ONLY=(
@@ -38,6 +107,8 @@ COPY_ONLY=(
 	/etc/pivpn/
 	/etc/systemd/system/miniupnpd.service
 	/etc/persistent-nftables.conf
+	/etc/squidguard/*
+	/etc/squid/whitelist.acl
 	/root/.bash_aliases
 	/root/.bash_logout
 	/root/.bashrc
@@ -97,25 +168,6 @@ function replace()
 }
 
 #####################################################################################
-# Process all command-line arguments:
-#####################################################################################
-for i in "$@"; do
-	case $i in
-		-f|--force-copy)
-			FORCE_COPY=true
-			;;
-
-		-s|--skip-copy)
-			SKIP_COPY=true
-			;;
-
-		-q|--quiet)
-			QUIET=true
-			;;
-	esac
-done
-
-#####################################################################################
 # Copy or link files in the repo to their proper locations:
 #####################################################################################
 if ! cd /opt/bpi-r2-router-builder/files; then
@@ -148,50 +200,3 @@ cat $TFL | while read DEST; do
 	test -f ${DEST} && rm ${DEST}
 done
 
-#####################################################################################
-# Perform same operations in the read-only partition:
-#####################################################################################
-RW=($(mount | grep " /ro "))
-if [[ ! -z "${RW[5]}" ]]; then
-	#####################################################################################
-	# Enable any services deemed necessary by the script:
-	#####################################################################################
-	systemctl daemon-reload
-	systemctl is-enabled multicast-relay >& /dev/null || systemctl enable ${NOW} multicast-relay
-	systemctl is-enabled wifi >& /dev/null || systemctl enable ${NOW} wifi
-
-	#####################################################################################
-	# Unwrite-protect the readonly root partition and perform upgrade of RO partition:  
-	#####################################################################################
-	[[ "${RW[5]}" == *ro,* ]] && NOW="--now" && mount -o remount,rw /ro 2> /dev/null
-	chroot /ro /opt/bpi-r2-router-builder/upgrade.sh -f
-
-	#####################################################################################
-	# Add any files to the list of files to backup: 
-	#####################################################################################
-	CHK=/etc/sysupgrade.conf
-	TMP=/tmp/sysupgrade.conf
-	cat ${CHK} | uniq | sort > ${TMP}
-	cat /ro/${CHK} | uniq | sort > ${TMP}.orig
-	grep -Fxvf ${TMP} ${TMP}.orig | while read line; do echo $line >> ${CHK}; done
-	rm ${TMP} ${TMP}.orig
-
-	#####################################################################################
-	# Replace default files as necessary:
-	#####################################################################################
-	cp -u ../misc/config/ddclient.conf /ro/etc/ddclient.conf 
-	cp -u ../misc/config/hd-idle /ro/etc/default/hd-idle
-	cp -u ../misc/config/multicast-relay /ro/etc/default/multicast-relay
-	cp -u ../misc/config/pihole.conf /ro/etc/pihole/setupVars.conf
-	cp -u ../misc/config/pihole-custom.list /ro/etc/pihole/custom.list
-	cp -u ../misc/config/privoxy-blocklist.conf /ro/etc/privoxy/blocklist.conf
-	cp -u ../misc/config/privoxy-config.conf /ro/etc/privoxy/config
-	cp -u ../misc/config/squid.conf /ro/etc/squid/squid.conf
-	cp -u ../misc/config/transmission-daemon /ro/etc/default/transmission-daemon
-	cp -u ../misc/config/transmission.json /ro/home/vpn/.config/transmission-daemon/settings.json 
-
-	#####################################################################################
-	# Write-protect the readonly root partition:  
-	#####################################################################################
-	[[ "${RW[5]}" == *ro,* ]] && mount -o remount,ro /ro 2> /dev/null
-fi
