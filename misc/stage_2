@@ -335,8 +335,6 @@ test -f ${FILE}.default || cp ${FILE} ${FILE}.default
 cp /opt/bpi-r2-router-builder/misc/config/sarg.conf ${FILE}
 # Initialize Squid database:
 /usr/lib/squid/security_file_certgen -c -s /var/spool/squid/ssl_db -M 4MB
-# Create empty whitelist for Squid:
-cp /opt/bpi-r2-router-builder/misc/config/squid-whitelist.acl /etc/squid/whitelist.acl
 
 # Install SquidGuard with "--no-install-recommends" option because otherwise, the "squid-openssl" package
 # will be uninstalled in favor of the "squid" package, which doesn't have build-in SSL support:
