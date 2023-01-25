@@ -38,6 +38,14 @@ for i in "$@"; do
 done
 
 #####################################################################################
+# Change directory to repo.  Abort with error if something went wrong!
+#####################################################################################
+if ! cd /opt/bpi-r2-router-builder/files; then
+	echo "ERROR: Something went really wrong!  Aborting!!"
+	exit 1
+fi
+
+#####################################################################################
 # Perform these operations in the read-only partition FIRST:
 #####################################################################################
 RW=($(mount | grep " /ro "))
@@ -170,10 +178,6 @@ function replace()
 #####################################################################################
 # Copy or link files in the repo to their proper locations:
 #####################################################################################
-if ! cd /opt/bpi-r2-router-builder/files; then
-	echo "ERROR: Something went really wrong!  Aborting!!"
-	exit
-fi
 test -f ${PFL} || touch $PFL
 mv ${PFL} ${TFL}
 find . -type f | grep -v "^./root" | while read file; do replace ${file/.\//}; done
