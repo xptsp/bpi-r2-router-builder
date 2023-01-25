@@ -21,7 +21,6 @@ if [[ "$1" == "pre" ]]; then
 		test -f ${DIR}/${FILE} && [[ "$(wc -c < ${DIR}/${FILE} 2> /dev/null)" -eq 0 ]] && rm ${DIR}/${FILE}
 		test -f ${DIR}/${FILE} || sed -i "/${FILE}/d" ${CONFIG}
 	done
-fi
 
 #############################################################################
 # POST => If no Adblock files exist, call the "privoxy-blocklist.sh" script 
