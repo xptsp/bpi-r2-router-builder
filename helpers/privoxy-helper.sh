@@ -11,27 +11,31 @@ if [[ "${UID}" -ne 0 ]]; then
 	exit $?
 fi
 
-# If no Adblock files exist, call the "privoxy-blocklist.sh" script 
-# ONLY after our internet connection is up:
-if ! grep -q "\.adblock\." /etc/privoxy/config; then
-	echo "Waiting for Internet..."
-	while ! ping -c 1 -W 1 1.1.1.1; do sleep 1; done
-	/usr/local/bin/privoxy-blocklist.sh
+#############################################################################
+# PRE => Remove non-existant or zero-size files from configuration file:
+#############################################################################
+if [[ "$1" == "pre" ]]; then
+	DIR=/etc/privoxy
+	CONFIG=${DIR}/config
+	grep -E "^(filter|actions)file " ${CONFIG} | awk '{print $2}' | while read FILE; do
+		test -f ${DIR}/${FILE} && [[ "$(wc -c < ${DIR}/${FILE} 2> /dev/null)" -eq 0 ]] && rm ${DIR}/${FILE}
+		test -f ${DIR}/${FILE} || sed -i "/${FILE}/d" ${CONFIG}
+	done
 fi
 
-# Remove any non-existant or zero-size files from the Privoxy configuration file:
-DIR=/etc/privoxy
-CONFIG=${DIR}/config
-grep "^actionsfile " ${CONFIG} | awk '{print $2}' | while read FILE; do
-	if test -f ${DIR}/${FILE}; then 
-		[[ "$(wc -c < ${DIR}/${FILE} 2> /dev/null)" -eq 0 ]] && rm ${DIR}/${FILE}
-	fi 
-	test -f ${DIR}/${FILE} || sed -i "/${FILE}/d" ${CONFIG}
-done
-grep "^filterfile "  ${CONFIG} | awk '{print $2}' | while read FILE; do
-	if test -f ${DIR}/${FILE}; then
-		[[ "$(wc -c < ${DIR}/${FILE} 2> /dev/null)" -eq 0 ]] && rm ${DIR}/${FILE}
-	fi 
-	test -f ${DIR}/${FILE} || sed -i "/${FILE}/d" ${CONFIG}
-done
+#############################################################################
+# POST => If no Adblock files exist, call the "privoxy-blocklist.sh" script 
+#    ONLY after our internet connection is up:
+#############################################################################
+elif [[ "$1" == "post" ]]; then
+	if ! grep -q "\.adblock\." /etc/privoxy/config; then
+		echo "Waiting for Internet..."
+		while ! ping -c 1 -W 1 1.1.1.1; do sleep 1; done
+		/usr/local/bin/privoxy-blocklist.sh
+	fi
+fi
 
+#############################################################################
+# Exit with error code 0
+#############################################################################
+exit 0
