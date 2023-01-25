@@ -12,6 +12,7 @@ DHPARAM=${SQUID_CERT_DIR}/dhparam.pem
 CA_DIR=/usr/local/share/ca-certificates
 CA_CERT=${CA_DIR}/squid_proxyCA.crt
 TXT="transparent-squid"
+TABLE=$(grep -m 1 "^table inet " /etc/nftables.conf | awk '{print $3}')
 
 # Load router settings:
 test -f /etc/default/router-settings && source /etc/default/router-settings
