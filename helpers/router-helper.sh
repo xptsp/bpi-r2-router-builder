@@ -240,6 +240,7 @@ case $CMD in
 			$0 compile umount
 			test -d root && echo "[INFO] Destroying layer \"root\"..." && rm -rf root
 			test -d /ro && LOW=/ro || LOW=/
+			echo "[INFO] Copying \"${LOW}\" to \"root\"..."
 			cp -aR ${LOW} root 			
 			echo "[DONE] Root layer copied to directory \"root\"."
 		#####################################################################
@@ -247,21 +248,22 @@ case $CMD in
 		elif [[ "$1" == "add_layer" ]]; then
 			if ! cd ${DIR}; then echo "ERROR: No persistent folder created yet!  Aborting!"; exit 1; fi
 			$0 compile umount 
-			LAYER=$(for DIR in layer*; do echo ${DIR/layer/}; done | sort -n | tail -1)
-			LAYER=layer$(( ${LAYER/layer/} + 1 ))
+			LAYER=$(test -d layer* && for DIR in layer*; do echo ${DIR/layer/}; done | sort -n | tail -1)
+			LAYER=layer$(( ${LAYER} + 1 ))
 			mv upper ${LAYER}
 			echo "[DONE] Upper layer moved to directory \"${LAYER}\"."
 		#####################################################################
 		# DEL_LAYER => Removes last layer of overlay, plus upper and work directories:
 		elif [[ "$1" == "del_layer" ]]; then
 			if ! cd ${DIR}; then echo "ERROR: No persistent folder created yet!  Aborting!"; exit 1; fi
+			if ! test -d layer*; then echo "ERROR: No layers exist that can be removed!  Aborting!"; exit 2; fi
 			if [[ ! "$2" =~ -(y|-yes) ]]; then
 				echo "WARNING: The router will remove the last lower directory created.  In addition, the"
 				echo "script will remove changes made to the overlay environment.  This cannot be undone!"
 				askYesNo "Are you SURE you want to do this?" || exit 0
 			fi
 			$0 compile umount 
-			LAYER=$(for DIR in layer*; do echo ${DIR/layer/}; done | sort -n | tail -1)
+			LAYER=$(test -d layer* && for DIR in layer*; do echo ${DIR/layer/}; done | sort -n | tail -1)
 			echo "[INFO] Destroying layer \"${LAYER}\", upper and work directories..."
 			rm -rf ${DIR}/{upper,work,${LAYER}}
 			echo "[DONE] Completed!"
