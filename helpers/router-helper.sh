@@ -208,7 +208,7 @@ case $CMD in
 			cd ${DIR}
 			mkdir -p {upper,work,merged}
 			if test -d root; then LOW=./root; elif test -d /ro; then LOW=/ro; else LOW=/; fi
-			for LAYER in $(ls | grep "^layer" | sed "s|layer||" | sort -n); do LOW=${LOW}:./layer${LAYER}; done
+			for LAYER in $(ls | grep "^layer" | sed "s|layer||" | sort -n); do LOW=./layer${LAYER}:${LOW}; done
 			mount -t overlay chroot_env -o lowerdir=${LOW},upperdir=./upper,workdir=./work ./merged
 			find mounts -maxdepth 1 -type d | grep -v "^mounts$" | while read MOUNT; do 
 				mkdir -p ${DIR}/${MOUNT/mounts/merged} && mount --bind ${MOUNT} ${DIR}/${MOUNT/mounts/merged}
@@ -228,7 +228,7 @@ case $CMD in
 		#####################################################################
 		# UMOUNT => Creates overlayfs for compilation environment
 		elif [[ "$1" == "umount" ]]; then
-			mount | grep "${DIR}/merged" | awk '{print $3}' | tac | while read mount; do umount $mount; done
+			mount | grep "${DIR}/merged" | awk '{print $3}' | tac | while read mount; do umount -l $mount; done
 		#####################################################################
 		# COPY_ROOT => Copies root folder into the persistent tree as layer0:
 		elif [[ "$1" == "copy_root" ]]; then
