@@ -9,20 +9,22 @@ function los
 		local dev=$(sudo losetup --show -f -P $1)
 		local dest=${dev/dev/mnt}
 		echo $dest
-		if [[ ! "$(basename $1)" =~ ^(bpiwrt_|img_|btrfs_|bpi-r2) ]]; then
+		local root=$(blkid | grep "^${dev}p" | grep "LABEL=\"BPI-ROOT\"" | cut -d: -f 1)
+		local boot=$(blkid | grep "^${dev}p" | grep "LABEL=\"BPI-BOOT\"" | cut -d: -f 1)
+		if [[ -z "${boot}" || -z "${root}" ]]; then
 			for part in ${dev}p*; do
 				sudo mkdir -p ${part/dev/mnt}
 				sudo mount ${part} ${part/dev/mnt}
 			done
 		else
 			sudo mkdir -p ${dest}
-			sudo mount ${dev}p2 ${dest}
+			sudo mount ${root} ${dest}
 			if [[ -d ${dest}/@ ]]; then
 				sudo umount ${dev}p2
 				sudo mount -o subvol=@ ${dev}p2 ${dest}
 			fi 
 			sudo mkdir -p ${dest}/boot
-			sudo mount ${dev}p1 ${dest}/boot
+			sudo mount ${boot} ${dest}/boot
 			test -d ${dest}/proc && sudo mount --bind /proc ${dest}/proc
 			test -d ${dest}/sys && sudo mount --bind /sys ${dest}/sys
 			test -d ${dest}/tmp && sudo mount --bind /tmp ${dest}/tmp
