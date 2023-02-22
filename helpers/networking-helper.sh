@@ -80,6 +80,7 @@ for IFACE in $(iw dev | grep Interface | awk '{print $NF}'); do
 	FILE=/etc/network/interfaces.d/${IFACE}
 	if ! test -f ${FILE}; then
 		echo "auto ${IFACE}" > ${FILE}
+		echo "allow-hotplug ${IFACE}" >> ${FILE}
 		echo "iface ${IFACE} inet manual" >> ${FILE}
 	fi
 	iwconfig ${IFACE} txpower 30
