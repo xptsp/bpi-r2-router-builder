@@ -18,24 +18,24 @@ test -f /etc/default/transmission-daemon && source /etc/default/transmission-dae
 #############################################################################
 if [[ "$1" == "start" ]]; then
 	# Get IPv4 and IPv6 address from the VPN client interface to bind to.
-	IFACE=$(sudo $0 init)
-	unset IPv4 IPv6
+	IFACE=$(sudo $0 init | grep "^VPN=" | cut -d= -f 2)
+	unset BIND_IPv4 BIND_IPv6
 	if [[ ! -z "${IFACE}" ]]; then
-		IPv4=$(ifconfig ${IFACE} | grep -m 1 "inet " | awk '{print $2}')
-		IPv6=$(ifconfig ${IFACE} | grep -m 1 "inet6 " | awk '{print $2}')
+		BIND_IPv4=$(ip addr show ${IFACE} | grep -m 1 inet | awk '{print $2}' | cut -d/ -f 1)
+		BIND_IPv6=$(ip addr show ${IFACE} | grep -m 1 inet6 | awk '{print $2}' | cut -d/ -f 1)
 	fi
+	sed -i "s|\"bind-address-ipv4\": \".*|\"bind-address-ipv4\": \"${BIND_IPv4:-"255.255.255.1"}\",|" ${SETTINGS}
+	sed -i "s|\"bind-address-ipv6\": \".*|\"bind-address-ipv6\": \"${BIND_IPv6:-"fe80::"}\",|" ${SETTINGS}
 
-	# Set transmission-daemon set credentials for WebUI:
-	# NOTE: We don't set this via command-line because it could be easily stolen via command-line....
-	TRANS_USER=${TRANS_USER:-"pi"}
-	[[ "$(grep -m 1 "rpc-username" ${SETTINGS} | cut -d\" -f 4)" != "${TRANS_USER}" ]] && sed -i "s|\"rpc-username\": \".*|\"rpc-username\": \"${TRANS_USER}\",|" ${SETTINGS}
-	TRANS_PASS=${TRANS_PASS:-"bananapi"}
-	[[ "$(grep -m 1 "rpc-password" ${SETTINGS} | cut -d\" -f 4)" != "${TRANS_PASS}" ]] && sed -i "s|\"rpc-password\": \".*|\"rpc-password\": \"${TRANS_PASS}\",|" ${SETTINGS}
+	# Read transmission-daemon defaults and set credentials for WebUI:
+	# << Defaults >> Username: pi    Password: bananapi
+	sed -i "s|\"rpc-username\": \".*|\"rpc-username\": \"${TRANS_USER:-"pi"}\",|" ${SETTINGS}
+	sed -i "s|\"rpc-password\": \".*|\"rpc-password\": \"${TRANS_PASS:-"bananapi"}\",|" ${SETTINGS}
 
 	# Start the daemon:
 	exec /usr/bin/transmission-daemon -f --log-error --port=${TRANS_PORT:-"9091"} --no-portmap \
 		--bind-address-ipv4=${IPv4:-"255.255.255.1"} --bind-address-ipv6=${IPv6:-"fe80::"} \
-		--rpc-bind-address=$(ifconfig ${TRANS_IFACE:-"br0"} | grep -m 1 "inet " | awk '{print $2}')
+		--rpc-bind-address=127.0.0.1
 
 #############################################################################
 # Are we stopping the service?
@@ -63,23 +63,19 @@ elif [[ "$1" == "init" ]]; then
 		ln -sf ${DIR}/${TRANS_WEBUI} ${WEB}
 	fi
 
-	# Add firewall rule allowing outbound communication on WebUI port:
-	nft insert rule inet ${TABLE} output_user_vpn tcp dport ${TRANS_PORT:-"9091"} oifname @DEV_LAN accept comment "transmission-daemon" 
-
 	# Add a firewall rule allowing inbound traffic over the VPN client:
 	IFACE=$(nft list set inet ${TABLE} DEV_VPN_CLIENT | grep "elements" | cut -d\" -f 2)
 	if [[ ! -z "${IFACE}" ]]; then
 		PEER=$(grep '"peer-port": [0-9]*' ${SETTINGS} | awk '{print $2}' | sed "s|,||")
 		nft add rule inet ${TABLE} input_vpn_client tcp dport ${PEER:-"51543"} accept comment "transmission-daemon"
 	fi
-	echo "$IFACE"
+	echo "VPN=$IFACE"
 
 #############################################################################
 # Do we need to remove the firewall rule for VPN traffic?
 #############################################################################
 elif [[ "$1" == "deinit" ]]; then
 	nft delete rule inet ${TABLE} input_vpn_client handle $(nft -a list chain inet ${TABLE} input_vpn_client | grep "transmission-daemon" | awk '{print $NF}')
-	nft delete rule inet ${TABLE} output_user_vpn handle $(nft -a list chain inet ${TABLE} output_user_vpn | grep "transmission-daemon" | awk '{print $NF}')
 fi
 
 #############################################################################

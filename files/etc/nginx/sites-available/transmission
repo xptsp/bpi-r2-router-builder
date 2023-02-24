@@ -1,0 +1,13 @@
+server {
+	listen 192.168.2.1:9091;
+
+	root /data/www;
+	autoindex on;
+
+	server_name bpiwrt;
+
+	location / {
+		proxy_pass_header  X-Transmission-Session-Id;
+		proxy_pass         http://127.0.0.1:9091;
+	}
+}
