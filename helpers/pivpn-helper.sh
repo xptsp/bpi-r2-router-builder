@@ -124,23 +124,20 @@ done
 # Add the necessary firewall rules for this interface if we are starting a service:
 #############################################################################################
 if [[ "$1" == "start" ]]; then
-	pivpnNET=$(grep -m 1 "^server" ${FILE} | awk '{print $2}') 
-	pivpnPORT=$(grep -m 1 "^port" ${FILE} | awk '{print $2}')
-
 	# Allow everything in through the server interface:
 	nft add rule inet ${TABLE} input iifname ${pivpnDEV} accept comment \"${TXT}\"
 
 	# Masquerade all communication to this interface:
-	nft insert rule inet ${TABLE} nat_postrouting oifname ${IPv4dev} ip saddr ${pivpnNET}/${subnetClass} masquerade comment \"${TXT}\"
+	nft add rule inet ${TABLE} nat_postrouting_wan ip saddr ${pivpnNET}/${subnetClass} masquerade comment \"${TXT}\"
 
 	# Allow the server port to be accepted by the firewall:
-	nft insert rule inet ${TABLE} input_wan iifname ${IPv4dev} udp dport ${pivpnPORT} accept comment \"${TXT}\"
+	nft add rule inet ${TABLE} input_wan udp dport ${pivpnPORT} accept comment \"${TXT}\"
 
 	# Allow this interface to access the internet, but only allow established/related connections back:
-	nft insert rule inet ${TABLE} forward_vpn_server iifname ${IPv4dev} oifname ${pivpnDEV} ip daddr ${pivpnNET}/${subnetClass} ct state related,established accept comment \"${TXT}\"
-	nft insert rule inet ${TABLE} forward_vpn_server iifname ${pivpnDEV} oifname ${IPv4dev} ip saddr ${pivpnNET}/${subnetClass} accept comment \"${TXT}\"
+	nft add rule inet ${TABLE} forward_vpn_server iifname ${pivpnDEV} oifname ${IPv4dev} ip saddr ${pivpnNET}/${subnetClass} accept comment \"${TXT}\"
+	nft add rule inet ${TABLE} forward_vpn_server iifname ${IPv4dev} oifname ${pivpnDEV} ip daddr ${pivpnNET}/${subnetClass} ct state related,established accept comment \"${TXT}\"
 
 	# Allow this interface and the local network communication bi-directionally:
-	nft insert rule inet ${TABLE} forward_vpn_server iifname @DEV_LAN oifname ${pivpnDEV} ip daddr ${pivpnNET}/${subnetClass} ct state related,established accept comment \"${TXT}\"
-	nft insert rule inet ${TABLE} forward_vpn_server iifname ${pivpnDEV} oifname @DEV_LAN ip saddr ${pivpnNET}/${subnetClass} accept comment \"${TXT}\"
+	nft add rule inet ${TABLE} forward_vpn_server iifname ${pivpnDEV} oifname @DEV_LAN ip saddr ${pivpnNET}/${subnetClass} accept comment \"${TXT}\"
+	nft add rule inet ${TABLE} forward_vpn_server iifname @DEV_LAN oifname ${pivpnDEV} ip daddr ${pivpnNET}/${subnetClass} ct state related,established accept comment \"${TXT}\"
 fi
