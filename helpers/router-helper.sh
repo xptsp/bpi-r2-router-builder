@@ -458,8 +458,8 @@ case $CMD in
 			cp /boot/persistent.conf ${BACKUP}/boot/ 2> /dev/null
 
 			# Sort "/etc/sysupgrade.conf" and include in backup if different:
-			cat /etc/sysupgrade.conf | sort > ${BACKUP}/etc/sysupgrade.conf
-			cat /ro/etc/sysupgrade.conf | sort > /tmp/sysupgrade.conf
+			cat /etc/sysupgrade.conf | sort | sed '/^$/d' | sed '/^\s*$/d' > ${BACKUP}/etc/sysupgrade.conf
+			cat /ro/etc/sysupgrade.conf | sort | sed '/^$/d' | sed '/^\s*$/d' > /tmp/sysupgrade.conf
 			cmp -s ${BACKUP}/etc/sysupgrade.conf /tmp/sysupgrade.conf >& /dev/null && rm ${BACKUP}/etc/sysupgrade.conf
 			rm /tmp/sysupgrade.conf
 
@@ -467,7 +467,7 @@ case $CMD in
 			cat /etc/sysupgrade.conf | while read LINE; do
 				[[ "$LINE" =~ ^/ ]] && ROOT=/ || ROOT=/rw/upper/
 				if [[ ! -z "${LINE}" ]]; then
-					for FILE in $(ls ${ROOT}/${LINE}); do
+					for FILE in $(find ${ROOT}/${LINE} -maxdepth 1); do
 						DIR=${BACKUP}/$(dirname ${FILE} | sed "s|${ROOT}/||")
 						mkdir -p ${DIR}
 						cp -a ${FILE} ${DIR}/
@@ -521,6 +521,7 @@ case $CMD in
 		# REMOVE => Remove uploaded configuration backup:
 		elif [[ "$1" == "unlink" ]]; then
 			umount -q /tmp/bpiwrt 2> /dev/null
+			mount | grep "/boot/bpiwrt.cfg" | awk '{print $3}' | while read DIR; do umount ${DIR}; done
 			test -f /tmp/bpiwrt.cfg && rm /tmp/bpiwrt.cfg
 		#####################################################################
 		# PREP => Prep the uploaded configuration backup to be restored:
