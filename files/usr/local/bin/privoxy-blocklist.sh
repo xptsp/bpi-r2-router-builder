@@ -254,24 +254,24 @@ function main() {
 		debug "... created actionfile for ${list}." 1
 
 		# install Privoxy actionsfile
-		install -o "${PRIVOXY_USER}" -g "${PRIVOXY_GROUP}" "${VERBOSE[@]}" "${actionfile}" "${PRIVOXY_DIR}"
+		install -m 644 -o "${PRIVOXY_USER}" -g "${PRIVOXY_GROUP}" "${VERBOSE[@]}" "${actionfile}" "${PRIVOXY_DIR}"
 		if ! grep -q "$(basename "${actionfile}")" "${PRIVOXY_CONF}"; then
 			debug "\nModifying ${PRIVOXY_CONF} ..." 0
 			sed "s/^actionsfile user\.action/actionsfile $(basename "${actionfile}")\nactionsfile user.action/" "${PRIVOXY_CONF}" > "${TMPDIR}/config"
 			debug "... modification done.\n" 0
 			debug "Installing new config ..." 0
-			install -o "${PRIVOXY_USER}" -g "${PRIVOXY_GROUP}" "${VERBOSE[@]}" "${TMPDIR}/config" "${PRIVOXY_CONF}"
+			install -m 644 -o "${PRIVOXY_USER}" -g "${PRIVOXY_GROUP}" "${VERBOSE[@]}" "${TMPDIR}/config" "${PRIVOXY_CONF}"
 			debug "... installation done\n" 0
 		fi
 
 		# install Privoxy filterfile
-		install -o "${PRIVOXY_USER}" -g "${PRIVOXY_GROUP}" "${VERBOSE[@]}" "${filterfile}" "${PRIVOXY_DIR}"
+		install -m 644 -o "${PRIVOXY_USER}" -g "${PRIVOXY_GROUP}" "${VERBOSE[@]}" "${filterfile}" "${PRIVOXY_DIR}"
 		if ! grep -q "$(basename "${filterfile}")" "${PRIVOXY_CONF}"; then
 			debug "\nModifying ${PRIVOXY_CONF} ..." 0
 			sed "s/^\(#*\)filterfile user\.filter/filterfile $(basename "${filterfile}")\n\1filterfile user.filter/" "${PRIVOXY_CONF}" > "${TMPDIR}/config"
 			debug "... modification done.\n" 0
 			debug "Installing new config ..." 0
-			install -o "${PRIVOXY_USER}" -g "${PRIVOXY_GROUP}" "${VERBOSE[@]}" "${TMPDIR}/config" "${PRIVOXY_CONF}"
+			install -m 644 -o "${PRIVOXY_USER}" -g "${PRIVOXY_GROUP}" "${VERBOSE[@]}" "${TMPDIR}/config" "${PRIVOXY_CONF}"
 			debug "... installation done\n" 0
 		fi
 
