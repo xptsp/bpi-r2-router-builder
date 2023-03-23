@@ -48,9 +48,9 @@ function losd
 		echo "ERROR: No image mounted for \"${1}\".  Aborting..."
 	else
 		for part in $(mount | grep -e "${dev/dev/mnt}/" | awk '{print $3}' | tac); do sudo umount $part; done
-		sudo umount ${dev/dev/mnt}
+		sudo umount ${dev/dev/mnt}{,p*} 2> /dev/null
 		sudo losetup -d ${dev}
-		sudo rmdir ${dev/dev/mnt}
+		sudo rmdir ${dev/dev/mnt}{,p*} 2> /dev/null
 	fi
 }
 function bpiwrt
