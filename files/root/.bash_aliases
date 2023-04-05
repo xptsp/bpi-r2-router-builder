@@ -1,10 +1,12 @@
 alias docker-compose='docker compose'
 alias dpkg-deb='dpkg-deb -Zxz $@'
-alias losl='losetup -l | sort -V'
+alias losl='losetup -l | sort -V | grep -v "/var/lib/"'
 function los
 {
 	if [[ -z "$1" || ! -f "$1" ]]; then
 		echo "Syntax: los [filename]"
+	elif losetup | grep -q "/$1^"; then
+		echo "ERROR: Specified image is already mounted!"
 	else
 		local dev=$(sudo losetup --show -f -P $1)
 		local dest=${dev/dev/mnt}
@@ -37,7 +39,7 @@ function los
 function losd
 {
 	local dev="${1/^mnt/dev}"
-	local mnt=$(basename ${dev})
+	local mnt=$([[ ! -z "${dev}" ]] && basename ${dev})
 	if [[ -z "${dev}" ]]; then
 		echo "Syntax: losd [loop device path]"
 		return 0
