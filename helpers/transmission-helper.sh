@@ -34,7 +34,7 @@ if [[ "$1" == "start" ]]; then
 
 	# Start the daemon:
 	exec /usr/bin/transmission-daemon -f --log-error --port=${TRANS_PORT:-"9091"} --no-portmap \
-		--bind-address-ipv4=${IPv4:-"255.255.255.1"} --bind-address-ipv6=${IPv6:-"fe80::"} \
+		--bind-address-ipv4=${BIND_IPv4:-"255.255.255.1"} --bind-address-ipv6=${BIND_IPv6:-"fe80::"} \
 		--rpc-bind-address=127.0.0.1
 
 #############################################################################
