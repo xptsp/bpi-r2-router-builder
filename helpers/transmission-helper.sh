@@ -70,6 +70,9 @@ elif [[ "$1" == "init" ]]; then
 		nft add rule inet ${TABLE} input_vpn_client tcp dport ${PEER:-"51543"} accept comment "transmission-daemon"
 	fi
 	echo "VPN=$IFACE"
+	
+	# Make sure user "vpn" owns everything under "/home/vpn/.config":
+	chown vpn:vpn -R /home/vpn/.config/*
 
 #############################################################################
 # Do we need to remove the firewall rule for VPN traffic?
