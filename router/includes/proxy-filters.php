@@ -82,8 +82,8 @@ echo '
 			<thead>
 				<tr>
 					<th width="10px"></th>
-					<th>Filter Name</th>
-					<th style="width: 70%">Description</th>
+					<th style="width: 25%">Filter Name</th>
+					<th style="width: 75%">Description</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -100,8 +100,8 @@ echo '
 			<thead>
 				<tr>
 					<th width="10px"></th>
-					<th>Filter Name</th>
-					<th style="width: 70%">Description</th>
+					<th style="width: 25%">Filter Name</th>
+					<th style="width: 75%">Description</th>
 				</tr>
 			</thead>
 			<tbody>
