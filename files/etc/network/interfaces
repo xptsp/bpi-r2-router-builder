@@ -4,6 +4,11 @@
 auto lo
 iface lo inet loopback
 
+auto aux
+iface aux inet manual
+    pre-up ip link set $IFACE up
+    post-down ip link set $IFACE down
+
 auto eth0
 iface eth0 inet manual
     pre-up ip link set $IFACE up

@@ -467,5 +467,5 @@ echo "SHOW_REVOKED=1" >> ${setupVars}
 echo "HELP_SHOWN=1" >> ${setupVars}
 
 #=============================================================================================
-# <<NOTE TO SELF>> 2022-12-21: Bullseye image complete up to here!
+# <<NOTE TO SELF>> 2023-05-17: Bullseye image complete up to here!
 #=============================================================================================
