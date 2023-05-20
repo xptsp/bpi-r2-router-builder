@@ -37,16 +37,18 @@ END=$(( $(sudo fdisk --list ${DEV} | grep "${SRCH}" | awk '{print $3}') + 1 ))
 FILE=${1:-"img_v$(date +"%Y.%m%d.%H%M").img"}
 MB=$(( ${END} / 2 / 1024 / 4))
 SZ=$(( ${END} * 512 ))
-echo -e "${GREEN}================================================================${NC}"
+echo -e "${GREEN}=================================================================================${NC}"
 echo -e "${GREEN}NOTE:${NC} Backing up ${BLUE}${DEV}${NC} to ${BLUE}${FILE}${NC}...."
 echo -e "${GREEN}INFO:${NC} $(printf "%'.0f\n" ${END}) blocks = $(printf "%'.0f\n" $(( ${MB} * 4))) MB ($(printf "%'.0f\n" ${SZ}))"
-echo -e "${GREEN}================================================================${NC}"
-if [[ ! "${DEV}" =~ "/dev/mmcblk" ]]; then
+echo -e "${GREEN}=================================================================================${NC}"
+if [[ ! "${DEV}" =~ "/dev/mmcblk" ]] || [[ "${FILE}" != "^img_v" ]]; then
 	dd if=${DEV} bs=4M count=${MB} | pv -w 80 -s ${SZ} | dd bs=4M of=${FILE}
-	echo -e "${GREEN}================================================================${NC}"
+else
+	dd if=${DEV} bs=4M count=${MB} | pv -w 80 -s ${SZ} | ssh doug@doug-pc.local "dd bs=4M of=~/R2/${FILE}"
+fi
+echo -e "${GREEN}================================================================${NC}"
+if [[ ! "${DEV}" =~ "/dev/mmcblk" ]] && [[ ! $FILE =~ "^img_v" ]]; then
 	eject ${DEV}
 	echo -e "${GREEN}INFO:${NC} ${BLUE}${DEV}${NC} has been ejected!"
 	$(dirname $0)/cleanup ${FILE} --origin=${DEV}
-else
-	dd if=${DEV} bs=4M count=${MB} | pv -w 80 -s ${SZ} | ssh doug@doug-pc.local "dd bs=4M of=~/R2/${FILE}"
 fi
